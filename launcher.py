@@ -51,7 +51,7 @@ class Launcher(QWidget):
 
         title_label = QLabel("GUI Video Downloader Launcher")
         title_label.setObjectName("title")
-        subtitle_label = QLabel("Version 1.1.1")
+        subtitle_label = QLabel("Version 1.1.2")
         subtitle_label.setObjectName("subtitle")
 
         title_col = QVBoxLayout()

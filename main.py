@@ -55,12 +55,18 @@ QProgressBar {
     background-color: #1f1f1f;
     color: #ffffff;
     border: 1px solid #333333;
-    border-radius: 6px;
-    text-align: center;
+    border-radius: 6px;    text-align: center;
 }
 QProgressBar::chunk {
     background-color: #00bfff;
     border-radius: 6px;
+}
+QLabel#progress {
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    text-align: center;
 }
 QComboBox:disabled, QCheckBox:disabled, QLineEdit:disabled {
     background-color: #2b2b2b;

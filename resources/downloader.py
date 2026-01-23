@@ -1,10 +1,10 @@
 import subprocess
 import threading
-import re
 from pathlib import Path
 import validators
 import requests
 from PySide6.QtCore import QObject, Signal
+from resources.notifications import PopupManager
 
 YT_DLP_PATH = Path(__file__).parent.parent / "data" / "requirements" / "yt-dlp.exe"
 FFMPEG_PATH = Path(__file__).parent.parent / "data" / "requirements"
@@ -14,7 +14,7 @@ class Downloader(QObject):
     progress_signal = Signal(float)
     finished_signal = Signal(bool, str)
 
-    def __init__(self, popup_manager, progress_callback=None, output_callback=None):
+    def __init__(self, popup_manager: PopupManager, progress_callback=None, output_callback=None):
         super().__init__()
         self.popup = popup_manager
         self.process = None
@@ -26,13 +26,13 @@ class Downloader(QObject):
             self.progress_signal.connect(lambda v: self.progress_callback(v))
         self.finished_signal.connect(self._on_finished_signal)
 
-    def _on_finished_signal(self, ok, msg):
+    def _on_finished_signal(self, ok: bool, msg: str):
         if ok:
             self.popup.show_success(msg)
         else:
             self.popup.show_error(msg)
 
-    def check_internet(self):
+    def check_internet(self) -> bool:
         try:
             requests.get("https://www.google.com", timeout=5)
             return True
@@ -86,24 +86,19 @@ class Downloader(QObject):
         if frag_from and frag_to:
             cmd += ["--download-sections", f"*{frag_from}-{frag_to}"]
 
-        is_live = "live" in url.lower()
-
-        if is_live:
-            cmd += ["--progress-template", "%(progress._percent_str)s"]
+        if audio_only:
+            cmd.append("-x")
+            if audio_format.lower() != "default":
+                cmd += ["--audio-format", audio_format.lower()]
+            if audio_quality.lower() != "default":
+                cmd += ["--audio-quality", audio_quality.replace("kbps", "K")]
         else:
-            if audio_only:
-                cmd.append("-x")
-                if audio_format.lower() != "default":
-                    cmd += ["--audio-format", audio_format.lower()]
-                if audio_quality.lower() != "default":
-                    cmd += ["--audio-quality", audio_quality.replace("kbps", "K")]
-            else:
-                cmd += ["-f", "bv+ba"]
-                if video_quality.lower() != "default":
-                    res_value = video_quality.replace("p", "")
-                    cmd += ["-S", f"res:{res_value}"]
-                if video_format.lower() != "default":
-                    cmd += ["--merge-output-format", video_format.lower()]
+            cmd += ["-f", "bv+ba"]
+            if video_quality.lower() != "default":
+                res_value = video_quality.replace("p", "")
+                cmd += ["-S", f"res:{res_value}"]
+            if video_format.lower() != "default":
+                cmd += ["--merge-output-format", video_format.lower()]
 
         if custom_arg:
             cmd += [custom_arg]
@@ -114,7 +109,6 @@ class Downloader(QObject):
                 si = subprocess.STARTUPINFO()
                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 si.wShowWindow = subprocess.SW_HIDE
-
                 self.process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
@@ -124,22 +118,15 @@ class Downloader(QObject):
                     startupinfo=si,
                     bufsize=1
                 )
-
-                percent_re = re.compile(r'(\d+(?:\.\d+)?)%')
-
-                while True:
-                    line = self.process.stdout.readline()
-                    if not line:
-                        break
-                    s = line.strip()
-                    self.output_signal.emit(s)
-                    m = percent_re.search(s)
-                    if m:
+                for line in self.process.stdout:
+                    self.output_signal.emit(line.strip())
+                    if "[download]" in line and "%" in line:
                         try:
-                            self.progress_signal.emit(float(m.group(1)))
-                        except:
+                            percent_str = line.split("%")[0].split()[-1]
+                            percent = float(percent_str)
+                            self.progress_signal.emit(percent)
+                        except Exception:
                             pass
-
                 self.process.wait()
                 if self.process.returncode == 0:
                     self.finished_signal.emit(True, "Download completed successfully!")

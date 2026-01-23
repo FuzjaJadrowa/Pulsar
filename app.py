@@ -4,12 +4,14 @@ from PySide6.QtCore import QTimer
 
 from resources.downloader import Downloader
 from resources.notifications import PopupManager
+from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QComboBox, QCheckBox, QFileDialog, QTextEdit, QStackedWidget
+from PySide6.QtGui import QIcon, QPixmap, Qt
+from PySide6.QtCore import QTimer
 
 class VideoDownloaderGUI(QWidget):
     def __init__(self, resource_path_func):
         super().__init__()
         self.resource_path = resource_path_func
-
         self.setWindowTitle("GUI Video Downloader")
         self.setFixedSize(550, 600)
         self.setWindowIcon(QIcon(str(self.resource_path("icon.ico"))))
@@ -22,16 +24,13 @@ class VideoDownloaderGUI(QWidget):
 
         title_layout = QHBoxLayout()
         title_layout.setAlignment(Qt.AlignCenter)
-
         icon_label = QLabel()
         icon_label.setPixmap(QPixmap(str(self.resource_path("icon.ico"))).scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_layout.addWidget(icon_label)
-
         self.title_label = QLabel("GUI Video Downloader")
         self.title_label.setObjectName("title")
         self.title_label.setAlignment(Qt.AlignCenter)
         title_layout.addWidget(self.title_label)
-
         main_layout.addLayout(title_layout)
 
         self.stack = QStackedWidget()
@@ -120,9 +119,10 @@ class VideoDownloaderGUI(QWidget):
         download_layout.addWidget(self.cmd_preview_label)
         download_layout.addWidget(self.cmd_preview_text)
 
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        download_layout.addWidget(self.progress_bar)
+        self.progress_label = QLabel("Press Start")
+        self.progress_label.setObjectName("progress")
+        self.progress_label.setAlignment(Qt.AlignCenter)
+        download_layout.addWidget(self.progress_label)
 
         buttons_layout = QHBoxLayout()
         self.start_button = QPushButton("Start")
@@ -192,9 +192,7 @@ class VideoDownloaderGUI(QWidget):
         frag_from = self.frag_from.text().strip()
         frag_to = self.frag_to.text().strip()
         custom_arg = self.custom_arg_input.text().strip()
-
         cmd = ["yt-dlp"]
-
         if cookies and cookies.lower() != "none":
             cmd += ["--cookies-from-browser", cookies.lower()]
         if frag_from and frag_to:
@@ -234,10 +232,9 @@ class VideoDownloaderGUI(QWidget):
         frag_from = self.frag_from.text().strip()
         frag_to = self.frag_to.text().strip()
         custom_arg = self.custom_arg_input.text().strip()
-
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
-
+        self.progress_label.setText("Downloading...")
         self.downloader.download_video(
             url, path, cookies=cookies, audio_only=audio_only,
             audio_format=audio_format, audio_quality=audio_quality,
@@ -250,16 +247,20 @@ class VideoDownloaderGUI(QWidget):
     def on_download_finished(self):
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
-        self.progress_bar.setValue(0)
+        self.progress_label.setText("Press Start")
 
     def stop_download(self):
         if hasattr(self, "downloader") and self.downloader:
             self.downloader.stop_download()
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
+        self.progress_label.setText("Press Start")
 
     def update_progress(self, percent):
-        self.progress_bar.setValue(int(percent))
+        if percent > 0:
+            self.progress_label.setText("Downloading...")
+        else:
+            self.progress_label.setText("Press Start")
 
     def update_console(self, text):
         self.console_output.append(text)
