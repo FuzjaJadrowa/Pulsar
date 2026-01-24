@@ -1,0 +1,180 @@
+
+QWidget {
+    font-family: "Segoe UI";
+    font-size: 14px;
+}
+
+#PageTitle {
+    font-family: "Montserrat ExtraBold";
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#SectionHeader {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#Sidebar {
+    border-right: 1px solid #E0E0E0;
+}
+
+#Sidebar QPushButton {
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+}
+
+QPushButton#actionBtn {
+    background-color: #0078D7;
+    color: white;
+    border-radius: 6px;
+    font-weight: bold;
+    padding: 8px 20px;
+    min-width: 120px;
+    min-height: 30px;
+}
+
+QPushButton#actionBtn:hover {
+    background-color: #429CE3;
+}
+
+QPushButton#actionBtn:pressed {
+    background-color: #005A9E;
+}
+
+QPushButton#actionBtn:disabled {
+    background-color: #CCCCCC;
+    color: #666666;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 11px;
+    border: 2px solid #999999;
+}
+
+QRadioButton::indicator:checked {
+    background-color: #28a745;
+    border: 2px solid #28a745;
+}
+
+QRadioButton::indicator:unchecked {
+    background-color: transparent;
+}
+
+QTextEdit {
+    background-color: #1E1E1E;
+    color: #D4D4D4;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Consolas';
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #444444;
+    border-radius: 4px;
+    padding: 5px;
+    outline: 0px;
+}
+
+#Sidebar QPushButton:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+QComboBox {
+    border: 1px solid #999999;
+    border-radius: 6px;
+    padding: 5px;
+    background-color: transparent;
+}
+
+QComboBox:hover {
+    border: 1px solid #0078D7;
+    background-color: rgba(0, 120, 215, 0.05);
+}
+
+QRadioButton::indicator:hover {
+    border: 2px solid #0078D7;
+    background-color: rgba(0, 120, 215, 0.1);
+}
+
+[theme="dark"] {
+    background-color: #1d1d1d;
+    color: #ffffff;
+}
+
+[theme="dark"] #Sidebar {
+    background-color: #151515;
+    border-right: 1px solid #2d2d2d;
+}
+
+[theme="dark"] #SectionHeader {
+    color: #eeeeee;
+}
+
+[theme="dark"] QComboBox {
+    background-color: #252526;
+    color: white;
+}
+
+[theme="dark"]  QComboBox QAbstractItemView {
+    background-color: #252526;
+    color: white;
+    selection-background-color: #0078D7;
+}
+
+[theme="light"] {
+    background-color: #ffffff;
+    color: #1d1d1d;
+}
+
+[theme="light"] #Sidebar {
+    background-color: #f3f3f3;
+}
+
+[theme="light"] #SectionHeader {
+    color: #444444;
+}
+
+[theme="light"] QComboBox {
+    background-color: #ffffff;
+    color: #1d1d1d;
+}
+
+[theme="dark"] QComboBox QAbstractItemView {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    selection-background-color: #0078D7;
+    selection-color: #ffffff;
+}
+
+[theme="light"] QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    color: #1d1d1d;
+    selection-background-color: #e5e5e5;
+    selection-color: #000000;
+}
+
+[theme="dark"] QLabel, [theme="dark"] QRadioButton, [theme="dark"] QCheckBox {
+    color: #ffffff;
+}
+
+[theme="dark"] #PageTitle, [theme="dark"] #SectionHeader {
+    color: #ffffff;
+}
+
+[theme="light"] QLabel, [theme="light"] QRadioButton, [theme="light"] QCheckBox {
+    color: #1d1d1d;
+}
+
+[theme="light"] #PageTitle, [theme="light"] #SectionHeader {
+    color: #1d1d1d;
+}

@@ -1,42 +1,153 @@
 #include <QApplication>
 #include <QMainWindow>
-#include <QStyleFactory>
-#include <filesystem>
-#include "Installer/installer_window.h"
+#include <QStackedWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QFontDatabase>
+#include <QFile>
+#include <QDir>
+#include <QPropertyAnimation>
+#include <QStyleHints>
+#include <QCloseEvent>
 
-namespace fs = std::filesystem;
+#include "App/main_page.h"
+#include "App/settings_page.h"
+#include "App/console_page.h"
+#include "Resources/popup.h"
+#include "App/config_manager.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
     MainWindow() {
         setWindowTitle("GUI Video Downloader");
-        setWindowIcon(QIcon("icon.ico"));
-        setMinimumSize(900, 600);
+        setMinimumSize(950, 650);
+        setWindowIcon(QIcon(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico"));
 
-QWidget *central = new QWidget(this);
+        setupUI();
+        applyTheme();
+    }
+
+    public slots:
+    void applyTheme() {
+        QString theme = ConfigManager::instance().getTheme();
+        if (theme == "System") {
+            theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
+        }
+
+        bool isDark = (theme == "Dark");
+        QString themeName = theme.toLower();
+
+        QString qssPath = QCoreApplication::applicationDirPath() + "/Resources/style.qss";
+        QFile file(qssPath);
+        if (file.open(QIODevice::ReadOnly)) {
+            QString style = QLatin1String(file.readAll());
+
+            this->setProperty("theme", themeName);
+
+            this->style()->unpolish(this);
+            this->style()->polish(this);
+
+            qApp->setStyleSheet("");
+            qApp->setStyleSheet(style);
+
+            updateSidebarIcons(isDark);
+        }
+    }
+
+private:
+    QStackedWidget *stackedWidget;
+    QPushButton *btnHome, *btnConsole, *btnSettings;
+
+    void setupUI() {
+        auto *central = new QWidget(this);
         setCentralWidget(central);
+        auto *layout = new QHBoxLayout(central);
+        layout->setContentsMargins(0,0,0,0);
+        layout->setSpacing(0);
+
+        auto *sidebar = new QWidget(this);
+        sidebar->setObjectName("Sidebar");
+        sidebar->setFixedWidth(80);
+        auto *sideLayout = new QVBoxLayout(sidebar);
+        sideLayout->setContentsMargins(10, 20, 10, 20);
+
+        btnHome = createSidebarBtn();
+        btnConsole = createSidebarBtn();
+        btnSettings = createSidebarBtn();
+
+        sideLayout->addStretch();
+        sideLayout->addWidget(btnHome);
+        sideLayout->addWidget(btnConsole);
+        sideLayout->addWidget(btnSettings);
+
+        stackedWidget = new QStackedWidget(this);
+        Popup *popup = new Popup(this);
+
+        auto *pageMain = new MainPage(this);
+        auto *pageConsole = new ConsolePage(this);
+        auto *pageSettings = new SettingsPage(popup, this);
+
+        stackedWidget->addWidget(pageMain);
+        stackedWidget->addWidget(pageConsole);
+        stackedWidget->addWidget(pageSettings);
+
+        layout->addWidget(sidebar);
+        layout->addWidget(stackedWidget);
+
+        connect(btnHome, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(0); });
+        connect(btnConsole, &QPushButton::clicked, [this]() { stackedWidget->setCurrentIndex(1); });
+        connect(btnSettings, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(2); });
+
+        connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
+    }
+
+    QPushButton* createSidebarBtn() {
+        auto *btn = new QPushButton(this);
+        btn->setFixedSize(60, 60);
+        btn->setIconSize(QSize(32, 32));
+        btn->setCursor(Qt::PointingHandCursor);
+        return btn;
+    }
+
+    void updateSidebarIcons(bool isDark) {
+        QString path = QCoreApplication::applicationDirPath() + "/Resources/Icons/";
+        QString suf = isDark ? "_dark.ico" : ".ico";
+
+        btnHome->setIcon(QIcon(path + "home" + suf));
+        btnConsole->setIcon(QIcon(path + "console" + suf));
+        btnSettings->setIcon(QIcon(path + "settings" + suf));
+    }
+
+protected:
+    void closeEvent(QCloseEvent *event) override {
+        QString behavior = ConfigManager::instance().getCloseBehavior();
+
+        if (behavior == "Hide") {
+            event->ignore();
+            this->hide();
+        } else {
+            event->accept();
+        }
     }
 };
 
 int main(int argc, char *argv[]) {
-    QApplication::setStyle(QStyleFactory::create("windowsvista"));
     QApplication app(argc, argv);
 
-    bool needsInstallation = !fs::exists("requirements/yt-dlp.exe") ||
-                              !fs::exists("requirements/ffmpeg.exe");
+    // Ustawienie domyślnej czcionki systemowej zapobiega błędom -1
+    app.setFont(QFont("Segoe UI", 10));
 
-    if (needsInstallation) {
-        InstallerWindow installer;
-        if (installer.exec() != QDialog::Accepted) {
-            return 0;
-        }
+    QString fontPath = QCoreApplication::applicationDirPath() + "/Resources/Fonts/Montserrat-ExtraBold.ttf";
+    int fontId = QFontDatabase::addApplicationFont(fontPath);
+
+    if (fontId != -1) {
+        QString family = QFontDatabase::applicationFontFamilies(fontId).at(0);
     }
 
-    MainWindow mainWin;
-    mainWin.show();
-
+    MainWindow w;
+    w.show();
     return app.exec();
 }
-
 #include "main.moc"

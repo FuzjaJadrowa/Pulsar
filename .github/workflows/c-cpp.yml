@@ -10,17 +10,24 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '6.10.1'
-        arch: 'win64_mingw'
-    - name: Configure CMake
-      run: |
-        cmake -S . -B build -G "MinGW Makefiles" `
-        -DCMAKE_C_COMPILER=gcc `
-        -DCMAKE_CXX_COMPILER=g++
-    - name: Build
-      run: cmake --build build
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.10.1'
+          arch: 'win64_mingw'
+
+      - name: Setup MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" `
+          -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
