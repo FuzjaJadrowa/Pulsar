@@ -6,36 +6,51 @@
 #include <QLabel>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QTimer>
 #include <QFile>
-#include <QCloseEvent>
+#include <QDir>
+#include <QTimer>
+#include <QCoreApplication>
+#include "../App/popup.h"
 
 class InstallerWindow : public QDialog {
     Q_OBJECT
 
 public:
-    explicit InstallerWindow(QWidget *parent = nullptr);
+    explicit InstallerWindow(Popup *popup = nullptr, QWidget *parent = nullptr);
+    void checkUpdatesSilent();
+    void forceUpdate(const QString &appName);
+
+    signals:
+        void installationFinished();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void startSequence();
-    void handleFinished();
+    void handleReleaseInfo();
+    void onDownloadProgress(qint64 rx, qint64 total);
+    void handleDownloadFinished();
 
 private:
+    Popup *m_popup;
     QLabel *statusLabel;
     QProgressBar *progressBar;
-    QNetworkAccessManager *networkManager;
+    QNetworkAccessManager *netManager;
     QNetworkReply *currentReply = nullptr;
 
-    QString targetFilePath;
-    bool isDownloadingZip = false;
+    QString m_currentApp;
+    QString m_targetPath;
+    QString m_remoteVersion;
+    bool m_isSilent = false;
+    bool m_isManual = false;
 
-    void downloadFile(const QUrl &url, const QString &path, bool isZip);
-    void downloadYtDlp();
-    void downloadFFmpeg();
-    void extractFFmpeg();
+    QString getRequirementsPath();
+    QString getLocalVersion(const QString &appName);
+    void setLocalVersion(const QString &appName, const QString &version);
+    void startDownload(const QString &appName, const QString &url, const QString &version);
+    void extractFFmpeg(const QString &zipPath);
+    void processNextStep();
+    void fetchLatestRelease(const QString &appName);
 };
 
 #endif

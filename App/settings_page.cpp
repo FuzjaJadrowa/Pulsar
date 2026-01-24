@@ -4,9 +4,8 @@
 #include <QApplication>
 #include <QCoreApplication>
 
-SettingsPage::SettingsPage(Popup *popup, QWidget *parent) : QWidget(parent), popup(popup) {
-    depManager = new DependencyManager(this);
-    connect(depManager, &DependencyManager::statusChanged, this, &SettingsPage::onDepStatusChanged);
+SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
+    : QWidget(parent), popup(popup), m_installer(installer) {
     setupUi();
 }
 
@@ -109,24 +108,9 @@ void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) {
 }
 
 void SettingsPage::checkFfmpeg() {
-    btnFfmpeg->setEnabled(false);
-    depManager->checkUpdate("ffmpeg");
+    m_installer->forceUpdate("ffmpeg");
 }
 
 void SettingsPage::checkYtdlp() {
-    btnYtdlp->setEnabled(false);
-    depManager->checkUpdate("yt-dlp");
-}
-
-void SettingsPage::onDepStatusChanged(const QString &app, const QString &status, bool success) {
-    QPushButton *btn = (app == "ffmpeg") ? btnFfmpeg : btnYtdlp;
-    if (status.contains("No updates") || status.contains("successfully") || status.contains("Error")) {
-        btn->setEnabled(true);
-        btn->setText("Check Update");
-    } else {
-        btn->setText(status);
-    }
-    if (status.contains("No updates") || status.contains("successfully") || status.contains("Error") || status.contains("found")) {
-         popup->showMessage(app, status, success ? Popup::Info : Popup::Error, Popup::Temporary);
-    }
+    m_installer->forceUpdate("yt-dlp");
 }

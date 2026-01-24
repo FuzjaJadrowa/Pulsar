@@ -1,34 +1,23 @@
 #include "installer_window.h"
 #include <QVBoxLayout>
-#include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <QProcess>
-#include <QApplication>
 #include <QStyleFactory>
-#include <filesystem>
+#include <QCloseEvent>
 
-namespace fs = std::filesystem;
-
-InstallerWindow::InstallerWindow(QWidget *parent) : QDialog(parent) {
-    setWindowTitle("Installer");
+InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
+    : QDialog(parent), m_popup(popup) {
+    setWindowTitle("GVD Requirements Installer");
     setFixedSize(450, 150);
-setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
-
-    setAutoFillBackground(true);
-    QPalette pal = palette();
-    pal.setColor(QPalette::Window, Qt::white);
-    setPalette(pal);
+    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(30, 30, 30, 30);
-    layout->setSpacing(20);
-
-    statusLabel = new QLabel("Checking requirements...", this);
+    statusLabel = new QLabel("Initializing...", this);
     statusLabel->setAlignment(Qt::AlignCenter);
-    statusLabel->setFont(QFont("Segoe UI", 12));
-    statusLabel->setStyleSheet("background: transparent; color: black;");
 
     progressBar = new QProgressBar(this);
-    progressBar->setTextVisible(false);
     progressBar->setFixedHeight(22);
     progressBar->setStyle(QStyleFactory::create("windowsvista"));
 
@@ -37,88 +26,140 @@ setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
     layout->addWidget(progressBar);
     layout->addStretch();
 
-    networkManager = new QNetworkAccessManager(this);
-
-    if (!fs::exists("requirements")) {
-        fs::create_directory("requirements");
-    }
-
-    QTimer::singleShot(800, this, &InstallerWindow::startSequence);
+    netManager = new QNetworkAccessManager(this);
 }
 
 void InstallerWindow::closeEvent(QCloseEvent *event) {
-    event->ignore();
+    if (currentReply) event->ignore();
+    else event->accept();
 }
 
-void InstallerWindow::startSequence() {
-    progressBar->setValue(0);
-    if (!fs::exists("requirements/yt-dlp.exe")) {
-        downloadYtDlp();
-    } else if (!fs::exists("requirements/ffmpeg.exe")) {
-        downloadFFmpeg();
+QString InstallerWindow::getRequirementsPath() {
+    QString path = QCoreApplication::applicationDirPath() + "/Data/Requirements";
+    QDir().mkpath(path);
+    return path;
+}
+
+void InstallerWindow::checkUpdatesSilent() {
+    m_isSilent = true;
+    m_isManual = false;
+    processNextStep();
+}
+
+void InstallerWindow::forceUpdate(const QString &appName) {
+    m_isSilent = false;
+    m_isManual = true;
+    m_currentApp = appName;
+    fetchLatestRelease(appName);
+}
+
+void InstallerWindow::processNextStep() {
+    QString reqPath = getRequirementsPath();
+    if (!QFile::exists(reqPath + "/yt-dlp.exe")) {
+        m_isSilent = false;
+        fetchLatestRelease("yt-dlp");
+    } else if (!QFile::exists(reqPath + "/ffmpeg.exe")) {
+        m_isSilent = false;
+        fetchLatestRelease("ffmpeg");
+    } else if (m_isSilent) {
+        fetchLatestRelease("yt-dlp");
+        QTimer::singleShot(2000, this, [this](){ fetchLatestRelease("ffmpeg"); });
     } else {
-        accept();
+        hide();
+        emit installationFinished();
     }
 }
 
-void InstallerWindow::downloadYtDlp() {
-    statusLabel->setText("Downloading yt-dlp...");
-    downloadFile(QUrl("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"),
-                 "requirements/yt-dlp.exe", false);
-}
-
-void InstallerWindow::downloadFFmpeg() {
-    statusLabel->setText("Downloading ffmpeg...");
-    downloadFile(QUrl("https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"),
-                 "requirements/ffmpeg.zip", true);
-}
-
-void InstallerWindow::downloadFile(const QUrl &url, const QString &path, bool isZip) {
-    targetFilePath = path;
-    isDownloadingZip = isZip;
+void InstallerWindow::fetchLatestRelease(const QString &appName) {
+    m_currentApp = appName;
+    QString repo = (appName == "yt-dlp") ? "yt-dlp/yt-dlp" : "GyanD/codexffmpeg";
+    QUrl url(QString("https://api.github.com/repos/%1/releases/latest").arg(repo));
 
     QNetworkRequest request(url);
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-
-    if (currentReply) {
-        currentReply->disconnect();
-        currentReply->deleteLater();
-    }
-
-    currentReply = networkManager->get(request);
-
-    connect(currentReply, &QNetworkReply::downloadProgress, this, [this](qint64 rx, qint64 total) {
-        if (total > 0) progressBar->setValue(static_cast<int>((rx * 100) / total));
-    });
-
-    connect(currentReply, &QNetworkReply::finished, this, &InstallerWindow::handleFinished);
+    auto *reply = netManager->get(request);
+    connect(reply, &QNetworkReply::finished, this, &InstallerWindow::handleReleaseInfo);
 }
 
-void InstallerWindow::handleFinished() {
+void InstallerWindow::handleReleaseInfo() {
+    auto *reply = qobject_cast<QNetworkReply*>(sender());
+    reply->deleteLater();
+
+    if (reply->error() != QNetworkReply::NoError) return;
+
+    auto json = QJsonDocument::fromJson(reply->readAll()).object();
+    QString remoteDate = json["published_at"].toString();
+    if (remoteDate.isEmpty()) remoteDate = json["tag_name"].toString();
+
+    QString localDate = getLocalVersion(m_currentApp);
+
+    if (localDate == remoteDate && !m_isManual) {
+        if (!m_isSilent) processNextStep();
+        return;
+    }
+
+    if (m_isSilent && localDate != remoteDate && !localDate.isEmpty()) {
+        if (m_popup) m_popup->showMessage("Update Available", "New version of " + m_currentApp + " is available.", Popup::Info, Popup::Permanent);
+        return;
+    }
+
+    QJsonArray assets = json["assets"].toArray();
+    QString downloadUrl;
+    for (const auto &val : assets) {
+        QString name = val.toObject()["name"].toString().toLower();
+        if (m_currentApp == "yt-dlp" && name == "yt-dlp.exe") {
+            downloadUrl = val.toObject()["browser_download_url"].toString();
+            break;
+        }
+        if (m_currentApp == "ffmpeg" && name.contains("essentials_build") && name.endsWith(".zip")) {
+            downloadUrl = val.toObject()["browser_download_url"].toString();
+            break;
+        }
+    }
+
+    if (!downloadUrl.isEmpty()) {
+        startDownload(m_currentApp, downloadUrl, remoteDate);
+    }
+}
+
+void InstallerWindow::startDownload(const QString &appName, const QString &url, const QString &version) {
+    m_remoteVersion = version;
+    m_targetPath = getRequirementsPath() + (appName == "ffmpeg" ? "/ffmpeg.zip" : "/yt-dlp.exe");
+
+    statusLabel->setText("Downloading " + appName + "...");
+    if (!m_isSilent) show();
+
+    QNetworkRequest req((QUrl(url)));
+    req.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+
+    currentReply = netManager->get(req);
+    connect(currentReply, &QNetworkReply::downloadProgress, this, &InstallerWindow::onDownloadProgress);
+    connect(currentReply, &QNetworkReply::finished, this, &InstallerWindow::handleDownloadFinished);
+}
+
+void InstallerWindow::onDownloadProgress(qint64 rx, qint64 total) {
+    if (total > 0) progressBar->setValue(static_cast<int>((rx * 100) / total));
+}
+
+void InstallerWindow::handleDownloadFinished() {
     if (currentReply->error() == QNetworkReply::NoError) {
-        QFile file(targetFilePath);
+        QFile file(m_targetPath);
         if (file.open(QIODevice::WriteOnly)) {
             file.write(currentReply->readAll());
             file.close();
-            currentReply->deleteLater();
-            currentReply = nullptr;
-
-            if (isDownloadingZip) {
-                statusLabel->setText("Extracting ffmpeg...");
-                extractFFmpeg();
-            } else {
-                startSequence();
+            if (m_currentApp == "ffmpeg") extractFFmpeg(m_targetPath);
+            else {
+                setLocalVersion(m_currentApp, m_remoteVersion);
+                processNextStep();
             }
         }
-    } else {
-        statusLabel->setText("Error: Check connection");
-        statusLabel->setStyleSheet("color: red;");
     }
+    currentReply->deleteLater();
+    currentReply = nullptr;
 }
 
-void InstallerWindow::extractFFmpeg() {
-    QString zipPath = QDir::current().absoluteFilePath("requirements/ffmpeg.zip");
-    QString destDir = QDir::current().absoluteFilePath("requirements/");
+void InstallerWindow::extractFFmpeg(const QString &zipPath) {
+    statusLabel->setText("Extracting FFmpeg...");
+    QString destDir = getRequirementsPath();
     QString script = QString(
         "$ProgressPreference = 'SilentlyContinue'; "
         "Expand-Archive -Path '%1' -DestinationPath '%2/temp' -Force; "
@@ -128,8 +169,31 @@ void InstallerWindow::extractFFmpeg() {
     ).arg(zipPath, destDir);
 
     auto *process = new QProcess(this);
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this]() {
-        startSequence();
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this, process]() {
+        process->deleteLater();
+        setLocalVersion("ffmpeg", m_remoteVersion);
+        processNextStep();
     });
     process->start("powershell", {"-Command", script});
+}
+
+QString InstallerWindow::getLocalVersion(const QString &appName) {
+    QFile file(getRequirementsPath() + "/versions.json");
+    if (file.open(QIODevice::ReadOnly)) {
+        return QJsonDocument::fromJson(file.readAll()).object()[appName].toString();
+    }
+    return "";
+}
+
+void InstallerWindow::setLocalVersion(const QString &appName, const QString &version) {
+    QString path = getRequirementsPath() + "/versions.json";
+    QJsonObject obj;
+    QFile fileIn(path);
+    if (fileIn.open(QIODevice::ReadOnly)) {
+        obj = QJsonDocument::fromJson(fileIn.readAll()).object();
+        fileIn.close();
+    }
+    obj[appName] = version;
+    QFile fileOut(path);
+    if (fileOut.open(QIODevice::WriteOnly)) fileOut.write(QJsonDocument(obj).toJson());
 }

@@ -12,14 +12,13 @@ find_package(Qt6 COMPONENTS Widgets Network REQUIRED)
 if(WIN32)
     set(RES_FILE resources.rc)
 endif()
-
 add_executable(App
         ${RES_FILE}
         main.cpp
         Installer/installer_window.cpp
         Installer/installer_window.h
-        Resources/popup.cpp
-        Resources/popup.h
+        App/popup.cpp
+        App/popup.h
         App/settings_page.cpp
         App/settings_page.h
         App/console_page.cpp
@@ -28,8 +27,6 @@ add_executable(App
         App/main_page.h
         App/config_manager.cpp
         App/config_manager.h
-        App/dependency_manager.cpp
-        App/dependency_manager.h
 )
 
 target_link_libraries(App Qt6::Widgets Qt6::Network)

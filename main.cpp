@@ -14,8 +14,9 @@
 #include "App/main_page.h"
 #include "App/settings_page.h"
 #include "App/console_page.h"
-#include "Resources/popup.h"
+#include "App/popup.h"
 #include "App/config_manager.h"
+#include "Installer/installer_window.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -84,14 +85,17 @@ private:
 
         stackedWidget = new QStackedWidget(this);
         Popup *popup = new Popup(this);
+        InstallerWindow *installer = new InstallerWindow(popup, this);
 
         auto *pageMain = new MainPage(this);
         auto *pageConsole = new ConsolePage(this);
-        auto *pageSettings = new SettingsPage(popup, this);
+        auto *pageSettings = new SettingsPage(popup, installer, this);
 
         stackedWidget->addWidget(pageMain);
         stackedWidget->addWidget(pageConsole);
         stackedWidget->addWidget(pageSettings);
+
+        QTimer::singleShot(1500, installer, &InstallerWindow::checkUpdatesSilent);;
 
         layout->addWidget(sidebar);
         layout->addWidget(stackedWidget);
@@ -136,7 +140,6 @@ protected:
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
-    // Ustawienie domyślnej czcionki systemowej zapobiega błędom -1
     app.setFont(QFont("Segoe UI", 10));
 
     QString fontPath = QCoreApplication::applicationDirPath() + "/Resources/Fonts/Montserrat-ExtraBold.ttf";

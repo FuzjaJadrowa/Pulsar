@@ -2,19 +2,18 @@
 #define SETTINGS_PAGE_H
 
 #include <QWidget>
-#include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QHBoxLayout>
-#include "../Resources/popup.h"
-#include "dependency_manager.h"
+#include "popup.h"
+#include "../Installer/installer_window.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT
 public:
-    explicit SettingsPage(Popup *popup, QWidget *parent = nullptr);
+    explicit SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent = nullptr);
     signals:
         void themeChanged();
 
@@ -24,11 +23,10 @@ private slots:
     void onCloseBehaviorChanged(QAbstractButton *btn);
     void checkFfmpeg();
     void checkYtdlp();
-    void onDepStatusChanged(const QString &app, const QString &status, bool success);
 
 private:
     Popup *popup;
-    DependencyManager *depManager;
+    InstallerWindow *m_installer;
     QPushButton *btnFfmpeg;
     QPushButton *btnYtdlp;
 
