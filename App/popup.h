@@ -16,7 +16,10 @@ public:
     enum Mode { Temporary, Permanent };
 
     explicit Popup(QWidget *parent = nullptr);
-    void showMessage(const QString &title, const QString &body, Type type, Mode mode);
+    void showMessage(const QString &title, const QString &body, Type type, Mode mode, const QString &actionText = "");
+
+    signals:
+        void actionClicked();
 
 private slots:
     void animateIn();
@@ -28,6 +31,7 @@ private:
     QLabel *titleLabel;
     QLabel *bodyLabel;
     QPushButton *dismissBtn;
+    QPushButton *actionBtn;
 
     QTimer *autoCloseTimer;
     QPropertyAnimation *posAnimation;

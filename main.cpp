@@ -21,11 +21,13 @@
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
+    InstallerWindow *installer;
+    Popup *popup;
+
     MainWindow() {
         setWindowTitle("GUI Video Downloader");
         setMinimumSize(950, 650);
         setWindowIcon(QIcon(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico"));
-
         setupUI();
         applyTheme();
     }
@@ -36,23 +38,17 @@ public:
         if (theme == "System") {
             theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
         }
-
         bool isDark = (theme == "Dark");
         QString themeName = theme.toLower();
-
         QString qssPath = QCoreApplication::applicationDirPath() + "/Resources/style.qss";
         QFile file(qssPath);
         if (file.open(QIODevice::ReadOnly)) {
             QString style = QLatin1String(file.readAll());
-
             this->setProperty("theme", themeName);
-
             this->style()->unpolish(this);
             this->style()->polish(this);
-
             qApp->setStyleSheet("");
             qApp->setStyleSheet(style);
-
             updateSidebarIcons(isDark);
         }
     }
@@ -84,8 +80,8 @@ private:
         sideLayout->addWidget(btnSettings);
 
         stackedWidget = new QStackedWidget(this);
-        Popup *popup = new Popup(this);
-        InstallerWindow *installer = new InstallerWindow(popup, this);
+        popup = new Popup(this);
+        installer = new InstallerWindow(popup, this);
 
         auto *pageMain = new MainPage(this);
         auto *pageConsole = new ConsolePage(this);
@@ -95,16 +91,25 @@ private:
         stackedWidget->addWidget(pageConsole);
         stackedWidget->addWidget(pageSettings);
 
-        QTimer::singleShot(1500, installer, &InstallerWindow::checkUpdatesSilent);;
-
         layout->addWidget(sidebar);
         layout->addWidget(stackedWidget);
 
         connect(btnHome, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(0); });
         connect(btnConsole, &QPushButton::clicked, [this]() { stackedWidget->setCurrentIndex(1); });
         connect(btnSettings, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(2); });
-
         connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
+
+        connect(installer, &InstallerWindow::networkError, this, [this](){
+             popup->showMessage("Network Error", "No internet connection detected.", Popup::Error, Popup::Permanent);
+        });
+
+        connect(installer, &InstallerWindow::updateAvailable, this, [this](const QString &appName){
+             popup->showMessage("Update Available", "New version of " + appName + " is available.", Popup::Info, Popup::Permanent, "Update");
+             disconnect(popup, &Popup::actionClicked, nullptr, nullptr);
+             connect(popup, &Popup::actionClicked, [this, appName](){
+                 installer->startUpdateProcess(appName);
+             });
+        });
     }
 
     QPushButton* createSidebarBtn() {
@@ -118,7 +123,6 @@ private:
     void updateSidebarIcons(bool isDark) {
         QString path = QCoreApplication::applicationDirPath() + "/Resources/Icons/";
         QString suf = isDark ? "_dark.ico" : ".ico";
-
         btnHome->setIcon(QIcon(path + "home" + suf));
         btnConsole->setIcon(QIcon(path + "console" + suf));
         btnSettings->setIcon(QIcon(path + "settings" + suf));
@@ -126,9 +130,7 @@ private:
 
 protected:
     void closeEvent(QCloseEvent *event) override {
-        QString behavior = ConfigManager::instance().getCloseBehavior();
-
-        if (behavior == "Hide") {
+        if (ConfigManager::instance().getCloseBehavior() == "Hide") {
             event->ignore();
             this->hide();
         } else {
@@ -139,18 +141,23 @@ protected:
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-
     app.setFont(QFont("Segoe UI", 10));
-
     QString fontPath = QCoreApplication::applicationDirPath() + "/Resources/Fonts/Montserrat-ExtraBold.ttf";
-    int fontId = QFontDatabase::addApplicationFont(fontPath);
-
-    if (fontId != -1) {
-        QString family = QFontDatabase::applicationFontFamilies(fontId).at(0);
-    }
+    QFontDatabase::addApplicationFont(fontPath);
 
     MainWindow w;
+    if (!w.installer->hasRequirements()) {
+        w.installer->startMissingFileRepair();
+        if (w.installer->exec() != QDialog::Accepted) {
+            return 0;
+        }
+    }
+
     w.show();
+    QTimer::singleShot(2000, w.installer, [&w](){
+        w.installer->checkForUpdates(false);
+    });
+
     return app.exec();
 }
 #include "main.moc"

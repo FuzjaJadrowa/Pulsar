@@ -4,7 +4,7 @@
 #include <QGraphicsDropShadowEffect>
 
 Popup::Popup(QWidget *parent) : QWidget(parent), isClosing(false) {
-    setFixedSize(350, 100);
+    setFixedSize(350, 130);
     setAttribute(Qt::WA_TranslucentBackground);
     hide();
 
@@ -37,8 +37,18 @@ Popup::Popup(QWidget *parent) : QWidget(parent), isClosing(false) {
     bodyLabel->setFont(QFont("Segoe UI", 10));
     bodyLabel->setStyleSheet("background: transparent; color: white; border: none;");
 
+    actionBtn = new QPushButton(this);
+    actionBtn->setCursor(Qt::PointingHandCursor);
+    actionBtn->setStyleSheet("QPushButton { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid white; border-radius: 4px; padding: 4px 10px; } QPushButton:hover { background-color: rgba(255,255,255,0.3); }");
+    actionBtn->hide();
+    connect(actionBtn, &QPushButton::clicked, this, [this](){
+        emit actionClicked();
+        animateOut();
+    });
+
     contentLayout->addLayout(headerLayout);
     contentLayout->addWidget(bodyLabel);
+    contentLayout->addWidget(actionBtn, 0, Qt::AlignRight);
     contentLayout->addStretch();
 
     layout->addWidget(bgWidget);
@@ -59,21 +69,25 @@ Popup::Popup(QWidget *parent) : QWidget(parent), isClosing(false) {
     connect(posAnimation, &QPropertyAnimation::finished, this, &Popup::onAnimationFinished);
 }
 
-void Popup::showMessage(const QString &title, const QString &body, Type type, Mode mode) {
+void Popup::showMessage(const QString &title, const QString &body, Type type, Mode mode, const QString &actionText) {
     titleLabel->setText(title);
     bodyLabel->setText(body);
     applyStyle(type);
 
     dismissBtn->setVisible(mode == Permanent);
+    if (!actionText.isEmpty()) {
+        actionBtn->setText(actionText);
+        actionBtn->show();
+    } else {
+        actionBtn->hide();
+    }
 
     posAnimation->stop();
     autoCloseTimer->stop();
     isClosing = false;
-
     show();
     raise();
     animateIn();
-
     if (mode == Temporary) {
         autoCloseTimer->start(4000);
     }
@@ -83,9 +97,7 @@ void Popup::animateIn() {
     if (!parentWidget()) return;
     int endX = parentWidget()->width() - width() - 20;
     int endY = parentWidget()->height() - height() - 20;
-
     move(parentWidget()->width(), endY);
-
     posAnimation->setStartValue(QPoint(parentWidget()->width(), endY));
     posAnimation->setEndValue(QPoint(endX, endY));
     posAnimation->start();
@@ -95,7 +107,6 @@ void Popup::animateOut() {
     if (!parentWidget()) return;
     isClosing = true;
     int currentY = y();
-
     posAnimation->setStartValue(pos());
     posAnimation->setEndValue(QPoint(parentWidget()->width() + 20, currentY));
     posAnimation->start();
@@ -112,19 +123,7 @@ void Popup::applyStyle(Type type) {
     else color = "#107C10";
 
     bgWidget->setStyleSheet(QString(
-        "#PopupBg { "
-        "  background-color: %1; "
-        "  border-radius: 10px; "
-        "  border: none; "
-        "} "
+        "#PopupBg { background-color: %1; border-radius: 10px; border: none; } "
         "QLabel { color: white; background: transparent; }"
     ).arg(color));
-}
-
-void Popup::updatePosition() {
-    if (isVisible() && !isClosing && parentWidget()) {
-        int endX = parentWidget()->width() - width() - 20;
-        int endY = parentWidget()->height() - height() - 20;
-        move(endX, endY);
-    }
 }

@@ -19,15 +19,28 @@ jobs:
           version: '6.10.1'
           arch: 'win64_mingw'
 
-      - name: Set up MinGW
-        run: |
-          $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
-          echo "$mingwPath" >> $env:GITHUB_PATH
+      - name: Setup MSYS2 (MinGW)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
 
       - name: Configure CMake
+        shell: msys2 {0}
         run: |
-          cmake -S . -B build -G "MinGW Makefiles" `
-          -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -G "Ninja" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
 
       - name: Build
+        shell: msys2 {0}
         run: cmake --build build --config Release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GUI-Video-Downloader-Exe
+          path: build/App.exe

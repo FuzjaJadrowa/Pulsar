@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QStyleFactory>
 #include <QCloseEvent>
+#include <QKeyEvent>
 
 InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     : QDialog(parent), m_popup(popup) {
@@ -13,13 +14,17 @@ InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     setFixedSize(450, 150);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
+    this->setStyleSheet("background-color: #ffffff; color: #000000;");
+
     auto *layout = new QVBoxLayout(this);
     statusLabel = new QLabel("Initializing...", this);
     statusLabel->setAlignment(Qt::AlignCenter);
+    statusLabel->setStyleSheet("color: #000000;");
 
     progressBar = new QProgressBar(this);
     progressBar->setFixedHeight(22);
     progressBar->setStyle(QStyleFactory::create("windowsvista"));
+    progressBar->setStyleSheet("QProgressBar { color: #000000; text-align: center; }");
 
     layout->addStretch();
     layout->addWidget(statusLabel);
@@ -30,8 +35,22 @@ InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
 }
 
 void InstallerWindow::closeEvent(QCloseEvent *event) {
-    if (currentReply) event->ignore();
-    else event->accept();
+    if (m_installing) {
+        event->ignore();
+    } else {
+        event->accept();
+    }
+}
+
+void InstallerWindow::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_F4 && (event->modifiers() & Qt::AltModifier)) {
+        if (!m_installing) {
+            reject();
+        }
+        event->accept();
+    } else {
+        QDialog::keyPressEvent(event);
+    }
 }
 
 QString InstallerWindow::getRequirementsPath() {
@@ -40,41 +59,53 @@ QString InstallerWindow::getRequirementsPath() {
     return path;
 }
 
-void InstallerWindow::checkUpdatesSilent() {
-    m_isSilent = true;
-    m_isManual = false;
-    processNextStep();
+bool InstallerWindow::hasRequirements() {
+    QString reqPath = getRequirementsPath();
+    return QFile::exists(reqPath + "/yt-dlp.exe") && QFile::exists(reqPath + "/ffmpeg.exe");
 }
 
-void InstallerWindow::forceUpdate(const QString &appName) {
-    m_isSilent = false;
-    m_isManual = true;
+void InstallerWindow::startMissingFileRepair() {
+    m_isRepairMode = true;
+    m_isManualCheck = false;
+    m_installing = true;
+    show();
+    processNextRepairStep();
+}
+
+void InstallerWindow::checkForUpdates(bool manual) {
+    m_isRepairMode = false;
+    m_isManualCheck = manual;
+    m_installing = false;
+    fetchLatestRelease("yt-dlp");
+}
+
+void InstallerWindow::startUpdateProcess(const QString &appName) {
+    m_isRepairMode = false;
+    m_isManualCheck = false;
+    m_installing = true;
     m_currentApp = appName;
+    statusLabel->setText("Preparing update for " + appName + "...");
+    if (!isVisible()) show();
     fetchLatestRelease(appName);
 }
 
-void InstallerWindow::processNextStep() {
+void InstallerWindow::processNextRepairStep() {
     QString reqPath = getRequirementsPath();
     if (!QFile::exists(reqPath + "/yt-dlp.exe")) {
-        m_isSilent = false;
         fetchLatestRelease("yt-dlp");
     } else if (!QFile::exists(reqPath + "/ffmpeg.exe")) {
-        m_isSilent = false;
         fetchLatestRelease("ffmpeg");
-    } else if (m_isSilent) {
-        fetchLatestRelease("yt-dlp");
-        QTimer::singleShot(2000, this, [this](){ fetchLatestRelease("ffmpeg"); });
     } else {
-        hide();
-        emit installationFinished();
+        m_installing = false;
+        accept();
     }
 }
 
 void InstallerWindow::fetchLatestRelease(const QString &appName) {
     m_currentApp = appName;
+    statusLabel->setText("Checking info for " + appName + "...");
     QString repo = (appName == "yt-dlp") ? "yt-dlp/yt-dlp" : "GyanD/codexffmpeg";
     QUrl url(QString("https://api.github.com/repos/%1/releases/latest").arg(repo));
-
     QNetworkRequest request(url);
     auto *reply = netManager->get(request);
     connect(reply, &QNetworkReply::finished, this, &InstallerWindow::handleReleaseInfo);
@@ -84,22 +115,32 @@ void InstallerWindow::handleReleaseInfo() {
     auto *reply = qobject_cast<QNetworkReply*>(sender());
     reply->deleteLater();
 
-    if (reply->error() != QNetworkReply::NoError) return;
+    if (reply->error() != QNetworkReply::NoError) {
+        m_installing = false;
+        if (!m_isRepairMode) hide();
+        emit networkError();
+        return;
+    }
 
     auto json = QJsonDocument::fromJson(reply->readAll()).object();
     QString remoteDate = json["published_at"].toString();
     if (remoteDate.isEmpty()) remoteDate = json["tag_name"].toString();
-
     QString localDate = getLocalVersion(m_currentApp);
+    bool updateNeeded = (localDate != remoteDate);
 
-    if (localDate == remoteDate && !m_isManual) {
-        if (!m_isSilent) processNextStep();
-        return;
-    }
-
-    if (m_isSilent && localDate != remoteDate && !localDate.isEmpty()) {
-        if (m_popup) m_popup->showMessage("Update Available", "New version of " + m_currentApp + " is available.", Popup::Info, Popup::Permanent);
-        return;
+    if (!m_installing) {
+        if (!updateNeeded) {
+            if (m_currentApp == "yt-dlp") {
+                fetchLatestRelease("ffmpeg");
+                return;
+            } else {
+                if (m_isManualCheck) emit upToDate();
+                return;
+            }
+        } else {
+            emit updateAvailable(m_currentApp);
+            return;
+        }
     }
 
     QJsonArray assets = json["assets"].toArray();
@@ -118,19 +159,19 @@ void InstallerWindow::handleReleaseInfo() {
 
     if (!downloadUrl.isEmpty()) {
         startDownload(m_currentApp, downloadUrl, remoteDate);
+    } else if (m_isRepairMode) {
+        processNextRepairStep();
     }
 }
 
 void InstallerWindow::startDownload(const QString &appName, const QString &url, const QString &version) {
     m_remoteVersion = version;
     m_targetPath = getRequirementsPath() + (appName == "ffmpeg" ? "/ffmpeg.zip" : "/yt-dlp.exe");
-
+    m_installing = true;
     statusLabel->setText("Downloading " + appName + "...");
-    if (!m_isSilent) show();
-
+    if (!isVisible()) show();
     QNetworkRequest req((QUrl(url)));
     req.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-
     currentReply = netManager->get(req);
     connect(currentReply, &QNetworkReply::downloadProgress, this, &InstallerWindow::onDownloadProgress);
     connect(currentReply, &QNetworkReply::finished, this, &InstallerWindow::handleDownloadFinished);
@@ -149,9 +190,17 @@ void InstallerWindow::handleDownloadFinished() {
             if (m_currentApp == "ffmpeg") extractFFmpeg(m_targetPath);
             else {
                 setLocalVersion(m_currentApp, m_remoteVersion);
-                processNextStep();
+                if (m_isRepairMode) processNextRepairStep();
+                else {
+                    m_installing = false;
+                    if (m_popup) m_popup->showMessage("Success", m_currentApp + " updated successfully!", Popup::Success, Popup::Temporary);
+                    accept();
+                }
             }
         }
+    } else {
+        m_installing = false;
+        if (m_popup) m_popup->showMessage("Error", "Download failed.", Popup::Error, Popup::Permanent);
     }
     currentReply->deleteLater();
     currentReply = nullptr;
@@ -159,6 +208,7 @@ void InstallerWindow::handleDownloadFinished() {
 
 void InstallerWindow::extractFFmpeg(const QString &zipPath) {
     statusLabel->setText("Extracting FFmpeg...");
+    progressBar->setValue(0);
     QString destDir = getRequirementsPath();
     QString script = QString(
         "$ProgressPreference = 'SilentlyContinue'; "
@@ -172,7 +222,12 @@ void InstallerWindow::extractFFmpeg(const QString &zipPath) {
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this, process]() {
         process->deleteLater();
         setLocalVersion("ffmpeg", m_remoteVersion);
-        processNextStep();
+        if (m_isRepairMode) processNextRepairStep();
+        else {
+            m_installing = false;
+            if (m_popup) m_popup->showMessage("Success", "FFmpeg updated successfully!", Popup::Success, Popup::Temporary);
+            accept();
+        }
     });
     process->start("powershell", {"-Command", script});
 }

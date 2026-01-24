@@ -17,14 +17,20 @@ class InstallerWindow : public QDialog {
 
 public:
     explicit InstallerWindow(Popup *popup = nullptr, QWidget *parent = nullptr);
-    void checkUpdatesSilent();
-    void forceUpdate(const QString &appName);
+    bool hasRequirements();
+    void startMissingFileRepair();
+    void checkForUpdates(bool manual);
+    void startUpdateProcess(const QString &appName);
 
     signals:
         void installationFinished();
+    void updateAvailable(const QString &appName);
+    void upToDate();
+    void networkError();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     void handleReleaseInfo();
@@ -41,15 +47,17 @@ private:
     QString m_currentApp;
     QString m_targetPath;
     QString m_remoteVersion;
-    bool m_isSilent = false;
-    bool m_isManual = false;
+
+    bool m_isManualCheck = false;
+    bool m_isRepairMode = false;
+    bool m_installing = false;
 
     QString getRequirementsPath();
     QString getLocalVersion(const QString &appName);
     void setLocalVersion(const QString &appName, const QString &version);
     void startDownload(const QString &appName, const QString &url, const QString &version);
     void extractFFmpeg(const QString &zipPath);
-    void processNextStep();
+    void processNextRepairStep();
     void fetchLatestRelease(const QString &appName);
 };
 

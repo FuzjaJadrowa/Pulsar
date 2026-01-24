@@ -3,10 +3,15 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QLabel>
 
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
     setupUi();
+
+    connect(m_installer, &InstallerWindow::upToDate, this, [this](){
+        this->popup->showMessage("Up to Date", "No new updates found.", Popup::Info, Popup::Temporary);
+    });
 }
 
 void SettingsPage::setupUi() {
@@ -32,29 +37,31 @@ void SettingsPage::setupUi() {
     mainLayout->addWidget(genLabel);
 
     auto *themeCombo = new QComboBox(this);
-    themeCombo->addItems({"System", "Dark", "Light"});
+    themeCombo->addItems({"System", "Light", "Dark"});
     themeCombo->setCurrentText(ConfigManager::instance().getTheme());
     connect(themeCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onThemeChanged);
     mainLayout->addLayout(createSection("Theme", themeCombo));
 
     auto *langCombo = new QComboBox(this);
-    langCombo->addItem("English");
+    langCombo->addItems({"English", "Polish"});
     langCombo->setCurrentText(ConfigManager::instance().getLanguage());
     connect(langCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onLangChanged);
     mainLayout->addLayout(createSection("Language", langCombo));
 
     auto *closeGroup = new QButtonGroup(this);
-    auto *radioHide = new QRadioButton("Hide GVD", this);
-    auto *radioExit = new QRadioButton("Exit GVD", this);
+    auto *radioHide = new QRadioButton("Hide application", this);
+    auto *radioExit = new QRadioButton("Exit application", this);
     closeGroup->addButton(radioHide);
     closeGroup->addButton(radioExit);
 
     if (ConfigManager::instance().getCloseBehavior() == "Hide") radioHide->setChecked(true);
     else radioExit->setChecked(true);
-    connect(closeGroup, &QButtonGroup::buttonClicked, this, &SettingsPage::onCloseBehaviorChanged);
 
-    auto *closeLayout = new QVBoxLayout();
-    closeLayout->addWidget(new QLabel("When I close GUI Video Downloader:"));
+    connect(closeGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked), this, &SettingsPage::onCloseBehaviorChanged);
+
+    auto *closeLayout = new QHBoxLayout();
+    closeLayout->addWidget(new QLabel("Close behavior", this));
+    closeLayout->addStretch();
     closeLayout->addWidget(radioHide);
     closeLayout->addWidget(radioExit);
     mainLayout->addLayout(closeLayout);
@@ -108,9 +115,9 @@ void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) {
 }
 
 void SettingsPage::checkFfmpeg() {
-    m_installer->forceUpdate("ffmpeg");
+    m_installer->checkForUpdates(true);
 }
 
 void SettingsPage::checkYtdlp() {
-    m_installer->forceUpdate("yt-dlp");
+    m_installer->checkForUpdates(true);
 }
