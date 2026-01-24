@@ -18,6 +18,9 @@ jobs:
         version: '6.10.1'
         arch: 'win64_mingw'
     - name: Configure CMake
-      run: cmake -S . -B build -G "MinGW Makefiles"
+      run: |
+        cmake -S . -B build -G "MinGW Makefiles" `
+        -DCMAKE_C_COMPILER=gcc `
+        -DCMAKE_CXX_COMPILER=g++
     - name: Build
       run: cmake --build build
