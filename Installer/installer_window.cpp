@@ -8,7 +8,12 @@
 
 namespace fs = std::filesystem;
 
-InstallerWindow::InstallerWindow(QWidget *parent) : QWidget(parent) {setAutoFillBackground(true);
+InstallerWindow::InstallerWindow(QWidget *parent) : QDialog(parent) {
+    setWindowTitle("Installer");
+    setFixedSize(450, 150);
+setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+
+    setAutoFillBackground(true);
     QPalette pal = palette();
     pal.setColor(QPalette::Window, Qt::white);
     setPalette(pal);
@@ -19,15 +24,12 @@ InstallerWindow::InstallerWindow(QWidget *parent) : QWidget(parent) {setAutoFill
 
     statusLabel = new QLabel("Checking requirements...", this);
     statusLabel->setAlignment(Qt::AlignCenter);
-    QFont labelFont("Segoe UI", 12);
-    statusLabel->setFont(labelFont);
+    statusLabel->setFont(QFont("Segoe UI", 12));
     statusLabel->setStyleSheet("background: transparent; color: black;");
 
     progressBar = new QProgressBar(this);
     progressBar->setTextVisible(false);
     progressBar->setFixedHeight(22);
-
-    progressBar->setStyleSheet("");
     progressBar->setStyle(QStyleFactory::create("windowsvista"));
 
     layout->addStretch();
@@ -44,13 +46,18 @@ InstallerWindow::InstallerWindow(QWidget *parent) : QWidget(parent) {setAutoFill
     QTimer::singleShot(800, this, &InstallerWindow::startSequence);
 }
 
+void InstallerWindow::closeEvent(QCloseEvent *event) {
+    event->ignore();
+}
+
 void InstallerWindow::startSequence() {
+    progressBar->setValue(0);
     if (!fs::exists("requirements/yt-dlp.exe")) {
         downloadYtDlp();
     } else if (!fs::exists("requirements/ffmpeg.exe")) {
         downloadFFmpeg();
     } else {
-        finishInstallation();
+        accept();
     }
 }
 
@@ -69,13 +76,21 @@ void InstallerWindow::downloadFFmpeg() {
 void InstallerWindow::downloadFile(const QUrl &url, const QString &path, bool isZip) {
     targetFilePath = path;
     isDownloadingZip = isZip;
+
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+
+    if (currentReply) {
+        currentReply->disconnect();
+        currentReply->deleteLater();
+    }
+
     currentReply = networkManager->get(request);
 
     connect(currentReply, &QNetworkReply::downloadProgress, this, [this](qint64 rx, qint64 total) {
         if (total > 0) progressBar->setValue(static_cast<int>((rx * 100) / total));
     });
+
     connect(currentReply, &QNetworkReply::finished, this, &InstallerWindow::handleFinished);
 }
 
@@ -85,16 +100,20 @@ void InstallerWindow::handleFinished() {
         if (file.open(QIODevice::WriteOnly)) {
             file.write(currentReply->readAll());
             file.close();
+            currentReply->deleteLater();
+            currentReply = nullptr;
+
             if (isDownloadingZip) {
                 statusLabel->setText("Extracting ffmpeg...");
                 extractFFmpeg();
             } else {
-                progressBar->setValue(0);
                 startSequence();
             }
         }
+    } else {
+        statusLabel->setText("Error: Check connection");
+        statusLabel->setStyleSheet("color: red;");
     }
-    currentReply->deleteLater();
 }
 
 void InstallerWindow::extractFFmpeg() {
@@ -113,9 +132,4 @@ void InstallerWindow::extractFFmpeg() {
         startSequence();
     });
     process->start("powershell", {"-Command", script});
-}
-
-void InstallerWindow::finishInstallation() {
-    progressBar->setValue(100);
-    emit installationFinished();
 }

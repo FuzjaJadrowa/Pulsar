@@ -1,22 +1,24 @@
 #ifndef INSTALLER_WINDOW_H
 #define INSTALLER_WINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 #include <QProgressBar>
 #include <QLabel>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QTimer>
 #include <QFile>
+#include <QCloseEvent>
 
-class InstallerWindow : public QWidget {
+class InstallerWindow : public QDialog {
     Q_OBJECT
 
 public:
     explicit InstallerWindow(QWidget *parent = nullptr);
 
-    signals:
-        void installationFinished();
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private slots:
     void startSequence();
     void handleFinished();
@@ -34,7 +36,6 @@ private:
     void downloadYtDlp();
     void downloadFFmpeg();
     void extractFFmpeg();
-    void finishInstallation();
 };
 
 #endif
