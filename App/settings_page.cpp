@@ -1,8 +1,8 @@
 #include "settings_page.h"
 #include "config_manager.h"
-#include <QVBoxLayout>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QScrollBar>
 
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
@@ -10,7 +10,16 @@ SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *pa
 }
 
 void SettingsPage::setupUi() {
-    auto *mainLayout = new QVBoxLayout(this);
+    auto *rootLayout = new QVBoxLayout(this);
+    rootLayout->setContentsMargins(0, 0, 0, 0);
+
+    auto *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+
+    auto *scrollContent = new QWidget();
+    scrollContent->setObjectName("SettingsScrollContent");
+    auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setAlignment(Qt::AlignTop);
     mainLayout->setContentsMargins(20, 40, 40, 40);
     mainLayout->setSpacing(15);
@@ -92,7 +101,41 @@ void SettingsPage::setupUi() {
     connect(geoBypassCheck, &QCheckBox::toggled, this, &SettingsPage::onGeoBypassToggled);
     mainLayout->addWidget(geoBypassCheck);
 
+    auto *qualLabel = new QLabel("Quality & Formats", this);
+    qualLabel->setObjectName("SectionHeader");
+    mainLayout->addWidget(qualLabel);
+
+    auto *videoRow = new QHBoxLayout();
+    auto *vFormatCombo = new QComboBox(this);
+    vFormatCombo->addItems({"mp4", "mkv", "mov", "avi", "flv", "webm"});
+    vFormatCombo->setCurrentText(ConfigManager::instance().getVideoFormat());
+    connect(vFormatCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoFormatChanged);
+    videoRow->addLayout(createVerticalCombo("Default video format:", vFormatCombo));
+
+    auto *vQualCombo = new QComboBox(this);
+    vQualCombo->addItems({"2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"});
+    vQualCombo->setCurrentText(ConfigManager::instance().getVideoQuality());
+    connect(vQualCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoQualityChanged);
+    videoRow->addLayout(createVerticalCombo("Default video quality:", vQualCombo));
+    mainLayout->addLayout(videoRow);
+
+    auto *audioRow = new QHBoxLayout();
+    auto *aFormatCombo = new QComboBox(this);
+    aFormatCombo->addItems({"mp3", "m4a", "aac", "opus", "wav", "ogg"});
+    aFormatCombo->setCurrentText(ConfigManager::instance().getAudioFormat());
+    connect(aFormatCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioFormatChanged);
+    audioRow->addLayout(createVerticalCombo("Default audio format:", aFormatCombo));
+
+    auto *aQualCombo = new QComboBox(this);
+    aQualCombo->addItems({"360kbps", "256kbps", "192kbps", "128kbps"});
+    aQualCombo->setCurrentText(ConfigManager::instance().getAudioQuality());
+    connect(aQualCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioQualityChanged);
+    audioRow->addLayout(createVerticalCombo("Default audio quality:", aQualCombo));
+    mainLayout->addLayout(audioRow);
+
     mainLayout->addStretch();
+    scrollArea->setWidget(scrollContent);
+    rootLayout->addWidget(scrollArea);
 }
 
 QHBoxLayout* SettingsPage::createSection(const QString &title, QWidget *widget) {
@@ -111,35 +154,26 @@ QHBoxLayout* SettingsPage::createReqRow(const QString &name, QPushButton *btn) {
     return layout;
 }
 
+QVBoxLayout* SettingsPage::createVerticalCombo(const QString &label, QComboBox *combo) {
+    auto *layout = new QVBoxLayout();
+    layout->addWidget(new QLabel(label, this));
+    layout->addWidget(combo);
+    return layout;
+}
+
 void SettingsPage::onThemeChanged(const QString &theme) {
     ConfigManager::instance().setTheme(theme);
     emit themeChanged();
 }
 
-void SettingsPage::onLangChanged(const QString &lang) {
-    ConfigManager::instance().setLanguage(lang);
-}
-
-void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) {
-    ConfigManager::instance().setCloseBehavior(btn->text().contains("Hide") ? "Hide" : "Exit");
-}
-
-void SettingsPage::onCookiesChanged(const QString &browser) {
-    ConfigManager::instance().setCookiesBrowser(browser);
-}
-
-void SettingsPage::onIgnoreErrorsToggled(bool checked) {
-    ConfigManager::instance().setIgnoreErrors(checked);
-}
-
-void SettingsPage::onGeoBypassToggled(bool checked) {
-    ConfigManager::instance().setGeoBypass(checked);
-}
-
-void SettingsPage::checkFfmpeg() {
-    m_installer->checkForUpdates(true);
-}
-
-void SettingsPage::checkYtdlp() {
-    m_installer->checkForUpdates(true);
-}
+void SettingsPage::onLangChanged(const QString &lang) { ConfigManager::instance().setLanguage(lang); }
+void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) { ConfigManager::instance().setCloseBehavior(btn->text().contains("Hide") ? "Hide" : "Exit"); }
+void SettingsPage::onCookiesChanged(const QString &browser) { ConfigManager::instance().setCookiesBrowser(browser); }
+void SettingsPage::onIgnoreErrorsToggled(bool checked) { ConfigManager::instance().setIgnoreErrors(checked); }
+void SettingsPage::onGeoBypassToggled(bool checked) { ConfigManager::instance().setGeoBypass(checked); }
+void SettingsPage::onVideoFormatChanged(const QString &val) { ConfigManager::instance().setVideoFormat(val); }
+void SettingsPage::onVideoQualityChanged(const QString &val) { ConfigManager::instance().setVideoQuality(val); }
+void SettingsPage::onAudioFormatChanged(const QString &val) { ConfigManager::instance().setAudioFormat(val); }
+void SettingsPage::onAudioQualityChanged(const QString &val) { ConfigManager::instance().setAudioQuality(val); }
+void SettingsPage::checkFfmpeg() { m_installer->checkForUpdates(true); }
+void SettingsPage::checkYtdlp() { m_installer->checkForUpdates(true); }

@@ -31,6 +31,10 @@ void ConfigManager::load() {
         setCookiesBrowser("None");
         setIgnoreErrors(true);
         setGeoBypass(true);
+        setVideoFormat("mp4");
+        setVideoQuality("1080p");
+        setAudioFormat("mp3");
+        setAudioQuality("128kbps");
         save();
     }
 }
@@ -54,11 +58,23 @@ void ConfigManager::setCloseBehavior(const QString& behavior) { configData["clos
 QString ConfigManager::getCookiesBrowser() const { return configData["cookies_browser"].toString("None"); }
 void ConfigManager::setCookiesBrowser(const QString& browser) { configData["cookies_browser"] = browser; save(); }
 
-bool ConfigManager::getIgnoreErrors() const { return configData["ignore_errors"].toBool(true); }
+bool ConfigManager::getIgnoreErrors() const { return configData["ignore_errors"].toBool(false); }
 void ConfigManager::setIgnoreErrors(bool enable) { configData["ignore_errors"] = enable; save(); }
 
-bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(true); }
+bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(false); }
 void ConfigManager::setGeoBypass(bool enable) { configData["geo_bypass"] = enable; save(); }
+
+QString ConfigManager::getVideoFormat() const { return configData["v_format"].toString("mp4"); }
+void ConfigManager::setVideoFormat(const QString& f) { configData["v_format"] = f; save(); }
+
+QString ConfigManager::getVideoQuality() const { return configData["v_quality"].toString("1080p"); }
+void ConfigManager::setVideoQuality(const QString& q) { configData["v_quality"] = q; save(); }
+
+QString ConfigManager::getAudioFormat() const { return configData["a_format"].toString("mp3"); }
+void ConfigManager::setAudioFormat(const QString& f) { configData["a_format"] = f; save(); }
+
+QString ConfigManager::getAudioQuality() const { return configData["a_quality"].toString("128bps"); }
+void ConfigManager::setAudioQuality(const QString& q) { configData["a_quality"] = q; save(); }
 
 QString ConfigManager::getRequirementsPath() const {
     return QDir(QCoreApplication::applicationDirPath()).filePath("Data/Requirements");

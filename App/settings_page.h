@@ -8,7 +8,9 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QLabel>
+#include <QScrollArea>
 #include "popup.h"
 #include "../Installer/installer_window.h"
 
@@ -23,11 +25,15 @@ private slots:
     void onThemeChanged(const QString &theme);
     void onLangChanged(const QString &lang);
     void onCloseBehaviorChanged(QAbstractButton *btn);
+    void checkFfmpeg();
+    void checkYtdlp();
     void onCookiesChanged(const QString &browser);
     void onIgnoreErrorsToggled(bool checked);
     void onGeoBypassToggled(bool checked);
-    void checkFfmpeg();
-    void checkYtdlp();
+    void onVideoFormatChanged(const QString &val);
+    void onVideoQualityChanged(const QString &val);
+    void onAudioFormatChanged(const QString &val);
+    void onAudioQualityChanged(const QString &val);
 
 private:
     Popup *popup;
@@ -38,6 +44,7 @@ private:
     void setupUi();
     QHBoxLayout* createSection(const QString &title, QWidget *widget);
     QHBoxLayout* createReqRow(const QString &name, QPushButton *btn);
+    QVBoxLayout* createVerticalCombo(const QString &label, QComboBox *combo);
 };
 
 #endif

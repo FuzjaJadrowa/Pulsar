@@ -100,7 +100,7 @@ private:
         connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
 
         connect(installer, &InstallerWindow::networkError, this, [this](){
-             popup->showMessage("Network Error", "No internet connection detected.", Popup::Error, Popup::Permanent);
+             popup->showMessage("Network Error", "No internet connection detected or too many requests.", Popup::Error, Popup::Temporary);
         });
 
         connect(installer, &InstallerWindow::updateAvailable, this, [this](const QString &appName){
