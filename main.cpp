@@ -100,9 +100,18 @@ private:
         connect(btnConsole, &QPushButton::clicked, [this]() { stackedWidget->setCurrentIndex(1); });
         connect(btnSettings, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(2); });
         connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
+        connect(pageMain->getDownloader(), &Downloader::outputLog, pageConsole, &ConsolePage::appendLog);
 
-        connect(installer, &InstallerWindow::networkError, this, [this](){
-             popup->showMessage("Network Error", "No internet connection detected or too many requests.", Popup::Error, Popup::Temporary);
+        connect(installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
+            popup->showMessage("Info", appName + " is already up to date.", Popup::Info, Popup::Temporary);
+        });
+
+        connect(installer, &InstallerWindow::networkError, this, [this](bool isRateLimit){
+             if (isRateLimit) {
+                 popup->showMessage("Error", "Too many requests. Try again later.", Popup::Error, Popup::Temporary);
+             } else {
+                 popup->showMessage("Network Error", "No internet connection detected.", Popup::Error, Popup::Temporary);
+             }
         });
 
         connect(installer, &InstallerWindow::updateAvailable, this, [this](const QString &appName){
@@ -155,7 +164,7 @@ int main(int argc, char *argv[]) {
 
     w.show();
     QTimer::singleShot(2000, w.installer, [&w]() {
-        w.installer->checkForUpdates(false);
+        w.installer->checkForUpdates("yt-dlp", false);
     });
 
     return app.exec();

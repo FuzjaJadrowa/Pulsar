@@ -3,6 +3,7 @@
 #include <QGridLayout>
 #include <QFileDialog>
 #include <QDebug>
+#include <QStyleFactory>
 
 MainPage::MainPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
@@ -10,8 +11,8 @@ MainPage::MainPage(QWidget *parent) : QWidget(parent) {
 
     setupUi();
 
-    connect(downloader, &Downloader::outputLog, this, &MainPage::onLogReceived);
     connect(downloader, &Downloader::finished, this, &MainPage::onDownloadFinished);
+    connect(downloader, &Downloader::progressUpdated, this, &MainPage::onProgressUpdated);
 }
 
 void MainPage::setupUi() {
@@ -88,28 +89,43 @@ void MainPage::setupUi() {
     mainLayout->addWidget(optionsGroup);
     mainLayout->addStretch();
 
-    auto *btnLayout = new QHBoxLayout();
-    btnLayout->addStretch();
+    progressBar = new QProgressBar(this);
+    progressBar->setRange(0, 100);
+    progressBar->setValue(0);
+    progressBar->setTextVisible(true);
+    progressBar->setFormat("0%");
+    progressBar->setAlignment(Qt::AlignCenter);
+    progressBar->setFixedHeight(25);
+    progressBar->setStyle(QStyleFactory::create("windowsvista"));
+    progressBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    startBtn = new QPushButton("Start Download", this);
+    statusLabel = new QLabel("", this);
+    statusLabel->setObjectName("StatusLabel");
+    statusLabel->hide();
+
+    startBtn = new QPushButton("Start", this);
     startBtn->setObjectName("StartBtn");
     startBtn->setCursor(Qt::PointingHandCursor);
     startBtn->setMinimumHeight(45);
-    startBtn->setMinimumWidth(150);
+    startBtn->setMinimumWidth(100);
     connect(startBtn, &QPushButton::clicked, this, &MainPage::onStartClicked);
 
     stopBtn = new QPushButton("Stop", this);
     stopBtn->setObjectName("StopBtn");
     stopBtn->setCursor(Qt::PointingHandCursor);
     stopBtn->setMinimumHeight(45);
+    startBtn->setMinimumWidth(100);
     stopBtn->setEnabled(false);
     connect(stopBtn, &QPushButton::clicked, this, &MainPage::onStopClicked);
 
-    btnLayout->addWidget(startBtn);
-    btnLayout->addWidget(stopBtn);
-    btnLayout->addStretch();
+    auto *actionLayout = new QHBoxLayout();
+    actionLayout->addWidget(progressBar);
+    actionLayout->addWidget(statusLabel);
+    actionLayout->addSpacing(15);
+    actionLayout->addWidget(startBtn);
+    actionLayout->addWidget(stopBtn);
 
-    mainLayout->addLayout(btnLayout);
+    mainLayout->addLayout(actionLayout);
 
     onAudioOnlyToggled(false);
 }
@@ -131,8 +147,8 @@ void MainPage::onAudioOnlyToggled(bool checked) {
 
 void MainPage::onStartClicked() {
     startBtn->setEnabled(false);
-    startBtn->setText("Downloading...");
     stopBtn->setEnabled(true);
+    progressBar->setFormat(" Preparing...");
 
     downloader->startDownload(
         urlInput->text().trimmed(),
@@ -149,18 +165,25 @@ void MainPage::onStopClicked() {
     downloader->stopDownload();
 }
 
-void MainPage::onLogReceived(const QString &msg) {
-    qDebug() << msg;
+void MainPage::onProgressUpdated(double percent, const QString &eta) {
+    progressBar->setValue(static_cast<int>(percent));
+    progressBar->setFormat(QString("Progress: %1% | ETA: %2").arg(percent).arg(eta));
 }
 
 void MainPage::onDownloadFinished(bool ok, const QString &msg) {
     startBtn->setEnabled(true);
-    startBtn->setText("Start Download");
+    startBtn->setText("Start");
     stopBtn->setEnabled(false);
+    progressBar->setFormat("0%");
+    progressBar->setValue(0);
 
     if (ok) {
         popup->showMessage("Success", msg, Popup::Success, Popup::Temporary);
     } else {
-        popup->showMessage("Error", msg, Popup::Error, Popup::Temporary);
+        if (msg.contains("stopped", Qt::CaseInsensitive)) {
+            popup->showMessage("Info", "Downloading cancelled by user.", Popup::Info, Popup::Temporary);
+        } else {
+            popup->showMessage("Error", msg, Popup::Error, Popup::Temporary);
+        }
     }
 }

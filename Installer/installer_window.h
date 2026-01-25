@@ -20,14 +20,14 @@ public:
     explicit InstallerWindow(Popup *popup = nullptr, QWidget *parent = nullptr);
     bool hasRequirements();
     void startMissingFileRepair();
-    void checkForUpdates(bool manual);
+    void checkForUpdates(const QString &appName, bool manual);
     void startUpdateProcess(const QString &appName);
 
     signals:
         void installationFinished();
     void updateAvailable(const QString &appName);
-    void upToDate();
-    void networkError();
+    void upToDate(const QString &appName);
+    void networkError(bool isRateLimit);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

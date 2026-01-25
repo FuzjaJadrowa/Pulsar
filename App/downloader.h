@@ -18,6 +18,7 @@ public:
 
     signals:
         void outputLog(const QString &line);
+    void progressUpdated(double percentage, const QString &eta);
     void finished(bool success, const QString &message);
 
 private slots:

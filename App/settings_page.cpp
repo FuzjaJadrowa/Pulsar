@@ -132,10 +132,6 @@ void SettingsPage::setupUi() {
     connect(geoBypassCheck, &QCheckBox::toggled, this, &SettingsPage::onGeoBypassToggled);
     mainLayout->addWidget(geoBypassCheck);
 
-    auto *qualLabel = new QLabel("Quality & Formats", this);
-    qualLabel->setObjectName("SectionHeader");
-    mainLayout->addWidget(qualLabel);
-
     auto *videoRow = new QHBoxLayout();
     auto *vFormatCombo = new QComboBox(this);
     vFormatCombo->addItems({"mp4", "mkv", "mov", "avi", "flv", "webm"});
@@ -207,5 +203,5 @@ void SettingsPage::onVideoFormatChanged(const QString &val) { ConfigManager::ins
 void SettingsPage::onVideoQualityChanged(const QString &val) { ConfigManager::instance().setVideoQuality(val); }
 void SettingsPage::onAudioFormatChanged(const QString &val) { ConfigManager::instance().setAudioFormat(val); }
 void SettingsPage::onAudioQualityChanged(const QString &val) { ConfigManager::instance().setAudioQuality(val); }
-void SettingsPage::checkFfmpeg() { m_installer->checkForUpdates(true); }
-void SettingsPage::checkYtdlp() { m_installer->checkForUpdates(true); }
+void SettingsPage::checkFfmpeg() { m_installer->checkForUpdates("ffmpeg", true); }
+void SettingsPage::checkYtdlp() { m_installer->checkForUpdates("yt-dlp", true); }

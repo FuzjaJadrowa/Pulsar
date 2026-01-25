@@ -13,8 +13,8 @@ InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     : QDialog(parent), m_popup(popup) {
     setWindowTitle("GVD Requirements Installer");
     setFixedSize(450, 150);
+    setModal(true);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
-
     this->setStyleSheet("background-color: #ffffff; color: #000000;");
 
     auto *layout = new QVBoxLayout(this);
@@ -23,8 +23,10 @@ InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     statusLabel->setStyleSheet("color: #000000;");
 
     progressBar = new QProgressBar(this);
-    progressBar->setFixedHeight(22);
+    progressBar->setFixedHeight(25);
     progressBar->setStyle(QStyleFactory::create("windowsvista"));
+    progressBar->setAlignment(Qt::AlignCenter);
+    progressBar->setTextVisible(false);
 
     layout->addStretch();
     layout->addWidget(statusLabel);
@@ -68,15 +70,11 @@ QString InstallerWindow::getExecutableName(const QString &baseName) {
 
 QString InstallerWindow::getRequirementsPath() {
     QString basePath = QCoreApplication::applicationDirPath();
-
 #ifdef Q_OS_MACOS
     QDir dir(basePath);
-    dir.cdUp();
-    dir.cdUp();
-    dir.cdUp();
+    dir.cdUp(); dir.cdUp(); dir.cdUp();
     basePath = dir.absolutePath();
 #endif
-
     QString path = basePath + "/Data/Requirements";
     QDir().mkpath(path);
     return path;
@@ -96,11 +94,11 @@ void InstallerWindow::startMissingFileRepair() {
     processNextRepairStep();
 }
 
-void InstallerWindow::checkForUpdates(bool manual) {
+void InstallerWindow::checkForUpdates(const QString &appName, bool manual) {
     m_isRepairMode = false;
     m_isManualCheck = manual;
     m_installing = false;
-    fetchLatestRelease("yt-dlp");
+    fetchLatestRelease(appName);
 }
 
 void InstallerWindow::startUpdateProcess(const QString &appName) {
@@ -127,12 +125,7 @@ void InstallerWindow::processNextRepairStep() {
 
 void InstallerWindow::fetchLatestRelease(const QString &appName) {
     m_currentApp = appName;
-    statusLabel->setText("Checking info for " + appName + "...");
-
-    QString repo;
-    if (appName == "yt-dlp") repo = "yt-dlp/yt-dlp";
-    else repo = "BtbN/FFmpeg-Builds";
-
+    QString repo = (appName == "yt-dlp") ? "yt-dlp/yt-dlp" : "BtbN/FFmpeg-Builds";
     QUrl url(QString("https://api.github.com/repos/%1/releases/latest").arg(repo));
     QNetworkRequest request(url);
     auto *reply = netManager->get(request);
@@ -141,16 +134,29 @@ void InstallerWindow::fetchLatestRelease(const QString &appName) {
 
 void InstallerWindow::handleReleaseInfo() {
     auto *reply = qobject_cast<QNetworkReply*>(sender());
-    reply->deleteLater();
 
-    if (reply->error() != QNetworkReply::NoError) {
+if (reply->error() != QNetworkReply::NoError) {
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        bool isRateLimit = (statusCode == 403 || statusCode == 429);
+
         m_installing = false;
         if (!m_isRepairMode) hide();
-        emit networkError();
+
+        reply->deleteLater();
+
+        if (isRateLimit) {
+            if (m_isManualCheck) {
+                emit networkError(true);
+            }
+            } else {
+            emit networkError(false);
+        }
         return;
     }
 
     auto json = QJsonDocument::fromJson(reply->readAll()).object();
+    reply->deleteLater();
+
     QString remoteDate = json["published_at"].toString();
     if (remoteDate.isEmpty()) remoteDate = json["tag_name"].toString();
 
@@ -159,13 +165,14 @@ void InstallerWindow::handleReleaseInfo() {
 
     if (!m_installing) {
         if (!updateNeeded) {
-            if (m_currentApp == "yt-dlp") {
-                fetchLatestRelease("ffmpeg");
-                return;
-            } else {
-                if (m_isManualCheck) emit upToDate();
+            if (m_isManualCheck) {
+                emit upToDate(m_currentApp);
                 return;
             }
+            if (m_currentApp == "yt-dlp") {
+                fetchLatestRelease("ffmpeg");
+            }
+            return;
         } else {
             emit updateAvailable(m_currentApp);
             return;
@@ -178,28 +185,10 @@ void InstallerWindow::handleReleaseInfo() {
 
     for (const auto &val : assets) {
         QString name = val.toObject()["name"].toString().toLower();
-
         if (m_currentApp == "yt-dlp") {
-            if (os == "win" && name == "yt-dlp.exe") {
-                downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
-            if (os == "mac" && name == "yt-dlp_macos") {
-                downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
-            if (os == "linux" && name == "yt-dlp_linux") {
-                downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
-        }
-        else if (m_currentApp == "ffmpeg") {
-            if (os == "win" && name.contains("win64-gpl") && name.endsWith(".zip")) {
-                downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
-            if (os == "linux" && name.contains("linux64-gpl") && name.endsWith(".tar.xz")) {
-                downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
-            if (os == "mac" && (name.contains("macos") || name.contains("darwin")) && name.endsWith(".tar.xz")) {
-               downloadUrl = val.toObject()["browser_download_url"].toString(); break;
-            }
+            if (os == "win" && name == "yt-dlp.exe") { downloadUrl = val.toObject()["browser_download_url"].toString(); break; }
+        } else if (m_currentApp == "ffmpeg") {
+            if (os == "win" && name.contains("win64-gpl") && name.endsWith(".zip")) { downloadUrl = val.toObject()["browser_download_url"].toString(); break; }
         }
     }
 
@@ -207,19 +196,14 @@ void InstallerWindow::handleReleaseInfo() {
         startDownload(m_currentApp, downloadUrl, remoteDate);
     } else {
         m_installing = false;
-        if(m_popup) m_popup->showMessage("Error", "No compatible version found for your OS.", Popup::Error, Popup::Permanent);
+        if(m_popup) m_popup->showMessage("Error", "No compatible version found.", Popup::Error, Popup::Permanent);
     }
 }
 
 void InstallerWindow::startDownload(const QString &appName, const QString &url, const QString &version) {
     m_remoteVersion = version;
-    QString ext;
-    if (url.endsWith(".zip")) ext = ".zip";
-    else if (url.endsWith(".tar.xz")) ext = ".tar.xz";
-    else ext = getExecutableName("");
-
+    QString ext = url.endsWith(".zip") ? ".zip" : (url.endsWith(".tar.xz") ? ".tar.xz" : getExecutableName(""));
     m_targetPath = getRequirementsPath() + "/" + appName + "_temp" + ext;
-
     m_installing = true;
     statusLabel->setText("Downloading " + appName + "...");
     if (!isVisible()) show();
@@ -241,37 +225,18 @@ void InstallerWindow::handleDownloadFinished() {
         if (file.open(QIODevice::WriteOnly)) {
             file.write(currentReply->readAll());
             file.close();
-
-            #ifndef Q_OS_WIN
-            file.setPermissions(file.permissions() | QFile::ExeOwner | QFile::ExeUser | QFile::ExeGroup | QFile::ExeOther);
-            #endif
-
             if (m_targetPath.endsWith(".zip") || m_targetPath.endsWith(".tar.xz")) {
                 extractArchive(m_targetPath);
             } else {
                 QString finalName = getRequirementsPath() + "/" + getExecutableName(m_currentApp);
                 QFile::remove(finalName);
                 if(file.rename(finalName)) {
-                     #ifndef Q_OS_WIN
-                         QFile(finalName).setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup);
-                     #endif
-
-                     setLocalVersion(m_currentApp, m_remoteVersion);
+                    setLocalVersion(m_currentApp, m_remoteVersion);
                     if (m_isRepairMode) processNextRepairStep();
-                    else {
-                        m_installing = false;
-                        if (m_popup) m_popup->showMessage("Success", m_currentApp + " updated successfully!", Popup::Success, Popup::Temporary);
-                        accept();
-                    }
-                } else {
-                     m_installing = false;
-                     if(m_popup) m_popup->showMessage("Error", "File access error.", Popup::Error, Popup::Temporary);
+                    else { m_installing = false; accept(); }
                 }
             }
         }
-    } else {
-        m_installing = false;
-        if (m_popup) m_popup->showMessage("Error", "Download failed.", Popup::Error, Popup::Temporary);
     }
     currentReply->deleteLater();
     currentReply = nullptr;
@@ -279,9 +244,7 @@ void InstallerWindow::handleDownloadFinished() {
 
 void InstallerWindow::extractArchive(const QString &archivePath) {
     statusLabel->setText("Extracting " + m_currentApp + "...");
-    progressBar->setValue(0);
     QString destDir = getRequirementsPath();
-
     auto *process = new QProcess(this);
     process->start("tar", {"-xf", archivePath, "-C", destDir});
 
@@ -291,57 +254,29 @@ void InstallerWindow::extractArchive(const QString &archivePath) {
 
         QDir dir(destDir);
         QStringList entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-
         for(const auto &entry : entries) {
-            if(entry.contains("ffmpeg", Qt::CaseInsensitive)) {
-                QString sourceBinDir = destDir + "/" + entry + "/bin";
-
-                if(QDir(sourceBinDir).exists()) {
-                    QDir binDir(sourceBinDir);
-                    QStringList files = binDir.entryList(QDir::Files);
-
-                    for(const QString &fileName : files) {
-                        QString srcPath = sourceBinDir + "/" + fileName;
-                        QString dstPath = destDir + "/" + fileName;
-
-                        if(QFile::exists(dstPath)) QFile::remove(dstPath);
-                        if(QFile::copy(srcPath, dstPath)) {
-                            #ifndef Q_OS_WIN
-                            QFile(dstPath).setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup);
-                            #endif
-                        }
+            QString subDir = destDir + "/" + entry;
+            if (m_currentApp == "ffmpeg" && entry.contains("ffmpeg", Qt::CaseInsensitive)) {
+                QDir binDir(subDir + "/bin");
+                if (binDir.exists()) {
+                    for (const QString &f : binDir.entryList(QDir::Files)) {
+                        QFile::remove(destDir + "/" + f);
+                        QFile::rename(subDir + "/bin/" + f, destDir + "/" + f);
                     }
                 }
-                else {
-                    QString fullEntryPath = destDir + "/" + entry;
-                    QDir srcDir(fullEntryPath);
-                    QStringList files = srcDir.entryList(QDir::Files);
-                    for(const QString &fileName : files) {
-                        QString dstPath = destDir + "/" + fileName;
-                        if(QFile::exists(dstPath)) QFile::remove(dstPath);
-                        QFile::rename(fullEntryPath + "/" + fileName, dstPath);
-                    }
-                }
-
-                QDir(destDir + "/" + entry).removeRecursively();
+                QDir(subDir).removeRecursively();
             }
         }
 
         setLocalVersion(m_currentApp, m_remoteVersion);
         if (m_isRepairMode) processNextRepairStep();
-        else {
-            m_installing = false;
-            if (m_popup) m_popup->showMessage("Success", m_currentApp + " updated successfully!", Popup::Success, Popup::Temporary);
-            accept();
-        }
+        else { m_installing = false; accept(); }
     });
 }
 
 QString InstallerWindow::getLocalVersion(const QString &appName) {
     QFile file(getRequirementsPath() + "/versions.json");
-    if (file.open(QIODevice::ReadOnly)) {
-        return QJsonDocument::fromJson(file.readAll()).object()[appName].toString();
-    }
+    if (file.open(QIODevice::ReadOnly)) return QJsonDocument::fromJson(file.readAll()).object()[appName].toString();
     return "";
 }
 
@@ -349,10 +284,7 @@ void InstallerWindow::setLocalVersion(const QString &appName, const QString &ver
     QString path = getRequirementsPath() + "/versions.json";
     QJsonObject obj;
     QFile fileIn(path);
-    if (fileIn.open(QIODevice::ReadOnly)) {
-        obj = QJsonDocument::fromJson(fileIn.readAll()).object();
-        fileIn.close();
-    }
+    if (fileIn.open(QIODevice::ReadOnly)) { obj = QJsonDocument::fromJson(fileIn.readAll()).object(); fileIn.close(); }
     obj[appName] = version;
     QFile fileOut(path);
     if (fileOut.open(QIODevice::WriteOnly)) fileOut.write(QJsonDocument(obj).toJson());

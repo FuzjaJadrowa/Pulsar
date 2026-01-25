@@ -19,8 +19,9 @@ Popup::Popup(QWidget *parent) : QWidget(parent), isClosing(false) {
 
     auto *headerLayout = new QHBoxLayout();
     titleLabel = new QLabel(this);
+    titleLabel->setObjectName("PopupTitle");
     titleLabel->setFont(QFont("Montserrat ExtraBold", 11, QFont::Bold));
-    titleLabel->setStyleSheet("background: transparent; color: white; border: none;");
+    titleLabel->setStyleSheet("background: transparent; color: white; border: none; font-weight: bold;");
 
     dismissBtn = new QPushButton("✕", this);
     dismissBtn->setFixedSize(24, 24);
@@ -31,42 +32,48 @@ Popup::Popup(QWidget *parent) : QWidget(parent), isClosing(false) {
     headerLayout->addWidget(titleLabel);
     headerLayout->addStretch();
     headerLayout->addWidget(dismissBtn);
+    contentLayout->addLayout(headerLayout);
 
     bodyLabel = new QLabel(this);
     bodyLabel->setWordWrap(true);
-    bodyLabel->setFont(QFont("Segoe UI", 10));
-    bodyLabel->setStyleSheet("background: transparent; color: white; border: none;");
+    bodyLabel->setStyleSheet("color: white; font-size: 13px; background: transparent; border: none;");
+    contentLayout->addWidget(bodyLabel);
+    contentLayout->addStretch();
 
     actionBtn = new QPushButton(this);
     actionBtn->setCursor(Qt::PointingHandCursor);
-    actionBtn->setStyleSheet("QPushButton { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid white; border-radius: 4px; padding: 4px 10px; } QPushButton:hover { background-color: rgba(255,255,255,0.3); }");
-    actionBtn->hide();
+    actionBtn->setStyleSheet("background: rgba(255,255,255,0.2); color: white; border: 1px solid white; border-radius: 4px; padding: 4px 10px; font-weight: bold;");
     connect(actionBtn, &QPushButton::clicked, this, [this](){
         emit actionClicked();
         animateOut();
     });
-
-    contentLayout->addLayout(headerLayout);
-    contentLayout->addWidget(bodyLabel);
     contentLayout->addWidget(actionBtn, 0, Qt::AlignRight);
-    contentLayout->addStretch();
 
     layout->addWidget(bgWidget);
 
     auto *shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(15);
+    shadow->setBlurRadius(20);
     shadow->setColor(QColor(0,0,0,100));
-    shadow->setOffset(0,4);
+    shadow->setOffset(0, 4);
     bgWidget->setGraphicsEffect(shadow);
+
+    posAnimation = new QPropertyAnimation(this, "pos", this);
+    posAnimation->setDuration(500);
+    posAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(posAnimation, &QPropertyAnimation::finished, this, &Popup::onAnimationFinished);
 
     autoCloseTimer = new QTimer(this);
     autoCloseTimer->setSingleShot(true);
     connect(autoCloseTimer, &QTimer::timeout, this, &Popup::animateOut);
+}
 
-    posAnimation = new QPropertyAnimation(this, "pos");
-    posAnimation->setDuration(400);
-    posAnimation->setEasingCurve(QEasingCurve::OutCubic);
-    connect(posAnimation, &QPropertyAnimation::finished, this, &Popup::onAnimationFinished);
+void Popup::applyStyle(Type type) {
+    QString bgColor;
+    if (type == Info) bgColor = "#0078D7";
+    else if (type == Error) bgColor = "#DC3545";
+    else bgColor = "#28A745";
+
+    bgWidget->setStyleSheet(QString("#PopupBg { background-color: %1; border-radius: 8px; }").arg(bgColor));
 }
 
 void Popup::showMessage(const QString &title, const QString &body, Type type, Mode mode, const QString &actionText) {
@@ -114,16 +121,4 @@ void Popup::animateOut() {
 
 void Popup::onAnimationFinished() {
     if (isClosing) hide();
-}
-
-void Popup::applyStyle(Type type) {
-    QString color;
-    if (type == Info) color = "#0078D7";
-    else if (type == Error) color = "#D13438";
-    else color = "#107C10";
-
-    bgWidget->setStyleSheet(QString(
-        "#PopupBg { background-color: %1; border-radius: 10px; border: none; } "
-        "QLabel { color: white; background: transparent; }"
-    ).arg(color));
 }

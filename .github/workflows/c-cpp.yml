@@ -17,14 +17,11 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.6.0'
-          arch: 'win64_mingw'
-
-      - name: Install Ninja
-        run: choco install ninja
+          arch: 'win64_msvc2019_64'
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G "Ninja" `
+          cmake -S . -B build `
           -DCMAKE_BUILD_TYPE=Release `
           -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
 
@@ -35,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GVD-Windows-Build
-          path: build/App.exe
+          path: build/Release/App.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:

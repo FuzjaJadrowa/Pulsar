@@ -2,6 +2,7 @@
 #include "config_manager.h"
 #include <QDir>
 #include <QCoreApplication>
+#include <QRegularExpression>
 
 Downloader::Downloader(QObject *parent) : QObject(parent) {
     process = new QProcess(this);
@@ -85,8 +86,19 @@ void Downloader::handleOutput() {
     QByteArray err = process->readAllStandardError();
     QString output = QString::fromLocal8Bit(data) + QString::fromLocal8Bit(err);
     QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+
+    static QRegularExpression progressRegex(R"(\[download\]\s+(\d+\.?\d*)%\s+of\s+.*\s+ETA\s+(\d+:\d+))");
+
     for (const QString &line : lines) {
-        emit outputLog(line.trimmed());
+        QString trimmedLine = line.trimmed();
+        emit outputLog(trimmedLine);
+
+        QRegularExpressionMatch match = progressRegex.match(trimmedLine);
+        if (match.hasMatch()) {
+            double percent = match.captured(1).toDouble();
+            QString eta = match.captured(2);
+            emit progressUpdated(percent, eta);
+        }
     }
 }
 
