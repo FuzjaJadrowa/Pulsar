@@ -10,6 +10,8 @@
 #include <QPropertyAnimation>
 #include <QStyleHints>
 #include <QCloseEvent>
+#include <QTimer>
+#include <QStyle>
 
 #include "App/main_page.h"
 #include "App/settings_page.h"
@@ -27,12 +29,12 @@ public:
     MainWindow() {
         setWindowTitle("GUI Video Downloader");
         setMinimumSize(950, 650);
-        setWindowIcon(QIcon(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico"));
+        setWindowIcon(QIcon(":/Resources/Icons/app_icon.png"));
         setupUI();
         applyTheme();
     }
 
-    public slots:
+public slots:
     void applyTheme() {
         QString theme = ConfigManager::instance().getTheme();
         if (theme == "System") {
@@ -40,8 +42,8 @@ public:
         }
         bool isDark = (theme == "Dark");
         QString themeName = theme.toLower();
-        QString qssPath = QCoreApplication::applicationDirPath() + "/Resources/style.qss";
-        QFile file(qssPath);
+
+        QFile file(":/Resources/style.qss");
         if (file.open(QIODevice::ReadOnly)) {
             QString style = QLatin1String(file.readAll());
             this->setProperty("theme", themeName);
@@ -121,11 +123,10 @@ private:
     }
 
     void updateSidebarIcons(bool isDark) {
-        QString path = QCoreApplication::applicationDirPath() + "/Resources/Icons/";
-        QString suf = isDark ? "_dark.ico" : ".ico";
-        btnHome->setIcon(QIcon(path + "home" + suf));
-        btnConsole->setIcon(QIcon(path + "console" + suf));
-        btnSettings->setIcon(QIcon(path + "settings" + suf));
+        QString suf = isDark ? "_dark.png" : ".png";
+        btnHome->setIcon(QIcon(":/Resources/Icons/home" + suf));
+        btnConsole->setIcon(QIcon(":/Resources/Icons/console" + suf));
+        btnSettings->setIcon(QIcon(":/Resources/Icons/settings" + suf));
     }
 
 protected:
@@ -142,8 +143,7 @@ protected:
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     app.setFont(QFont("Segoe UI", 10));
-    QString fontPath = QCoreApplication::applicationDirPath() + "/Resources/Fonts/Montserrat-ExtraBold.ttf";
-    QFontDatabase::addApplicationFont(fontPath);
+    QFontDatabase::addApplicationFont(":/Resources/Fonts/Montserrat-ExtraBold.ttf");
 
     MainWindow w;
     if (!w.installer->hasRequirements()) {
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
     }
 
     w.show();
-    QTimer::singleShot(2000, w.installer, [&w](){
+    QTimer::singleShot(2000, w.installer, [&w]() {
         w.installer->checkForUpdates(false);
     });
 

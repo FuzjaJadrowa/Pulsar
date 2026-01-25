@@ -11,6 +11,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QScrollArea>
+#include <QStyleOption>
+#include <QPainter>
 #include "popup.h"
 #include "../Installer/installer_window.h"
 
@@ -18,8 +20,13 @@ class SettingsPage : public QWidget {
     Q_OBJECT
 public:
     explicit SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent = nullptr);
+    void updateThemeProperty();
+
     signals:
         void themeChanged();
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void onThemeChanged(const QString &theme);

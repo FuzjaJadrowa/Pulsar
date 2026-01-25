@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QTimer>
 #include <QCoreApplication>
+#include <QProcess>
 #include "../App/popup.h"
 
 class InstallerWindow : public QDialog {
@@ -53,10 +54,13 @@ private:
     bool m_installing = false;
 
     QString getRequirementsPath();
+    QString getExecutableName(const QString &baseName);
+    QString getOsName();
+
     QString getLocalVersion(const QString &appName);
     void setLocalVersion(const QString &appName, const QString &version);
     void startDownload(const QString &appName, const QString &url, const QString &version);
-    void extractFFmpeg(const QString &zipPath);
+    void extractArchive(const QString &archivePath);
     void processNextRepairStep();
     void fetchLatestRelease(const QString &appName);
 };

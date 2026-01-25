@@ -8,7 +8,7 @@ MainPage::MainPage(QWidget *parent) : QWidget(parent) {
 
     auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setPixmap(QPixmap(":/Resources/Icons/icon.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 
     auto *header = new QLabel("GUI Video Downloader", this);
     header->setObjectName("PageTitle");

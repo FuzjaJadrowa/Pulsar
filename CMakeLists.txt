@@ -9,11 +9,7 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Widgets Network REQUIRED)
 
-if(WIN32)
-    set(RES_FILE resources.rc)
-endif()
-add_executable(App
-        ${RES_FILE}
+set(PROJECT_SOURCES
         main.cpp
         Installer/installer_window.cpp
         Installer/installer_window.h
@@ -27,10 +23,30 @@ add_executable(App
         App/main_page.h
         App/config_manager.cpp
         App/config_manager.h
+        resources.rc
+        resources.qrc
 )
 
-target_link_libraries(App Qt6::Widgets Qt6::Network)
+if(WIN32)
+    list(APPEND PROJECT_SOURCES resources.rc)
+endif()
 
-add_custom_command(TARGET App POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/Resources ${CMAKE_BINARY_DIR}/Resources)
+add_executable(App ${PROJECT_SOURCES})
+
+if(APPLE)
+    set_target_properties(App PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.downloader"
+            MACOSX_BUNDLE_ICON_FILE "icon.icns"
+    )
+    set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endif()
+
+target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
+
+if(NOT APPLE)
+    add_custom_command(TARGET App POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/Resources ${CMAKE_BINARY_DIR}/Resources)
+endif()

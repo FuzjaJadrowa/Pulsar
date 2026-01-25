@@ -3,10 +3,40 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QScrollBar>
+#include <QStyle>
+#include <QGuiApplication>
+#include <QStyleHints>
 
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
     setupUi();
+    updateThemeProperty();
+}
+
+void SettingsPage::paintEvent(QPaintEvent *event) {
+    QStyleOption opt;
+    opt.initFrom(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}
+
+void SettingsPage::updateThemeProperty() {
+    QString theme = ConfigManager::instance().getTheme();
+    if (theme == "System") {
+        theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
+    }
+    QString themeName = theme.toLower();
+
+    this->setProperty("theme", themeName);
+
+this->style()->unpolish(this);
+    this->style()->polish(this);
+
+    for (auto child : findChildren<QWidget*>()) {
+        child->setProperty("theme", themeName);
+        child->style()->unpolish(child);
+        child->style()->polish(child);
+    }
 }
 
 void SettingsPage::setupUi() {
@@ -16,6 +46,7 @@ void SettingsPage::setupUi() {
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; }");
 
     auto *scrollContent = new QWidget();
     scrollContent->setObjectName("SettingsScrollContent");
@@ -26,7 +57,7 @@ void SettingsPage::setupUi() {
 
     auto *titleLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setPixmap(QPixmap(":/Resources/Icons/icon.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *titleLabel = new QLabel("Settings", this);
     titleLabel->setObjectName("PageTitle");
     titleLayout->addWidget(iconLabel);
@@ -163,6 +194,7 @@ QVBoxLayout* SettingsPage::createVerticalCombo(const QString &label, QComboBox *
 
 void SettingsPage::onThemeChanged(const QString &theme) {
     ConfigManager::instance().setTheme(theme);
+    updateThemeProperty();
     emit themeChanged();
 }
 
