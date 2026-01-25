@@ -9,7 +9,6 @@ ConfigManager& ConfigManager::instance() {
 }
 
 ConfigManager::ConfigManager() {
-    ensureDataDir();
     configPath = QDir(QCoreApplication::applicationDirPath()).filePath("Data/config.json");
     load();
 }
@@ -21,25 +20,31 @@ void ConfigManager::ensureDataDir() {
 }
 
 void ConfigManager::load() {
+    ensureDataDir();
     QFile file(configPath);
-    if (file.open(QIODevice::ReadOnly)) {
-        configData = QJsonDocument::fromJson(file.readAll()).object();
-    } else {
-        setTheme("System");
-        setLanguage("English");
-        setCloseBehavior("Exit");
-        setCookiesBrowser("None");
-        setIgnoreErrors(true);
-        setGeoBypass(true);
-        setVideoFormat("mp4");
-        setVideoQuality("1080p");
-        setAudioFormat("mp3");
-        setAudioQuality("128kbps");
-        save();
+    if (file.exists() && file.open(QIODevice::ReadOnly)) {
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+        if (!doc.isNull() && doc.isObject()) {
+            configData = doc.object();
+            return;
+        }
     }
+
+    setTheme("System");
+    setLanguage("English");
+    setCloseBehavior("Exit");
+    setCookiesBrowser("None");
+    setIgnoreErrors(true);
+    setGeoBypass(true);
+    setVideoFormat("mp4");
+    setVideoQuality("1080p");
+    setAudioFormat("mp3");
+    setAudioQuality("128kbps");
+    save();
 }
 
 void ConfigManager::save() {
+    ensureDataDir();
     QFile file(configPath);
     if (file.open(QIODevice::WriteOnly)) {
         file.write(QJsonDocument(configData).toJson());
@@ -58,10 +63,10 @@ void ConfigManager::setCloseBehavior(const QString& behavior) { configData["clos
 QString ConfigManager::getCookiesBrowser() const { return configData["cookies_browser"].toString("None"); }
 void ConfigManager::setCookiesBrowser(const QString& browser) { configData["cookies_browser"] = browser; save(); }
 
-bool ConfigManager::getIgnoreErrors() const { return configData["ignore_errors"].toBool(false); }
+bool ConfigManager::getIgnoreErrors() const { return configData["ignore_errors"].toBool(true); }
 void ConfigManager::setIgnoreErrors(bool enable) { configData["ignore_errors"] = enable; save(); }
 
-bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(false); }
+bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(true); }
 void ConfigManager::setGeoBypass(bool enable) { configData["geo_bypass"] = enable; save(); }
 
 QString ConfigManager::getVideoFormat() const { return configData["v_format"].toString("mp4"); }
@@ -73,7 +78,7 @@ void ConfigManager::setVideoQuality(const QString& q) { configData["v_quality"] 
 QString ConfigManager::getAudioFormat() const { return configData["a_format"].toString("mp3"); }
 void ConfigManager::setAudioFormat(const QString& f) { configData["a_format"] = f; save(); }
 
-QString ConfigManager::getAudioQuality() const { return configData["a_quality"].toString("128bps"); }
+QString ConfigManager::getAudioQuality() const { return configData["a_quality"].toString("128kbps"); }
 void ConfigManager::setAudioQuality(const QString& q) { configData["a_quality"] = q; save(); }
 
 QString ConfigManager::getRequirementsPath() const {

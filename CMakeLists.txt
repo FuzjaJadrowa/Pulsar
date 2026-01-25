@@ -25,6 +25,8 @@ set(PROJECT_SOURCES
         App/config_manager.h
         resources.rc
         resources.qrc
+        App/downloader.cpp
+        App/downloader.h
 )
 
 if(WIN32)
@@ -37,7 +39,7 @@ if(APPLE)
     set_target_properties(App PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
-            MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.downloader"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.gvd"
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
     )
     set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)

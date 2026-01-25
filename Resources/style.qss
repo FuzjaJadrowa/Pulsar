@@ -178,3 +178,80 @@ QRadioButton::indicator:hover {
 [theme="light"] #PageTitle, [theme="light"] #SectionHeader {
     color: #1d1d1d;
 }
+
+QLineEdit {
+    background-color: #f0f0f0;
+    border: 1px solid #c0c0c0;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 14px;
+}
+QLineEdit:focus {
+    border: 1px solid #0078D7;
+    background-color: #ffffff;
+}
+[theme="dark"] QLineEdit {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    color: #ffffff;
+}
+[theme="dark"] QLineEdit:focus {
+    border: 1px solid #0078D7;
+    background-color: #1e1e1e;
+}
+
+QPushButton#StartBtn {
+    background-color: #28a745;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+}
+QPushButton#StartBtn:hover {
+    background-color: #218838;
+}
+QPushButton#StartBtn:disabled {
+    background-color: #28a745;
+    opacity: 0.6;
+}
+
+QPushButton#StopBtn {
+    background-color: #dc3545;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    padding: 0 20px;
+}
+QPushButton#StopBtn:hover {
+    background-color: #c82333;
+}
+QPushButton#StopBtn:disabled {
+    background-color: #e2e6ea;
+    color: #6c757d;
+}
+[theme="dark"] QPushButton#StopBtn:disabled {
+    background-color: #3e3e42;
+    color: #888;
+}
+
+QPushButton#BrowseBtn {
+    background-color: transparent;
+    border: 1px solid #0078D7;
+    color: #0078D7;
+    border-radius: 6px;
+    padding: 8px 15px;
+}
+QPushButton#BrowseBtn:hover {
+    background-color: rgba(0, 120, 215, 0.1);
+}
+[theme="dark"] QPushButton#BrowseBtn {
+    border: 1px solid #429CE3;
+    color: #429CE3;
+}
+
+QLabel {
+    font-weight: 500;
+}

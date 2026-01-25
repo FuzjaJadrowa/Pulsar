@@ -10,7 +10,8 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
@@ -18,24 +19,23 @@ jobs:
           version: '6.6.0'
           arch: 'win64_mingw'
 
-      - name: Setup MinGW
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          install: mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+      - name: Install Ninja
+        run: choco install ninja
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "Ninja" `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
 
       - name: Build
-        shell: msys2 {0}
-        run: |
-          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
+        run: cmake --build build --config Release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GVD-Windows
+          name: GVD-Windows-Build
           path: build/App.exe
-
   build-linux:
     runs-on: ubuntu-latest
     steps:

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QJsonObject>
 #include <QDir>
+#include <QVariant>
 
 class ConfigManager {
 public:
