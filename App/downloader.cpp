@@ -1,113 +1,153 @@
 #include "downloader.h"
 #include "config_manager.h"
-#include <QDir>
 #include <QCoreApplication>
 #include <QRegularExpression>
+#include <QDebug>
 
-Downloader::Downloader(QObject *parent) : QObject(parent) {
+Downloader::Downloader(QObject *parent) : QObject(parent), isStopped(false) {
     process = new QProcess(this);
-    connect(process, &QProcess::readyReadStandardOutput, this, &Downloader::handleOutput);
-    connect(process, &QProcess::readyReadStandardError, this, &Downloader::handleOutput);
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &Downloader::handleFinished);
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &Downloader::onProcessFinished);
+    connect(process, &QProcess::readyReadStandardOutput, this, &Downloader::onReadyRead);
+    connect(process, &QProcess::readyReadStandardError, this, &Downloader::onReadyRead);
 }
 
-QString Downloader::getYtDlpPath() const {
-    return QDir(ConfigManager::instance().getRequirementsPath()).filePath("yt-dlp.exe");
-}
-
-QString Downloader::getFfmpegPath() const {
-    return QDir(ConfigManager::instance().getRequirementsPath()).filePath("ffmpeg.exe");
-}
-
-void Downloader::startDownload(const QString &url, const QString &path,
-                               bool audioOnly,
-                               const QString &vFormat, const QString &vQuality,
-                               const QString &aFormat, const QString &aQuality) {
-    if (process->state() != QProcess::NotRunning) {
-        emit finished(false, "Process is already running.");
-        return;
-    }
-
-    if (url.isEmpty()) {
-        emit finished(false, "No link provided.");
-        return;
-    }
-
-    if (path.isEmpty()) {
-        emit finished(false, "No download path provided.");
-        return;
-    }
+QStringList buildArgsList(const QString &url, const QString &path, bool audioOnly,
+                          const QString &vFormat, const QString &vQuality,
+                          const QString &aFormat, const QString &aQuality,
+                          bool downloadSubs, const QString &subsLang, bool downloadChat,
+                          const QString &startTime, const QString &endTime,
+                          const QString &customArgs) {
 
     QStringList args;
-    args << "--ffmpeg-location" << getFfmpegPath();
-    args << "-P" << path;
 
-    QString effVFormat = (vFormat == "Default") ? ConfigManager::instance().getVideoFormat() : vFormat;
-    QString effVQuality = (vQuality == "Default") ? ConfigManager::instance().getVideoQuality() : vQuality;
-    QString effAFormat = (aFormat == "Default") ? ConfigManager::instance().getAudioFormat() : aFormat;
-    QString effAQuality = (aQuality == "Default") ? ConfigManager::instance().getAudioQuality() : aQuality;
+    args << "--newline" << "--progress";
+
+    QString ffmpegPath = QCoreApplication::applicationDirPath() + "/Data/Requirements/ffmpeg";
+#ifdef Q_OS_WIN
+    ffmpegPath += ".exe";
+#endif
+    args << "--ffmpeg-location" << ffmpegPath;
+
+    QString downloadPath = path.isEmpty() ? QDir::currentPath() : path;
+    args << "-P" << downloadPath;
+
+    args << "-o" << "%(title)s.%(ext)s";
+
+    ConfigManager &config = ConfigManager::instance();
 
     if (audioOnly) {
         args << "-x";
-        if (effAFormat.toLower() != "default") {
-            args << "--audio-format" << effAFormat.toLower();
-        }
-        if (effAQuality.toLower() != "default") {
-            QString q = effAQuality;
-            q.replace("kbps", "K", Qt::CaseInsensitive);
-            args << "--audio-quality" << q;
-        }
+
+        QString finalAFormat = (aFormat == "Default") ? config.getAudioFormat() : aFormat;
+        args << "--audio-format" << finalAFormat;
+
+        QString finalAQual = (aQuality == "Default") ? config.getAudioQuality() : aQuality;
+        finalAQual.replace("kbps", "K", Qt::CaseInsensitive);
+        args << "--audio-quality" << finalAQual;
+
     } else {
-        if (effVFormat.toLower() != "default") {
-            args << "--merge-output-format" << effVFormat.toLower();
+        QString finalVFormat = (vFormat == "Default") ? config.getVideoFormat() : vFormat;
+        args << "--merge-output-format" << finalVFormat;
+
+        QString finalVQual = (vQuality == "Default") ? config.getVideoQuality() : vQuality;
+        finalVQual.replace("p", "", Qt::CaseInsensitive);
+        args << "-S" << ("res:" + finalVQual);
+    }
+
+    if (downloadChat) {
+        args << "--write-subs" << "--sub-langs" << "live_chat";
+    } else if (downloadSubs) {
+        if (subsLang.trimmed().isEmpty()) {
+            args << "--write-auto-subs";
+        } else {
+            args << "--write-subs" << "--sub-langs" << subsLang.trimmed();
         }
-        if (effVQuality.toLower() != "default") {
-            QString res = effVQuality;
-            res.replace("p", "", Qt::CaseInsensitive);
-            args << "-S" << "res:" + res;
-        }
+    }
+
+    if (!startTime.isEmpty() && !endTime.isEmpty()) {
+        QString sectionArg = QString("*%1-%2").arg(startTime, endTime);
+        args << "--download-sections" << sectionArg;
+        args << "--force-keyframes-at-cuts";
+    }
+
+    if (!customArgs.trimmed().isEmpty()) {
+        args << customArgs.trimmed().split(" ", Qt::SkipEmptyParts);
     }
 
     args << url;
 
-    process->setProgram(getYtDlpPath());
-    process->setArguments(args);
-    process->start();
+    return args;
+}
+
+void Downloader::startDownload(const QString &url, const QString &path, bool audioOnly,
+                               const QString &vFormat, const QString &vQuality,
+                               const QString &aFormat, const QString &aQuality,
+                               bool downloadSubs, const QString &subsLang, bool downloadChat,
+                               const QString &startTime, const QString &endTime,
+                               const QString &customArgs) {
+    if (process->state() != QProcess::NotRunning) return;
+
+    isStopped = false;
+    QString program = QCoreApplication::applicationDirPath() + "/Data/Requirements/yt-dlp.exe";
+#ifdef Q_OS_MAC
+    program = QCoreApplication::applicationDirPath() + "/Data/Requirements/yt-dlp";
+#endif
+
+    QStringList args = buildArgsList(url, path, audioOnly, vFormat, vQuality, aFormat, aQuality,
+                                     downloadSubs, subsLang, downloadChat, startTime, endTime, customArgs);
+
+    process->start(program, args);
+    emit outputLog("Executing: " + program + " " + args.join(" "));
+}
+
+QString Downloader::generateCommand(const QString &url, const QString &path, bool audioOnly,
+                                    const QString &vFormat, const QString &vQuality,
+                                    const QString &aFormat, const QString &aQuality,
+                                    bool downloadSubs, const QString &subsLang, bool downloadChat,
+                                    const QString &startTime, const QString &endTime,
+                                    const QString &customArgs) {
+    return "yt-dlp " + buildArgsList(url, path, audioOnly, vFormat, vQuality, aFormat, aQuality,
+                                     downloadSubs, subsLang, downloadChat, startTime, endTime, customArgs).join(" ");
 }
 
 void Downloader::stopDownload() {
-    if (process->state() != QProcess::NotRunning) {
-        process->kill();
-    }
+    isStopped = true;
+    process->kill();
 }
 
-void Downloader::handleOutput() {
+void Downloader::onReadyRead() {
     QByteArray data = process->readAllStandardOutput();
-    QByteArray err = process->readAllStandardError();
-    QString output = QString::fromLocal8Bit(data) + QString::fromLocal8Bit(err);
-    QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+    data.append(process->readAllStandardError());
 
-    static QRegularExpression progressRegex(R"(\[download\]\s+(\d+\.?\d*)%\s+of\s+.*\s+ETA\s+(\d+:\d+))");
+    QString output = QString::fromLocal8Bit(data).trimmed();
+    if (output.isEmpty()) return;
 
-    for (const QString &line : lines) {
-        QString trimmedLine = line.trimmed();
-        emit outputLog(trimmedLine);
+    static QRegularExpression re("(\\d+(\\.\\d+)?)%");
+    auto match = re.match(output);
 
-        QRegularExpressionMatch match = progressRegex.match(trimmedLine);
-        if (match.hasMatch()) {
-            double percent = match.captured(1).toDouble();
-            QString eta = match.captured(2);
-            emit progressUpdated(percent, eta);
+    if (match.hasMatch()) {
+        double p = match.captured(1).toDouble();
+        QString eta = "N/A";
+
+        if (output.contains("ETA")) {
+            QStringList parts = output.split("ETA");
+            if (parts.length() > 1) {
+                eta = parts.last().trimmed().split(" ").first();
+            }
         }
+
+        emit progressUpdated(p, eta);
     }
+
+    emit outputLog(output);
 }
 
-void Downloader::handleFinished(int exitCode, QProcess::ExitStatus exitStatus) {
-    if (exitStatus == QProcess::NormalExit && exitCode == 0) {
+void Downloader::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+    if (isStopped) {
+        emit finished(false, "Download stopped by user.");
+    } else if (exitCode == 0) {
         emit finished(true, "Download completed successfully!");
-    } else if (exitStatus == QProcess::CrashExit) {
-        emit finished(false, "Download stopped or crashed.");
     } else {
-        emit finished(false, "Download failed. Check logs.");
+        emit finished(false, "Error occurred. Check console for details.");
     }
 }

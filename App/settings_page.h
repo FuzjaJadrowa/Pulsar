@@ -13,6 +13,8 @@
 #include <QScrollArea>
 #include <QStyleOption>
 #include <QPainter>
+#include <QDesktopServices>
+#include <QUrl>
 #include "popup.h"
 #include "../Installer/installer_window.h"
 
@@ -41,13 +43,12 @@ private slots:
     void onVideoQualityChanged(const QString &val);
     void onAudioFormatChanged(const QString &val);
     void onAudioQualityChanged(const QString &val);
+    void onSupportClicked();
 
 private:
     Popup *popup;
     InstallerWindow *m_installer;
-    QPushButton *btnFfmpeg;
-    QPushButton *btnYtdlp;
-
+    QPushButton *btnFfmpeg, *btnYtdlp;
     void setupUi();
     QHBoxLayout* createSection(const QString &title, QWidget *widget);
     QHBoxLayout* createReqRow(const QString &name, QPushButton *btn);

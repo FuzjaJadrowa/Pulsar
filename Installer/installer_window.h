@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QDateTime>
 #include "../App/popup.h"
 
 class InstallerWindow : public QDialog {
@@ -19,7 +20,7 @@ class InstallerWindow : public QDialog {
 public:
     explicit InstallerWindow(Popup *popup = nullptr, QWidget *parent = nullptr);
     bool hasRequirements();
-    void startMissingFileRepair();
+    void startMissingFileDownload();
     void checkForUpdates(const QString &appName, bool manual);
     void startUpdateProcess(const QString &appName);
 
@@ -58,6 +59,7 @@ private:
     QString getOsName();
 
     QString getLocalVersion(const QString &appName);
+    qint64 getLastCheckTime(const QString &appName);
     void setLocalVersion(const QString &appName, const QString &version);
     void startDownload(const QString &appName, const QString &url, const QString &version);
     void extractArchive(const QString &archivePath);

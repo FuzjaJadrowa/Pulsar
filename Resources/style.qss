@@ -392,3 +392,113 @@ QProgressBar {
     color: #000000;
     font-weight: bold;
 }
+
+QCheckBox::indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid #999999;
+    background-color: #ffffff;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #28a745;
+    border: 2px solid #28a745;
+    image: url(:/Resources/Icons/check_white.png);
+}
+
+[theme="light"] QCheckBox::indicator:unchecked {
+    background-color: #ffffff;
+    border-color: #888888;
+}
+
+QPushButton#AdvancedToggle {
+    background-color: rgba(128, 128, 128, 0.1);
+    border: 1px solid #999999;
+    border-radius: 6px;
+    padding: 8px;
+    font-weight: bold;
+    color: #0078D7;
+}
+
+QPushButton#AdvancedToggle:hover {
+    background-color: rgba(0, 120, 215, 0.1);
+    border: 1px solid #0078D7;
+}
+
+[theme="dark"] QPushButton#AdvancedToggle {
+    background-color: #2d2d2d;
+    color: #429CE3;
+    border: 1px solid #444444;
+}
+
+#BottomActionArea {
+    background-color: transparent;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+[theme="light"] #BottomActionArea {
+    background-color: #ffffff;
+}
+
+[theme="dark"] #BottomActionArea {
+    background-color: #1d1d1d;
+}
+
+QTextEdit {
+    border: 1px solid #CCCCCC;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+[theme="light"] QTextEdit {
+    background-color: #f9f9f9;
+    color: #333333;
+}
+
+QWidget[theme="light"] {
+    background-color: #ffffff;
+    color: #1d1d1d;
+}
+
+QWidget[theme="dark"] {
+    background-color: #1d1d1d;
+    color: #ffffff;
+}
+
+[theme="light"] QLabel {
+    color: #1d1d1d;
+}
+
+[theme="dark"] QLabel {
+    color: #ffffff;
+}
+
+QPushButton#AdvancedToggle {
+    border: 1px solid #999999;
+    color: #0078D7;
+}
+
+[theme="light"] QPushButton#AdvancedToggle {
+    background-color: #f0f0f0;
+    border-color: #cccccc;
+}
+
+#CommandPreview {
+    background-color: #0C0C0C;
+    color: #00FF00;
+    border: 1px solid #333333;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    padding: 10px;
+}
+
+[theme="light"] QCheckBox::indicator:unchecked {
+    background-color: #ffffff;
+    border: 2px solid #888888;
+}
+
+[theme="light"] QCheckBox::indicator:checked {
+    background-color: #28a745;
+    border: 2px solid #28a745;
+}

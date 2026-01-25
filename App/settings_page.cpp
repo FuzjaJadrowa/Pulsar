@@ -160,6 +160,14 @@ void SettingsPage::setupUi() {
     audioRow->addLayout(createVerticalCombo("Default audio quality:", aQualCombo));
     mainLayout->addLayout(audioRow);
 
+    auto *suppLabel = new QLabel("Support", this);
+    suppLabel->setObjectName("SectionHeader");
+    mainLayout->addWidget(suppLabel);
+    auto *btnSupport = new QPushButton("Support Project", this);
+    btnSupport->setObjectName("actionBtn");
+    connect(btnSupport, &QPushButton::clicked, this, &SettingsPage::onSupportClicked);
+    mainLayout->addLayout(createSection("Show you support!:", btnSupport));
+
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);
     rootLayout->addWidget(scrollArea);
@@ -205,3 +213,4 @@ void SettingsPage::onAudioFormatChanged(const QString &val) { ConfigManager::ins
 void SettingsPage::onAudioQualityChanged(const QString &val) { ConfigManager::instance().setAudioQuality(val); }
 void SettingsPage::checkFfmpeg() { m_installer->checkForUpdates("ffmpeg", true); }
 void SettingsPage::checkYtdlp() { m_installer->checkForUpdates("yt-dlp", true); }
+void SettingsPage::onSupportClicked() { QDesktopServices::openUrl(QUrl("https://tipply.pl/@fuzjajadrowa")); }

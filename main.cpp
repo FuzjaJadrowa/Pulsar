@@ -19,11 +19,13 @@
 #include "App/popup.h"
 #include "App/config_manager.h"
 #include "Installer/installer_window.h"
+#include "Installer/app_updater.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
     InstallerWindow *installer;
+    AppUpdater *appUpdater;
     Popup *popup;
 
     MainWindow() {
@@ -84,6 +86,7 @@ private:
         stackedWidget = new QStackedWidget(this);
         popup = new Popup(this);
         installer = new InstallerWindow(popup, this);
+        appUpdater = new AppUpdater(popup, this);
 
         auto *pageMain = new MainPage(this);
         auto *pageConsole = new ConsolePage(this);
@@ -100,6 +103,7 @@ private:
         connect(btnConsole, &QPushButton::clicked, [this]() { stackedWidget->setCurrentIndex(1); });
         connect(btnSettings, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(2); });
         connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
+        connect(pageSettings, &SettingsPage::themeChanged, pageMain, &MainPage::updateThemeProperty);
         connect(pageMain->getDownloader(), &Downloader::outputLog, pageConsole, &ConsolePage::appendLog);
 
         connect(installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
@@ -108,7 +112,7 @@ private:
 
         connect(installer, &InstallerWindow::networkError, this, [this](bool isRateLimit){
              if (isRateLimit) {
-                 popup->showMessage("Error", "Too many requests. Try again later.", Popup::Error, Popup::Temporary);
+                 popup->showMessage("Error", "Too many requests (GitHub API). Try again later.", Popup::Error, Popup::Temporary);
              } else {
                  popup->showMessage("Network Error", "No internet connection detected.", Popup::Error, Popup::Temporary);
              }
@@ -120,6 +124,14 @@ private:
              connect(popup, &Popup::actionClicked, [this, appName](){
                  installer->startUpdateProcess(appName);
              });
+        });
+
+        connect(appUpdater, &AppUpdater::updateAvailable, this, [this](const QString &version){
+            popup->showMessage("App Update", "Version " + version + " is available!", Popup::Success, Popup::Permanent, "Update Now");
+            disconnect(popup, &Popup::actionClicked, nullptr, nullptr);
+            connect(popup, &Popup::actionClicked, [this](){
+                appUpdater->startAppUpdate();
+            });
         });
     }
 
@@ -156,15 +168,20 @@ int main(int argc, char *argv[]) {
 
     MainWindow w;
     if (!w.installer->hasRequirements()) {
-        w.installer->startMissingFileRepair();
+        w.installer->startMissingFileDownload();
         if (w.installer->exec() != QDialog::Accepted) {
             return 0;
         }
     }
 
     w.show();
+
     QTimer::singleShot(2000, w.installer, [&w]() {
         w.installer->checkForUpdates("yt-dlp", false);
+    });
+
+    QTimer::singleShot(3000, w.appUpdater, [&w]() {
+        w.appUpdater->checkForAppUpdates(false);
     });
 
     return app.exec();

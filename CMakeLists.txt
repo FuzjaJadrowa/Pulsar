@@ -27,6 +27,8 @@ set(PROJECT_SOURCES
         resources.qrc
         App/downloader.cpp
         App/downloader.h
+        Installer/app_updater.cpp
+        Installer/app_updater.h
 )
 
 if(WIN32)

@@ -27,6 +27,7 @@ InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     progressBar->setStyle(QStyleFactory::create("windowsvista"));
     progressBar->setAlignment(Qt::AlignCenter);
     progressBar->setTextVisible(false);
+    progressBar->setStyleSheet("QProgressBar { border: 1px solid #CCCCCC; background: #E6E6E6; }");
 
     layout->addStretch();
     layout->addWidget(statusLabel);
@@ -86,7 +87,7 @@ bool InstallerWindow::hasRequirements() {
            QFile::exists(reqPath + "/" + getExecutableName("ffmpeg"));
 }
 
-void InstallerWindow::startMissingFileRepair() {
+void InstallerWindow::startMissingFileDownload() {
     m_isRepairMode = true;
     m_isManualCheck = false;
     m_installing = true;
@@ -125,6 +126,16 @@ void InstallerWindow::processNextRepairStep() {
 
 void InstallerWindow::fetchLatestRelease(const QString &appName) {
     m_currentApp = appName;
+
+    if (!m_isManualCheck && !m_isRepairMode) {
+        qint64 lastCheck = getLastCheckTime(appName);
+        qint64 currentTime = QDateTime::currentSecsSinceEpoch();
+        if (currentTime - lastCheck < 600) {
+            if (appName == "yt-dlp") fetchLatestRelease("ffmpeg");
+            return;
+        }
+    }
+
     QString repo = (appName == "yt-dlp") ? "yt-dlp/yt-dlp" : "BtbN/FFmpeg-Builds";
     QUrl url(QString("https://api.github.com/repos/%1/releases/latest").arg(repo));
     QNetworkRequest request(url);
@@ -134,23 +145,16 @@ void InstallerWindow::fetchLatestRelease(const QString &appName) {
 
 void InstallerWindow::handleReleaseInfo() {
     auto *reply = qobject_cast<QNetworkReply*>(sender());
+    if (!reply) return;
 
-if (reply->error() != QNetworkReply::NoError) {
+    if (reply->error() != QNetworkReply::NoError) {
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         bool isRateLimit = (statusCode == 403 || statusCode == 429);
-
         m_installing = false;
         if (!m_isRepairMode) hide();
-
         reply->deleteLater();
-
-        if (isRateLimit) {
-            if (m_isManualCheck) {
-                emit networkError(true);
-            }
-            } else {
-            emit networkError(false);
-        }
+        if (isRateLimit) { if (m_isManualCheck) emit networkError(true); }
+        else { emit networkError(false); }
         return;
     }
 
@@ -163,15 +167,12 @@ if (reply->error() != QNetworkReply::NoError) {
     QString localDate = getLocalVersion(m_currentApp);
     bool updateNeeded = (localDate != remoteDate);
 
+    setLocalVersion(m_currentApp, localDate);
+
     if (!m_installing) {
         if (!updateNeeded) {
-            if (m_isManualCheck) {
-                emit upToDate(m_currentApp);
-                return;
-            }
-            if (m_currentApp == "yt-dlp") {
-                fetchLatestRelease("ffmpeg");
-            }
+            if (m_isManualCheck) emit upToDate(m_currentApp);
+            else if (m_currentApp == "yt-dlp") fetchLatestRelease("ffmpeg");
             return;
         } else {
             emit updateAvailable(m_currentApp);
@@ -280,12 +281,23 @@ QString InstallerWindow::getLocalVersion(const QString &appName) {
     return "";
 }
 
+qint64 InstallerWindow::getLastCheckTime(const QString &appName) {
+    QFile file(getRequirementsPath() + "/versions.json");
+    if (file.open(QIODevice::ReadOnly)) {
+        return QJsonDocument::fromJson(file.readAll()).object()[appName + "_last_check"].toVariant().toLongLong();
+    }
+    return 0;
+}
+
 void InstallerWindow::setLocalVersion(const QString &appName, const QString &version) {
     QString path = getRequirementsPath() + "/versions.json";
     QJsonObject obj;
     QFile fileIn(path);
     if (fileIn.open(QIODevice::ReadOnly)) { obj = QJsonDocument::fromJson(fileIn.readAll()).object(); fileIn.close(); }
-    obj[appName] = version;
+
+    if (!version.isEmpty()) obj[appName] = version;
+    obj[appName + "_last_check"] = QDateTime::currentSecsSinceEpoch();
+
     QFile fileOut(path);
     if (fileOut.open(QIODevice::WriteOnly)) fileOut.write(QJsonDocument(obj).toJson());
 }
