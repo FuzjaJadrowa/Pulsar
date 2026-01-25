@@ -3,15 +3,10 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QCoreApplication>
-#include <QLabel>
 
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
     setupUi();
-
-    connect(m_installer, &InstallerWindow::upToDate, this, [this](){
-        this->popup->showMessage("Up to Date", "No new updates found.", Popup::Info, Popup::Temporary);
-    });
 }
 
 void SettingsPage::setupUi() {
@@ -23,10 +18,8 @@ void SettingsPage::setupUi() {
     auto *titleLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
     iconLabel->setPixmap(QPixmap(QCoreApplication::applicationDirPath() + "/Resources/Icons/icon.ico").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-
     auto *titleLabel = new QLabel("Settings", this);
     titleLabel->setObjectName("PageTitle");
-
     titleLayout->addWidget(iconLabel);
     titleLayout->addWidget(titleLabel);
     titleLayout->addStretch();
@@ -37,31 +30,28 @@ void SettingsPage::setupUi() {
     mainLayout->addWidget(genLabel);
 
     auto *themeCombo = new QComboBox(this);
-    themeCombo->addItems({"System", "Light", "Dark"});
+    themeCombo->addItems({"System", "Dark", "Light"});
     themeCombo->setCurrentText(ConfigManager::instance().getTheme());
     connect(themeCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onThemeChanged);
     mainLayout->addLayout(createSection("Theme", themeCombo));
 
     auto *langCombo = new QComboBox(this);
-    langCombo->addItems({"English", "Polish"});
+    langCombo->addItem("English");
     langCombo->setCurrentText(ConfigManager::instance().getLanguage());
     connect(langCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onLangChanged);
     mainLayout->addLayout(createSection("Language", langCombo));
 
     auto *closeGroup = new QButtonGroup(this);
-    auto *radioHide = new QRadioButton("Hide application", this);
-    auto *radioExit = new QRadioButton("Exit application", this);
+    auto *radioHide = new QRadioButton("Hide GVD", this);
+    auto *radioExit = new QRadioButton("Exit GVD", this);
     closeGroup->addButton(radioHide);
     closeGroup->addButton(radioExit);
-
     if (ConfigManager::instance().getCloseBehavior() == "Hide") radioHide->setChecked(true);
     else radioExit->setChecked(true);
+    connect(closeGroup, &QButtonGroup::buttonClicked, this, &SettingsPage::onCloseBehaviorChanged);
 
-    connect(closeGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked), this, &SettingsPage::onCloseBehaviorChanged);
-
-    auto *closeLayout = new QHBoxLayout();
-    closeLayout->addWidget(new QLabel("Close behavior", this));
-    closeLayout->addStretch();
+    auto *closeLayout = new QVBoxLayout();
+    closeLayout->addWidget(new QLabel("When I close GUI Video Downloader:"));
     closeLayout->addWidget(radioHide);
     closeLayout->addWidget(radioExit);
     mainLayout->addLayout(closeLayout);
@@ -81,6 +71,26 @@ void SettingsPage::setupUi() {
     btnYtdlp->setCursor(Qt::PointingHandCursor);
     connect(btnYtdlp, &QPushButton::clicked, this, &SettingsPage::checkYtdlp);
     mainLayout->addLayout(createReqRow("yt-dlp", btnYtdlp));
+
+    auto *dlLabel = new QLabel("Download settings", this);
+    dlLabel->setObjectName("SectionHeader");
+    mainLayout->addWidget(dlLabel);
+
+    auto *cookiesCombo = new QComboBox(this);
+    cookiesCombo->addItems({"None", "Brave", "Chrome", "Chromium", "Edge", "Firefox", "Opera", "Safari", "Vivaldi", "Whale"});
+    cookiesCombo->setCurrentText(ConfigManager::instance().getCookiesBrowser());
+    connect(cookiesCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onCookiesChanged);
+    mainLayout->addLayout(createSection("Cookies from browser", cookiesCombo));
+
+    auto *ignoreErrCheck = new QCheckBox("Ignore errors", this);
+    ignoreErrCheck->setChecked(ConfigManager::instance().getIgnoreErrors());
+    connect(ignoreErrCheck, &QCheckBox::toggled, this, &SettingsPage::onIgnoreErrorsToggled);
+    mainLayout->addWidget(ignoreErrCheck);
+
+    auto *geoBypassCheck = new QCheckBox("Bypass country restrictions", this);
+    geoBypassCheck->setChecked(ConfigManager::instance().getGeoBypass());
+    connect(geoBypassCheck, &QCheckBox::toggled, this, &SettingsPage::onGeoBypassToggled);
+    mainLayout->addWidget(geoBypassCheck);
 
     mainLayout->addStretch();
 }
@@ -112,6 +122,18 @@ void SettingsPage::onLangChanged(const QString &lang) {
 
 void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) {
     ConfigManager::instance().setCloseBehavior(btn->text().contains("Hide") ? "Hide" : "Exit");
+}
+
+void SettingsPage::onCookiesChanged(const QString &browser) {
+    ConfigManager::instance().setCookiesBrowser(browser);
+}
+
+void SettingsPage::onIgnoreErrorsToggled(bool checked) {
+    ConfigManager::instance().setIgnoreErrors(checked);
+}
+
+void SettingsPage::onGeoBypassToggled(bool checked) {
+    ConfigManager::instance().setGeoBypass(checked);
 }
 
 void SettingsPage::checkFfmpeg() {

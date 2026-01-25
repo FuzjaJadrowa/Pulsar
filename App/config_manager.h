@@ -21,13 +21,22 @@ public:
     QString getCloseBehavior() const;
     void setCloseBehavior(const QString& behavior);
 
+    QString getCookiesBrowser() const;
+    void setCookiesBrowser(const QString& browser);
+
+    bool getIgnoreErrors() const;
+    void setIgnoreErrors(bool enable);
+
+    bool getGeoBypass() const;
+    void setGeoBypass(bool enable);
+
     QString getRequirementsPath() const;
 
 private:
     ConfigManager();
     QJsonObject configData;
     QString configPath;
-    
+
     void ensureDataDir();
 };
 

@@ -6,7 +6,9 @@
 #include <QComboBox>
 #include <QRadioButton>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include "popup.h"
 #include "../Installer/installer_window.h"
 
@@ -21,6 +23,9 @@ private slots:
     void onThemeChanged(const QString &theme);
     void onLangChanged(const QString &lang);
     void onCloseBehaviorChanged(QAbstractButton *btn);
+    void onCookiesChanged(const QString &browser);
+    void onIgnoreErrorsToggled(bool checked);
+    void onGeoBypassToggled(bool checked);
     void checkFfmpeg();
     void checkYtdlp();
 
