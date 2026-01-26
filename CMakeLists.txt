@@ -68,23 +68,10 @@ if(WIN32)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
     find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
-
-    add_custom_command(TARGET App POST_BUILD
-            COMMAND "${WINDEPLOYQT_EXECUTABLE}" --no-translations --compiler-runtime --dir "$<TARGET_FILE_DIR:App>" "$<TARGET_FILE:App>"
-            COMMENT "Running windeployqt to deploy dependencies..."
-    )
-
-
     install(CODE "
-        file(GLOB_RECURSE QT_DLLS \"\${CMAKE_CURRENT_BINARY_DIR}/*.dll\")
-        file(INSTALL \${QT_DLLS} DESTINATION \"\${CMAKE_INSTALL_PREFIX}\")
+        message(STATUS \"Running windeployqt on App.exe...\")
+        execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.exe\")
     ")
-
-
-    set(QT_PLUGINS platforms styles imageformats iconengines tls networkinformation)
-    foreach(PLUGIN ${QT_PLUGINS})
-        install(DIRECTORY "${CMAKE_BINARY_DIR}/${PLUGIN}" DESTINATION . OPTIONAL)
-    endforeach()
 
 elseif(APPLE)
 
