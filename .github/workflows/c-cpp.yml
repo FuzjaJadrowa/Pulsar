@@ -39,8 +39,8 @@ jobs:
         with:
           name: GVD-Windows-Packages
           path: |
-            build/GUI-Video-Downloader-1.0.0-win64.exe
-            build/GUI-Video-Downloader-1.0.0-win64.zip
+            build/*.exe
+            build/*.zip
             build/Release/App.exe
 
   build-linux:
