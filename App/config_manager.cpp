@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QFile>
 #include <QCoreApplication>
+#include <QStandardPaths>
 
 ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
@@ -9,14 +10,13 @@ ConfigManager& ConfigManager::instance() {
 }
 
 ConfigManager::ConfigManager() {
-    configPath = QDir(QCoreApplication::applicationDirPath()).filePath("Data/config.json");
+    QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     load();
 }
 
 void ConfigManager::ensureDataDir() {
     QDir dir(QCoreApplication::applicationDirPath());
-    if (!dir.exists("Data")) dir.mkdir("Data");
-    if (!dir.exists("Data/Requirements")) dir.mkpath("Data/Requirements");
+    if (!dir.exists("Requirements")) dir.mkpath("Requirements");
 }
 
 void ConfigManager::load() {

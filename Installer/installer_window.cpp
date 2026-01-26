@@ -7,6 +7,7 @@
 #include <QStyleFactory>
 #include <QCloseEvent>
 #include <QKeyEvent>
+#include <QStandardPaths>
 #include <QSysInfo>
 
 InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
@@ -76,7 +77,7 @@ QString InstallerWindow::getRequirementsPath() {
     dir.cdUp(); dir.cdUp(); dir.cdUp();
     basePath = dir.absolutePath();
 #endif
-    QString path = basePath + "/Data/Requirements";
+    QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Requirements";
     QDir().mkpath(path);
     return path;
 }

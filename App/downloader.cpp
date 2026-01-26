@@ -1,6 +1,7 @@
 #include "downloader.h"
 #include "config_manager.h"
 #include <QRegularExpression>
+#include <QStandardPaths>
 
 Downloader::Downloader(QObject *parent) : QObject(parent), isStopped(false) {
     process = new QProcess(this);
@@ -28,7 +29,8 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
     QStringList args;
     args << "--newline" << "--progress";
 
-    QString ffmpegPath = getBasePath() + "/Data/Requirements/ffmpeg";
+    QString requirementsPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Requirements";
+    QString ffmpegPath = requirementsPath + "/ffmpeg";
 #ifdef Q_OS_WIN
     ffmpegPath += ".exe";
 #endif
@@ -87,7 +89,8 @@ void Downloader::startDownload(const QString &url, const QString &path, bool aud
     if (process->state() != QProcess::NotRunning) return;
     isStopped = false;
 
-    QString program = getBasePath() + "/Data/Requirements/yt-dlp";
+    QString requirementsPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Requirements";
+    QString program = requirementsPath + "/yt-dlp";
 #ifdef Q_OS_WIN
     program += ".exe";
 #endif

@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDateTime>
+#include <QTemporaryDir>
 #include "../App/popup.h"
 
 class AppUpdater : public QObject {
@@ -39,11 +40,12 @@ private:
     QNetworkReply *m_reply = nullptr;
     QString m_downloadUrl;
     QString m_newVersion;
+    QString m_downloadFileName;
     bool m_isManual = false;
 
     qint64 getLastAppCheckTime();
     void setLastAppCheckTime();
-    void applyUpdate(const QString &tempPath);
+    void applyUpdate(const QString &archivePath);
     QString getVersionsFilePath();
 };
 

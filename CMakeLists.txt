@@ -61,7 +61,6 @@ install(TARGETS App
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION .)
-install(DIRECTORY DESTINATION Data/Requirements)
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
 if(WIN32)
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
@@ -70,7 +69,7 @@ if(WIN32)
 
     install(CODE "
         message(STATUS \"Running windeployqt on App.exe...\")
-        execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.exe\")
+        execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" --no-translations \"\${CMAKE_INSTALL_PREFIX}/App.exe\")
     ")
 
 elseif(APPLE)

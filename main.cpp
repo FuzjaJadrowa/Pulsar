@@ -163,6 +163,7 @@ protected:
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    app.setApplicationName("GUIVideoDownloader");
     app.setFont(QFont("Segoe UI", 10));
     QFontDatabase::addApplicationFont(":/Resources/Fonts/Montserrat-ExtraBold.ttf");
 
