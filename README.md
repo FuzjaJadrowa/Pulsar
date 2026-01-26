@@ -2,17 +2,14 @@
 Introducing a big overhaul for my application that adds the ability to download videos and audio from various sites using yt-dlp. We rewrote Python to C++ completely and fixed many bugs and limits. Unlike other similar applications we don't require you to download **yt-dlp** and **ffmpeg** separately, because we do it automatically with your first opening.
 ## How to install?
 1. Go to the **Releases** tab and download the latest version of the installer or portable archive.
-2. **For Windows Installer**:
-    - Download the `.exe` installer.
-    - Open the installer and follow its instructions. Once it finishes, the application is installed, and you can run it from your Start Menu or Desktop shortcut.
-3. **For Windows Portable**:
-    - Extract the `.zip` file to any location on your computer.
-    - To run the application, execute the `App.exe` file.
-4. **For macOS**:
+2. **For Windows**:
+    - **Installer (.exe)**: Download the `.exe` installer, open it and follow its instructions. Once it finishes, the application is installed, and you can run it from your Start Menu or Desktop shortcut.
+    - **Portable (.zip)**: Extract the `.zip` file to any location on your computer. To run the application, execute the `App.exe` file.
+3. **For macOS**:
     - **Installer (.dmg)**: Download the `.dmg` file, open it, and drag the application icon into the **Applications** folder.
     - **Portable (.zip)**: Extract the zip file and run the application bundle.
     - *Note:* Since the app is not signed, you might need to Right-Click the app and select **Open** to bypass the security warning on the first launch.
-5. **For Linux**:
+4. **For Linux**:
     - **Debian/Ubuntu (.deb)**: Download the `.deb` file and install it using your package manager:
       ```bash
       sudo apt install ./GUI-Video-Downloader-2.0.0-Linux.deb
