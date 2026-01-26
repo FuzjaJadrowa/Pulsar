@@ -160,7 +160,8 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
             << "del \"%~f0\"\n";
 
         script.close();
-        QProcess::startDetached("cmd.exe", {"/c", updaterPath});
+        QString psCommand = QString("Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c\", \"\\\"%1\\\"\" -Verb RunAs").arg(updaterPath);
+        QProcess::startDetached("powershell", {"-Command", psCommand});
         QCoreApplication::quit();
     }
 #else
