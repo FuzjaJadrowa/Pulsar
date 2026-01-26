@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install NSIS
+        run: choco install nsis -y
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
@@ -31,7 +34,7 @@ jobs:
           cd build
           cpack -C Release
 
-      - name: Upload Artifacts (Installer + Portable)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GVD-Windows-Packages
@@ -44,25 +47,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev libxkbcommon-x11-0 binutils
-
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libxkbcommon-x11-0 binutils
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.6.0'
-
       - name: Build & Package
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
           cd build
           cpack -C Release
-
-      - name: Upload Artifacts (Installer + Portable)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GVD-Linux-Packages
@@ -75,20 +72,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.6.0'
-
       - name: Build & Package
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
           cd build
           cpack -C Release
-
-      - name: Upload Artifacts (Installer + Portable)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GVD-MacOS-Packages

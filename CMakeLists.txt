@@ -17,6 +17,8 @@ set(PROJECT_SOURCES
         App/popup.h
         App/settings_page.cpp
         App/settings_page.h
+        App/console_page.cpp
+        App/console_page.h
         App/main_page.cpp
         App/main_page.h
         App/config_manager.cpp
