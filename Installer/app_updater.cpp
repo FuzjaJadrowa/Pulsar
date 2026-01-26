@@ -60,10 +60,17 @@ void AppUpdater::onVersionReceived() {
     QJsonArray assets = json["assets"].toArray();
     for (const auto &asset : assets) {
         QString name = asset.toObject()["name"].toString();
+#ifdef Q_OS_WIN
         if (name.endsWith(".exe")) {
             m_downloadUrl = asset.toObject()["browser_download_url"].toString();
             break;
         }
+#else
+        if (!name.contains(".") || name.endsWith(".app") || name.contains("linux")) {
+            m_downloadUrl = asset.toObject()["browser_download_url"].toString();
+            break;
+        }
+#endif
     }
     if (!m_downloadUrl.isEmpty()) emit updateAvailable(m_newVersion);
 }
@@ -87,18 +94,22 @@ void AppUpdater::onDownloadFinished() {
         m_reply->deleteLater();
         return;
     }
-    QString tempPath = QCoreApplication::applicationDirPath() + "/GVD_new.exe";
+    QString tempPath = QCoreApplication::applicationDirPath() + "/GVD_new";
+#ifdef Q_OS_WIN
+    tempPath += ".exe";
+#endif
     QFile file(tempPath);
     if (file.open(QIODevice::WriteOnly)) {
         file.write(m_reply->readAll());
         file.close();
         m_reply->deleteLater();
-        applyUpdateWindows(tempPath);
+        applyUpdate(tempPath);
     }
 }
 
-void AppUpdater::applyUpdateWindows(const QString &tempPath) {
+void AppUpdater::applyUpdate(const QString &tempPath) {
     QString currentPath = QCoreApplication::applicationFilePath();
+#ifdef Q_OS_WIN
     QString updaterPath = QDir::tempPath() + "/gvd_updater.bat";
     QFile script(updaterPath);
     if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -113,4 +124,21 @@ void AppUpdater::applyUpdateWindows(const QString &tempPath) {
         QProcess::startDetached("cmd.exe", {"/c", updaterPath});
         QCoreApplication::quit();
     }
+#else
+    QString updaterPath = QDir::tempPath() + "/gvd_updater.sh";
+    QFile script(updaterPath);
+    if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&script);
+        out << "#!/bin/bash\n"
+            << "sleep 2\n"
+            << "rm \"" << currentPath << "\"\n"
+            << "mv \"" << tempPath << "\" \"" << currentPath << "\"\n"
+            << "chmod +x \"" << currentPath << "\"\n"
+            << "\"" << currentPath << "\" &\n"
+            << "rm \"$0\"\n";
+        script.close();
+        QProcess::startDetached("bash", {updaterPath});
+        QCoreApplication::quit();
+    }
+#endif
 }

@@ -17,13 +17,10 @@ set(PROJECT_SOURCES
         App/popup.h
         App/settings_page.cpp
         App/settings_page.h
-        App/console_page.cpp
-        App/console_page.h
         App/main_page.cpp
         App/main_page.h
         App/config_manager.cpp
         App/config_manager.h
-        resources.rc
         resources.qrc
         App/downloader.cpp
         App/downloader.h
@@ -37,20 +34,41 @@ endif()
 
 add_executable(App ${PROJECT_SOURCES})
 
-if(APPLE)
-    set_target_properties(App PROPERTIES
-            MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
-            MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.gvd"
-            MACOSX_BUNDLE_ICON_FILE "icon.icns"
-    )
-    set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-endif()
-
 target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
 
-if(NOT APPLE)
-    add_custom_command(TARGET App POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/Resources ${CMAKE_BINARY_DIR}/Resources)
+install(TARGETS App
+        BUNDLE DESTINATION .
+        RUNTIME DESTINATION .
+)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION .)
+install(DIRECTORY DESTINATION Data/Requirements)
+
+if(WIN32)
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
+    install(CODE "execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" --no-translations --compiler-runtime \"\${CMAKE_INSTALL_PREFIX}/App.exe\")" COMPONENT Runtime)
+elseif(APPLE)
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
+    install(CODE "execute_process(COMMAND \"${MACDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.app\")" COMPONENT Runtime)
 endif()
+
+set(CPACK_PACKAGE_NAME "GUI-Video-Downloader")
+set(CPACK_PACKAGE_VENDOR "Fuzja Jadrowa")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "GUI Video Downloader")
+
+if(WIN32)
+    set(CPACK_GENERATOR "NSIS;ZIP")
+    set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\GUI Video Downloader.lnk' '$INSTDIR\\\\App.exe'")
+    set(CPACK_CREATE_DESKTOP_LINKS "App")
+elseif(APPLE)
+    set(CPACK_GENERATOR "DragNDrop;ZIP")
+else()
+    set(CPACK_GENERATOR "DEB;TGZ")
+endif()
+
+include(CPack)

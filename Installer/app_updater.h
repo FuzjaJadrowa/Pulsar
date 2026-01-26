@@ -43,7 +43,7 @@ private:
 
     qint64 getLastAppCheckTime();
     void setLastAppCheckTime();
-    void applyUpdateWindows(const QString &tempPath);
+    void applyUpdate(const QString &tempPath);
     QString getVersionsFilePath();
 };
 

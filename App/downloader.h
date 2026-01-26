@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QDir>
+#include <QCoreApplication>
 
 class Downloader : public QObject {
     Q_OBJECT
@@ -19,7 +20,6 @@ public:
 
     void stopDownload();
 
-    // Funkcja generująca tekst komendy (do podglądu)
     QString generateCommand(const QString &url, const QString &path, bool audioOnly,
                             const QString &vFormat, const QString &vQuality,
                             const QString &aFormat, const QString &aQuality,
