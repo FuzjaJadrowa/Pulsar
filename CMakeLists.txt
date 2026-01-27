@@ -32,13 +32,12 @@ set(PROJECT_SOURCES
 
 if(WIN32)
     list(APPEND PROJECT_SOURCES resources.rc)
-endif()
-
-if(WIN32)
     add_executable(App WIN32 ${PROJECT_SOURCES})
 else()
     add_executable(App ${PROJECT_SOURCES})
 endif()
+
+target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
 
 if(APPLE)
     list(APPEND PROJECT_SOURCES Resources/Icons/icon.icns)
@@ -47,12 +46,15 @@ if(APPLE)
             MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.gvd"
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
+            MACOSX_BUNDLE_INFO_STRING "GUI Video Downloader"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "2.0.1"
+            MACOSX_BUNDLE_BUNDLE_VERSION "2.0.1"
+            MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2026 Fuzja Jadrowa"
     )
     set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
 if(UNIX AND NOT APPLE)
-
     set(DESKTOP_FILE "${CMAKE_BINARY_DIR}/guivideodownloader.desktop")
     file(WRITE "${DESKTOP_FILE}"
             "[Desktop Entry]\n"
@@ -64,37 +66,23 @@ if(UNIX AND NOT APPLE)
             "Categories=Network;Utility;\n"
             "Terminal=false\n"
     )
-
-
-    install(FILES "${DESKTOP_FILE}" DESTINATION share/applications)
-
-
-    install(FILES "Resources/Icons/icon.png"
-            DESTINATION share/icons/hicolor/512x512/apps
-            RENAME guivideodownloader.png)
 endif()
 
-target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
-
-install(TARGETS App
-        BUNDLE DESTINATION .
-        RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION share/guivideodownloader)
-install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/guivideodownloader)
-
 if(WIN32)
+    install(TARGETS App RUNTIME DESTINATION .)
+    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
+
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
     find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
     install(CODE "
-        message(STATUS \"Running windeployqt on App.exe...\")
         execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" --no-translations \"\${CMAKE_INSTALL_PREFIX}/App.exe\")
     ")
 
 elseif(APPLE)
+    install(TARGETS App BUNDLE DESTINATION .)
+
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
     find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
@@ -102,6 +90,15 @@ elseif(APPLE)
     install(CODE "
         execute_process(COMMAND \"${MACDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.app\" \"-always-overwrite\" \"-codesign=-\")
     " COMPONENT Runtime)
+
+else()
+    install(TARGETS App RUNTIME DESTINATION bin)
+    install(FILES "${DESKTOP_FILE}" DESTINATION share/applications)
+    install(FILES "Resources/Icons/icon.png"
+            DESTINATION share/icons/hicolor/512x512/apps
+            RENAME guivideodownloader.png)
+    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/guivideodownloader)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION share/guivideodownloader)
 endif()
 
 set(CPACK_PACKAGE_NAME "GUI-Video-Downloader")
@@ -109,9 +106,7 @@ set(CPACK_PACKAGE_VENDOR "Fuzja Jadrowa")
 set(CPACK_PACKAGE_VERSION "2.0.1")
 set(CPACK_PACKAGE_CONTACT "Fuzja Jadrowa")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A helpful tool for downloading media from various sites.")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 
 if(WIN32)
     set(CPACK_GENERATOR "NSIS;ZIP")
@@ -135,7 +130,6 @@ else()
     set(CPACK_DEBIAN_PACKAGE_LICENSE "MIT")
     set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A helpful tool for downloading media from various sites.")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6widgets6, libqt6network6, libqt6gui6, libqt6core6")
-    set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 endif()
 
 include(CPack)

@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QCoreApplication>
 #include <QStandardPaths>
+#include <QDir>
 
 ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
@@ -12,6 +13,7 @@ ConfigManager& ConfigManager::instance() {
 ConfigManager::ConfigManager() {
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir dir(dataPath);
+    if (!dir.exists()) dir.mkpath(".");
     configPath = dir.filePath("config.json");
     load();
 }
