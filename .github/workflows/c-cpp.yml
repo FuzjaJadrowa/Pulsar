@@ -1,4 +1,4 @@
-name: Multi-Platform Build & Package
+name: Multi-Platform Build
 
 on:
   push:
@@ -23,70 +23,89 @@ jobs:
           arch: 'win64_msvc2019_64'
 
       - name: Configure CMake
-        run: |
-          cmake -S . -B build `
-          -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build & Package
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package (Generate Zip & Exe)
         run: |
-          cmake --build build --config Release
           cd build
-          cpack -C Release
+          cpack -C Release -V
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: GVD-Windows-Packages
+          name: Windows-Builds
           path: |
-            build/*.exe
-            build/*.zip
-            build/Release/App.exe
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libxkbcommon-x11-0 binutils
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: '6.6.0'
-      - name: Build & Package
-        run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
-          cd build
-          cpack -C Release
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: GVD-Linux-Packages
-          path: |
-            build/*.deb
-            build/*.tar.gz
-            build/App
+            build/GUI-Video-Downloader-*-win64.exe
+            build/GUI-Video-Downloader-*-win64.zip
 
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.6.0'
-      - name: Build & Package
+          host: 'mac'
+          target: 'desktop'
+
+      - name: Configure CMake
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package (Generate Dmg & Zip)
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
           cd build
-          cpack -C Release
+          cpack -C Release -V
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: GVD-MacOS-Packages
+          name: macOS-Builds
           path: |
-            build/*.dmg
-            build/*.zip
-            build/App.app/Contents/MacOS/App
+            build/GUI-Video-Downloader-*-Darwin.dmg
+            build/GUI-Video-Downloader-*-Darwin.zip
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 x11-utils
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.6.0'
+          host: 'linux'
+          target: 'desktop'
+
+      - name: Configure CMake
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package (Generate Deb & Tar.gz)
+        run: |
+          cd build
+          cpack -C Release -V
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux-Builds
+          path: |
+            build/GUI-Video-Downloader-*-Linux.deb
+            build/GUI-Video-Downloader-*-Linux.tar.gz
