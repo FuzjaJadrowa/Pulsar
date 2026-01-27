@@ -15,7 +15,8 @@ ConfigManager::ConfigManager() {
 }
 
 void ConfigManager::ensureDataDir() {
-    QDir dir(QCoreApplication::applicationDirPath());
+    QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir dir(dataPath);
     if (!dir.exists("Requirements")) dir.mkpath("Requirements");
 }
 
@@ -82,5 +83,6 @@ QString ConfigManager::getAudioQuality() const { return configData["a_quality"].
 void ConfigManager::setAudioQuality(const QString& q) { configData["a_quality"] = q; save(); }
 
 QString ConfigManager::getRequirementsPath() const {
-    return QDir(QCoreApplication::applicationDirPath()).filePath("Data/Requirements");
+    QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    return QDir(dataPath).filePath("Requirements");
 }

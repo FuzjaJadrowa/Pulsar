@@ -79,7 +79,7 @@ elseif(APPLE)
     find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
 
     install(CODE "
-        execute_process(COMMAND \"${MACDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.app\")
+        execute_process(COMMAND \"${MACDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/App.app\" \"-always-overwrite\" \"-codesign=-\")
     " COMPONENT Runtime)
 endif()
 
