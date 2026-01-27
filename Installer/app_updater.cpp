@@ -1,6 +1,9 @@
 #include "app_updater.h"
 #include <QStandardPaths>
 #include <QTextStream>
+#include <QCoreApplication>
+#include <QDir>
+#include <QProcess>
 
 AppUpdater::AppUpdater(Popup *popup, QObject *parent)
     : QObject(parent), m_popup(popup) {
@@ -63,7 +66,9 @@ void AppUpdater::onVersionReceived() {
     }
 
     QJsonArray assets = json["assets"].toArray();
-    for (const auto &asset : assets) {
+    m_downloadUrl = "";
+
+for (const auto &asset : assets) {
         QString name = asset.toObject()["name"].toString();
 
 #ifdef Q_OS_WIN
@@ -145,19 +150,13 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
         QTextStream out(&script);
         out << "@echo off\n"
             << "chcp 65001 > nul\n"
-            << "title GUI Video Downloader Update\n"
-            << "echo Waiting for application to close...\n"
             << "timeout /t 3 /nobreak > nul\n"
             << "if exist \"" << nativeTempDir << "\" rmdir /s /q \"" << nativeTempDir << "\"\n"
             << "mkdir \"" << nativeTempDir << "\"\n"
-            << "echo Extracting update...\n"
             << "powershell -command \"Expand-Archive -Path '" << nativeArchive << "' -DestinationPath '" << nativeTempDir << "' -Force\"\n"
-            << "echo Installing files...\n"
             << "powershell -command \"$subDir = Get-ChildItem -Path '" << nativeTempDir << "' -Directory | Select-Object -First 1; Get-ChildItem -Path $subDir.FullName | Where-Object { $_.Name -ne 'Data' } | Copy-Item -Destination '" << nativeAppDir << "' -Recurse -Force\"\n"
-            << "echo Cleaning up temporary files...\n"
-            << "del /f /q \"" << nativeArchive << "\"\n"
             << "rmdir /s /q \"" << nativeTempDir << "\"\n"
-            << "echo Update finished. Restarting application...\n"
+            << "del /f /q \"" << nativeArchive << "\"\n"
             << "start \"\" \"" << nativeAppDir << "\\App.exe\"\n"
             << "del \"%~f0\"\n";
         script.close();
@@ -171,24 +170,16 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&script);
         out << "#!/bin/bash\n"
-            << "echo \"Waiting for application to close...\"\n"
             << "sleep 2\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
             << "mkdir -p \"" << nativeTempDir << "\"\n"
-            << "echo \"Extracting update...\"\n"
             << "unzip -o -q \"" << nativeArchive << "\" -d \"" << nativeTempDir << "\"\n"
             << "NEW_APP=$(find \"" << nativeTempDir << "\" -name \"*.app\" -maxdepth 2 | head -n 1)\n"
-            << "if [ -z \"$NEW_APP\" ]; then\n"
-            << "  echo \"Error: No .app found in update package!\"\n"
-            << "  exit 1\n"
-            << "fi\n"
-            << "echo \"Replacing application...\"\n"
+            << "if [ -z \"$NEW_APP\" ]; then exit 1; fi\n"
             << "rm -rf \"" << appBundlePath << "\"\n"
             << "mv \"$NEW_APP\" \"" << nativeAppDir << "/\"\n"
-            << "echo \"Cleaning up...\"\n"
-            << "rm \"" << nativeArchive << "\"\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
-            << "echo \"Restarting...\"\n"
+            << "rm \"" << nativeArchive << "\"\n"
             << "open -n \"" << appBundlePath << "\"\n"
             << "rm \"$0\"\n";
         script.close();
@@ -202,21 +193,14 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&script);
         out << "#!/bin/bash\n"
-            << "echo \"Waiting for application to close...\"\n"
             << "sleep 2\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
             << "mkdir -p \"" << nativeTempDir << "\"\n"
-            << "echo \"Extracting update...\"\n"
             << "tar -xf \"" << nativeArchive << "\" -C \"" << nativeTempDir << "\"\n"
-            << "echo \"Installing files...\"\n"
             << "SUBDIR=$(find \"" << nativeTempDir << "\" -maxdepth 1 -type d ! -path \"" << nativeTempDir << "\" | head -n 1)\n"
-            << "if [ -d \"$SUBDIR\" ]; then\n"
-            << "  cp -rf \"$SUBDIR\"/* \"" << nativeAppDir << "/\"\n"
-            << "fi\n"
-            << "echo \"Cleaning up...\"\n"
-            << "rm \"" << nativeArchive << "\"\n"
+            << "if [ -d \"$SUBDIR\" ]; then cp -rf \"$SUBDIR\"/* \"" << nativeAppDir << "/\"; fi\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
-            << "echo \"Restarting...\"\n"
+            << "rm \"" << nativeArchive << "\"\n"
             << "chmod +x \"" << nativeAppDir << "/App\"\n"
             << "nohup \"" << nativeAppDir << "/App\" > /dev/null 2>&1 &\n"
             << "rm \"$0\"\n";
