@@ -42,7 +42,7 @@ jobs:
             build/GUI-Video-Downloader-*-win64.zip
 
   build-macos:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
