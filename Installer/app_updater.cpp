@@ -90,7 +90,6 @@ void AppUpdater::onVersionReceived() {
 }
 
 void AppUpdater::startAppUpdate() {
-    m_popup->showMessage("Updating...", "Downloading update package.", Popup::Info, Popup::Temporary);
     QNetworkRequest request((QUrl(m_downloadUrl)));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     m_reply = m_netManager->get(request);
@@ -130,7 +129,7 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     currentAppDir = dir.absolutePath();
     #endif
 
-    QString tempExtractDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/GVD_Update_Extracted";
+QString tempExtractDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/GVD_Update_Extracted";
     QString nativeArchive = QDir::toNativeSeparators(archivePath);
     QString nativeAppDir = QDir::toNativeSeparators(currentAppDir);
     QString nativeTempDir = QDir::toNativeSeparators(tempExtractDir);
@@ -141,9 +140,10 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&script);
         out << "@echo off\n"
-            << "title Updating GUI Video Downloader...\n"
+            << "chcp 65001 > nul\n"
+            << "title GUI Video Downloader Update\n"
             << "echo Waiting for application to close...\n"
-            << "timeout /t 2 /nobreak > nul\n"
+            << "timeout /t 3 /nobreak > nul\n"
 
             << "if exist \"" << nativeTempDir << "\" rmdir /s /q \"" << nativeTempDir << "\"\n"
             << "mkdir \"" << nativeTempDir << "\"\n"
@@ -154,14 +154,17 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
             << "echo Installing files...\n"
             << "powershell -command \"$subDir = Get-ChildItem -Path '" << nativeTempDir << "' -Directory | Select-Object -First 1; Get-ChildItem -Path $subDir.FullName | Where-Object { $_.Name -ne 'Data' } | Copy-Item -Destination '" << nativeAppDir << "' -Recurse -Force\"\n"
 
+            << "echo Cleaning up temporary files...\n"
             << "del /f /q \"" << nativeArchive << "\"\n"
             << "rmdir /s /q \"" << nativeTempDir << "\"\n"
+
+            << "echo Update finished. Restarting application...\n"
             << "start \"\" \"" << nativeAppDir << "\\App.exe\"\n"
             << "del \"%~f0\"\n";
 
         script.close();
-        QString psCommand = QString("Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c\", \"\\\"%1\\\"\" -Verb RunAs").arg(updaterPath);
-        QProcess::startDetached("powershell", {"-Command", psCommand});
+        QString psCommand = QString("Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', '\"%1\"' -Verb RunAs").arg(updaterPath);
+        QProcess::startDetached("powershell", {"-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psCommand});
         QCoreApplication::quit();
     }
 #else
@@ -170,31 +173,41 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     if (script.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&script);
         out << "#!/bin/bash\n"
-            << "sleep 2\n"
+            << "echo \"Waiting for application to close...\"\n"
+            << "sleep 3\n"
+
             << "rm -rf \"" << nativeTempDir << "\"\n"
             << "mkdir -p \"" << nativeTempDir << "\"\n"
 
+            << "echo \"Extracting update...\"\n"
             << "if [[ \"" << m_downloadFileName << "\" == *\".zip\" ]]; then\n"
             << "  unzip -o -q \"" << nativeArchive << "\" -d \"" << nativeTempDir << "\"\n"
             << "else\n"
             << "  tar -xf \"" << nativeArchive << "\" -C \"" << nativeTempDir << "\"\n"
             << "fi\n"
 
-            << "cd \"" << nativeTempDir << "\"/*\n"
-            << "for f in *; do\n"
-            << "  if [ \"$f\" != \"Data\" ]; then\n"
-            << "    cp -rf \"$f\" \"" << nativeAppDir << "/\"\n"
-            << "  fi\n"
-            << "done\n"
+            << "echo \"Installing files...\"\n"
+<< "SUBDIR=$(find \"" << nativeTempDir << "\" -maxdepth 1 -type d ! -path \"" << nativeTempDir << "\" | head -n 1)\n"
+            << "if [ -d \"$SUBDIR\" ]; then\n"
+            << "  for f in \"$SUBDIR\"/*; do\n"
+                << "    filename=$(basename \"$f\")\n"
+                << "    if [ \"$filename\" != \"Data\" ]; then\n"
+                << "      cp -rf \"$f\" \"" << nativeAppDir << "/\"\n"
+                << "    fi\n"
+            << "  done\n"
+            << "fi\n"
 
+            << "echo \"Cleaning up...\"\n"
             << "rm \"" << nativeArchive << "\"\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
 
-            #ifdef Q_OS_MACOS
-             << "open \"" << nativeAppDir << "\"\n"
+#ifdef Q_OS_MACOS
+            << "echo \"Update finished. Restarting...\"\n"
+            << "open \"" << nativeAppDir << "\"\n"
 #else
+            << "echo \"Update finished. Restarting...\"\n"
             << "chmod +x \"" << nativeAppDir << "/App\"\n"
-            << "\"" << nativeAppDir << "/App\" &\n"
+            << "nohup \"" << nativeAppDir << "/App\" > /dev/null 2>&1 &\n"
 #endif
             << "rm \"$0\"\n";
 

@@ -166,7 +166,7 @@ void SettingsPage::setupUi() {
     auto *btnSupport = new QPushButton("Support Project", this);
     btnSupport->setObjectName("actionBtn");
     connect(btnSupport, &QPushButton::clicked, this, &SettingsPage::onSupportClicked);
-    mainLayout->addLayout(createSection("Show you support!:", btnSupport));
+    mainLayout->addLayout(createSection("Show you support!", btnSupport));
 
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);
