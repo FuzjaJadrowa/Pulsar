@@ -34,15 +34,14 @@ if(WIN32)
     list(APPEND PROJECT_SOURCES resources.rc)
 endif()
 
-
 if(WIN32)
     add_executable(App WIN32 ${PROJECT_SOURCES})
 else()
     add_executable(App ${PROJECT_SOURCES})
 endif()
 
-
 if(APPLE)
+    list(APPEND PROJECT_SOURCES Resources/Icons/icon.icns)
     set_target_properties(App PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
@@ -52,16 +51,39 @@ if(APPLE)
     set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
+if(UNIX AND NOT APPLE)
 
+    set(DESKTOP_FILE "${CMAKE_BINARY_DIR}/guivideodownloader.desktop")
+    file(WRITE "${DESKTOP_FILE}"
+            "[Desktop Entry]\n"
+            "Type=Application\n"
+            "Name=GUI Video Downloader\n"
+            "Comment=A helpful tool for downloading media from various sites.\n"
+            "Exec=App\n"
+            "Icon=guivideodownloader\n"
+            "Categories=Network;Utility;\n"
+            "Terminal=false\n"
+    )
+
+
+    install(FILES "${DESKTOP_FILE}" DESTINATION share/applications)
+
+
+    install(FILES "Resources/Icons/icon.png"
+            DESTINATION share/icons/hicolor/512x512/apps
+            RENAME guivideodownloader.png)
+endif()
+
+target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
 
 install(TARGETS App
         BUNDLE DESTINATION .
-        RUNTIME DESTINATION .
+        RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION .)
-install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Resources DESTINATION share/guivideodownloader)
+install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/guivideodownloader)
+
 if(WIN32)
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
@@ -73,7 +95,6 @@ if(WIN32)
     ")
 
 elseif(APPLE)
-
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
     find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
@@ -86,17 +107,16 @@ endif()
 set(CPACK_PACKAGE_NAME "GUI-Video-Downloader")
 set(CPACK_PACKAGE_VENDOR "Fuzja Jadrowa")
 set(CPACK_PACKAGE_VERSION "2.0.1")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "GUI Video Downloader")
 set(CPACK_PACKAGE_CONTACT "Fuzja Jadrowa")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Fuzja Jadrowa")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A helpful tool for downloading media from various sites.")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 
 if(WIN32)
     set(CPACK_GENERATOR "NSIS;ZIP")
-
     set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/Resources/Icons/installer_icon.ico")
     set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/Resources/Icons/installer_icon.ico")
-
     set(CPACK_NSIS_DISPLAY_NAME "GUI Video Downloader")
     set(CPACK_NSIS_HELP_LINK "https://tipply.pl/@fuzjajadrowa")
     set(CPACK_NSIS_URL_INFO_ABOUT "https://tipply.pl/@fuzjajadrowa")
@@ -112,7 +132,10 @@ elseif(APPLE)
     set(CPACK_GENERATOR "DragNDrop;ZIP")
 else()
     set(CPACK_GENERATOR "DEB;TGZ")
+    set(CPACK_DEBIAN_PACKAGE_LICENSE "MIT")
+    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A helpful tool for downloading media from various sites.")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6widgets6, libqt6network6, libqt6gui6, libqt6core6")
+    set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 endif()
 
 include(CPack)

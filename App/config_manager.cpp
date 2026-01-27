@@ -11,6 +11,8 @@ ConfigManager& ConfigManager::instance() {
 
 ConfigManager::ConfigManager() {
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir dir(dataPath);
+    configPath = dir.filePath("config.json");
     load();
 }
 

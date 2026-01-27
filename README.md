@@ -12,7 +12,7 @@ Introducing a big overhaul for my application that adds the ability to download 
 4. **For Linux**:
     - **Debian/Ubuntu (.deb)**: Download the `.deb` file and install it using your package manager:
       ```bash
-      sudo apt install ./GUI-Video-Downloader-2.0.0-Linux.deb
+      sudo apt install ./GUI-Video-Downloader-X.X.X-Linux.deb
       ```
       This will automatically install required dependencies like Qt6.
     - **Portable (.tar.gz)**: Extract the archive. Ensure you have Qt6 libraries installed on your system, then run the binary:
