@@ -128,7 +128,7 @@ void InstallerWindow::processNextRepairStep() {
 void InstallerWindow::fetchLatestRelease(const QString &appName) {
     m_currentApp = appName;
 
-    if (!m_isManualCheck && !m_isRepairMode) {
+    if (!m_isManualCheck && !m_isRepairMode && !m_installing) {
         qint64 lastCheck = getLastCheckTime(appName);
         qint64 currentTime = QDateTime::currentSecsSinceEpoch();
         if (currentTime - lastCheck < 600) {

@@ -85,7 +85,7 @@ endif()
 
 set(CPACK_PACKAGE_NAME "GUI-Video-Downloader")
 set(CPACK_PACKAGE_VENDOR "Fuzja Jadrowa")
-set(CPACK_PACKAGE_VERSION "2.0.0")
+set(CPACK_PACKAGE_VERSION "2.0.1")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "GUI Video Downloader")
 set(CPACK_PACKAGE_CONTACT "Fuzja Jadrowa")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Fuzja Jadrowa")

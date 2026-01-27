@@ -19,7 +19,7 @@ class AppUpdater : public QObject {
     Q_OBJECT
 public:
     explicit AppUpdater(Popup *popup, QObject *parent = nullptr);
-    const QString CURRENT_VERSION = "v2.0.0";
+    const QString CURRENT_VERSION = "v2.0.1";
     const QString REPO_URL = "https://api.github.com/repos/fuzjajadrowa/GUI-Video-Downloader/releases/latest";
 
     void checkForAppUpdates(bool manual);
