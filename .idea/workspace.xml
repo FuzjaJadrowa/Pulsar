@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Housekeeping/RefactoringsMru/RenameRefactoring/DoSearchForTextInStrings/@EntryValue" value="true" type="bool" />
+  </component>
+  <component name="CMakePresetLoader"><![CDATA[{
+  "useNewFormat": true
+}]]></component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="Pulsar" targetName="Pulsar" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug">
+        <ADDITIONAL_GENERATION_ENVIRONMENT>
+          <envs>
+            <env name="PATH" value="C:\Qt\6.10.1\mingw_64\bin" />
+          </envs>
+        </ADDITIONAL_GENERATION_ENVIRONMENT>
+      </configuration>
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Pulsar.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/icon.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/GUIVideoDownloader.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/config_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/config_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/console_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/downloader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/downloader.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/main_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/main_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/popup.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/popup.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Installer/app_updater.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Installer/app_updater.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Installer/installer_window.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/installer_window.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Installer/installer_window.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/installer_window.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/console.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/console_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console_dark.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/home.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/home.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/home_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/home_dark.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.icns" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.icns" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/installer_icon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/style.qss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources.rc" beforeDir="false" afterPath="$PROJECT_DIR$/resources.rc" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="2.X" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "FuzjaJadrowa"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/FuzjaJadrowa/GUI-Video-Downloader",
+    "accountId": "ecf7055f-df22-441e-80fa-aa7ae96a73a7"
+  }
+}]]></component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="FS24JpV8" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2025" />
+    <option name="minorVersion" value="3.2" />
+    <option name="productBranch" value="Classic" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "00000000",
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="38tSilhLDw4aJpeStxIXpZA3IVM" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "CMake Application.App.executor": "Run",
+    "CMake Application.Pulsar.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "RunOnceActivity.west.config.association.type.startup.service": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "2.X-dev",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.first.attach.projects": "true",
+    "settings.editor.selected.configurable": "Docker",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Gui" />
+      <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Core" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Pulsar" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Pulsar" TARGET_NAME="Pulsar" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Pulsar" RUN_TARGET_NAME="Pulsar">
+      <envs>
+        <env name="PATH" value="C:\Qt\6.10.1\mingw_64\bin" />
+      </envs>
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="" />
+      <created>1769617503840</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1769617503840</updated>
+      <workItem from="1769617505004" duration="6873000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/GUIVideoDownloader.iml" filepath="$PROJECT_DIR$/.idea/GUIVideoDownloader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Pulsar.iml" filepath="$PROJECT_DIR$/.idea/Pulsar.iml" />
     </modules>
   </component>
 </project>
