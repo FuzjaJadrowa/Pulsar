@@ -32,47 +32,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Pulsar.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/icon.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/GUIVideoDownloader.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/config_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/config_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/console_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/downloader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/downloader.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/main_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/main_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/popup.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/popup.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Installer/app_updater.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Installer/app_updater.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Installer/installer_window.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/installer_window.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Installer/installer_window.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/installer_window.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/console.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/console_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console_dark.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/home.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/home.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/home_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/home_dark.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.icns" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.icns" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/installer_icon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/style.qss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources.rc" beforeDir="false" afterPath="$PROJECT_DIR$/resources.rc" afterDir="false" />
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="rebranding caly. poprawiony cmake 978179 raz i segregacja">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,6 +90,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.RadMigrateCodeStyle": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
@@ -135,7 +99,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "2.X-dev",
+    "git-widget-placeholder": "Merging 2.X-dev",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -174,8 +138,33 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1769617503840</updated>
-      <workItem from="1769617505004" duration="6873000" />
+      <workItem from="1769617505004" duration="7358000" />
     </task>
+    <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
+      <option name="closed" value="true" />
+      <created>1769624860815</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1769624860815</updated>
+    </task>
+    <task id="LOCAL-00002" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
+      <option name="closed" value="true" />
+      <created>1769624929832</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1769624929832</updated>
+    </task>
+    <task id="LOCAL-00003" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
+      <option name="closed" value="true" />
+      <created>1769625131642</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1769625131642</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -196,5 +185,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="rebranding caly. poprawiony cmake 978179 raz i segregacja" />
+    <option name="LAST_COMMIT_MESSAGE" value="rebranding caly. poprawiony cmake 978179 raz i segregacja" />
   </component>
 </project>
