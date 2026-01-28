@@ -157,7 +157,7 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
             << "powershell -command \"$subDir = Get-ChildItem -Path '" << nativeTempDir << "' -Directory | Select-Object -First 1; Get-ChildItem -Path $subDir.FullName | Where-Object { $_.Name -ne 'Data' } | Copy-Item -Destination '" << nativeAppDir << "' -Recurse -Force\"\n"
             << "rmdir /s /q \"" << nativeTempDir << "\"\n"
             << "del /f /q \"" << nativeArchive << "\"\n"
-            << "start \"\" \"" << nativeAppDir << "\\GUIVideoDownloader.exe\"\n"
+            << "start \"\" \"" << nativeAppDir << "\\App.exe\"\n"
             << "del \"%~f0\"\n";
         script.close();
         QString psCommand = QString("Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', '\"%1\"' -Verb RunAs").arg(updaterPath);
@@ -201,8 +201,8 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
             << "if [ -d \"$SUBDIR\" ]; then cp -rf \"$SUBDIR\"/* \"" << nativeAppDir << "/\"; fi\n"
             << "rm -rf \"" << nativeTempDir << "\"\n"
             << "rm \"" << nativeArchive << "\"\n"
-            << "chmod +x \"" << nativeAppDir << "/GUIVideoDownloader\"\n"
-            << "nohup \"" << nativeAppDir << "/GUIVideoDownloader\" > /dev/null 2>&1 &\n"
+            << "chmod +x \"" << nativeAppDir << "/App\"\n"
+            << "nohup \"" << nativeAppDir << "/App\" > /dev/null 2>&1 &\n"
             << "rm \"$0\"\n";
         script.close();
         QProcess::execute("chmod", {"+x", updaterPath});
