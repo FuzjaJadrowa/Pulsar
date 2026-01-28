@@ -78,7 +78,7 @@ for (const auto &asset : assets) {
             break;
         }
 #elif defined(Q_OS_MAC)
-        if (name.contains("Darwin") && name.endsWith(".zip")) {
+        if (name.contains("MacOS") && name.endsWith(".zip")) {
             m_downloadUrl = asset.toObject()["browser_download_url"].toString();
             m_downloadFileName = "update.zip";
             break;
@@ -142,7 +142,7 @@ void AppUpdater::applyUpdate(const QString &archivePath) {
     QString nativeArchive = QDir::toNativeSeparators(archivePath);
     QString nativeAppDir = QDir::toNativeSeparators(currentAppDir);
     QString nativeTempDir = QDir::toNativeSeparators(tempExtractDir);
-
+// tu się dzieje cała magia z aktualizacja. nie pytac jak dziala XD
 #ifdef Q_OS_WIN
     QString updaterPath = QDir::tempPath() + "/gvd_updater.bat";
     QFile script(updaterPath);

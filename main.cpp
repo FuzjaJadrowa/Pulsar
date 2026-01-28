@@ -13,13 +13,13 @@
 #include <QTimer>
 #include <QStyle>
 
-#include "App/main_page.h"
-#include "App/settings_page.h"
-#include "App/console_page.h"
-#include "App/popup.h"
-#include "App/config_manager.h"
-#include "Installer/installer_window.h"
-#include "Installer/app_updater.h"
+#include "App/Gui/downloader_page.h"
+#include "App/Gui/settings_page.h"
+#include "App/Gui/console_page.h"
+#include "App/Core/popup.h"
+#include "App/Core/config_manager.h"
+#include "App/Core/installer_window.h"
+#include "App/Core/app_updater.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -29,7 +29,7 @@ public:
     Popup *popup;
 
     MainWindow() {
-        setWindowTitle("GUI Video Downloader");
+        setWindowTitle("Pulsar");
         setMinimumSize(950, 650);
         setWindowIcon(QIcon(":/Resources/Icons/app_icon.png"));
         setupUI();
@@ -88,7 +88,7 @@ private:
         installer = new InstallerWindow(popup, this);
         appUpdater = new AppUpdater(popup, this);
 
-        auto *pageMain = new MainPage(this);
+        auto *pageMain = new DownloaderPage(this);
         auto *pageConsole = new ConsolePage(this);
         auto *pageSettings = new SettingsPage(popup, installer, this);
 
@@ -103,7 +103,7 @@ private:
         connect(btnConsole, &QPushButton::clicked, [this]() { stackedWidget->setCurrentIndex(1); });
         connect(btnSettings, &QPushButton::clicked, [this](){ stackedWidget->setCurrentIndex(2); });
         connect(pageSettings, &SettingsPage::themeChanged, this, &MainWindow::applyTheme);
-        connect(pageSettings, &SettingsPage::themeChanged, pageMain, &MainPage::updateThemeProperty);
+        connect(pageSettings, &SettingsPage::themeChanged, pageMain, &DownloaderPage::updateThemeProperty);
         connect(pageMain->getDownloader(), &Downloader::outputLog, pageConsole, &ConsolePage::appendLog);
 
         connect(installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
@@ -163,7 +163,7 @@ protected:
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    app.setApplicationName("GUIVideoDownloader");
+    app.setApplicationName("Pulsar");
     app.setFont(QFont("Segoe UI", 10));
     QFontDatabase::addApplicationFont(":/Resources/Fonts/Montserrat-ExtraBold.ttf");
 

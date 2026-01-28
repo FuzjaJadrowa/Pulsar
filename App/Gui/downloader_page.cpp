@@ -1,5 +1,5 @@
-#include "main_page.h"
-#include "config_manager.h"
+#include "downloader_page.h"
+#include "../Core/config_manager.h"
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QFileDialog>
@@ -10,16 +10,16 @@
 #include <QStyleHints>
 #include <QStyle>
 
-MainPage::MainPage(QWidget *parent) : QWidget(parent) {
+DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
     popup = new Popup(this);
     setupUi();
     updateThemeProperty();
-    connect(downloader, &Downloader::finished, this, &MainPage::onDownloadFinished);
-    connect(downloader, &Downloader::progressUpdated, this, &MainPage::onProgressUpdated);
+    connect(downloader, &Downloader::finished, this, &DownloaderPage::onDownloadFinished);
+    connect(downloader, &Downloader::progressUpdated, this, &DownloaderPage::onProgressUpdated);
 }
 
-void MainPage::updateThemeProperty() {
+void DownloaderPage::updateThemeProperty() {
     QString theme = ConfigManager::instance().getTheme();
     if (theme == "System") theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
     QString themeName = theme.toLower();
@@ -33,7 +33,7 @@ void MainPage::updateThemeProperty() {
     }
 }
 
-void MainPage::setupUi() {
+void DownloaderPage::setupUi() {
     auto *rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
@@ -51,7 +51,7 @@ void MainPage::setupUi() {
     auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
     iconLabel->setPixmap(QPixmap(":/Resources/Icons/icon.png").scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    auto *header = new QLabel("GUI Video Downloader", this);
+    auto *header = new QLabel("Downloader", this);
     header->setObjectName("PageTitle");
     headerLayout->addWidget(iconLabel);
     headerLayout->addWidget(header);
@@ -168,23 +168,23 @@ void MainPage::setupUi() {
     bottomLayout->addWidget(stopBtn);
     rootLayout->addWidget(bottomContainer);
 
-    connect(browseBtn, &QPushButton::clicked, this, &MainPage::onBrowseClicked);
-    connect(audioOnlyCheck, &QCheckBox::toggled, this, &MainPage::onAudioOnlyToggled);
-    connect(downloadSubsCheck, &QCheckBox::toggled, this, &MainPage::onSubsOptionsChanged);
-    connect(downloadChatCheck, &QCheckBox::toggled, this, &MainPage::onSubsOptionsChanged);
+    connect(browseBtn, &QPushButton::clicked, this, &DownloaderPage::onBrowseClicked);
+    connect(audioOnlyCheck, &QCheckBox::toggled, this, &DownloaderPage::onAudioOnlyToggled);
+    connect(downloadSubsCheck, &QCheckBox::toggled, this, &DownloaderPage::onSubsOptionsChanged);
+    connect(downloadChatCheck, &QCheckBox::toggled, this, &DownloaderPage::onSubsOptionsChanged);
     connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
         advancedContent->setVisible(c);
         advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
     });
-    connect(startBtn, &QPushButton::clicked, this, &MainPage::onStartClicked);
-    connect(stopBtn, &QPushButton::clicked, this, &MainPage::onStopClicked);
-    for(auto *e : findChildren<QLineEdit*>()) connect(e, &QLineEdit::textChanged, this, &MainPage::updateCommandPreview);
-    for(auto *c : findChildren<QComboBox*>()) connect(c, &QComboBox::currentTextChanged, this, &MainPage::updateCommandPreview);
-    for(auto *x : findChildren<QCheckBox*>()) connect(x, &QCheckBox::toggled, this, &MainPage::updateCommandPreview);
+    connect(startBtn, &QPushButton::clicked, this, &DownloaderPage::onStartClicked);
+    connect(stopBtn, &QPushButton::clicked, this, &DownloaderPage::onStopClicked);
+    for(auto *e : findChildren<QLineEdit*>()) connect(e, &QLineEdit::textChanged, this, &DownloaderPage::updateCommandPreview);
+    for(auto *c : findChildren<QComboBox*>()) connect(c, &QComboBox::currentTextChanged, this, &DownloaderPage::updateCommandPreview);
+    for(auto *x : findChildren<QCheckBox*>()) connect(x, &QCheckBox::toggled, this, &DownloaderPage::updateCommandPreview);
     onAudioOnlyToggled(false);
 }
 
-void MainPage::updateCommandPreview() {
+void DownloaderPage::updateCommandPreview() {
     cmdPreview->setPlainText(downloader->generateCommand(
         urlInput->text(), pathInput->text(), audioOnlyCheck->isChecked(),
         videoFormatCombo->currentText(), videoQualityCombo->currentText(),
@@ -194,7 +194,7 @@ void MainPage::updateCommandPreview() {
     ));
 }
 
-void MainPage::onSubsOptionsChanged() {
+void DownloaderPage::onSubsOptionsChanged() {
     subsLangInput->setEnabled(downloadSubsCheck->isChecked());
     if (qobject_cast<QCheckBox*>(sender()) == downloadSubsCheck && downloadSubsCheck->isChecked())
         downloadChatCheck->setChecked(false);
@@ -202,11 +202,11 @@ void MainPage::onSubsOptionsChanged() {
         downloadSubsCheck->setChecked(false);
 }
 
-bool MainPage::isValidTimeFormat(const QString &t) {
+bool DownloaderPage::isValidTimeFormat(const QString &t) {
     return QRegularExpression("^(\\d{1,2}:)?(\\d{1,2}:)?\\d{1,2}$").match(t).hasMatch();
 }
 
-void MainPage::onStartClicked() {
+void DownloaderPage::onStartClicked() {
     if (urlInput->text().trimmed().isEmpty()) return;
     if (pathInput->text().trimmed().isEmpty()) {
         popup->showMessage("Error", "Please select a download path.", Popup::Error, Popup::Temporary);
@@ -226,24 +226,24 @@ void MainPage::onStartClicked() {
         ts, te, customArgsInput->text());
 }
 
-void MainPage::onStopClicked() { downloader->stopDownload(); }
-void MainPage::onProgressUpdated(double p, const QString &e) {
+void DownloaderPage::onStopClicked() { downloader->stopDownload(); }
+void DownloaderPage::onProgressUpdated(double p, const QString &e) {
     progressBar->setValue(static_cast<int>(p));
     progressBar->setFormat(QString("Progress: %1% | ETA: %2").arg(p).arg(e));
 }
 
-void MainPage::onDownloadFinished(bool ok, const QString &msg) {
+void DownloaderPage::onDownloadFinished(bool ok, const QString &msg) {
     startBtn->setEnabled(true); stopBtn->setEnabled(false);
     progressBar->setFormat("Progress: 0% | ETA: 0s"); progressBar->setValue(0);
     popup->showMessage(ok ? "Success" : "Error", msg, ok ? Popup::Success : Popup::Error, Popup::Temporary);
 }
 
-void MainPage::onBrowseClicked() {
+void DownloaderPage::onBrowseClicked() {
     QString d = QFileDialog::getExistingDirectory(this, "Select Directory", pathInput->text());
     if (!d.isEmpty()) pathInput->setText(d);
 }
 
-void MainPage::onAudioOnlyToggled(bool c) {
+void DownloaderPage::onAudioOnlyToggled(bool c) {
     videoFormatCombo->setEnabled(!c); videoQualityCombo->setEnabled(!c);
     audioFormatCombo->setEnabled(c); audioQualityCombo->setEnabled(c);
 }

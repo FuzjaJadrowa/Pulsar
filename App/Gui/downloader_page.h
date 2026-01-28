@@ -1,5 +1,5 @@
-#ifndef MAIN_PAGE_H
-#define MAIN_PAGE_H
+#ifndef DOWNLOADER_PAGE_H
+#define DOWNLOADER_PAGE_H
 
 #include <QWidget>
 #include <QLabel>
@@ -11,13 +11,13 @@
 #include <QProgressBar>
 #include <QTextEdit>
 #include <QScrollArea>
-#include "popup.h"
-#include "downloader.h"
+#include "../Core/popup.h"
+#include "../Core/downloader.h"
 
-class MainPage : public QWidget {
+class DownloaderPage : public QWidget {
     Q_OBJECT
 public:
-    explicit MainPage(QWidget *parent = nullptr);
+    explicit DownloaderPage(QWidget *parent = nullptr);
     Downloader* getDownloader() const { return downloader; }
     void updateThemeProperty();
 

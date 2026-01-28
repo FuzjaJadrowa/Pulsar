@@ -1,3 +1,8 @@
+/* ================================ */
+/* DO LIKWIDACJI */
+/* ZMIANA NA QT QUICK, QML */
+/* ================================ */
+
 QWidget {
     font-family: "Segoe UI";
     font-size: 14px;
@@ -501,4 +506,45 @@ QPushButton#AdvancedToggle {
 [theme="light"] QCheckBox::indicator:checked {
     background-color: #28a745;
     border: 2px solid #28a745;
+}
+
+QPushButton#navButton {
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+}
+QPushButton#navButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+QPushButton#windowControl {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 14px;
+    width: 30px;
+}
+
+QPushButton#windowControl:hover {
+    background-color: #333;
+    color: white;
+}
+
+QPushButton#windowControlClose {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 14px;
+    width: 30px;
+}
+
+QPushButton#windowControlClose:hover {
+    background-color: #E81123;
+    color: white;
+}
+
+QWidget#MainContainer {
+    background-color: #121212;
+    border: 1px solid #333;
 }

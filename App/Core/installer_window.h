@@ -12,7 +12,7 @@
 #include <QCoreApplication>
 #include <QProcess>
 #include <QDateTime>
-#include "../App/popup.h"
+#include "popup.h"
 
 class InstallerWindow : public QDialog {
     Q_OBJECT

@@ -1,4 +1,4 @@
-# GUI Video Downloader
+# Pulsar
 Introducing a big overhaul for my application that adds the ability to download videos and audio from various sites using yt-dlp. We rewrote Python to C++ completely and fixed many bugs and limits. Unlike other similar applications we don't require you to download **yt-dlp** and **ffmpeg** separately, because we do it automatically with your first opening.
 ## How to install?
 1. Go to the **Releases** tab and download the latest version of the installer or portable archive.
@@ -12,7 +12,7 @@ Introducing a big overhaul for my application that adds the ability to download 
 4. **For Linux**:
     - **Debian/Ubuntu (.deb)**: Download the `.deb` file and install it using your package manager:
       ```bash
-      sudo apt install ./GUI-Video-Downloader-X.X.X-Linux.deb
+      sudo apt install ./Pulsar-X.X.X-Linux.deb
       ```
       This will automatically install required dependencies like Qt6.
     - **Portable (.tar.gz)**: Extract the archive. Ensure you have Qt6 libraries installed on your system, then run the binary:
@@ -34,8 +34,8 @@ Introducing a big overhaul for my application that adds the ability to download 
 If you want to build the application yourself, ensure you have **Qt 6.6+**, **CMake**, and a C++20 compatible compiler installed.
 1. Clone the repository:
    ```bash
-   git clone https://github.com/fuzjajadrowa/GUI-Video-Downloader.git
-   cd GUI-Video-Downloader
+   git clone https://github.com/fuzjajadrowa/Pulsar.git
+   cd Pulsar
    ```
 2. Configure and Build:
    ```bash

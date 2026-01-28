@@ -15,8 +15,8 @@
 #include <QPainter>
 #include <QDesktopServices>
 #include <QUrl>
-#include "popup.h"
-#include "../Installer/installer_window.h"
+#include "../Core/popup.h"
+#include "../Core/installer_window.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT

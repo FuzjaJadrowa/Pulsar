@@ -10,6 +10,7 @@
 #include <QStandardPaths>
 #include <QSysInfo>
 
+// Ostatni raz to dotykam
 InstallerWindow::InstallerWindow(Popup *popup, QWidget *parent)
     : QDialog(parent), m_popup(popup) {
     setWindowTitle("GVD Requirements Installer");

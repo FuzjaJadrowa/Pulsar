@@ -1,5 +1,5 @@
 #include "settings_page.h"
-#include "config_manager.h"
+#include "../Core/config_manager.h"
 #include <QApplication>
 #include <QCoreApplication>
 #include <QScrollBar>
@@ -91,7 +91,7 @@ void SettingsPage::setupUi() {
     connect(closeGroup, &QButtonGroup::buttonClicked, this, &SettingsPage::onCloseBehaviorChanged);
 
     auto *closeLayout = new QVBoxLayout();
-    closeLayout->addWidget(new QLabel("When I close GUI Video Downloader:"));
+    closeLayout->addWidget(new QLabel("When I close Pulsar:"));
     closeLayout->addWidget(radioHide);
     closeLayout->addWidget(radioExit);
     mainLayout->addLayout(closeLayout);
