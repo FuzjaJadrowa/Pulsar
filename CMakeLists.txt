@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-project(GUI_Video_Downloader)
+project(GUIVideoDownloader)
 
+set(APP_NAME "GUIVideoDownloader")
 set(APP_VERSION "2.0.1")
 
 set(CMAKE_CXX_STANDARD 20)
@@ -26,18 +27,18 @@ set(PROJECT_SOURCES
 
 if(WIN32)
     list(APPEND PROJECT_SOURCES resources.rc)
-    add_executable(App WIN32 ${PROJECT_SOURCES})
+    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES})
 elseif(APPLE)
     list(APPEND PROJECT_SOURCES Resources/Icons/icon.icns)
-    add_executable(App ${PROJECT_SOURCES})
+    add_executable(${APP_NAME} ${PROJECT_SOURCES})
 else()
-    add_executable(App ${PROJECT_SOURCES})
+    add_executable(${APP_NAME} ${PROJECT_SOURCES})
 endif()
 
-target_link_libraries(App PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(${APP_NAME} PRIVATE Qt6::Widgets Qt6::Network)
 
 if(WIN32)
-    install(TARGETS App RUNTIME DESTINATION .)
+    install(TARGETS ${APP_NAME} RUNTIME DESTINATION .)
     install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
 
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
@@ -49,7 +50,7 @@ if(WIN32)
     ")
 
 elseif(APPLE)
-    set_target_properties(App PROPERTIES
+    set_target_properties(${APP_NAME} PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME "GUI Video Downloader"
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.fuzjajadrowa.gvd"
@@ -61,7 +62,7 @@ elseif(APPLE)
     )
     set_source_files_properties(Resources/Icons/icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-    install(TARGETS App BUNDLE DESTINATION .)
+    install(TARGETS ${APP_NAME} BUNDLE DESTINATION .)
 
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
@@ -84,7 +85,7 @@ else()
             "Terminal=false\n"
     )
 
-    install(TARGETS App RUNTIME DESTINATION bin)
+    install(TARGETS ${APP_NAME} RUNTIME DESTINATION bin)
     install(FILES "${DESKTOP_FILE}" DESTINATION share/applications)
     install(FILES "Resources/Icons/icon.png"
             DESTINATION share/icons/hicolor/512x512/apps
