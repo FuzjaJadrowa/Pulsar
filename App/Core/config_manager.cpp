@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
-
+// TODO: Zmienić to na prostrze config.ini
 ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
     return instance;

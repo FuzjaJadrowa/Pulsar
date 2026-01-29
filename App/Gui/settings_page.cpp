@@ -1,43 +1,23 @@
 #include "settings_page.h"
+#include "components.h"
 #include "../Core/config_manager.h"
 #include <QApplication>
-#include <QCoreApplication>
-#include <QScrollBar>
-#include <QStyle>
-#include <QGuiApplication>
-#include <QStyleHints>
 
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
-    setupUi();
-    updateThemeProperty();
+
+    setStyleSheet(StyleHelper::getGlobalStyle());    setupUi();
 }
 
 void SettingsPage::paintEvent(QPaintEvent *event) {
     QStyleOption opt;
     opt.initFrom(this);
     QPainter p(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+
+    p.fillRect(rect(), QColor("#121212"));
 }
 
-void SettingsPage::updateThemeProperty() {
-    QString theme = ConfigManager::instance().getTheme();
-    if (theme == "System") {
-        theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
-    }
-    QString themeName = theme.toLower();
-
-    this->setProperty("theme", themeName);
-
-this->style()->unpolish(this);
-    this->style()->polish(this);
-
-    for (auto child : findChildren<QWidget*>()) {
-        child->setProperty("theme", themeName);
-        child->style()->unpolish(child);
-        child->style()->polish(child);
-    }
-}
+void SettingsPage::updateThemeProperty() {}
 
 void SettingsPage::setupUi() {
     auto *rootLayout = new QVBoxLayout(this);
@@ -49,7 +29,6 @@ void SettingsPage::setupUi() {
     scrollArea->setStyleSheet("QScrollArea { background: transparent; }");
 
     auto *scrollContent = new QWidget();
-    scrollContent->setObjectName("SettingsScrollContent");
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setAlignment(Qt::AlignTop);
     mainLayout->setContentsMargins(20, 40, 40, 40);
@@ -57,7 +36,7 @@ void SettingsPage::setupUi() {
 
     auto *titleLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(":/Resources/Icons/icon.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setPixmap(QPixmap(":/Resources/Icons/settings.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *titleLabel = new QLabel("Settings", this);
     titleLabel->setObjectName("PageTitle");
     titleLayout->addWidget(iconLabel);
@@ -77,13 +56,15 @@ void SettingsPage::setupUi() {
 
     auto *langCombo = new QComboBox(this);
     langCombo->addItem("English");
-    langCombo->setCurrentText(ConfigManager::instance().getLanguage());
-    connect(langCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onLangChanged);
     mainLayout->addLayout(createSection("Language", langCombo));
 
     auto *closeGroup = new QButtonGroup(this);
-    auto *radioHide = new QRadioButton("Hide GVD", this);
-    auto *radioExit = new QRadioButton("Exit GVD", this);
+    auto *radioHide = new QRadioButton("Hide to Tray", this);
+    auto *radioExit = new QRadioButton("Exit Application", this);
+    QString radioStyle = "QRadioButton { color: #ccc; spacing: 8px; } QRadioButton::indicator { width: 16px; height: 16px; border-radius: 8px; border: 1px solid #555; background: #222; } QRadioButton::indicator:checked { background: #6200ea; border: 2px solid white; }";
+    radioHide->setStyleSheet(radioStyle);
+    radioExit->setStyleSheet(radioStyle);
+
     closeGroup->addButton(radioHide);
     closeGroup->addButton(radioExit);
     if (ConfigManager::instance().getCloseBehavior() == "Hide") radioHide->setChecked(true);
@@ -100,73 +81,21 @@ void SettingsPage::setupUi() {
     reqLabel->setObjectName("SectionHeader");
     mainLayout->addWidget(reqLabel);
 
-    btnFfmpeg = new QPushButton("Check Update", this);
-    btnFfmpeg->setObjectName("actionBtn");
-    btnFfmpeg->setCursor(Qt::PointingHandCursor);
+    btnFfmpeg = new AnimatedButton("Check Update", this, QColor("#2d2d2d"), QColor("#3d3d3d"));
     connect(btnFfmpeg, &QPushButton::clicked, this, &SettingsPage::checkFfmpeg);
     mainLayout->addLayout(createReqRow("FFmpeg", btnFfmpeg));
 
-    btnYtdlp = new QPushButton("Check Update", this);
-    btnYtdlp->setObjectName("actionBtn");
-    btnYtdlp->setCursor(Qt::PointingHandCursor);
+    btnYtdlp = new AnimatedButton("Check Update", this, QColor("#2d2d2d"), QColor("#3d3d3d"));
     connect(btnYtdlp, &QPushButton::clicked, this, &SettingsPage::checkYtdlp);
     mainLayout->addLayout(createReqRow("yt-dlp", btnYtdlp));
-
-    auto *dlLabel = new QLabel("Download settings", this);
-    dlLabel->setObjectName("SectionHeader");
-    mainLayout->addWidget(dlLabel);
-
-    auto *cookiesCombo = new QComboBox(this);
-    cookiesCombo->addItems({"None", "Brave", "Chrome", "Chromium", "Edge", "Firefox", "Opera", "Safari", "Vivaldi", "Whale"});
-    cookiesCombo->setCurrentText(ConfigManager::instance().getCookiesBrowser());
-    connect(cookiesCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onCookiesChanged);
-    mainLayout->addLayout(createSection("Cookies from browser", cookiesCombo));
-
-    auto *ignoreErrCheck = new QCheckBox("Ignore errors", this);
-    ignoreErrCheck->setChecked(ConfigManager::instance().getIgnoreErrors());
-    connect(ignoreErrCheck, &QCheckBox::toggled, this, &SettingsPage::onIgnoreErrorsToggled);
-    mainLayout->addWidget(ignoreErrCheck);
-
-    auto *geoBypassCheck = new QCheckBox("Bypass country restrictions", this);
-    geoBypassCheck->setChecked(ConfigManager::instance().getGeoBypass());
-    connect(geoBypassCheck, &QCheckBox::toggled, this, &SettingsPage::onGeoBypassToggled);
-    mainLayout->addWidget(geoBypassCheck);
-
-    auto *videoRow = new QHBoxLayout();
-    auto *vFormatCombo = new QComboBox(this);
-    vFormatCombo->addItems({"mp4", "mkv", "mov", "avi", "flv", "webm"});
-    vFormatCombo->setCurrentText(ConfigManager::instance().getVideoFormat());
-    connect(vFormatCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoFormatChanged);
-    videoRow->addLayout(createVerticalCombo("Default video format:", vFormatCombo));
-
-    auto *vQualCombo = new QComboBox(this);
-    vQualCombo->addItems({"2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"});
-    vQualCombo->setCurrentText(ConfigManager::instance().getVideoQuality());
-    connect(vQualCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoQualityChanged);
-    videoRow->addLayout(createVerticalCombo("Default video quality:", vQualCombo));
-    mainLayout->addLayout(videoRow);
-
-    auto *audioRow = new QHBoxLayout();
-    auto *aFormatCombo = new QComboBox(this);
-    aFormatCombo->addItems({"mp3", "m4a", "aac", "opus", "wav", "ogg"});
-    aFormatCombo->setCurrentText(ConfigManager::instance().getAudioFormat());
-    connect(aFormatCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioFormatChanged);
-    audioRow->addLayout(createVerticalCombo("Default audio format:", aFormatCombo));
-
-    auto *aQualCombo = new QComboBox(this);
-    aQualCombo->addItems({"360kbps", "256kbps", "192kbps", "128kbps"});
-    aQualCombo->setCurrentText(ConfigManager::instance().getAudioQuality());
-    connect(aQualCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioQualityChanged);
-    audioRow->addLayout(createVerticalCombo("Default audio quality:", aQualCombo));
-    mainLayout->addLayout(audioRow);
 
     auto *suppLabel = new QLabel("Support", this);
     suppLabel->setObjectName("SectionHeader");
     mainLayout->addWidget(suppLabel);
-    auto *btnSupport = new QPushButton("Support Project", this);
-    btnSupport->setObjectName("actionBtn");
+
+    auto *btnSupport = new AnimatedButton("Support Project", this, QColor("#E91E63"), QColor("#F06292"));
     connect(btnSupport, &QPushButton::clicked, this, &SettingsPage::onSupportClicked);
-    mainLayout->addLayout(createSection("Show you support!", btnSupport));
+    mainLayout->addLayout(createSection("Show your support!", btnSupport));
 
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);

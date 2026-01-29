@@ -28,6 +28,8 @@ set(PROJECT_SOURCES
         App/Core/installer_window.cpp App/Core/installer_window.h
         App/Core/app_updater.cpp App/Core/app_updater.h
         resources.qrc
+        App/Gui/container.cpp App/Gui/container.h
+        App/Gui/components.cpp App/Gui/components.h
 )
 
 if(WIN32)

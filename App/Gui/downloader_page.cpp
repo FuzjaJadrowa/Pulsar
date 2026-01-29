@@ -1,37 +1,25 @@
 #include "downloader_page.h"
+#include "components.h"
 #include "../Core/config_manager.h"
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QFileDialog>
-#include <QStyleFactory>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
-#include <QGuiApplication>
-#include <QStyleHints>
-#include <QStyle>
+#include <QPropertyAnimation>
 
 DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
     popup = new Popup(this);
+
+    setStyleSheet(StyleHelper::getGlobalStyle());
     setupUi();
-    updateThemeProperty();
+
     connect(downloader, &Downloader::finished, this, &DownloaderPage::onDownloadFinished);
     connect(downloader, &Downloader::progressUpdated, this, &DownloaderPage::onProgressUpdated);
 }
 
-void DownloaderPage::updateThemeProperty() {
-    QString theme = ConfigManager::instance().getTheme();
-    if (theme == "System") theme = (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) ? "Dark" : "Light";
-    QString themeName = theme.toLower();
-    this->setProperty("theme", themeName);
-    this->style()->unpolish(this);
-    this->style()->polish(this);
-    for (auto child : findChildren<QWidget*>()) {
-        child->setProperty("theme", themeName);
-        child->style()->unpolish(child);
-        child->style()->polish(child);
-    }
-}
+void DownloaderPage::updateThemeProperty() {}
 
 void DownloaderPage::setupUi() {
     auto *rootLayout = new QVBoxLayout(this);
@@ -40,17 +28,18 @@ void DownloaderPage::setupUi() {
 
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
+
     scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setStyleSheet("QScrollArea { background: transparent; }");
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
 
     auto *scrollContent = new QWidget();
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setContentsMargins(30, 40, 30, 20);
     mainLayout->setSpacing(20);
 
-    auto *headerLayout = new QHBoxLayout();
+auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(":/Resources/Icons/icon.png").scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel->setPixmap(QPixmap(":/Resources/Icons/downloader.png").scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *header = new QLabel("Downloader", this);
     header->setObjectName("PageTitle");
     headerLayout->addWidget(iconLabel);
@@ -60,27 +49,29 @@ void DownloaderPage::setupUi() {
 
     auto *inputLayout = new QHBoxLayout();
     urlInput = new QLineEdit(this);
-    urlInput->setPlaceholderText("Paste link here...");
+    urlInput->setPlaceholderText("Paste YouTube link here...");
     pathInput = new QLineEdit(this);
     pathInput->setPlaceholderText("Download path...");
-    browseBtn = new QPushButton("Browse", this);
-    browseBtn->setObjectName("BrowseBtn");
+    browseBtn = new AnimatedButton("Browse", this, QColor("#333"), QColor("#444"));
+    browseBtn->setFixedWidth(100);
     inputLayout->addWidget(urlInput, 2);
     inputLayout->addWidget(pathInput, 1);
     inputLayout->addWidget(browseBtn, 0);
     mainLayout->addLayout(inputLayout);
 
-    auto *optionsGroup = new QWidget(this);
+     auto *optionsGroup = new QWidget(this);
+    optionsGroup->setStyleSheet("background-color: #1e1e1e; border-radius: 10px; padding: 10px;");
     auto *gridLayout = new QGridLayout(optionsGroup);
     videoFormatCombo = new QComboBox(this);
-    videoFormatCombo->addItems({"Default", "mp4", "mkv", "mov", "avi", "flv", "webm"});
+    videoFormatCombo->addItems({"Default", "mp4", "mkv", "webm"});
     videoQualityCombo = new QComboBox(this);
-    videoQualityCombo->addItems({"Default", "2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"});
+    videoQualityCombo->addItems({"Default", "2160p", "1080p", "720p"});
     audioFormatCombo = new QComboBox(this);
-    audioFormatCombo->addItems({"Default", "mp3", "m4a", "aac", "opus", "wav", "ogg"});
+    audioFormatCombo->addItems({"Default", "mp3", "m4a"});
     audioQualityCombo = new QComboBox(this);
-    audioQualityCombo->addItems({"Default", "360kbps", "256kbps", "192kbps", "128kbps"});
-    audioOnlyCheck = new QCheckBox("Audio only", this);
+    audioQualityCombo->addItems({"Default", "320kbps", "128kbps"});
+    audioOnlyCheck = new AnimatedCheckBox("Audio only mode", this);
+
     gridLayout->addWidget(new QLabel("Video Format:", this), 0, 0);
     gridLayout->addWidget(videoFormatCombo, 1, 0);
     gridLayout->addWidget(new QLabel("Video Quality:", this), 0, 1);
@@ -94,12 +85,13 @@ void DownloaderPage::setupUi() {
 
     auto *advancedRow = new QHBoxLayout();
     auto *subsLayout = new QVBoxLayout();
-    downloadSubsCheck = new QCheckBox("Download subtitles", this);
+    downloadSubsCheck = new AnimatedCheckBox("Download subtitles", this);
     subsLangInput = new QLineEdit(this);
-    subsLangInput->setPlaceholderText("en, pl...");
-    subsLangInput->setFixedWidth(60);
+    subsLangInput->setPlaceholderText("en, pl");
+    subsLangInput->setFixedWidth(80);
     subsLangInput->setEnabled(false);
-    downloadChatCheck = new QCheckBox("Download live chat", this);
+    downloadChatCheck = new AnimatedCheckBox("Download live chat", this);
+
     auto *subsInputRow = new QHBoxLayout();
     subsInputRow->addWidget(downloadSubsCheck);
     subsInputRow->addWidget(subsLangInput);
@@ -108,10 +100,12 @@ void DownloaderPage::setupUi() {
     subsLayout->addWidget(downloadChatCheck);
 
     auto *fragLayout = new QVBoxLayout();
-    fragLayout->addWidget(new QLabel("Download fragments (hh:mm:ss):", this));
+    fragLayout->addWidget(new QLabel("Download fragments:", this));
     auto *timeRow = new QHBoxLayout();
     timeStartInput = new QLineEdit(this);
     timeEndInput = new QLineEdit(this);
+    timeStartInput->setFixedWidth(80);
+    timeEndInput->setFixedWidth(80);
     QRegularExpression flexTime("^(\\d{1,2}:)?(\\d{1,2}:)?\\d{1,2}$");
     timeStartInput->setValidator(new QRegularExpressionValidator(flexTime, this));
     timeEndInput->setValidator(new QRegularExpressionValidator(flexTime, this));
@@ -120,12 +114,13 @@ void DownloaderPage::setupUi() {
     timeRow->addWidget(timeEndInput);
     timeRow->addStretch();
     fragLayout->addLayout(timeRow);
+
     advancedRow->addLayout(subsLayout, 1);
     advancedRow->addLayout(fragLayout, 1);
     mainLayout->addLayout(advancedRow);
 
-    advancedBtn = new QPushButton("Advanced Settings ▼", this);
-    advancedBtn->setObjectName("AdvancedToggle");
+    advancedBtn = new AnimatedButton("Advanced Settings ▼", this, Qt::transparent, QColor("#333"));
+    advancedBtn->setStyleSheet("text-align: left; border: none; color: #aaa;");
     advancedBtn->setCheckable(true);
     mainLayout->addWidget(advancedBtn);
 
@@ -133,40 +128,71 @@ void DownloaderPage::setupUi() {
     auto *advLayout = new QVBoxLayout(advancedContent);
     customArgsInput = new QLineEdit(this);
     cmdPreview = new QTextEdit(this);
-    cmdPreview->setObjectName("CommandPreview");
     cmdPreview->setReadOnly(true);
-    cmdPreview->setMinimumHeight(100);
+    cmdPreview->setMinimumHeight(80);
+    cmdPreview->setStyleSheet("background-color: #111; border: 1px solid #333; border-radius: 5px; color: #00ff00; font-family: Consolas;");
     advLayout->addWidget(new QLabel("Custom Arguments:"));
     advLayout->addWidget(customArgsInput);
     advLayout->addWidget(new QLabel("Command Preview:"));
     advLayout->addWidget(cmdPreview);
+
     advancedContent->setVisible(false);
+    advancedContent->setMaximumHeight(0);
     mainLayout->addWidget(advancedContent);
+
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);
     rootLayout->addWidget(scrollArea);
 
     auto *bottomContainer = new QWidget(this);
-    bottomContainer->setObjectName("BottomActionArea");
+    bottomContainer->setStyleSheet("background-color: #181818;");
     auto *bottomLayout = new QHBoxLayout(bottomContainer);
-    bottomLayout->setContentsMargins(30, 10, 30, 30);
+    bottomLayout->setContentsMargins(30, 15, 30, 15);
+
     progressBar = new QProgressBar(this);
-    progressBar->setStyle(QStyleFactory::create("windowsvista"));
-    progressBar->setFixedHeight(30);
-    progressBar->setAlignment(Qt::AlignCenter);
-    progressBar->setFormat("Progress: 0% | ETA: 0s");
-    progressBar->setStyleSheet("QProgressBar { color: black; text-align: center; font-weight: bold; }");
-    startBtn = new QPushButton("Start", this);
-    startBtn->setObjectName("StartBtn");
-    startBtn->setFixedSize(120, 45);
-    stopBtn = new QPushButton("Stop", this);
-    stopBtn->setObjectName("StopBtn");
-    stopBtn->setFixedSize(120, 45);
+    progressBar->setFixedHeight(15);
+    progressBar->setTextVisible(false);
+    progressBar->setStyleSheet("QProgressBar { background: #333; border-radius: 5px; border: none; } QProgressBar::chunk { background-color: #6200ea; border-radius: 5px; }");
+
+    startBtn = new AnimatedButton("Start", this, QColor("#6200ea"), QColor("#7c4dff"));
+    startBtn->setFixedSize(140, 45);
+    stopBtn = new AnimatedButton("Stop", this, QColor("#d32f2f"), QColor("#e57373"));
+    stopBtn->setFixedSize(100, 45);
     stopBtn->setEnabled(false);
-    bottomLayout->addWidget(progressBar, 1);
+
+    auto *progLayout = new QVBoxLayout();
+    auto *progLabel = new QLabel("Progress: 0% | ETA: 0:00", this);
+    connect(downloader, &Downloader::progressUpdated, this, [=](double p, QString e){
+        progLabel->setText(QString("Progress: %1% | ETA: %2").arg(p, 0, 'f', 1).arg(e));
+    });
+    progLayout->addWidget(progLabel);
+    progLayout->addWidget(progressBar);
+
+    bottomLayout->addLayout(progLayout, 1);
     bottomLayout->addWidget(startBtn);
     bottomLayout->addWidget(stopBtn);
     rootLayout->addWidget(bottomContainer);
+
+    connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
+        advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
+
+        auto *anim = new QPropertyAnimation(advancedContent, "maximumHeight");
+        anim->setDuration(300);
+        anim->setEasingCurve(QEasingCurve::OutCubic);
+
+        if (c) {
+            advancedContent->setVisible(true);
+            anim->setStartValue(0);
+            anim->setEndValue(300);
+        } else {
+            anim->setStartValue(300);
+            anim->setEndValue(0);
+            connect(anim, &QPropertyAnimation::finished, [this](){
+                if(!advancedBtn->isChecked()) advancedContent->setVisible(false);
+            });
+        }
+        anim->start(QAbstractAnimation::DeleteWhenStopped);
+    });
 
     connect(browseBtn, &QPushButton::clicked, this, &DownloaderPage::onBrowseClicked);
     connect(audioOnlyCheck, &QCheckBox::toggled, this, &DownloaderPage::onAudioOnlyToggled);
@@ -178,12 +204,13 @@ void DownloaderPage::setupUi() {
     });
     connect(startBtn, &QPushButton::clicked, this, &DownloaderPage::onStartClicked);
     connect(stopBtn, &QPushButton::clicked, this, &DownloaderPage::onStopClicked);
+
     for(auto *e : findChildren<QLineEdit*>()) connect(e, &QLineEdit::textChanged, this, &DownloaderPage::updateCommandPreview);
     for(auto *c : findChildren<QComboBox*>()) connect(c, &QComboBox::currentTextChanged, this, &DownloaderPage::updateCommandPreview);
     for(auto *x : findChildren<QCheckBox*>()) connect(x, &QCheckBox::toggled, this, &DownloaderPage::updateCommandPreview);
     onAudioOnlyToggled(false);
 }
-
+// troche sie zrobił z tego spagetti code ale dziala XD
 void DownloaderPage::updateCommandPreview() {
     cmdPreview->setPlainText(downloader->generateCommand(
         urlInput->text(), pathInput->text(), audioOnlyCheck->isChecked(),

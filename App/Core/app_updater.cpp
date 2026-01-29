@@ -68,7 +68,7 @@ void AppUpdater::onVersionReceived() {
     QJsonArray assets = json["assets"].toArray();
     m_downloadUrl = "";
 
-for (const auto &asset : assets) {
+    for (const auto &asset : assets) {
         QString name = asset.toObject()["name"].toString();
 
 #ifdef Q_OS_WIN

@@ -1,12 +1,13 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/">
-        <file>Resources/Icons/home.png</file>
-        <file>Resources/Icons/home_dark.png</file>
+        <file>Resources/Icons/downloader.png</file>
         <file>Resources/Icons/console.png</file>
-        <file>Resources/Icons/console_dark.png</file>
         <file>Resources/Icons/settings.png</file>
-        <file>Resources/Icons/settings_dark.png</file>
         <file>Resources/Icons/icon.png</file>
+        <file>Resources/Icons/icon_full.png</file>
+        <file>Resources/Icons/window_close.png</file>
+        <file>Resources/Icons/window_maximize.png</file>
+        <file>Resources/Icons/window_minimize.png</file>
 
         <file>Resources/style.qss</file>
 

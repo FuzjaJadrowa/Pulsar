@@ -4,11 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
     <option name="/Default/Housekeeping/RefactoringsMru/RenameRefactoring/DoSearchForTextInStrings/@EntryValue" value="true" type="bool" />
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
   </component>
-  <component name="CMakePresetLoader"><![CDATA[{
-  "useNewFormat": true
-}]]></component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
   <component name="CMakeProjectFlavorService">
     <option name="flavorId" value="CMakePlainProjectFlavor" />
   </component>
@@ -33,9 +36,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="rebranding caly. poprawiony cmake 978179 raz i segregacja">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/c-cpp.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/app_updater.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/config_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/console.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/console_dark.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/home.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/home_dark.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/style.qss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/resources.qrc" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,18 +75,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "FuzjaJadrowa"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;FuzjaJadrowa&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/FuzjaJadrowa/GUI-Video-Downloader",
-    "accountId": "ecf7055f-df22-441e-80fa-aa7ae96a73a7"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/FuzjaJadrowa/GUI-Video-Downloader&quot;,
+    &quot;accountId&quot;: &quot;ecf7055f-df22-441e-80fa-aa7ae96a73a7&quot;
   }
-}]]></component>
+}</component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="FS24JpV8" />
   </component>
@@ -75,10 +96,10 @@
     <option name="minorVersion" value="3.2" />
     <option name="productBranch" value="Classic" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "00000000",
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;00000000&quot;,
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="38tSilhLDw4aJpeStxIXpZA3IVM" />
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
@@ -99,33 +120,35 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "Merging 2.X-dev",
+    "git-widget-placeholder": "2.X-dev",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "Docker",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Tomek\CLionProjects\Pulsar\Resources" />
       <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Gui" />
+      <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Gui\Cpp" />
       <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Core" />
     </key>
   </component>
   <component name="RunManager">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Pulsar" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Pulsar" TARGET_NAME="Pulsar" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Pulsar" RUN_TARGET_NAME="Pulsar">
       <envs>
         <env name="PATH" value="C:\Qt\6.10.1\mingw_64\bin" />
       </envs>
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -138,7 +161,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1769617503840</updated>
-      <workItem from="1769617505004" duration="7358000" />
+      <workItem from="1769617505004" duration="11796000" />
+      <workItem from="1769630673735" duration="1824000" />
+      <workItem from="1769632584373" duration="989000" />
+      <workItem from="1769691983481" duration="8527000" />
+      <workItem from="1769700863103" duration="3014000" />
+      <workItem from="1769704453955" duration="11771000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -164,7 +192,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769625131642</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
+      <option name="closed" value="true" />
+      <created>1769625291464</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1769625291464</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
