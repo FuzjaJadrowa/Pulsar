@@ -35,26 +35,26 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="rebranding caly. poprawiony cmake 978179 raz i segregacja">
-      <change afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="gui poki co takie se. ale bedzie dobrze xD">
+      <change afterPath="$PROJECT_DIR$/Resources/Fonts/Roboto-Black.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Resources/Fonts/Roboto-Regular.ttf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/app_updater.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/app_updater.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Core/config_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Gui/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/config_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/downloader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/container.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/container.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/console.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/console.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/console_dark.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/home.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/home_dark.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings_dark.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/style.qss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon_full.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon_full.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_close.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_maximize.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_minimize.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/resources.qrc" afterDir="false" />
     </list>
@@ -87,6 +87,10 @@
     &quot;accountId&quot;: &quot;ecf7055f-df22-441e-80fa-aa7ae96a73a7&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/App/Gui/container.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/cmake-build-debug/Pulsar_autogen/EWIEGA46WW/qrc_resources.cpp" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="FS24JpV8" />
   </component>
@@ -133,6 +137,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Tomek\CLionProjects\Pulsar\Resources\Fonts" />
       <recent name="C:\Users\Tomek\CLionProjects\Pulsar\Resources" />
       <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Gui" />
       <recent name="C:\Users\Tomek\CLionProjects\Pulsar\App\Gui\Cpp" />
@@ -166,7 +171,9 @@
       <workItem from="1769632584373" duration="989000" />
       <workItem from="1769691983481" duration="8527000" />
       <workItem from="1769700863103" duration="3014000" />
-      <workItem from="1769704453955" duration="11771000" />
+      <workItem from="1769704453955" duration="12029000" />
+      <workItem from="1769717665620" duration="249000" />
+      <workItem from="1769781478527" duration="17589000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -200,7 +207,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769625291464</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="gui poki co takie se. ale bedzie dobrze xD">
+      <option name="closed" value="true" />
+      <created>1769717089808</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1769717089808</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -224,6 +239,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="rebranding caly. poprawiony cmake 978179 raz i segregacja" />
-    <option name="LAST_COMMIT_MESSAGE" value="rebranding caly. poprawiony cmake 978179 raz i segregacja" />
+    <MESSAGE value="gui poki co takie se. ale bedzie dobrze xD" />
+    <option name="LAST_COMMIT_MESSAGE" value="gui poki co takie se. ale bedzie dobrze xD" />
   </component>
 </project>

@@ -44,6 +44,10 @@ endif()
 target_link_libraries(Pulsar PRIVATE Qt6::Widgets Qt6::Network Qt6::Gui Qt6::Core Qt6::Svg)
 
 if(WIN32)
+    target_link_libraries(Pulsar PRIVATE dwmapi)
+endif()
+
+if(WIN32)
     install(TARGETS Pulsar RUNTIME DESTINATION .)
     install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
 

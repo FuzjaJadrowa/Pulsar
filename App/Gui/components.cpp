@@ -1,5 +1,6 @@
 #include "components.h"
 #include <QPainterPath>
+#include <QVariantAnimation>
 
 AnimatedButton::AnimatedButton(const QString &text, QWidget *parent, QColor base, QColor hover)
     : QPushButton(text, parent), m_baseColor(base), m_hoverColor(hover)
@@ -7,10 +8,11 @@ AnimatedButton::AnimatedButton(const QString &text, QWidget *parent, QColor base
     m_bgColor = m_baseColor;
     setCursor(Qt::PointingHandCursor);
     setFixedHeight(45);
-    setFont(QFont("Segoe UI", 10, QFont::Bold));
+    setFont(QFont("Roboto", 10, QFont::Bold));
 }
 
 void AnimatedButton::enterEvent(QEnterEvent *e) {
+    if (!isEnabled()) return;
     auto *anim = new QPropertyAnimation(this, "backgroundColor");
     anim->setDuration(200);
     anim->setStartValue(m_bgColor);
@@ -20,6 +22,7 @@ void AnimatedButton::enterEvent(QEnterEvent *e) {
 }
 
 void AnimatedButton::leaveEvent(QEvent *e) {
+    if (!isEnabled()) return;
     auto *anim = new QPropertyAnimation(this, "backgroundColor");
     anim->setDuration(200);
     anim->setStartValue(m_bgColor);
@@ -29,6 +32,7 @@ void AnimatedButton::leaveEvent(QEvent *e) {
 }
 
 void AnimatedButton::mousePressEvent(QMouseEvent *e) {
+    if (!isEnabled()) return;
     auto *anim = new QPropertyAnimation(this, "scaleFactor");
     anim->setDuration(50);
     anim->setStartValue(1.0);
@@ -38,6 +42,7 @@ void AnimatedButton::mousePressEvent(QMouseEvent *e) {
 }
 
 void AnimatedButton::mouseReleaseEvent(QMouseEvent *e) {
+    if (!isEnabled()) { QPushButton::mouseReleaseEvent(e); return; }
     auto *anim = new QPropertyAnimation(this, "scaleFactor");
     anim->setDuration(100);
     anim->setStartValue(m_scale);
@@ -57,72 +62,176 @@ void AnimatedButton::paintEvent(QPaintEvent *e) {
 
     if (isEnabled()) {
         p.setBrush(m_bgColor);
+        p.setPen(Qt::NoPen);
     } else {
-        p.setBrush(QColor(60, 60, 60));
+        p.setBrush(QColor(45, 45, 45));
+        p.setPen(QColor(60, 60, 60));
     }
-    p.setPen(Qt::NoPen);
     p.drawRoundedRect(rect(), 8, 8);
 
-    p.setPen(isEnabled() ? Qt::white : QColor(150, 150, 150));
+    p.setPen(isEnabled() ? Qt::white : QColor(100, 100, 100));
     p.setFont(font());
     p.drawText(rect(), Qt::AlignCenter, text());
 }
 
-AnimatedCheckBox::AnimatedCheckBox(const QString &text, QWidget *parent)
-    : QCheckBox(text, parent)
-{
+AnimatedCheckBox::AnimatedCheckBox(const QString &text, QWidget *parent) : QCheckBox(text, parent) {
     setCursor(Qt::PointingHandCursor);
-    setStyleSheet("QCheckBox { spacing: 8px; } QCheckBox::indicator { width: 0px; height: 0px; }");
+    setStyleSheet("QCheckBox { spacing: 0px; margin: 0px; padding: 0px; } QCheckBox::indicator { width: 0px; height: 0px; }");
+}
+
+QSize AnimatedCheckBox::sizeHint() const {
+    QSize s = QCheckBox::sizeHint();
+    QFontMetrics fm(font());
+    int textWidth = fm.horizontalAdvance(text());
+    return QSize(textWidth + m_boxSize + m_spacing + 5, qMax(s.height(), m_boxSize));
+}
+QSize AnimatedCheckBox::minimumSizeHint() const { return sizeHint(); }
+
+bool AnimatedCheckBox::hitButton(const QPoint &pos) const {
+    return rect().contains(pos);
+}
+
+void AnimatedCheckBox::showEvent(QShowEvent *e) {
+    m_progress = isChecked() ? 1.0 : 0.0;
+    QCheckBox::showEvent(e);
 }
 
 void AnimatedCheckBox::checkStateSet() {
-    auto *anim = new QPropertyAnimation(this, "progress");
-    anim->setDuration(250);
+    QCheckBox::checkStateSet();
+
+    auto *anim = new QVariantAnimation(this);
+    anim->setDuration(200);
     anim->setEasingCurve(QEasingCurve::InOutQuad);
     anim->setStartValue(m_progress);
-    anim->setEndValue(isChecked() ? 1.0f : 0.0f);
+    anim->setEndValue(isChecked() ? 1.0 : 0.0);
+
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &val){
+        m_progress = val.toReal();
+        this->repaint();
+    });
+
     anim->start(QAbstractAnimation::DeleteWhenStopped);
-    QCheckBox::checkStateSet();
 }
 
 void AnimatedCheckBox::paintEvent(QPaintEvent *e) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
-    int boxSize = 20;
-    int yOffset = (height() - boxSize) / 2;
-    QRect boxRect(0, yOffset, boxSize, boxSize);
+    int yOffset = (height() - m_boxSize) / 2;
+    QRect boxRect(0, yOffset, m_boxSize, m_boxSize);
 
-    QColor uncheckedColor = m_hover ? QColor("#555") : QColor("#3d3d3d");
+    QColor borderUnchecked = m_hover ? QColor("#888") : QColor("#555");
+    QColor bgUnchecked = QColor("#2d2d2d");
     QColor checkedColor = QColor("#6200ea");
 
-    QColor currentColor;
-    currentColor.setRed(uncheckedColor.red() + (checkedColor.red() - uncheckedColor.red()) * m_progress);
-    currentColor.setGreen(uncheckedColor.green() + (checkedColor.green() - uncheckedColor.green()) * m_progress);
-    currentColor.setBlue(uncheckedColor.blue() + (checkedColor.blue() - uncheckedColor.blue()) * m_progress);
+    if (!isEnabled()) {
+        borderUnchecked = QColor("#333");
+        bgUnchecked = QColor("#1f1f1f");
+        checkedColor = QColor("#444");
+    }
 
-    p.setBrush(currentColor);
-    p.setPen(Qt::NoPen);
-    p.drawRoundedRect(boxRect, 5, 5);
+    if (m_progress < 1.0) {
+        p.setPen(Qt::NoPen);
+        p.setBrush(bgUnchecked);
+        p.drawRoundedRect(boxRect, 6, 6);
 
-    if (m_progress > 0.1f) {
+        p.setBrush(Qt::NoBrush);
+        p.setPen(QPen(borderUnchecked, 2));
+        p.drawRoundedRect(boxRect.adjusted(1, 1,-1,-1), 6, 6);
+    }
+
+    if (m_progress > 0.0) {
+        p.setPen(Qt::NoPen);
+        p.setBrush(checkedColor);
+        qreal margin = (1.0 - m_progress) * (m_boxSize / 2.0);
+        p.drawRoundedRect(QRectF(boxRect).adjusted(margin, margin, -margin, -margin), 6, 6);
+    }
+
+    if (m_progress > 0.4) {
         QPainterPath path;
-        path.moveTo(boxRect.x() + 5, boxRect.y() + 10);
-        path.lineTo(boxRect.x() + 9, boxRect.y() + 14);
-        path.lineTo(boxRect.x() + 15, boxRect.y() + 6);
+        path.moveTo(boxRect.x() + 5, boxRect.y() + 11);
+        path.lineTo(boxRect.x() + 9, boxRect.y() + 15);
+        path.lineTo(boxRect.x() + 16, boxRect.y() + 6);
 
-        QPen pen(Qt::white, 2.5);
+        QPen pen(isEnabled() ? Qt::white : QColor(150, 150, 150), 3.0);
         pen.setCapStyle(Qt::RoundCap);
         pen.setJoinStyle(Qt::RoundJoin);
         p.setPen(pen);
-
-        p.setClipRect(QRect(boxRect.x(), boxRect.y(), boxRect.width() * m_progress, boxRect.height()));
         p.drawPath(path);
     }
 
-    p.setClipping(false);
-    p.setPen(Qt::white);
+    p.setPen(isEnabled() ? Qt::white : QColor(120, 120, 120));
     p.setFont(font());
-    QRect textRect = rect().adjusted(boxSize + 10, 0, 0, 0);
+    QRect textRect = rect().adjusted(m_boxSize + m_spacing, 0, 0, 0);
+    p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
+}
+
+AnimatedRadioButton::AnimatedRadioButton(const QString &text, QWidget *parent) : QRadioButton(text, parent) {
+    setCursor(Qt::PointingHandCursor);
+    setStyleSheet("QRadioButton { spacing: 0px; margin: 0px; } QRadioButton::indicator { width: 0px; height: 0px; }");
+}
+
+QSize AnimatedRadioButton::sizeHint() const {
+    QFontMetrics fm(font());
+    int textWidth = fm.horizontalAdvance(text());
+    return QSize(textWidth + m_circleSize + m_spacing + 5, qMax(24, m_circleSize));
+}
+QSize AnimatedRadioButton::minimumSizeHint() const { return sizeHint(); }
+
+bool AnimatedRadioButton::hitButton(const QPoint &pos) const {
+    return rect().contains(pos);
+}
+
+void AnimatedRadioButton::showEvent(QShowEvent *e) {
+    m_progress = isChecked() ? 1.0 : 0.0;
+    QRadioButton::showEvent(e);
+}
+
+void AnimatedRadioButton::checkStateSet() {
+    QRadioButton::checkStateSet();
+
+    auto *anim = new QVariantAnimation(this);
+    anim->setDuration(200);
+    anim->setEasingCurve(QEasingCurve::OutQuad);
+    anim->setStartValue(m_progress);
+    anim->setEndValue(isChecked() ? 1.0 : 0.0);
+
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &val){
+        m_progress = val.toReal();
+        this->repaint();
+    });
+
+    anim->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void AnimatedRadioButton::paintEvent(QPaintEvent *e) {
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    int yOffset = (height() - m_circleSize) / 2;
+    QRect circleRect(0, yOffset, m_circleSize, m_circleSize);
+
+    QColor borderColor = (isChecked() || isDown()) ? QColor("#6200ea") : QColor("#666");
+    if (!isEnabled()) borderColor = QColor("#333");
+
+    p.setPen(QPen(borderColor, 2));
+    p.setBrush(Qt::NoBrush);
+    p.drawEllipse(circleRect.adjusted(1,1,-1,-1));
+
+    if (m_progress > 0.01) {
+        p.setPen(Qt::NoPen);
+        p.setBrush(isEnabled() ? QColor("#6200ea") : QColor("#444"));
+
+        qreal margin = 4.0 + (1.0 - m_progress) * 4.0;
+
+        QRectF innerRect = QRectF(circleRect).adjusted(margin, margin, -margin, -margin);
+        if (innerRect.isValid()) {
+             p.drawEllipse(innerRect);
+        }
+    }
+
+    p.setPen(isEnabled() ? Qt::white : QColor(100, 100, 100));
+    p.setFont(font());
+    QRect textRect = rect().adjusted(m_circleSize + m_spacing, 0, 0, 0);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
 }

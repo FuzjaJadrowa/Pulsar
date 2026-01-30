@@ -39,7 +39,6 @@ void ConfigManager::load() {
     setLanguage("English");
     setCloseBehavior("Exit");
     setCookiesBrowser("None");
-    setIgnoreErrors(true);
     setGeoBypass(true);
     setVideoFormat("mp4");
     setVideoQuality("1080p");
@@ -67,9 +66,6 @@ void ConfigManager::setCloseBehavior(const QString& behavior) { configData["clos
 
 QString ConfigManager::getCookiesBrowser() const { return configData["cookies_browser"].toString("None"); }
 void ConfigManager::setCookiesBrowser(const QString& browser) { configData["cookies_browser"] = browser; save(); }
-
-bool ConfigManager::getIgnoreErrors() const { return configData["ignore_errors"].toBool(true); }
-void ConfigManager::setIgnoreErrors(bool enable) { configData["ignore_errors"] = enable; save(); }
 
 bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(true); }
 void ConfigManager::setGeoBypass(bool enable) { configData["geo_bypass"] = enable; save(); }

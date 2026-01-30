@@ -3,6 +3,7 @@
 
 #include <QPushButton>
 #include <QCheckBox>
+#include <QRadioButton>
 #include <QPropertyAnimation>
 #include <QPainter>
 #include <QEvent>
@@ -13,23 +14,45 @@ public:
     static QString getGlobalStyle() {
         return R"(
             QWidget {
-                font-family: "Segoe UI", "Montserrat", sans-serif;
+                font-family: "Roboto", "Segoe UI", sans-serif;
                 color: #e0e0e0;
                 font-size: 14px;
             }
             QScrollBar:vertical {
                 border: none;
                 background: #1d1d1d;
-                width: 10px;
+                width: 14px;
                 margin: 0px;
+                border-radius: 0px;
             }
             QScrollBar::handle:vertical {
                 background: #444;
-                min-height: 20px;
-                border-radius: 5px;
+                min-height: 30px;
+                border-radius: 7px;
+                margin: 2px;
             }
-            QScrollBar::handle:vertical:hover { background: #555; }
+            QScrollBar::handle:vertical:hover { background: #6200ea; }
+            QScrollBar::handle:vertical:pressed { background: #7c4dff; }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+            QScrollBar:horizontal {
+                border: none;
+                background: #1d1d1d;
+                height: 14px;
+                margin: 0px;
+                border-radius: 0px;
+            }
+            QScrollBar::handle:horizontal {
+                background: #444;
+                min-width: 30px;
+                border-radius: 7px;
+                margin: 2px;
+            }
+            QScrollBar::handle:horizontal:hover { background: #6200ea; }
+            QScrollBar::handle:horizontal:pressed { background: #7c4dff; }
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
+            QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: none; }
+            QScrollArea { background: transparent; border: none; }
             QComboBox {
                 background-color: #2d2d2d;
                 border: 1px solid #3d3d3d;
@@ -38,14 +61,13 @@ public:
                 color: white;
             }
             QComboBox:hover { border: 1px solid #555; }
-            QComboBox::drop-down { border: none; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #888;
-                margin-right: 10px;
+            QComboBox:disabled {
+                background-color: #1a1a1a;
+                color: #555;
+                border: 1px solid #252525;
             }
+            QComboBox::drop-down { border: none; width: 20px; }
+            QComboBox::down-arrow { image: none; border: none; }
             QComboBox QAbstractItemView {
                 background-color: #252525;
                 border: 1px solid #3d3d3d;
@@ -64,8 +86,13 @@ public:
                 border: 1px solid #6200ea;
                 background-color: #2a2a2a;
             }
+            QLineEdit:disabled {
+                background-color: #1a1a1a;
+                color: #555;
+                border: 1px solid #252525;
+            }
             #PageTitle {
-                font-family: "Montserrat ExtraBold";
+                font-family: "Montserrat ExtraBold", "Roboto", sans-serif;
                 font-size: 26px;
                 font-weight: bold;
                 color: white;
@@ -91,7 +118,6 @@ public:
 
     QColor backgroundColor() const { return m_bgColor; }
     void setBackgroundColor(const QColor &c) { m_bgColor = c; update(); }
-
     qreal scaleFactor() const { return m_scale; }
     void setScaleFactor(qreal s) { m_scale = s; update(); }
 
@@ -111,34 +137,54 @@ private:
 
 class AnimatedCheckBox : public QCheckBox {
     Q_OBJECT
-    Q_PROPERTY(float progress READ progress WRITE setProgress)
+    Q_PROPERTY(qreal progress READ progress WRITE setProgress)
 
 public:
     explicit AnimatedCheckBox(const QString &text, QWidget *parent = nullptr);
 
-    float progress() const { return m_progress; }
-    void setProgress(float p) {
-        m_progress = p; update(); }
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+    qreal progress() const { return m_progress; }
+    void setProgress(qreal p) { m_progress = p; update(); }
 
 protected:
     void checkStateSet() override;
     void paintEvent(QPaintEvent *e) override;
-
-    void enterEvent(QEnterEvent *e) override {
-        m_hover = true;
-        update();
-        QCheckBox::enterEvent(e);
-    }
-
-    void leaveEvent(QEvent *e) override {
-        m_hover = false;
-        update();
-        QCheckBox::leaveEvent(e);
-    }
+    bool hitButton(const QPoint &pos) const override;
+    void showEvent(QShowEvent *e) override;
+    void enterEvent(QEnterEvent *e) override { m_hover = true; update(); QCheckBox::enterEvent(e); }
+    void leaveEvent(QEvent *e) override { m_hover = false; update(); QCheckBox::leaveEvent(e); }
 
 private:
-    float m_progress = 0.0f;
+    qreal m_progress = 0.0;
     bool m_hover = false;
+    const int m_boxSize = 22;
+    const int m_spacing = 10;
+};
+
+class AnimatedRadioButton : public QRadioButton {
+    Q_OBJECT
+    Q_PROPERTY(qreal progress READ progress WRITE setProgress)
+
+public:
+    explicit AnimatedRadioButton(const QString &text, QWidget *parent = nullptr);
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+    qreal progress() const { return m_progress; }
+    void setProgress(qreal p) { m_progress = p; update(); }
+
+protected:
+    void paintEvent(QPaintEvent *e) override;
+    bool hitButton(const QPoint &pos) const override;
+    void checkStateSet() override;
+    void showEvent(QShowEvent *e) override;
+
+private:
+    qreal m_progress = 0.0;
+    const int m_circleSize = 20;
+    const int m_spacing = 10;
 };
 
 #endif

@@ -6,14 +6,13 @@
 SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
     : QWidget(parent), popup(popup), m_installer(installer) {
 
-    setStyleSheet(StyleHelper::getGlobalStyle());    setupUi();
+    setupUi();
 }
 
 void SettingsPage::paintEvent(QPaintEvent *event) {
     QStyleOption opt;
     opt.initFrom(this);
     QPainter p(this);
-
     p.fillRect(rect(), QColor("#121212"));
 }
 
@@ -24,11 +23,7 @@ void SettingsPage::setupUi() {
     rootLayout->setContentsMargins(0, 0, 0, 0);
 
     auto *scrollArea = new QScrollArea(this);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setStyleSheet("QScrollArea { background: transparent; }");
-
-    auto *scrollContent = new QWidget();
+    scrollArea->setWidgetResizable(true);  auto *scrollContent = new QWidget();
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setAlignment(Qt::AlignTop);
     mainLayout->setContentsMargins(20, 40, 40, 40);
@@ -36,7 +31,13 @@ void SettingsPage::setupUi() {
 
     auto *titleLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(":/Resources/Icons/settings.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap icon(":/Resources/Icons/settings.png");
+    QPainter p(&icon);
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(icon.rect(), Qt::white);
+    p.end();
+
+    iconLabel->setPixmap(icon.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *titleLabel = new QLabel("Settings", this);
     titleLabel->setObjectName("PageTitle");
     titleLayout->addWidget(iconLabel);
@@ -59,11 +60,8 @@ void SettingsPage::setupUi() {
     mainLayout->addLayout(createSection("Language", langCombo));
 
     auto *closeGroup = new QButtonGroup(this);
-    auto *radioHide = new QRadioButton("Hide to Tray", this);
-    auto *radioExit = new QRadioButton("Exit Application", this);
-    QString radioStyle = "QRadioButton { color: #ccc; spacing: 8px; } QRadioButton::indicator { width: 16px; height: 16px; border-radius: 8px; border: 1px solid #555; background: #222; } QRadioButton::indicator:checked { background: #6200ea; border: 2px solid white; }";
-    radioHide->setStyleSheet(radioStyle);
-    radioExit->setStyleSheet(radioStyle);
+    auto *radioHide = new AnimatedRadioButton("Hide", this);
+    auto *radioExit = new AnimatedRadioButton("Exit", this);
 
     closeGroup->addButton(radioHide);
     closeGroup->addButton(radioExit);
@@ -76,6 +74,45 @@ void SettingsPage::setupUi() {
     closeLayout->addWidget(radioHide);
     closeLayout->addWidget(radioExit);
     mainLayout->addLayout(closeLayout);
+
+    auto *dlLabel = new QLabel("Download settings", this);
+    dlLabel->setObjectName("SectionHeader");
+    mainLayout->addWidget(dlLabel);
+
+    auto *cookiesCombo = new QComboBox(this);
+    cookiesCombo->addItems({"None", "Brave", "Chrome", "Chromium", "Edge", "Firefox", "Opera", "Safari", "Vivaldi", "Whale"});
+    cookiesCombo->setCurrentText(ConfigManager::instance().getCookiesBrowser());
+    connect(cookiesCombo, &QComboBox::currentTextChanged, this, &SettingsPage::onCookiesChanged);
+    mainLayout->addLayout(createSection("Cookies from browser", cookiesCombo));
+
+    auto *geoBypassCheck = new AnimatedCheckBox("Bypass country restrictions", this);
+    geoBypassCheck->setChecked(ConfigManager::instance().getGeoBypass());
+    connect(geoBypassCheck, &QCheckBox::toggled, this, &SettingsPage::onGeoBypassToggled);
+    mainLayout->addWidget(geoBypassCheck);
+
+    auto *defVideoFmt = new QComboBox(this);
+    defVideoFmt->addItems({"mp4", "mkv", "mov", "avi", "flv", "webm"});
+    defVideoFmt->setCurrentText(ConfigManager::instance().getVideoFormat());
+    connect(defVideoFmt, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoFormatChanged);
+    mainLayout->addLayout(createSection("Default Video Format", defVideoFmt));
+
+    auto *defVideoQual = new QComboBox(this);
+    defVideoQual->addItems({"2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"});
+    defVideoQual->setCurrentText(ConfigManager::instance().getVideoQuality());
+    connect(defVideoQual, &QComboBox::currentTextChanged, this, &SettingsPage::onVideoQualityChanged);
+    mainLayout->addLayout(createSection("Default Video Quality", defVideoQual));
+
+    auto *defAudioFmt = new QComboBox(this);
+    defAudioFmt->addItems({"mp3", "m4a", "aac", "opus", "wav", "ogg"});
+    defAudioFmt->setCurrentText(ConfigManager::instance().getAudioFormat());
+    connect(defAudioFmt, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioFormatChanged);
+    mainLayout->addLayout(createSection("Default Audio Format", defAudioFmt));
+
+    auto *defAudioQual = new QComboBox(this);
+    defAudioQual->addItems({"320kbps", "256kbps", "192kbps", "128kbps"});
+    defAudioQual->setCurrentText(ConfigManager::instance().getAudioQuality());
+    connect(defAudioQual, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioQualityChanged);
+    mainLayout->addLayout(createSection("Default Audio Quality", defAudioQual));
 
     auto *reqLabel = new QLabel("Requirements", this);
     reqLabel->setObjectName("SectionHeader");
@@ -134,7 +171,6 @@ void SettingsPage::onThemeChanged(const QString &theme) {
 void SettingsPage::onLangChanged(const QString &lang) { ConfigManager::instance().setLanguage(lang); }
 void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) { ConfigManager::instance().setCloseBehavior(btn->text().contains("Hide") ? "Hide" : "Exit"); }
 void SettingsPage::onCookiesChanged(const QString &browser) { ConfigManager::instance().setCookiesBrowser(browser); }
-void SettingsPage::onIgnoreErrorsToggled(bool checked) { ConfigManager::instance().setIgnoreErrors(checked); }
 void SettingsPage::onGeoBypassToggled(bool checked) { ConfigManager::instance().setGeoBypass(checked); }
 void SettingsPage::onVideoFormatChanged(const QString &val) { ConfigManager::instance().setVideoFormat(val); }
 void SettingsPage::onVideoQualityChanged(const QString &val) { ConfigManager::instance().setVideoQuality(val); }

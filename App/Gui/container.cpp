@@ -10,7 +10,19 @@
 #include <QApplication>
 #include <QTimer>
 #include <QWindow>
-// Przeniesiony navbar + custom frame
+#include <QSystemTrayIcon>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <windowsx.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
+// --- (NavButton i WindowControlBtn bez zmian - pozostawić jak były) ---
+// (Dla czytelności wklejam tylko zmienioną klasę Container i konstruktory przycisków jeśli potrzebne,
+// ale zakładam, że NavButton i WindowControlBtn są takie same jak w poprzednim pliku components.cpp/container.cpp)
+
 NavButton::NavButton(const QString &text, const QString &iconPath, bool isExpandable, QWidget *parent)
     : QPushButton(parent), m_isExpandable(isExpandable), m_text(text)
 {
@@ -18,28 +30,22 @@ NavButton::NavButton(const QString &text, const QString &iconPath, bool isExpand
     setCursor(Qt::PointingHandCursor);
     m_backgroundColor = Qt::transparent;
     m_borderColor = Qt::transparent;
-
     setFixedWidth(m_isExpandable ? 50 : 110);
     setFixedHeight(40);
 }
-
 void NavButton::setActive(bool active) {
     m_isActive = active;
     auto *group = new QParallelAnimationGroup(this);
-
     auto *bgAnim = new QPropertyAnimation(this, "backgroundColor");
     bgAnim->setDuration(200);
     bgAnim->setStartValue(m_backgroundColor);
     bgAnim->setEndValue(active ? QColor(138, 43, 226) : QColor(Qt::transparent));
-
     auto *borderAnim = new QPropertyAnimation(this, "borderColor");
     borderAnim->setDuration(200);
     borderAnim->setStartValue(m_borderColor);
     borderAnim->setEndValue(active ? QColor(138, 43, 226) : QColor(Qt::transparent));
-
     group->addAnimation(bgAnim);
     group->addAnimation(borderAnim);
-
     if (m_isExpandable) {
         auto *widthAnim = new QPropertyAnimation(this, "fixedWidth");
         widthAnim->setDuration(300);
@@ -50,16 +56,13 @@ void NavButton::setActive(bool active) {
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
 }
-
 void NavButton::enterEvent(QEnterEvent *event) {
     if (m_isActive) return;
-
     auto *anim = new QPropertyAnimation(this, "borderColor");
     anim->setDuration(200);
     anim->setStartValue(m_borderColor);
     anim->setEndValue(QColor(138, 43, 226));
     anim->start(QAbstractAnimation::DeleteWhenStopped);
-
     if (m_isExpandable) {
         auto *widthAnim = new QPropertyAnimation(this, "fixedWidth");
         widthAnim->setDuration(300);
@@ -70,7 +73,6 @@ void NavButton::enterEvent(QEnterEvent *event) {
     }
     QPushButton::enterEvent(event);
 }
-
 void NavButton::leaveEvent(QEvent *event) {
     if (m_isActive) return;
     auto *anim = new QPropertyAnimation(this, "borderColor");
@@ -78,7 +80,6 @@ void NavButton::leaveEvent(QEvent *event) {
     anim->setStartValue(m_borderColor);
     anim->setEndValue(QColor(Qt::transparent));
     anim->start(QAbstractAnimation::DeleteWhenStopped);
-
     if (m_isExpandable) {
         auto *widthAnim = new QPropertyAnimation(this, "fixedWidth");
         widthAnim->setDuration(300);
@@ -89,35 +90,33 @@ void NavButton::leaveEvent(QEvent *event) {
     }
     QPushButton::leaveEvent(event);
 }
-
 void NavButton::setBackgroundColor(const QColor &color) { m_backgroundColor = color; update(); }
 void NavButton::setBorderColor(const QColor &color) { m_borderColor = color; update(); }
-
 void NavButton::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
     p.setRenderHint(QPainter::SmoothPixmapTransform);
-
     if (m_backgroundColor.alpha() > 0) {
         p.setBrush(m_backgroundColor);
         p.setPen(Qt::NoPen);
         p.drawRoundedRect(rect(), 10, 10);
     }
-
     if (m_borderColor.alpha() > 0) {
         p.setBrush(Qt::NoBrush);
         p.setPen(QPen(m_borderColor, 2));
         p.drawRoundedRect(rect().adjusted(1,1,-1,-1), 10, 10);
     }
-
     int iconSize = 24;
     int margin = 13;
-
     if (!m_icon.isNull()) {
         int iconY = (height() - iconSize) / 2;
-        p.drawPixmap(margin, iconY, iconSize, iconSize, m_icon);
+        QPixmap tintedIcon = m_icon;
+        QPainter iconPainter(&tintedIcon);
+        iconPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        iconPainter.fillRect(tintedIcon.rect(), Qt::white);
+        iconPainter.end();
+        p.drawPixmap(margin, iconY, iconSize, iconSize, tintedIcon);
     }
-
     if (width() > 60) {
         p.setPen(Qt::white);
         QFont f = font();
@@ -129,17 +128,17 @@ void NavButton::paintEvent(QPaintEvent *event) {
     }
 }
 
-WindowControlBtn::WindowControlBtn(const QString &iconPath, QWidget *parent)
-    : QPushButton(parent)
+
+WindowControlBtn::WindowControlBtn(ButtonType type, QWidget *parent)
+    : QPushButton(parent), m_type(type)
 {
-    setFixedSize(30, 30);
+    setFixedSize(45, 32);
     setCursor(Qt::PointingHandCursor);
     m_hoverColor = Qt::transparent;
-    m_iconPix = QPixmap(iconPath);
 }
 
-void WindowControlBtn::setIconPath(const QString &path) {
-    m_iconPix = QPixmap(path);
+void WindowControlBtn::setType(ButtonType type) {
+    m_type = type;
     update();
 }
 
@@ -148,7 +147,9 @@ void WindowControlBtn::enterEvent(QEnterEvent *event) {
     auto *anim = new QPropertyAnimation(this, "hoverColor");
     anim->setDuration(150);
     anim->setStartValue(m_hoverColor);
-    anim->setEndValue(QColor(255, 255, 255, 30));
+
+    QColor targetColor = (m_type == Close) ? QColor(232, 17, 35) : QColor(255, 255, 255, 30);
+    anim->setEndValue(targetColor);
     anim->start(QAbstractAnimation::DeleteWhenStopped);
     QPushButton::enterEvent(event);
 }
@@ -166,25 +167,41 @@ void WindowControlBtn::leaveEvent(QEvent *event) {
 void WindowControlBtn::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
-    p.setRenderHint(QPainter::SmoothPixmapTransform);
 
     if (m_hoverColor.alpha() > 0) {
         p.setBrush(m_hoverColor);
         p.setPen(Qt::NoPen);
-        p.drawRoundedRect(rect(), 8, 8);
+        p.drawRoundedRect(rect(), 4, 4);
     }
 
-    if (!m_iconPix.isNull()) {
-        int w = 16;
-        int h = 16;
-        int x = (width() - w) / 2;
-        int y = (height() - h) / 2;
-        p.drawPixmap(x, y, w, h, m_iconPix);
+    p.setPen(QPen(Qt::white, 2));
+    p.setBrush(Qt::NoBrush);
+
+    int w = width();
+    int h = height();
+    int iconSize = 10;
+
+    int cx = w / 2;
+    int cy = h / 2;
+
+    switch (m_type) {
+    case Minimize:
+        p.drawLine(cx - 5, cy + 5, cx + 5, cy + 5);
+        break;
+    case Maximize:
+        p.drawRect(cx - 5, cy - 5, 10, 10);
+        break;
+    case Close:
+        p.drawLine(cx - 5, cy - 5, cx + 5, cy + 5);
+        p.drawLine(cx + 5, cy - 5, cx - 5, cy + 5);
+        break;
     }
 }
 
 Container::Container(QWidget *parent) : QWidget(parent) {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+    // WAŻNE: Ustawiamy tylko flagę Qt::Window. Usuwamy Qt::FramelessWindowHint,
+    // aby zachować animacje systemowe. Obsługa nativeEvent oraz DWM usunie ramki wizualnie.
+    setWindowFlags(Qt::Window);
     setAttribute(Qt::WA_TranslucentBackground);
     setMouseTracking(true);
 
@@ -194,6 +211,21 @@ Container::Container(QWidget *parent) : QWidget(parent) {
     initLogic();
     setupUi();
     setupConnections();
+
+    #ifdef Q_OS_WIN
+    if (auto *hwnd = reinterpret_cast<HWND>(winId())) {
+        // Dodajemy style systemowe potrzebne do animacji
+        LONG style = GetWindowLong(hwnd, GWL_STYLE);
+        SetWindowLong(hwnd, GWL_STYLE, style | WS_THICKFRAME | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+
+        // KLUCZOWA POPRAWKA DLA PRZEZROCZYSTYCH KRAWĘDZI:
+        // Rozszerzamy ramkę DWM na cały obszar klienta. Dzięki temu systemowa ramka
+        // jest "rysowana" na obszarze, który mamy przezroczysty, co skutkuje brakiem widocznej ramki
+        // przy zachowaniu cieni i animacji.
+        MARGINS margins = {-1, -1, -1, -1}; // -1 oznacza cały obszar
+        DwmExtendFrameIntoClientArea(hwnd, &margins);
+    }
+    #endif
 
     m_btnDownloader->click();
 }
@@ -206,6 +238,8 @@ void Container::initLogic() {
 
 void Container::setupUi() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    // Marginesy muszą być dopasowane, aby treść nie wchodziła pod systemowe krawędzie
+    // przy maksymalizacji, ale nativeEvent zazwyczaj to koryguje.
     mainLayout->setContentsMargins(10, 10, 10, 10);
 
     QWidget *windowContent = new QWidget(this);
@@ -247,20 +281,20 @@ void Container::setupUi() {
     titleLayout->addWidget(m_btnSettings);
 
     QWidget *controlsContainer = new QWidget(this);
-    controlsContainer->setFixedSize(110, 40);
-    controlsContainer->setStyleSheet("background-color: #252525; border-radius: 15px;");
+    controlsContainer->setFixedSize(145, 40);
+    controlsContainer->setStyleSheet("background-color: transparent; border-radius: 15px;");
 
     QHBoxLayout *controlsLayout = new QHBoxLayout(controlsContainer);
-    controlsLayout->setContentsMargins(5, 0, 5, 0);
-    controlsLayout->setSpacing(2);
+    controlsLayout->setContentsMargins(0, 0, 0, 0);
+    controlsLayout->setSpacing(5);
 
-    WindowControlBtn *btnMin = new WindowControlBtn(":/Resources/Icons/window_minimize.png");
-    m_btnMax = new WindowControlBtn(":/Resources/Icons/window_maximize.png");
-    WindowControlBtn *btnClose = new WindowControlBtn(":/Resources/Icons/window_close.png");
+    WindowControlBtn *btnMin = new WindowControlBtn(WindowControlBtn::Minimize);
+    m_btnMax = new WindowControlBtn(WindowControlBtn::Maximize);
+    WindowControlBtn *btnClose = new WindowControlBtn(WindowControlBtn::Close);
 
     connect(btnMin, &QPushButton::clicked, this, &QWidget::showMinimized);
     connect(m_btnMax, &QPushButton::clicked, this, &Container::toggleMaximize);
-    connect(btnClose, &QPushButton::clicked, this, &QWidget::close);
+    connect(btnClose, &QPushButton::clicked, this, &Container::close); // Używamy close() kontenera
 
     controlsLayout->addWidget(btnMin);
     controlsLayout->addWidget(m_btnMax);
@@ -289,6 +323,16 @@ void Container::setupUi() {
     shadow->setColor(QColor(0, 0, 0, 150));
     shadow->setOffset(0, 0);
     windowContent->setGraphicsEffect(shadow);
+}
+
+void Container::toggleMaximize() {
+    if (isMaximized()) {
+        showNormal();
+        m_btnMax->setType(WindowControlBtn::Maximize);
+    } else {
+        showMaximized();
+        m_btnMax->setType(WindowControlBtn::Maximize);
+    }
 }
 
 void Container::setupConnections() {
@@ -322,30 +366,29 @@ void Container::switchPage(int index) {
     m_btnConsole->setActive(index == 2);
 }
 
-void Container::toggleMaximize() {
-    if (isMaximized()) {
-        showNormal();
-        m_btnMax->setIconPath(":/Resources/Icons/window_maximize.png");
+void Container::closeEvent(QCloseEvent *event) {
+    auto& config = ConfigManager::instance();
+    QString behavior = config.getCloseBehavior();
+    if (behavior == "Hide" && QSystemTrayIcon::isSystemTrayAvailable()) {
+        this->hide();
+        event->ignore();
     } else {
-        showMaximized();
-        m_btnMax->setIconPath(":/Resources/Icons/window_maximize.png");
+        event->accept();
+        QApplication::quit();
     }
 }
 
 Qt::Edges Container::getEdges(const QPoint &pos) {
     Qt::Edges edges = Qt::Edges();
     int m = m_borderWidth;
-
     bool left = pos.x() <= m;
     bool right = pos.x() >= width() - m;
     bool top = pos.y() <= m;
     bool bottom = pos.y() >= height() - m;
-
     if (top) edges |= Qt::TopEdge;
     if (bottom) edges |= Qt::BottomEdge;
     if (left) edges |= Qt::LeftEdge;
     if (right) edges |= Qt::RightEdge;
-
     return edges;
 }
 
@@ -354,44 +397,28 @@ void Container::updateCursorShape(const QPoint &pos) {
         setCursor(Qt::ArrowCursor);
         return;
     }
-
     Qt::Edges edges = getEdges(pos);
-
     bool top = edges & Qt::TopEdge;
     bool bottom = edges & Qt::BottomEdge;
     bool left = edges & Qt::LeftEdge;
     bool right = edges & Qt::RightEdge;
-
-    if (top && left) {
-        setCursor(Qt::SizeFDiagCursor);
-    } else if (bottom && right) {
-        setCursor(Qt::SizeFDiagCursor);
-    } else if (top && right) {
-        setCursor(Qt::SizeBDiagCursor);
-    } else if (bottom && left) {
-        setCursor(Qt::SizeBDiagCursor);
-    } else if (top || bottom) {
-        setCursor(Qt::SizeVerCursor);
-    } else if (left || right) {
-        setCursor(Qt::SizeHorCursor);
-    } else {
-        setCursor(Qt::ArrowCursor);
-    }
+    if (top && left) setCursor(Qt::SizeFDiagCursor);
+    else if (bottom && right) setCursor(Qt::SizeFDiagCursor);
+    else if (top && right) setCursor(Qt::SizeBDiagCursor);
+    else if (bottom && left) setCursor(Qt::SizeBDiagCursor);
+    else if (top || bottom) setCursor(Qt::SizeVerCursor);
+    else if (left || right) setCursor(Qt::SizeHorCursor);
+    else setCursor(Qt::ArrowCursor);
 }
 
 void Container::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         Qt::Edges edges = getEdges(event->position().toPoint());
         if (edges != Qt::Edges() && !isMaximized()) {
-            if (windowHandle()->startSystemResize(edges)) {
-                return;
-            }
+            if (windowHandle()->startSystemResize(edges)) return;
         }
-
         if (event->position().y() < 80) {
-            if (windowHandle()->startSystemMove()) {
-                return;
-            }
+            if (windowHandle()->startSystemMove()) return;
             m_dragPosition = event->globalPosition().toPoint() - frameGeometry().topLeft();
             m_isDragging = true;
         }
@@ -400,24 +427,28 @@ void Container::mousePressEvent(QMouseEvent *event) {
 }
 
 void Container::mouseMoveEvent(QMouseEvent *event) {
-    if (!m_isDragging && !isMaximized()) {
-        updateCursorShape(event->position().toPoint());
-    }
-
-    if (m_isDragging && (event->buttons() & Qt::LeftButton)) {
-        move(event->globalPosition().toPoint() - m_dragPosition);
-    }
+    if (!m_isDragging && !isMaximized()) updateCursorShape(event->position().toPoint());
+    if (m_isDragging && (event->buttons() & Qt::LeftButton)) move(event->globalPosition().toPoint() - m_dragPosition);
     event->accept();
 }
 
 void Container::mouseReleaseEvent(QMouseEvent *event) {
     m_isDragging = false;
-    if (!rect().contains(event->position().toPoint())) {
-        setCursor(Qt::ArrowCursor);
-    }
+    if (!rect().contains(event->position().toPoint())) setCursor(Qt::ArrowCursor);
     QWidget::mouseReleaseEvent(event);
 }
 
+
 bool Container::nativeEvent(const QByteArray &eventType, void *message, qintptr *result) {
+#ifdef Q_OS_WIN
+    if (eventType == "windows_generic_MSG") {
+        MSG* msg = static_cast<MSG*>(message);
+
+        if (msg->message == WM_NCCALCSIZE && msg->wParam == TRUE) {
+            *result = 0;
+            return true;
+        }
+    }
+#endif
     return QWidget::nativeEvent(eventType, message, result);
 }

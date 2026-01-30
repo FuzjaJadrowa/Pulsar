@@ -12,7 +12,6 @@ DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
     popup = new Popup(this);
 
-    setStyleSheet(StyleHelper::getGlobalStyle());
     setupUi();
 
     connect(downloader, &Downloader::finished, this, &DownloaderPage::onDownloadFinished);
@@ -28,7 +27,6 @@ void DownloaderPage::setupUi() {
 
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
-
     scrollArea->setFrameShape(QFrame::NoFrame);
     scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
 
@@ -37,9 +35,15 @@ void DownloaderPage::setupUi() {
     mainLayout->setContentsMargins(30, 40, 30, 20);
     mainLayout->setSpacing(20);
 
-auto *headerLayout = new QHBoxLayout();
+    auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
-    iconLabel->setPixmap(QPixmap(":/Resources/Icons/downloader.png").scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap icon(":/Resources/Icons/downloader.png");
+    QPainter p(&icon);
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(icon.rect(), Qt::white);
+    p.end();
+
+    iconLabel->setPixmap(icon.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *header = new QLabel("Downloader", this);
     header->setObjectName("PageTitle");
     headerLayout->addWidget(iconLabel);
@@ -63,13 +67,13 @@ auto *headerLayout = new QHBoxLayout();
     optionsGroup->setStyleSheet("background-color: #1e1e1e; border-radius: 10px; padding: 10px;");
     auto *gridLayout = new QGridLayout(optionsGroup);
     videoFormatCombo = new QComboBox(this);
-    videoFormatCombo->addItems({"Default", "mp4", "mkv", "webm"});
+    videoFormatCombo->addItems({"Default", "mp4", "mkv", "mov", "avi", "flv", "webm"});
     videoQualityCombo = new QComboBox(this);
-    videoQualityCombo->addItems({"Default", "2160p", "1080p", "720p"});
+    videoQualityCombo->addItems({"Default", "2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"});
     audioFormatCombo = new QComboBox(this);
-    audioFormatCombo->addItems({"Default", "mp3", "m4a"});
+    audioFormatCombo->addItems({"Default", "mp3", "m4a", "aac", "opus", "wav", "ogg"});
     audioQualityCombo = new QComboBox(this);
-    audioQualityCombo->addItems({"Default", "320kbps", "128kbps"});
+    audioQualityCombo->addItems({"Default", "320kbps", "256kbps", "192kbps", "128kbps"});
     audioOnlyCheck = new AnimatedCheckBox("Audio only mode", this);
 
     gridLayout->addWidget(new QLabel("Video Format:", this), 0, 0);
@@ -85,9 +89,10 @@ auto *headerLayout = new QHBoxLayout();
 
     auto *advancedRow = new QHBoxLayout();
     auto *subsLayout = new QVBoxLayout();
+
     downloadSubsCheck = new AnimatedCheckBox("Download subtitles", this);
     subsLangInput = new QLineEdit(this);
-    subsLangInput->setPlaceholderText("en, pl");
+    subsLangInput->setPlaceholderText("Code");
     subsLangInput->setFixedWidth(80);
     subsLangInput->setEnabled(false);
     downloadChatCheck = new AnimatedCheckBox("Download live chat", this);
@@ -96,6 +101,7 @@ auto *headerLayout = new QHBoxLayout();
     subsInputRow->addWidget(downloadSubsCheck);
     subsInputRow->addWidget(subsLangInput);
     subsInputRow->addStretch();
+
     subsLayout->addLayout(subsInputRow);
     subsLayout->addWidget(downloadChatCheck);
 
@@ -126,6 +132,7 @@ auto *headerLayout = new QHBoxLayout();
 
     advancedContent = new QWidget(this);
     auto *advLayout = new QVBoxLayout(advancedContent);
+    advLayout->setContentsMargins(0, 10, 0, 0);
     customArgsInput = new QLineEdit(this);
     cmdPreview = new QTextEdit(this);
     cmdPreview->setReadOnly(true);
@@ -182,10 +189,11 @@ auto *headerLayout = new QHBoxLayout();
 
         if (c) {
             advancedContent->setVisible(true);
+            int h = advancedContent->layout()->sizeHint().height();
             anim->setStartValue(0);
-            anim->setEndValue(300);
+            anim->setEndValue(h > 0 ? h : 300);
         } else {
-            anim->setStartValue(300);
+            anim->setStartValue(advancedContent->height());
             anim->setEndValue(0);
             connect(anim, &QPropertyAnimation::finished, [this](){
                 if(!advancedBtn->isChecked()) advancedContent->setVisible(false);
@@ -198,10 +206,7 @@ auto *headerLayout = new QHBoxLayout();
     connect(audioOnlyCheck, &QCheckBox::toggled, this, &DownloaderPage::onAudioOnlyToggled);
     connect(downloadSubsCheck, &QCheckBox::toggled, this, &DownloaderPage::onSubsOptionsChanged);
     connect(downloadChatCheck, &QCheckBox::toggled, this, &DownloaderPage::onSubsOptionsChanged);
-    connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
-        advancedContent->setVisible(c);
-        advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
-    });
+
     connect(startBtn, &QPushButton::clicked, this, &DownloaderPage::onStartClicked);
     connect(stopBtn, &QPushButton::clicked, this, &DownloaderPage::onStopClicked);
 
@@ -210,7 +215,7 @@ auto *headerLayout = new QHBoxLayout();
     for(auto *x : findChildren<QCheckBox*>()) connect(x, &QCheckBox::toggled, this, &DownloaderPage::updateCommandPreview);
     onAudioOnlyToggled(false);
 }
-// troche sie zrobił z tego spagetti code ale dziala XD
+
 void DownloaderPage::updateCommandPreview() {
     cmdPreview->setPlainText(downloader->generateCommand(
         urlInput->text(), pathInput->text(), audioOnlyCheck->isChecked(),

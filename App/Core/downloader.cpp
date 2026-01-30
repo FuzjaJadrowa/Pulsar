@@ -36,11 +36,15 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
 #endif
     args << "--ffmpeg-location" << ffmpegPath;
 
-    QString downloadPath = path.isEmpty() ? QDir::currentPath() : path;
-    args << "-P" << downloadPath;
-    args << "-o" << "%(title)s.%(ext)s";
+    if (!path.isEmpty()) {
+        args << "-P" << path;
+    }
 
     ConfigManager &config = ConfigManager::instance();
+
+    if (config.getGeoBypass()) {
+        args << "--geo-bypass";
+    }
 
     if (audioOnly) {
         args << "-x";
@@ -58,17 +62,17 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
     }
 
     if (downloadChat) {
-        args << "--write-subs" << "--sub-langs" << "live_chat";
+        args << "--write-subs" << "--sub-lang" << "\"live_chat\"";
     } else if (downloadSubs) {
         if (subsLang.trimmed().isEmpty()) {
             args << "--write-auto-subs";
         } else {
-            args << "--write-subs" << "--sub-langs" << subsLang.trimmed();
+            args << "--write-subs" << "--sub-lang" << ("\"" + subsLang.trimmed() + "\"");
         }
     }
 
     if (!startTime.isEmpty() && !endTime.isEmpty()) {
-        args << "--download-sections" << QString("*%1-%2").arg(startTime, endTime);
+        args << "--download-sections" << QString("\"*%1-%2\"").arg(startTime, endTime);
         args << "--force-keyframes-at-cuts";
     }
 

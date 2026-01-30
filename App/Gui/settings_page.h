@@ -37,7 +37,6 @@ private slots:
     void checkFfmpeg();
     void checkYtdlp();
     void onCookiesChanged(const QString &browser);
-    void onIgnoreErrorsToggled(bool checked);
     void onGeoBypassToggled(bool checked);
     void onVideoFormatChanged(const QString &val);
     void onVideoQualityChanged(const QString &val);

@@ -12,6 +12,7 @@
 #include <QParallelAnimationGroup>
 #include <QGraphicsDropShadowEffect>
 #include <QWindow>
+#include <QApplication>
 
 #include "../Core/popup.h"
 #include "../Core/installer_window.h"
@@ -55,12 +56,13 @@ class WindowControlBtn : public QPushButton {
     Q_PROPERTY(QColor hoverColor READ hoverColor WRITE setHoverColor)
 
 public:
-    explicit WindowControlBtn(const QString &iconPath, QWidget *parent = nullptr);
+    enum ButtonType { Minimize, Maximize, Close };
+    explicit WindowControlBtn(ButtonType type, QWidget *parent = nullptr);
 
     QColor hoverColor() const { return m_hoverColor; }
     void setHoverColor(const QColor &color) { m_hoverColor = color; update(); }
 
-    void setIconPath(const QString &path);
+    void setType(ButtonType type);
 
 protected:
     void enterEvent(QEnterEvent *event) override;
@@ -68,14 +70,13 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    bool m_isHovered = false;
+    ButtonType m_type;
     QColor m_hoverColor;
-    QPixmap m_iconPix;
+    bool m_isHovered = false;
 };
 
 class Container : public QWidget {
     Q_OBJECT
-
 public:
     explicit Container(QWidget *parent = nullptr);
 
@@ -91,6 +92,7 @@ protected:
 
 private slots:
     void switchPage(int index);
+    void closeEvent(QCloseEvent *event);
     void toggleMaximize();
 
 private:
@@ -116,7 +118,6 @@ private:
 
     QPoint m_dragPosition;
     bool m_isDragging = false;
-    bool m_isResizing = false;
     int m_borderWidth = 8;
 };
 
