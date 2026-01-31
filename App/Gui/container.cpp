@@ -194,7 +194,7 @@ void WindowControlBtn::paintEvent(QPaintEvent *event) {
     }
 }
 
-Container::Container(QWidget *parent) : QWidget(parent) {
+Container::Container(QWidget *parent) : QWidget(parent), m_animProgress(0.0f) {
     setWindowFlags(Qt::Window);
     setAttribute(Qt::WA_TranslucentBackground);
     setMouseTracking(true);
@@ -223,7 +223,61 @@ Container::Container(QWidget *parent) : QWidget(parent) {
     m_btnQueue->setFixedWidth(!qEmpty ? 50 : 0);
 }
 
+void Container::initLogic() {
+    m_popup = new Popup(this);
+    m_bgTimer = new QTimer(this);
+    connect(m_bgTimer, &QTimer::timeout, this, &Container::updateBackground);
+    m_bgTimer->start(16);
+}
+
+void Container::updateBackground() {
+    m_animProgress += 0.002f;
+    if (m_animProgress > 1.0f) m_animProgress = 0.0f;
+    if (m_windowContent) m_windowContent->update();
+}
+
+void Container::paintBackground(QPainter *painter, const QRect &rect) {
+    QColor c1(10, 10, 30);
+    QColor c2(30, 5, 40);
+    QColor c3(40, 0, 20);
+
+    float p = m_animProgress * 2.0f * M_PI;
+    float factor = (qSin(p) + 1.0f) / 2.0f;
+
+    QColor startColor;
+    startColor.setRedF(c1.redF() * (1.0f - factor) + c2.redF() * factor);
+    startColor.setGreenF(c1.greenF() * (1.0f - factor) + c2.greenF() * factor);
+    startColor.setBlueF(c1.blueF() * (1.0f - factor) + c2.blueF() * factor);
+
+    QColor endColor;
+    endColor.setRedF(c2.redF() * (1.0f - factor) + c3.redF() * factor);
+    endColor.setGreenF(c2.greenF() * (1.0f - factor) + c3.greenF() * factor);
+    endColor.setBlueF(c2.blueF() * (1.0f - factor) + c3.blueF() * factor);
+
+    QLinearGradient gradient(rect.topLeft(), rect.bottomRight());
+    gradient.setColorAt(0, startColor);
+    gradient.setColorAt(1, endColor);
+
+    painter->fillRect(rect, gradient);
+}
+
 bool Container::eventFilter(QObject *obj, QEvent *event) {
+    if (obj == m_windowContent && event->type() == QEvent::Paint) {
+        QPainter p(m_windowContent);
+        p.setRenderHint(QPainter::Antialiasing);
+        QPainterPath path;
+        path.addRoundedRect(m_windowContent->rect(), 15, 15);
+        p.setClipPath(path);
+
+        paintBackground(&p, m_windowContent->rect());
+
+        p.setPen(QPen(QColor(60, 60, 60), 1));
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(m_windowContent->rect(), 15, 15);
+
+        return true;
+    }
+
     if (event->type() == QEvent::MouseButtonPress) {
         if (m_queuePanel->isVisible()) {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
@@ -245,32 +299,28 @@ bool Container::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-void Container::initLogic() {
-    m_popup = new Popup(this);
-}
-
 void Container::setupUi() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(10, 10, 10, 10);
 
-    QWidget *windowContent = new QWidget(this);
-    windowContent->setObjectName("WindowContent");
-    windowContent->setStyleSheet(
-        "#WindowContent { "
-        "   background-color: #121212; "
-        "   border-radius: 15px; "
-        "   border: 1px solid #333; "
-        "}"
-        "QLabel { color: white; }"
-    );
-    windowContent->setMouseTracking(true);
+    m_windowContent = new QWidget(this);
+    m_windowContent->setObjectName("WindowContent");
+    m_windowContent->installEventFilter(this);
+    m_windowContent->setMouseTracking(true);
 
-    QVBoxLayout *contentLayout = new QVBoxLayout(windowContent);
+    QVBoxLayout *contentLayout = new QVBoxLayout(m_windowContent);
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setSpacing(0);
 
     m_titleBar = new QWidget(this);
     m_titleBar->setFixedHeight(80);
+    m_titleBar->setStyleSheet(
+        "background-color: rgba(20, 20, 30, 180);"
+        "border-bottom: 1px solid rgba(255, 255, 255, 20);"
+        "border-top-left-radius: 15px;"
+        "border-top-right-radius: 15px;"
+    );
+
     m_titleLayout = new QHBoxLayout(m_titleBar);
     m_titleLayout->setContentsMargins(20, 10, 20, 10);
     m_titleLayout->setSpacing(15);
@@ -329,13 +379,13 @@ void Container::setupUi() {
     connect(pageDownloader, &DownloaderPage::downloadRequested, this, &Container::onDownloadRequested);
 
     contentLayout->addWidget(m_stackedWidget);
-    mainLayout->addWidget(windowContent);
+    mainLayout->addWidget(m_windowContent);
 
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
     shadow->setBlurRadius(20);
     shadow->setColor(QColor(0, 0, 0, 150));
     shadow->setOffset(0, 0);
-    windowContent->setGraphicsEffect(shadow);
+    m_windowContent->setGraphicsEffect(shadow);
 
     m_queuePanel = new QueuePanel(this);
     m_queuePanel->setVisible(false);

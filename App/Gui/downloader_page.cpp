@@ -39,7 +39,7 @@ void DownloaderPage::setupUi() {
     mainLayout->setContentsMargins(30, 40, 30, 20);
     mainLayout->setSpacing(20);
 
-auto *headerLayout = new QHBoxLayout();
+    auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
     QPixmap icon(":/Resources/Icons/downloader.png");
     QPainter p(&icon);
@@ -147,7 +147,12 @@ auto *headerLayout = new QHBoxLayout();
     rootLayout->addWidget(scrollArea);
 
     auto *bottomContainer = new QWidget(this);
-    bottomContainer->setStyleSheet("background-color: #181818;");
+    bottomContainer->setStyleSheet(
+        "background-color: rgba(20, 20, 30, 180);"
+        "border-top: 1px solid rgba(255, 255, 255, 20);"
+        "border-bottom-left-radius: 15px;"
+        "border-bottom-right-radius: 15px;"
+    );
     auto *bottomLayout = new QHBoxLayout(bottomContainer);
     bottomLayout->setContentsMargins(30, 20, 30, 20);
     bottomLayout->setSpacing(15);

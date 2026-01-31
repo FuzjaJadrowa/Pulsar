@@ -13,6 +13,10 @@
 #include <QGraphicsDropShadowEffect>
 #include <QWindow>
 #include <QApplication>
+#include <QTimer>
+#include <QPainter>
+#include <QPainterPath>
+#include <QtMath>
 
 #include "queue_panel.h"
 #include "../Core/popup.h"
@@ -79,7 +83,7 @@ class Container : public QWidget {
 public:
     explicit Container(QWidget *parent = nullptr);
 
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -88,11 +92,13 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
     void resizeEvent(QResizeEvent *event) override;
+
 private slots:
     void switchPage(int index);
     void toggleMaximize();
     void toggleQueuePanel();
     void onDownloadRequested();
+    void updateBackground();
 
 private:
     void setupUi();
@@ -100,10 +106,12 @@ private:
     void initLogic();
     Qt::Edges getEdges(const QPoint &pos);
     void updateCursorShape(const QPoint &pos);
+    void paintBackground(QPainter *painter, const QRect &rect);
 
     Popup *m_popup;
 
     QWidget *m_titleBar;
+    QWidget *m_windowContent;
     QStackedWidget *m_stackedWidget;
     QHBoxLayout *m_titleLayout;
 
@@ -120,6 +128,9 @@ private:
     QPoint m_dragPosition;
     bool m_isDragging = false;
     int m_borderWidth = 8;
+
+    QTimer *m_bgTimer;
+    float m_animProgress;
 };
 
 #endif
