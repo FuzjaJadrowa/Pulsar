@@ -22,7 +22,6 @@ ConsolePage::ConsolePage(QWidget *parent) : QWidget(parent) {
 
     consoleOutput = new QTextEdit(this);
     consoleOutput->setReadOnly(true);
-    // Styl konsolowy
     consoleOutput->setStyleSheet(
         "QTextEdit { "
         "   background-color: #1a1a1a; "

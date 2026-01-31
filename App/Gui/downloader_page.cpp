@@ -39,7 +39,7 @@ void DownloaderPage::setupUi() {
     mainLayout->setContentsMargins(30, 40, 30, 20);
     mainLayout->setSpacing(20);
 
-    auto *headerLayout = new QHBoxLayout();
+auto *headerLayout = new QHBoxLayout();
     auto *iconLabel = new QLabel(this);
     QPixmap icon(":/Resources/Icons/downloader.png");
     QPainter p(&icon);
@@ -291,7 +291,6 @@ void DownloaderPage::onAddToQueueClicked() {
     urlInput->clear();
 }
 
-void DownloaderPage::onStopClicked() {}
 void DownloaderPage::onBrowseClicked() {
     QString d = QFileDialog::getExistingDirectory(this, "Select Directory", pathInput->text());
     if (!d.isEmpty()) pathInput->setText(d);

@@ -30,7 +30,6 @@ private slots:
     void onBrowseClicked();
     void onAudioOnlyToggled(bool checked);
     void onStartClicked();
-    void onStopClicked();
     void onAddToQueueClicked();
     void onSubsOptionsChanged();
     void updateCommandPreview();

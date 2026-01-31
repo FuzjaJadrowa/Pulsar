@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QMouseEvent>
 #include <QGraphicsBlurEffect>
+#include <QPixmap>
 #include "components.h"
 #include "../Core/queue_manager.h"
 
@@ -58,6 +59,7 @@ public:
     void refresh();
     QueueItemWidget* findWidgetById(const QString &id);
     int calculateContentHeight() const;
+    void captureAndBlurBackground();
 
 protected:
     void paintEvent(QPaintEvent *e) override;
@@ -85,6 +87,7 @@ private:
     QPushButton *m_btnNext;
     QLabel *m_pageLabel;
 
+    QPixmap m_blurredBg;
     int m_currentPage = 0;
     const int ITEMS_PER_PAGE = 4;
 };

@@ -3,8 +3,8 @@
 #include "../Core/config_manager.h"
 #include <QApplication>
 
-SettingsPage::SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent)
-    : QWidget(parent), popup(popup), m_installer(installer) {
+SettingsPage::SettingsPage(Popup *popup, QWidget *parent)
+    : QWidget(parent), popup(popup) {
 
     setupUi();
 }
@@ -23,7 +23,8 @@ void SettingsPage::setupUi() {
     rootLayout->setContentsMargins(0, 0, 0, 0);
 
     auto *scrollArea = new QScrollArea(this);
-    scrollArea->setWidgetResizable(true);  auto *scrollContent = new QWidget();
+    scrollArea->setWidgetResizable(true);
+    auto *scrollContent = new QWidget();
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setAlignment(Qt::AlignTop);
     mainLayout->setContentsMargins(20, 40, 40, 40);
@@ -114,18 +115,6 @@ void SettingsPage::setupUi() {
     connect(defAudioQual, &QComboBox::currentTextChanged, this, &SettingsPage::onAudioQualityChanged);
     mainLayout->addLayout(createSection("Default Audio Quality", defAudioQual));
 
-    auto *reqLabel = new QLabel("Requirements", this);
-    reqLabel->setObjectName("SectionHeader");
-    mainLayout->addWidget(reqLabel);
-
-    btnFfmpeg = new AnimatedButton("Check Update", this, QColor("#2d2d2d"), QColor("#3d3d3d"));
-    connect(btnFfmpeg, &QPushButton::clicked, this, &SettingsPage::checkFfmpeg);
-    mainLayout->addLayout(createReqRow("FFmpeg", btnFfmpeg));
-
-    btnYtdlp = new AnimatedButton("Check Update", this, QColor("#2d2d2d"), QColor("#3d3d3d"));
-    connect(btnYtdlp, &QPushButton::clicked, this, &SettingsPage::checkYtdlp);
-    mainLayout->addLayout(createReqRow("yt-dlp", btnYtdlp));
-
     auto *suppLabel = new QLabel("Support", this);
     suppLabel->setObjectName("SectionHeader");
     mainLayout->addWidget(suppLabel);
@@ -144,14 +133,6 @@ QHBoxLayout* SettingsPage::createSection(const QString &title, QWidget *widget) 
     layout->addWidget(new QLabel(title, this));
     layout->addStretch();
     layout->addWidget(widget);
-    return layout;
-}
-
-QHBoxLayout* SettingsPage::createReqRow(const QString &name, QPushButton *btn) {
-    auto *layout = new QHBoxLayout();
-    layout->addWidget(new QLabel(name, this));
-    layout->addStretch();
-    layout->addWidget(btn);
     return layout;
 }
 
@@ -176,6 +157,4 @@ void SettingsPage::onVideoFormatChanged(const QString &val) { ConfigManager::ins
 void SettingsPage::onVideoQualityChanged(const QString &val) { ConfigManager::instance().setVideoQuality(val); }
 void SettingsPage::onAudioFormatChanged(const QString &val) { ConfigManager::instance().setAudioFormat(val); }
 void SettingsPage::onAudioQualityChanged(const QString &val) { ConfigManager::instance().setAudioQuality(val); }
-void SettingsPage::checkFfmpeg() { m_installer->checkForUpdates("ffmpeg", true); }
-void SettingsPage::checkYtdlp() { m_installer->checkForUpdates("yt-dlp", true); }
 void SettingsPage::onSupportClicked() { QDesktopServices::openUrl(QUrl("https://tipply.pl/@fuzjajadrowa")); }

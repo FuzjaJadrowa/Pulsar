@@ -47,7 +47,7 @@ void NavButton::setActive(bool active) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutBack);
         widthAnim->setStartValue(width());
-widthAnim->setEndValue(active ? 150 : 50);
+        widthAnim->setEndValue(active ? 130 : 50);
         group->addAnimation(widthAnim);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
@@ -113,7 +113,7 @@ void NavButton::paintEvent(QPaintEvent *event) {
         iconPainter.end();
         p.drawPixmap(margin, iconY, iconSize, iconSize, tintedIcon);
     }
-    if (width() > 80) {
+    if (width() > 60) {
         p.setPen(Qt::white);
         QFont f = font();
         f.setBold(true);
@@ -247,8 +247,6 @@ bool Container::eventFilter(QObject *obj, QEvent *event) {
 
 void Container::initLogic() {
     m_popup = new Popup(this);
-    m_installer = new InstallerWindow(m_popup, this);
-    m_appUpdater = new AppUpdater(m_popup, this);
 }
 
 void Container::setupUi() {
@@ -319,7 +317,7 @@ void Container::setupUi() {
     m_stackedWidget = new QStackedWidget(this);
     auto *pageDownloader = new DownloaderPage(this);
     auto *pageConsole = new ConsolePage(this);
-    auto *pageSettings = new SettingsPage(m_popup, m_installer, this);
+    auto *pageSettings = new SettingsPage(m_popup, this);
 
     m_stackedWidget->addWidget(pageDownloader);
     m_stackedWidget->addWidget(pageSettings);
@@ -390,7 +388,8 @@ void Container::toggleQueuePanel() {
 
         m_btnQueue->setActive(false);
     } else {
-        m_queuePanel->setGeometry(x, y - 20, w, finalH);
+        m_queuePanel->captureAndBlurBackground();
+
         m_queuePanel->setVisible(true);
         m_queuePanel->raise();
 
@@ -476,24 +475,6 @@ void Container::setupConnections() {
              QResizeEvent re(size(), size());
              resizeEvent(&re);
         }
-    });
-
-    connect(m_installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
-        m_popup->showMessage("Info", appName + " is already up to date.", Popup::Info, Popup::Temporary);
-    });
-     connect(m_installer, &InstallerWindow::networkError, this, [this](bool isRateLimit){
-         if (isRateLimit) m_popup->showMessage("Error", "Too many requests (GitHub API).", Popup::Error, Popup::Temporary);
-         else m_popup->showMessage("Network Error", "No internet connection.", Popup::Error, Popup::Temporary);
-    });
-     connect(m_installer, &InstallerWindow::updateAvailable, this, [this](const QString &appName){
-         m_popup->showMessage("Update Available", "New version of " + appName + " is available.", Popup::Info, Popup::Permanent, "Update");
-         disconnect(m_popup, &Popup::actionClicked, nullptr, nullptr);
-         connect(m_popup, &Popup::actionClicked, [this, appName](){ m_installer->startUpdateProcess(appName); });
-    });
-    connect(m_appUpdater, &AppUpdater::updateAvailable, this, [this](const QString &version){
-        m_popup->showMessage("App Update", "Version " + version + " is available!", Popup::Success, Popup::Permanent, "Update Now");
-        disconnect(m_popup, &Popup::actionClicked, nullptr, nullptr);
-        connect(m_popup, &Popup::actionClicked, [this](){ m_appUpdater->startAppUpdate(); });
     });
 
     connect(&QueueManager::instance(), &QueueManager::itemFinished, this, [this](const QString &title, bool success){

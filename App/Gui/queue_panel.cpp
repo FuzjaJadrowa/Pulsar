@@ -4,6 +4,9 @@
 #include <QPropertyAnimation>
 #include <QTimer>
 #include <QParallelAnimationGroup>
+#include <QGraphicsBlurEffect>
+#include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
 
 QueueControlBtn::QueueControlBtn(Type type, QWidget *parent)
     : QPushButton(parent), m_type(type)
@@ -83,7 +86,7 @@ QueueItemWidget::QueueItemWidget(const QueueItem &item, QWidget *parent) : QWidg
 
     m_progressBg = new QWidget(this);
     m_progressBg->setFixedHeight(4);
-    m_progressBg->setStyleSheet("background-color: #444; border-radius: 2px;");
+    m_progressBg->setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border-radius: 2px;");
 
     m_progressBar = new QWidget(m_progressBg);
     m_progressBar->setFixedHeight(4);
@@ -134,7 +137,7 @@ QueueItemWidget::QueueItemWidget(const QueueItem &item, QWidget *parent) : QWidg
 void QueueItemWidget::paintEvent(QPaintEvent *e) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(QColor(255, 255, 255, 10));
+    p.setBrush(QColor(255, 255, 255, 15));
     p.setPen(Qt::NoPen);
     p.drawRoundedRect(rect(), 8, 8);
 }
@@ -281,6 +284,27 @@ QueuePanel::QueuePanel(QWidget *parent) : QWidget(parent) {
     refresh();
 }
 
+void QueuePanel::captureAndBlurBackground() {
+    if (!parentWidget()) return;
+
+    QPixmap parentPix(parentWidget()->size());
+    parentWidget()->render(&parentPix);
+
+    QGraphicsScene scene;
+    QGraphicsPixmapItem item;
+    item.setPixmap(parentPix);
+    auto *blur = new QGraphicsBlurEffect;
+    blur->setBlurRadius(40);
+    blur->setBlurHints(QGraphicsBlurEffect::PerformanceHint);
+    item.setGraphicsEffect(blur);
+    scene.addItem(&item);
+
+    m_blurredBg = QPixmap(parentPix.size());
+    m_blurredBg.fill(Qt::transparent);
+    QPainter ptr(&m_blurredBg);
+    scene.render(&ptr, QRectF(), parentPix.rect());
+}
+
 QueueItemWidget* QueuePanel::findWidgetById(const QString &id) {
     for(auto *w : m_itemsContainer->findChildren<QueueItemWidget*>()) {
         if(w->getItemId() == id) return w;
@@ -302,9 +326,23 @@ void QueuePanel::removeWithAnimation(const QString &id) {
 void QueuePanel::paintEvent(QPaintEvent *e) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(QColor(25, 25, 25, 250));
+
+    QPainterPath path;
+    path.addRoundedRect(rect(), 15, 15);
+
+    p.save();
+    p.setClipPath(path);
+
+    if (!m_blurredBg.isNull()) {
+        p.drawPixmap(0, 0, m_blurredBg, x(), y(), width(), height());
+    }
+
+    // Opcjonalne bardzo lekkie przyciemnienie dla czytelności tekstu (bez koloru)
+    p.setBrush(QColor(0, 0, 0, 40));
     p.setPen(Qt::NoPen);
-    p.drawRoundedRect(rect(), 15, 15);
+    p.drawRect(rect());
+
+    p.restore();
 }
 
 int QueuePanel::calculateContentHeight() const {
@@ -340,7 +378,7 @@ void QueuePanel::refresh() {
 
     if (total == 0) {
         auto *l = new QLabel("Queue is empty", this);
-        l->setStyleSheet("color: #aaa; margin-top: 20px;");
+        l->setStyleSheet("color: #aaa; margin-top: 20px; background: transparent;");
         l->setAlignment(Qt::AlignCenter);
         m_itemsLayout->addWidget(l);
     } else {

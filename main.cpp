@@ -2,7 +2,7 @@
 #include <QFontDatabase>
 #include <QTimer>
 #include "App/Gui/container.h"
-#include "App/Gui/components.h"
+#include "App/Core/splash_screen.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -15,22 +15,17 @@ int main(int argc, char *argv[]) {
 
     app.setStyleSheet(StyleHelper::getGlobalStyle());
 
-    Container w;
+    SplashScreen *splash = new SplashScreen();
 
-    if (!w.installer()->hasRequirements()) {
-        w.installer()->startMissingFileDownload();
-        if (w.installer()->exec() != QDialog::Accepted) { return 0; }
-        }
-
-    w.show();
-
-    QTimer::singleShot(2000, w.installer(), [&w]() {
-        w.installer()->checkForUpdates("yt-dlp", false);
+    QObject::connect(splash, &SplashScreen::finished, [splash]() {
+        splash->close();
+        splash->deleteLater();
+        
+        Container *w = new Container();
+        w->show();
     });
 
-    QTimer::singleShot(3000, w.appUpdater(), [&w]() {
-        w.appUpdater()->checkForAppUpdates(false);
-    });
+    splash->startProcess();
 
     return app.exec();
 }

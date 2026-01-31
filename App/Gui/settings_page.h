@@ -16,12 +16,11 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include "../Core/popup.h"
-#include "../Core/installer_window.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT
 public:
-    explicit SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent = nullptr);
+    explicit SettingsPage(Popup *popup, QWidget *parent = nullptr);
     void updateThemeProperty();
 
     signals:
@@ -34,8 +33,6 @@ private slots:
     void onThemeChanged(const QString &theme);
     void onLangChanged(const QString &lang);
     void onCloseBehaviorChanged(QAbstractButton *btn);
-    void checkFfmpeg();
-    void checkYtdlp();
     void onCookiesChanged(const QString &browser);
     void onGeoBypassToggled(bool checked);
     void onVideoFormatChanged(const QString &val);
@@ -46,11 +43,8 @@ private slots:
 
 private:
     Popup *popup;
-    InstallerWindow *m_installer;
-    QPushButton *btnFfmpeg, *btnYtdlp;
     void setupUi();
     QHBoxLayout* createSection(const QString &title, QWidget *widget);
-    QHBoxLayout* createReqRow(const QString &name, QPushButton *btn);
     QVBoxLayout* createVerticalCombo(const QString &label, QComboBox *combo);
 };
 

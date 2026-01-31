@@ -16,8 +16,6 @@
 
 #include "queue_panel.h"
 #include "../Core/popup.h"
-#include "../Core/installer_window.h"
-#include "../Core/app_updater.h"
 
 class NavButton : public QPushButton {
     Q_OBJECT
@@ -83,9 +81,6 @@ public:
 
     bool eventFilter(QObject *obj, QEvent *event);
 
-    InstallerWindow* installer() const { return m_installer; }
-    AppUpdater* appUpdater() const { return m_appUpdater; }
-
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -107,8 +102,6 @@ private:
     void updateCursorShape(const QPoint &pos);
 
     Popup *m_popup;
-    InstallerWindow *m_installer;
-    AppUpdater *m_appUpdater;
 
     QWidget *m_titleBar;
     QStackedWidget *m_stackedWidget;

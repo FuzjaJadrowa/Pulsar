@@ -35,13 +35,29 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="buggy queue">
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="mniej buggy queue">
+      <change afterPath="$PROJECT_DIR$/App/Core/splash_screen.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Core/splash_screen.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/queue_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/queue_manager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/queue_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/queue_manager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/app_updater.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/app_updater.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/installer_window.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/installer_window.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/popup.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/popup.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/popup.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/container.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/container.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/queue_panel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/queue_panel.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/queue_panel.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/queue_panel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +176,7 @@
       <workItem from="1769717665620" duration="249000" />
       <workItem from="1769781478527" duration="19765000" />
       <workItem from="1769814135963" duration="1335000" />
-      <workItem from="1769845970962" duration="14632000" />
+      <workItem from="1769845970962" duration="25505000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -218,7 +234,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769859206878</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="mniej buggy queue">
+      <option name="closed" value="true" />
+      <created>1769864451496</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1769864451496</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -245,6 +269,7 @@
     <MESSAGE value="gui poki co takie se. ale bedzie dobrze xD" />
     <MESSAGE value="możliwe że do publica zmienie czcionke.&#10;Dodane: 3/7" />
     <MESSAGE value="buggy queue" />
-    <option name="LAST_COMMIT_MESSAGE" value="buggy queue" />
+    <MESSAGE value="mniej buggy queue" />
+    <option name="LAST_COMMIT_MESSAGE" value="mniej buggy queue" />
   </component>
 </project>
