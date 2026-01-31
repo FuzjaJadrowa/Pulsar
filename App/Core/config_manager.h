@@ -2,9 +2,9 @@
 #define CONFIG_MANAGER_H
 
 #include <QString>
-#include <QJsonObject>
 #include <QDir>
 #include <QVariant>
+#include <QSettings>
 
 class ConfigManager {
 public:
@@ -44,9 +44,8 @@ public:
 
 private:
     ConfigManager();
-    QJsonObject configData;
-    QString configPath;
-
+    ~ConfigManager();
+    QSettings* settings;
     void ensureDataDir();
 };
 

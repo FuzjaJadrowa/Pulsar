@@ -19,10 +19,6 @@
 #pragma comment(lib, "dwmapi.lib")
 #endif
 
-// --- (NavButton i WindowControlBtn bez zmian - pozostawić jak były) ---
-// (Dla czytelności wklejam tylko zmienioną klasę Container i konstruktory przycisków jeśli potrzebne,
-// ale zakładam, że NavButton i WindowControlBtn są takie same jak w poprzednim pliku components.cpp/container.cpp)
-
 NavButton::NavButton(const QString &text, const QString &iconPath, bool isExpandable, QWidget *parent)
     : QPushButton(parent), m_isExpandable(isExpandable), m_text(text)
 {
@@ -51,7 +47,7 @@ void NavButton::setActive(bool active) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutBack);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(active ? 130 : 50);
+        widthAnim->setEndValue(active ? 90 : 50);
         group->addAnimation(widthAnim);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
@@ -68,7 +64,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutCubic);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(130);
+        widthAnim->setEndValue(90);
         widthAnim->start(QAbstractAnimation::DeleteWhenStopped);
     }
     QPushButton::enterEvent(event);
@@ -199,11 +195,10 @@ void WindowControlBtn::paintEvent(QPaintEvent *event) {
 }
 
 Container::Container(QWidget *parent) : QWidget(parent) {
-    // WAŻNE: Ustawiamy tylko flagę Qt::Window. Usuwamy Qt::FramelessWindowHint,
-    // aby zachować animacje systemowe. Obsługa nativeEvent oraz DWM usunie ramki wizualnie.
     setWindowFlags(Qt::Window);
     setAttribute(Qt::WA_TranslucentBackground);
     setMouseTracking(true);
+    qApp->installEventFilter(this);
 
     resize(1000, 700);
     setMinimumSize(950, 650);
@@ -214,20 +209,40 @@ Container::Container(QWidget *parent) : QWidget(parent) {
 
     #ifdef Q_OS_WIN
     if (auto *hwnd = reinterpret_cast<HWND>(winId())) {
-        // Dodajemy style systemowe potrzebne do animacji
         LONG style = GetWindowLong(hwnd, GWL_STYLE);
         SetWindowLong(hwnd, GWL_STYLE, style | WS_THICKFRAME | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
-
-        // KLUCZOWA POPRAWKA DLA PRZEZROCZYSTYCH KRAWĘDZI:
-        // Rozszerzamy ramkę DWM na cały obszar klienta. Dzięki temu systemowa ramka
-        // jest "rysowana" na obszarze, który mamy przezroczysty, co skutkuje brakiem widocznej ramki
-        // przy zachowaniu cieni i animacji.
-        MARGINS margins = {-1, -1, -1, -1}; // -1 oznacza cały obszar
+        MARGINS margins = {-1, -1, -1, -1};
         DwmExtendFrameIntoClientArea(hwnd, &margins);
     }
     #endif
 
     m_btnDownloader->click();
+
+    bool qEmpty = QueueManager::instance().isEmpty();
+    m_btnQueue->setVisible(!qEmpty);
+    m_btnQueue->setFixedWidth(!qEmpty ? 50 : 0);
+}
+
+bool Container::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::MouseButtonPress) {
+        if (m_queuePanel->isVisible()) {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+            QPoint localPos = mapFromGlobal(mouseEvent->globalPosition().toPoint());
+
+            if (!m_queuePanel->geometry().contains(localPos) &&
+                !m_btnQueue->geometry().contains(m_btnQueue->mapFrom(this, localPos))) {
+
+                QRect globalPanelRect(m_queuePanel->mapToGlobal(QPoint(0,0)), m_queuePanel->size());
+                QRect globalBtnRect(m_btnQueue->mapToGlobal(QPoint(0,0)), m_btnQueue->size());
+
+                if(!globalPanelRect.contains(mouseEvent->globalPosition().toPoint()) &&
+                   !globalBtnRect.contains(mouseEvent->globalPosition().toPoint())) {
+                       toggleQueuePanel();
+                }
+            }
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 void Container::initLogic() {
@@ -238,8 +253,6 @@ void Container::initLogic() {
 
 void Container::setupUi() {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    // Marginesy muszą być dopasowane, aby treść nie wchodziła pod systemowe krawędzie
-    // przy maksymalizacji, ale nativeEvent zazwyczaj to koryguje.
     mainLayout->setContentsMargins(10, 10, 10, 10);
 
     QWidget *windowContent = new QWidget(this);
@@ -260,51 +273,49 @@ void Container::setupUi() {
 
     m_titleBar = new QWidget(this);
     m_titleBar->setFixedHeight(80);
-    QHBoxLayout *titleLayout = new QHBoxLayout(m_titleBar);
-    titleLayout->setContentsMargins(20, 10, 20, 10);
-    titleLayout->setSpacing(15);
+    m_titleLayout = new QHBoxLayout(m_titleBar);
+    m_titleLayout->setContentsMargins(20, 10, 20, 10);
+    m_titleLayout->setSpacing(15);
 
     QLabel *logoLabel = new QLabel(this);
     QPixmap logoPix(":/Resources/Icons/icon_full.png");
     logoLabel->setPixmap(logoPix.scaled(200, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    titleLayout->addWidget(logoLabel);
+    m_titleLayout->addWidget(logoLabel);
 
     m_btnDownloader = new NavButton("Downloader", ":/Resources/Icons/downloader.png", true);
-    titleLayout->addWidget(m_btnDownloader);
+    m_titleLayout->addWidget(m_btnDownloader);
 
-    titleLayout->addStretch();
+    m_titleLayout->addStretch();
 
     m_btnConsole = new NavButton("Console", ":/Resources/Icons/console.png", false);
-    m_btnSettings = new NavButton("Settings", ":/Resources/Icons/settings.png", false);
+    m_titleLayout->addWidget(m_btnConsole);
 
-    titleLayout->addWidget(m_btnConsole);
-    titleLayout->addWidget(m_btnSettings);
+    m_btnSettings = new NavButton("Settings", ":/Resources/Icons/settings.png", false);
+    m_titleLayout->addWidget(m_btnSettings);
+
+    m_btnQueue = new NavButton("Queue", ":/Resources/Icons/queue.png", true);
+    m_btnQueue->setVisible(false);
+    m_titleLayout->addWidget(m_btnQueue);
 
     QWidget *controlsContainer = new QWidget(this);
     controlsContainer->setFixedSize(145, 40);
     controlsContainer->setStyleSheet("background-color: transparent; border-radius: 15px;");
-
     QHBoxLayout *controlsLayout = new QHBoxLayout(controlsContainer);
     controlsLayout->setContentsMargins(0, 0, 0, 0);
     controlsLayout->setSpacing(5);
-
     WindowControlBtn *btnMin = new WindowControlBtn(WindowControlBtn::Minimize);
     m_btnMax = new WindowControlBtn(WindowControlBtn::Maximize);
     WindowControlBtn *btnClose = new WindowControlBtn(WindowControlBtn::Close);
-
     connect(btnMin, &QPushButton::clicked, this, &QWidget::showMinimized);
     connect(m_btnMax, &QPushButton::clicked, this, &Container::toggleMaximize);
-    connect(btnClose, &QPushButton::clicked, this, &Container::close); // Używamy close() kontenera
-
+    connect(btnClose, &QPushButton::clicked, this, &Container::close);
     controlsLayout->addWidget(btnMin);
     controlsLayout->addWidget(m_btnMax);
     controlsLayout->addWidget(btnClose);
-
-    titleLayout->addWidget(controlsContainer);
+    m_titleLayout->addWidget(controlsContainer);
     contentLayout->addWidget(m_titleBar);
 
     m_stackedWidget = new QStackedWidget(this);
-
     auto *pageDownloader = new DownloaderPage(this);
     auto *pageConsole = new ConsolePage(this);
     auto *pageSettings = new SettingsPage(m_popup, m_installer, this);
@@ -314,6 +325,9 @@ void Container::setupUi() {
     m_stackedWidget->addWidget(pageConsole);
 
     connect(pageDownloader->getDownloader(), &Downloader::outputLog, pageConsole, &ConsolePage::appendLog);
+    connect(&QueueManager::instance(), &QueueManager::logMessage, pageConsole, &ConsolePage::appendLog);
+
+    connect(pageDownloader, &DownloaderPage::downloadRequested, this, &Container::onDownloadRequested);
 
     contentLayout->addWidget(m_stackedWidget);
     mainLayout->addWidget(windowContent);
@@ -323,24 +337,130 @@ void Container::setupUi() {
     shadow->setColor(QColor(0, 0, 0, 150));
     shadow->setOffset(0, 0);
     windowContent->setGraphicsEffect(shadow);
+
+    m_queuePanel = new QueuePanel(this);
+    m_queuePanel->setVisible(false);
 }
 
-void Container::toggleMaximize() {
-    if (isMaximized()) {
-        showNormal();
-        m_btnMax->setType(WindowControlBtn::Maximize);
-    } else {
-        showMaximized();
-        m_btnMax->setType(WindowControlBtn::Maximize);
+void Container::resizeEvent(QResizeEvent *event) {
+    if (m_queuePanel->isVisible()) {
+        int w = m_queuePanel->width();
+        int x = m_titleBar->x() + m_btnQueue->x() + m_btnQueue->width() - w;
+        QPoint btnPos = m_btnQueue->mapTo(this, QPoint(0,0));
+        x = btnPos.x() + m_btnQueue->width() - w;
+
+        if (x + w > width()) x = width() - w - 10;
+        int y = m_titleBar->height() + 5;
+        m_queuePanel->move(x, y);
+        int h = qMin(500, height() - y - 20);
+        m_queuePanel->setFixedHeight(h);
     }
+    QWidget::resizeEvent(event);
+}
+
+void Container::toggleQueuePanel() {
+    auto *group = new QParallelAnimationGroup(this);
+
+    if (m_queuePanel->isVisible()) {
+        auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
+        animOpacity->setDuration(250);
+        animOpacity->setStartValue(1.0);
+        animOpacity->setEndValue(0.0);
+
+        auto *animPos = new QPropertyAnimation(m_queuePanel, "pos");
+        animPos->setDuration(250);
+        animPos->setStartValue(m_queuePanel->pos());
+        animPos->setEndValue(m_queuePanel->pos() - QPoint(0, 20));
+        animPos->setEasingCurve(QEasingCurve::InCubic);
+
+        group->addAnimation(animOpacity);
+        group->addAnimation(animPos);
+
+        connect(group, &QAbstractAnimation::finished, [this](){
+             m_queuePanel->hide();
+             m_queuePanel->setWindowOpacity(1.0);
+        });
+
+        m_btnQueue->setActive(false);
+    } else {
+        int w = m_queuePanel->width();
+        QPoint btnPos = m_btnQueue->mapTo(this, QPoint(0,0));
+        int x = btnPos.x() + m_btnQueue->width() - w;
+        if (x + w > width()) x = width() - w - 10;
+
+        int y = btnPos.y() + m_btnQueue->height() + 5;
+        int h = qMin(500, height() - y - 20);
+
+        m_queuePanel->setGeometry(x, y - 20, w, h);
+        m_queuePanel->setVisible(true);
+        m_queuePanel->raise();
+
+        auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
+        animOpacity->setDuration(250);
+        animOpacity->setStartValue(0.0);
+        animOpacity->setEndValue(1.0);
+
+        auto *animPos = new QPropertyAnimation(m_queuePanel, "pos");
+        animPos->setDuration(250);
+        animPos->setStartValue(QPoint(x, y - 20));
+        animPos->setEndValue(QPoint(x, y));
+        animPos->setEasingCurve(QEasingCurve::OutCubic);
+
+        group->addAnimation(animOpacity);
+        group->addAnimation(animPos);
+
+        m_btnQueue->setActive(true);
+    }
+    group->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void Container::onDownloadRequested() {
+    if (!m_btnQueue->isVisible()) {
+        m_btnQueue->setVisible(true);
+    }
+
+    auto *ball = new QWidget(this);
+    ball->setFixedSize(20, 20);
+    ball->setStyleSheet("background-color: #00e676; border-radius: 10px;");
+    ball->show();
+
+    auto *dlPage = qobject_cast<DownloaderPage*>(m_stackedWidget->widget(0));
+    QPoint startGlobal = dlPage ? dlPage->getStartBtnPos() : rect().center();
+    QPoint startLocal = mapFromGlobal(startGlobal);
+
+    QPoint endLocal = m_btnQueue->mapTo(this, QPoint(m_btnQueue->width()/2, m_btnQueue->height()/2));
+
+    auto *anim = new QPropertyAnimation(ball, "pos");
+    anim->setDuration(600);
+    anim->setStartValue(startLocal);
+    anim->setEndValue(endLocal);
+    anim->setEasingCurve(QEasingCurve::InOutQuad);
+
+    connect(anim, &QPropertyAnimation::finished, [ball, this](){
+        ball->deleteLater();
+        m_btnQueue->setActive(true);
+        QTimer::singleShot(800, [this](){
+            if(!m_queuePanel->isVisible()) m_btnQueue->setActive(false);
+        });
+    });
+
+    anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void Container::setupConnections() {
     connect(m_btnDownloader, &QPushButton::clicked, [this](){ switchPage(0); });
     connect(m_btnSettings, &QPushButton::clicked, [this](){ switchPage(1); });
     connect(m_btnConsole, &QPushButton::clicked, [this](){ switchPage(2); });
+    connect(m_btnQueue, &QPushButton::clicked, this, &Container::toggleQueuePanel);
 
-     connect(m_installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
+    connect(&QueueManager::instance(), &QueueManager::queueUpdated, this, [this](){
+        bool empty = QueueManager::instance().isEmpty();
+        if (!empty && !m_btnQueue->isVisible()) {
+             m_btnQueue->setVisible(true);
+        }
+    });
+
+    connect(m_installer, &InstallerWindow::upToDate, this, [this](const QString &appName){
         m_popup->showMessage("Info", appName + " is already up to date.", Popup::Info, Popup::Temporary);
     });
      connect(m_installer, &InstallerWindow::networkError, this, [this](bool isRateLimit){
@@ -360,6 +480,7 @@ void Container::setupConnections() {
 }
 
 void Container::switchPage(int index) {
+    if (m_queuePanel->isVisible()) toggleQueuePanel();
     m_stackedWidget->setCurrentIndex(index);
     m_btnDownloader->setActive(index == 0);
     m_btnSettings->setActive(index == 1);
@@ -369,7 +490,7 @@ void Container::switchPage(int index) {
 void Container::closeEvent(QCloseEvent *event) {
     auto& config = ConfigManager::instance();
     QString behavior = config.getCloseBehavior();
-    if (behavior == "Hide" && QSystemTrayIcon::isSystemTrayAvailable()) {
+    if (behavior == "Minimize" && QSystemTrayIcon::isSystemTrayAvailable()) {
         this->hide();
         event->ignore();
     } else {
@@ -377,7 +498,15 @@ void Container::closeEvent(QCloseEvent *event) {
         QApplication::quit();
     }
 }
-
+void Container::toggleMaximize() {
+    if (isMaximized()) {
+        showNormal();
+        m_btnMax->setType(WindowControlBtn::Maximize);
+    } else {
+        showMaximized();
+        m_btnMax->setType(WindowControlBtn::Maximize);
+    }
+}
 Qt::Edges Container::getEdges(const QPoint &pos) {
     Qt::Edges edges = Qt::Edges();
     int m = m_borderWidth;
@@ -391,7 +520,6 @@ Qt::Edges Container::getEdges(const QPoint &pos) {
     if (right) edges |= Qt::RightEdge;
     return edges;
 }
-
 void Container::updateCursorShape(const QPoint &pos) {
     if (isMaximized()) {
         setCursor(Qt::ArrowCursor);
@@ -410,7 +538,6 @@ void Container::updateCursorShape(const QPoint &pos) {
     else if (left || right) setCursor(Qt::SizeHorCursor);
     else setCursor(Qt::ArrowCursor);
 }
-
 void Container::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         Qt::Edges edges = getEdges(event->position().toPoint());
@@ -425,25 +552,20 @@ void Container::mousePressEvent(QMouseEvent *event) {
     }
     event->accept();
 }
-
 void Container::mouseMoveEvent(QMouseEvent *event) {
     if (!m_isDragging && !isMaximized()) updateCursorShape(event->position().toPoint());
     if (m_isDragging && (event->buttons() & Qt::LeftButton)) move(event->globalPosition().toPoint() - m_dragPosition);
     event->accept();
 }
-
 void Container::mouseReleaseEvent(QMouseEvent *event) {
     m_isDragging = false;
     if (!rect().contains(event->position().toPoint())) setCursor(Qt::ArrowCursor);
     QWidget::mouseReleaseEvent(event);
 }
-
-
 bool Container::nativeEvent(const QByteArray &eventType, void *message, qintptr *result) {
 #ifdef Q_OS_WIN
     if (eventType == "windows_generic_MSG") {
         MSG* msg = static_cast<MSG*>(message);
-
         if (msg->message == WM_NCCALCSIZE && msg->wParam == TRUE) {
             *result = 0;
             return true;

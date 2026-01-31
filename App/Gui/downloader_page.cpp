@@ -1,6 +1,7 @@
 #include "downloader_page.h"
 #include "components.h"
 #include "../Core/config_manager.h"
+#include "../Core/queue_manager.h"
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QFileDialog>
@@ -11,14 +12,17 @@
 DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
     popup = new Popup(this);
-
     setupUi();
-
-    connect(downloader, &Downloader::finished, this, &DownloaderPage::onDownloadFinished);
-    connect(downloader, &Downloader::progressUpdated, this, &DownloaderPage::onProgressUpdated);
 }
 
 void DownloaderPage::updateThemeProperty() {}
+
+QPoint DownloaderPage::getStartBtnPos() const {
+    if (m_lastClickedBtn) {
+        return m_lastClickedBtn->mapToGlobal(QPoint(m_lastClickedBtn->width()/2, m_lastClickedBtn->height()/2));
+    }
+    return startBtn->mapToGlobal(QPoint(startBtn->width()/2, startBtn->height()/2));
+}
 
 void DownloaderPage::setupUi() {
     auto *rootLayout = new QVBoxLayout(this);
@@ -42,7 +46,6 @@ void DownloaderPage::setupUi() {
     p.setCompositionMode(QPainter::CompositionMode_SourceIn);
     p.fillRect(icon.rect(), Qt::white);
     p.end();
-
     iconLabel->setPixmap(icon.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *header = new QLabel("Downloader", this);
     header->setObjectName("PageTitle");
@@ -63,7 +66,7 @@ void DownloaderPage::setupUi() {
     inputLayout->addWidget(browseBtn, 0);
     mainLayout->addLayout(inputLayout);
 
-     auto *optionsGroup = new QWidget(this);
+    auto *optionsGroup = new QWidget(this);
     optionsGroup->setStyleSheet("background-color: #1e1e1e; border-radius: 10px; padding: 10px;");
     auto *gridLayout = new QGridLayout(optionsGroup);
     videoFormatCombo = new QComboBox(this);
@@ -89,22 +92,18 @@ void DownloaderPage::setupUi() {
 
     auto *advancedRow = new QHBoxLayout();
     auto *subsLayout = new QVBoxLayout();
-
     downloadSubsCheck = new AnimatedCheckBox("Download subtitles", this);
     subsLangInput = new QLineEdit(this);
     subsLangInput->setPlaceholderText("Code");
     subsLangInput->setFixedWidth(80);
     subsLangInput->setEnabled(false);
     downloadChatCheck = new AnimatedCheckBox("Download live chat", this);
-
     auto *subsInputRow = new QHBoxLayout();
     subsInputRow->addWidget(downloadSubsCheck);
     subsInputRow->addWidget(subsLangInput);
     subsInputRow->addStretch();
-
     subsLayout->addLayout(subsInputRow);
     subsLayout->addWidget(downloadChatCheck);
-
     auto *fragLayout = new QVBoxLayout();
     fragLayout->addWidget(new QLabel("Download fragments:", this));
     auto *timeRow = new QHBoxLayout();
@@ -120,7 +119,6 @@ void DownloaderPage::setupUi() {
     timeRow->addWidget(timeEndInput);
     timeRow->addStretch();
     fragLayout->addLayout(timeRow);
-
     advancedRow->addLayout(subsLayout, 1);
     advancedRow->addLayout(fragLayout, 1);
     mainLayout->addLayout(advancedRow);
@@ -129,7 +127,6 @@ void DownloaderPage::setupUi() {
     advancedBtn->setStyleSheet("text-align: left; border: none; color: #aaa;");
     advancedBtn->setCheckable(true);
     mainLayout->addWidget(advancedBtn);
-
     advancedContent = new QWidget(this);
     auto *advLayout = new QVBoxLayout(advancedContent);
     advLayout->setContentsMargins(0, 10, 0, 0);
@@ -142,11 +139,9 @@ void DownloaderPage::setupUi() {
     advLayout->addWidget(customArgsInput);
     advLayout->addWidget(new QLabel("Command Preview:"));
     advLayout->addWidget(cmdPreview);
-
     advancedContent->setVisible(false);
     advancedContent->setMaximumHeight(0);
     mainLayout->addWidget(advancedContent);
-
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);
     rootLayout->addWidget(scrollArea);
@@ -154,39 +149,29 @@ void DownloaderPage::setupUi() {
     auto *bottomContainer = new QWidget(this);
     bottomContainer->setStyleSheet("background-color: #181818;");
     auto *bottomLayout = new QHBoxLayout(bottomContainer);
-    bottomLayout->setContentsMargins(30, 15, 30, 15);
+    bottomLayout->setContentsMargins(30, 20, 30, 20);
+    bottomLayout->setSpacing(15);
+    bottomLayout->setAlignment(Qt::AlignCenter);
 
-    progressBar = new QProgressBar(this);
-    progressBar->setFixedHeight(15);
-    progressBar->setTextVisible(false);
-    progressBar->setStyleSheet("QProgressBar { background: #333; border-radius: 5px; border: none; } QProgressBar::chunk { background-color: #6200ea; border-radius: 5px; }");
+    startBtn = new AnimatedButton("Download", this, QColor("#00e676"), QColor("#00c853"));
+    startBtn->setFixedSize(140, 50);
 
-    startBtn = new AnimatedButton("Start", this, QColor("#6200ea"), QColor("#7c4dff"));
-    startBtn->setFixedSize(140, 45);
-    stopBtn = new AnimatedButton("Stop", this, QColor("#d32f2f"), QColor("#e57373"));
-    stopBtn->setFixedSize(100, 45);
-    stopBtn->setEnabled(false);
+    addToQueueBtn = new AnimatedButton("Add to queue", this, QColor("#2979ff"), QColor("#2962ff"));
+    addToQueueBtn->setFixedSize(140, 50);;
+    addToQueueBtn->setIconSize(QSize(24, 24));
 
-    auto *progLayout = new QVBoxLayout();
-    auto *progLabel = new QLabel("Progress: 0% | ETA: 0:00", this);
-    connect(downloader, &Downloader::progressUpdated, this, [=](double p, QString e){
-        progLabel->setText(QString("Progress: %1% | ETA: %2").arg(p, 0, 'f', 1).arg(e));
-    });
-    progLayout->addWidget(progLabel);
-    progLayout->addWidget(progressBar);
-
-    bottomLayout->addLayout(progLayout, 1);
+    bottomLayout->addStretch();
     bottomLayout->addWidget(startBtn);
-    bottomLayout->addWidget(stopBtn);
+    bottomLayout->addWidget(addToQueueBtn);
+    bottomLayout->addStretch();
+
     rootLayout->addWidget(bottomContainer);
 
     connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
         advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
-
         auto *anim = new QPropertyAnimation(advancedContent, "maximumHeight");
         anim->setDuration(300);
         anim->setEasingCurve(QEasingCurve::OutCubic);
-
         if (c) {
             advancedContent->setVisible(true);
             int h = advancedContent->layout()->sizeHint().height();
@@ -208,7 +193,7 @@ void DownloaderPage::setupUi() {
     connect(downloadChatCheck, &QCheckBox::toggled, this, &DownloaderPage::onSubsOptionsChanged);
 
     connect(startBtn, &QPushButton::clicked, this, &DownloaderPage::onStartClicked);
-    connect(stopBtn, &QPushButton::clicked, this, &DownloaderPage::onStopClicked);
+    connect(addToQueueBtn, &QPushButton::clicked, this, &DownloaderPage::onAddToQueueClicked);
 
     for(auto *e : findChildren<QLineEdit*>()) connect(e, &QLineEdit::textChanged, this, &DownloaderPage::updateCommandPreview);
     for(auto *c : findChildren<QComboBox*>()) connect(c, &QComboBox::currentTextChanged, this, &DownloaderPage::updateCommandPreview);
@@ -238,43 +223,79 @@ bool DownloaderPage::isValidTimeFormat(const QString &t) {
     return QRegularExpression("^(\\d{1,2}:)?(\\d{1,2}:)?\\d{1,2}$").match(t).hasMatch();
 }
 
+bool DownloaderPage::validateInputs() {
+    if (urlInput->text().trimmed().isEmpty() || pathInput->text().trimmed().isEmpty()) {
+        popup->showMessage("Error", "Check URL and Path.", Popup::Error, Popup::Temporary);
+        return false;
+    }
+    return true;
+}
+
 void DownloaderPage::onStartClicked() {
-    if (urlInput->text().trimmed().isEmpty()) return;
-    if (pathInput->text().trimmed().isEmpty()) {
-        popup->showMessage("Error", "Please select a download path.", Popup::Error, Popup::Temporary);
-        return;
+    if (!validateInputs()) return;
+
+    m_lastClickedBtn = startBtn;
+
+    emit downloadRequested();
+
+    QueueItem item;
+    item.url = urlInput->text();
+    item.path = pathInput->text();
+    item.audioOnly = audioOnlyCheck->isChecked();
+    item.vFormat = videoFormatCombo->currentText();
+    item.vQuality = videoQualityCombo->currentText();
+    item.aFormat = audioFormatCombo->currentText();
+    item.aQuality = audioQualityCombo->currentText();
+    item.dlSubs = downloadSubsCheck->isChecked();
+    item.subLang = subsLangInput->text();
+    item.dlChat = downloadChatCheck->isChecked();
+    item.timeStart = timeStartInput->text();
+    item.timeEnd = timeEndInput->text();
+    item.customArgs = customArgsInput->text();
+
+    if (item.audioOnly) item.formatInfo = QString("Audio: %1 (%2)").arg(item.aFormat, item.aQuality);
+    else item.formatInfo = QString("Video: %1 (%2)").arg(item.vFormat, item.vQuality);
+
+    QueueManager::instance().fetchAndAdd(item.url, item, true);
+    urlInput->clear();
+}
+
+void DownloaderPage::onAddToQueueClicked() {
+    if (!validateInputs()) return;
+
+    if (sender() == addToQueueBtn) m_lastClickedBtn = addToQueueBtn;
+
+    QueueItem item;
+    item.url = urlInput->text();
+    item.path = pathInput->text();
+    item.audioOnly = audioOnlyCheck->isChecked();
+    item.vFormat = videoFormatCombo->currentText();
+    item.vQuality = videoQualityCombo->currentText();
+    item.aFormat = audioFormatCombo->currentText();
+    item.aQuality = audioQualityCombo->currentText();
+    item.dlSubs = downloadSubsCheck->isChecked();
+    item.subLang = subsLangInput->text();
+    item.dlChat = downloadChatCheck->isChecked();
+    item.timeStart = timeStartInput->text();
+    item.timeEnd = timeEndInput->text();
+    item.customArgs = customArgsInput->text();
+
+    if (item.audioOnly) item.formatInfo = QString("Audio: %1 (%2)").arg(item.aFormat, item.aQuality);
+    else item.formatInfo = QString("Video: %1 (%2)").arg(item.vFormat, item.vQuality);
+
+    if (sender() == addToQueueBtn) {
+        emit downloadRequested();
     }
-    QString ts = timeStartInput->text().trimmed(), te = timeEndInput->text().trimmed();
-    if ((!ts.isEmpty() && !isValidTimeFormat(ts)) || (!te.isEmpty() && !isValidTimeFormat(te))) {
-        popup->showMessage("Error", "Invalid time format.", Popup::Error, Popup::Temporary);
-        return;
-    }
-    startBtn->setEnabled(false); stopBtn->setEnabled(true);
-    progressBar->setFormat(" Preparing...");
-    downloader->startDownload(urlInput->text(), pathInput->text(), audioOnlyCheck->isChecked(),
-        videoFormatCombo->currentText(), videoQualityCombo->currentText(),
-        audioFormatCombo->currentText(), audioQualityCombo->currentText(),
-        downloadSubsCheck->isChecked(), subsLangInput->text(), downloadChatCheck->isChecked(),
-        ts, te, customArgsInput->text());
+
+    QueueManager::instance().fetchAndAdd(item.url, item, false);
+    urlInput->clear();
 }
 
-void DownloaderPage::onStopClicked() { downloader->stopDownload(); }
-void DownloaderPage::onProgressUpdated(double p, const QString &e) {
-    progressBar->setValue(static_cast<int>(p));
-    progressBar->setFormat(QString("Progress: %1% | ETA: %2").arg(p).arg(e));
-}
-
-void DownloaderPage::onDownloadFinished(bool ok, const QString &msg) {
-    startBtn->setEnabled(true); stopBtn->setEnabled(false);
-    progressBar->setFormat("Progress: 0% | ETA: 0s"); progressBar->setValue(0);
-    popup->showMessage(ok ? "Success" : "Error", msg, ok ? Popup::Success : Popup::Error, Popup::Temporary);
-}
-
+void DownloaderPage::onStopClicked() {}
 void DownloaderPage::onBrowseClicked() {
     QString d = QFileDialog::getExistingDirectory(this, "Select Directory", pathInput->text());
     if (!d.isEmpty()) pathInput->setText(d);
 }
-
 void DownloaderPage::onAudioOnlyToggled(bool c) {
     videoFormatCombo->setEnabled(!c); videoQualityCombo->setEnabled(!c);
     audioFormatCombo->setEnabled(c); audioQualityCombo->setEnabled(c);

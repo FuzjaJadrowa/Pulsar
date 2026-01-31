@@ -5,6 +5,7 @@
         <file>Resources/Icons/settings.png</file>
         <file>Resources/Icons/icon.png</file>
         <file>Resources/Icons/icon_full.png</file>
+        <file>Resources/Icons/queue.png</file>
 
         <file>Resources/Fonts/Montserrat-ExtraBold.ttf</file>
         <file>Resources/Fonts/Roboto-Regular.ttf</file>

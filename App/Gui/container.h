@@ -14,6 +14,7 @@
 #include <QWindow>
 #include <QApplication>
 
+#include "queue_panel.h"
 #include "../Core/popup.h"
 #include "../Core/installer_window.h"
 #include "../Core/app_updater.h"
@@ -80,6 +81,8 @@ class Container : public QWidget {
 public:
     explicit Container(QWidget *parent = nullptr);
 
+    bool eventFilter(QObject *obj, QEvent *event);
+
     InstallerWindow* installer() const { return m_installer; }
     AppUpdater* appUpdater() const { return m_appUpdater; }
 
@@ -87,19 +90,19 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-
+    void closeEvent(QCloseEvent *event) override;
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
-
+    void resizeEvent(QResizeEvent *event) override;
 private slots:
     void switchPage(int index);
-    void closeEvent(QCloseEvent *event);
     void toggleMaximize();
+    void toggleQueuePanel();
+    void onDownloadRequested();
 
 private:
     void setupUi();
     void setupConnections();
     void initLogic();
-
     Qt::Edges getEdges(const QPoint &pos);
     void updateCursorShape(const QPoint &pos);
 
@@ -109,10 +112,15 @@ private:
 
     QWidget *m_titleBar;
     QStackedWidget *m_stackedWidget;
+    QHBoxLayout *m_titleLayout;
 
     NavButton *m_btnDownloader;
     NavButton *m_btnSettings;
     NavButton *m_btnConsole;
+    NavButton *m_btnQueue;
+
+    QueuePanel *m_queuePanel;
+    bool m_queueVisible = false;
 
     WindowControlBtn *m_btnMax;
 

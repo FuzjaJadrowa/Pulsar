@@ -1,86 +1,80 @@
 #include "config_manager.h"
-#include <QJsonDocument>
-#include <QFile>
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
-// TODO: Zmienić to na prostrze config.ini
+
 ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
     return instance;
 }
 
 ConfigManager::ConfigManager() {
+    ensureDataDir();
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir dir(dataPath);
-    if (!dir.exists()) dir.mkpath(".");
-    configPath = dir.filePath("config.json");
-    load();
+    QString configPath = dir.filePath("config.ini");
+
+    settings = new QSettings(configPath, QSettings::IniFormat);
+
+    if (settings->allKeys().isEmpty()) {
+        load();
+    }
+}
+
+ConfigManager::~ConfigManager() {
+    delete settings;
 }
 
 void ConfigManager::ensureDataDir() {
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir dir(dataPath);
+    if (!dir.exists()) dir.mkpath(".");
     if (!dir.exists("Requirements")) dir.mkpath("Requirements");
 }
 
 void ConfigManager::load() {
-    ensureDataDir();
-    QFile file(configPath);
-    if (file.exists() && file.open(QIODevice::ReadOnly)) {
-        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-        if (!doc.isNull() && doc.isObject()) {
-            configData = doc.object();
-            return;
-        }
-    }
-
-    setTheme("System");
-    setLanguage("English");
-    setCloseBehavior("Exit");
-    setCookiesBrowser("None");
-    setGeoBypass(true);
-    setVideoFormat("mp4");
-    setVideoQuality("1080p");
-    setAudioFormat("mp3");
-    setAudioQuality("128kbps");
+    if (!settings->contains("theme")) setTheme("System");
+    if (!settings->contains("language")) setLanguage("English");
+    if (!settings->contains("close_behavior")) setCloseBehavior("Exit");
+    if (!settings->contains("cookies_browser")) setCookiesBrowser("None");
+    if (!settings->contains("geo_bypass")) setGeoBypass(true);
+    if (!settings->contains("v_format")) setVideoFormat("mp4");
+    if (!settings->contains("v_quality")) setVideoQuality("1080p");
+    if (!settings->contains("a_format")) setAudioFormat("mp3");
+    if (!settings->contains("a_quality")) setAudioQuality("128kbps");
     save();
 }
 
 void ConfigManager::save() {
-    ensureDataDir();
-    QFile file(configPath);
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(QJsonDocument(configData).toJson());
-    }
+    settings->sync();
 }
 
-QString ConfigManager::getTheme() const { return configData["theme"].toString("System"); }
-void ConfigManager::setTheme(const QString& theme) { configData["theme"] = theme; save(); }
+QString ConfigManager::getTheme() const { return settings->value("theme", "System").toString(); }
+void ConfigManager::setTheme(const QString& theme) { settings->setValue("theme", theme); }
 
-QString ConfigManager::getLanguage() const { return configData["language"].toString("English"); }
-void ConfigManager::setLanguage(const QString& lang) { configData["language"] = lang; save(); }
+QString ConfigManager::getLanguage() const { return settings->value("language", "English").toString(); }
+void ConfigManager::setLanguage(const QString& lang) { settings->setValue("language", lang); }
 
-QString ConfigManager::getCloseBehavior() const { return configData["close_behavior"].toString("Exit"); }
-void ConfigManager::setCloseBehavior(const QString& behavior) { configData["close_behavior"] = behavior; save(); }
+QString ConfigManager::getCloseBehavior() const { return settings->value("close_behavior", "Exit").toString(); }
+void ConfigManager::setCloseBehavior(const QString& behavior) { settings->setValue("close_behavior", behavior); }
 
-QString ConfigManager::getCookiesBrowser() const { return configData["cookies_browser"].toString("None"); }
-void ConfigManager::setCookiesBrowser(const QString& browser) { configData["cookies_browser"] = browser; save(); }
+QString ConfigManager::getCookiesBrowser() const { return settings->value("cookies_browser", "None").toString(); }
+void ConfigManager::setCookiesBrowser(const QString& browser) { settings->setValue("cookies_browser", browser); }
 
-bool ConfigManager::getGeoBypass() const { return configData["geo_bypass"].toBool(true); }
-void ConfigManager::setGeoBypass(bool enable) { configData["geo_bypass"] = enable; save(); }
+bool ConfigManager::getGeoBypass() const { return settings->value("geo_bypass", true).toBool(); }
+void ConfigManager::setGeoBypass(bool enable) { settings->setValue("geo_bypass", enable); }
 
-QString ConfigManager::getVideoFormat() const { return configData["v_format"].toString("mp4"); }
-void ConfigManager::setVideoFormat(const QString& f) { configData["v_format"] = f; save(); }
+QString ConfigManager::getVideoFormat() const { return settings->value("v_format", "mp4").toString(); }
+void ConfigManager::setVideoFormat(const QString& f) { settings->setValue("v_format", f); }
 
-QString ConfigManager::getVideoQuality() const { return configData["v_quality"].toString("1080p"); }
-void ConfigManager::setVideoQuality(const QString& q) { configData["v_quality"] = q; save(); }
+QString ConfigManager::getVideoQuality() const { return settings->value("v_quality", "1080p").toString(); }
+void ConfigManager::setVideoQuality(const QString& q) { settings->setValue("v_quality", q); }
 
-QString ConfigManager::getAudioFormat() const { return configData["a_format"].toString("mp3"); }
-void ConfigManager::setAudioFormat(const QString& f) { configData["a_format"] = f; save(); }
+QString ConfigManager::getAudioFormat() const { return settings->value("a_format", "mp3").toString(); }
+void ConfigManager::setAudioFormat(const QString& f) { settings->setValue("a_format", f); }
 
-QString ConfigManager::getAudioQuality() const { return configData["a_quality"].toString("128kbps"); }
-void ConfigManager::setAudioQuality(const QString& q) { configData["a_quality"] = q; save(); }
+QString ConfigManager::getAudioQuality() const { return settings->value("a_quality", "128kbps").toString(); }
+void ConfigManager::setAudioQuality(const QString& q) { settings->setValue("a_quality", q); }
 
 QString ConfigManager::getRequirementsPath() const {
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);

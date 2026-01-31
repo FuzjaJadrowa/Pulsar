@@ -8,11 +8,11 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QCheckBox>
-#include <QProgressBar>
 #include <QTextEdit>
 #include <QScrollArea>
 #include "../Core/popup.h"
 #include "../Core/downloader.h"
+#include "components.h"
 
 class DownloaderPage : public QWidget {
     Q_OBJECT
@@ -21,19 +21,24 @@ public:
     Downloader* getDownloader() const { return downloader; }
     void updateThemeProperty();
 
+    QPoint getStartBtnPos() const;
+
+    signals:
+        void downloadRequested();
+
 private slots:
     void onBrowseClicked();
     void onAudioOnlyToggled(bool checked);
     void onStartClicked();
     void onStopClicked();
-    void onDownloadFinished(bool ok, const QString &msg);
-    void onProgressUpdated(double percent, const QString &eta);
+    void onAddToQueueClicked();
     void onSubsOptionsChanged();
     void updateCommandPreview();
 
 private:
     void setupUi();
     bool isValidTimeFormat(const QString &timeStr);
+    bool validateInputs();
 
     QLineEdit *urlInput;
     QLineEdit *pathInput;
@@ -41,10 +46,10 @@ private:
     QComboBox *videoFormatCombo, *videoQualityCombo, *audioFormatCombo, *audioQualityCombo;
     QCheckBox *audioOnlyCheck, *downloadSubsCheck, *downloadChatCheck;
     QLineEdit *subsLangInput, *timeStartInput, *timeEndInput, *customArgsInput;
-    QPushButton *advancedBtn, *startBtn, *stopBtn;
+    QPushButton *advancedBtn, *startBtn, *addToQueueBtn;
+    QPushButton *m_lastClickedBtn = nullptr;
     QWidget *advancedContent;
     QTextEdit *cmdPreview;
-    QProgressBar *progressBar;
     Downloader *downloader;
     Popup *popup;
 };

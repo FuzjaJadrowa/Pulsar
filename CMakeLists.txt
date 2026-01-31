@@ -22,14 +22,20 @@ set(PROJECT_SOURCES
         App/Gui/downloader_page.cpp App/Gui/downloader_page.h
         App/Gui/settings_page.cpp App/Gui/settings_page.h
         App/Gui/console_page.cpp App/Gui/console_page.h
+        App/Gui/queue_panel.cpp App/Gui/queue_panel.h
+        App/Gui/container.cpp App/Gui/container.h
+        App/Gui/components.cpp App/Gui/components.h
         App/Core/downloader.cpp App/Core/downloader.h
         App/Core/config_manager.cpp App/Core/config_manager.h
+        App/Core/queue_manager.cpp App/Core/queue_manager.h
         App/Core/popup.cpp App/Core/popup.h
         App/Core/installer_window.cpp App/Core/installer_window.h
         App/Core/app_updater.cpp App/Core/app_updater.h
         resources.qrc
-        App/Gui/container.cpp App/Gui/container.h
-        App/Gui/components.cpp App/Gui/components.h
+        App/Gui/queue_panel.cpp
+        App/Gui/queue_panel.h
+        App/Core/queue_manager.cpp
+        App/Core/queue_manager.h
 )
 
 if(WIN32)

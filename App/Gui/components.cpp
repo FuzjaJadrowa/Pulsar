@@ -74,9 +74,29 @@ void AnimatedButton::paintEvent(QPaintEvent *e) {
     p.drawText(rect(), Qt::AlignCenter, text());
 }
 
-AnimatedCheckBox::AnimatedCheckBox(const QString &text, QWidget *parent) : QCheckBox(text, parent) {
+AnimatedCheckBox::AnimatedCheckBox(const QString &text, QWidget *parent)
+    : QCheckBox(text, parent)
+{
     setCursor(Qt::PointingHandCursor);
-    setStyleSheet("QCheckBox { spacing: 0px; margin: 0px; padding: 0px; } QCheckBox::indicator { width: 0px; height: 0px; }");
+    setMinimumHeight(22);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+    m_progress = isChecked() ? 1.0 : 0.0;
+
+    connect(this, &QCheckBox::toggled, this, [this](bool checked){
+        auto *anim = new QVariantAnimation(this);
+        anim->setDuration(180);
+        anim->setEasingCurve(QEasingCurve::InOutQuad);
+        anim->setStartValue(m_progress);
+        anim->setEndValue(checked ? 1.0 : 0.0);
+
+        connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &v){
+            m_progress = v.toReal();
+            update();
+        });
+
+        anim->start(QAbstractAnimation::DeleteWhenStopped);
+    });
 }
 
 QSize AnimatedCheckBox::sizeHint() const {
@@ -166,9 +186,29 @@ void AnimatedCheckBox::paintEvent(QPaintEvent *e) {
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
 }
 
-AnimatedRadioButton::AnimatedRadioButton(const QString &text, QWidget *parent) : QRadioButton(text, parent) {
+AnimatedRadioButton::AnimatedRadioButton(const QString &text, QWidget *parent)
+    : QRadioButton(text, parent)
+{
     setCursor(Qt::PointingHandCursor);
-    setStyleSheet("QRadioButton { spacing: 0px; margin: 0px; } QRadioButton::indicator { width: 0px; height: 0px; }");
+    setMinimumHeight(22);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+    m_progress = isChecked() ? 1.0 : 0.0;
+
+    connect(this, &QRadioButton::toggled, this, [this](bool checked){
+        auto *anim = new QVariantAnimation(this);
+        anim->setDuration(180);
+        anim->setEasingCurve(QEasingCurve::InOutQuad);
+        anim->setStartValue(m_progress);
+        anim->setEndValue(checked ? 1.0 : 0.0);
+
+        connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &v){
+            m_progress = v.toReal();
+            update();
+        });
+
+        anim->start(QAbstractAnimation::DeleteWhenStopped);
+    });
 }
 
 QSize AnimatedRadioButton::sizeHint() const {

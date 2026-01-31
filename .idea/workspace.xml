@@ -35,27 +35,24 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="gui poki co takie se. ale bedzie dobrze xD">
-      <change afterPath="$PROJECT_DIR$/Resources/Fonts/Roboto-Black.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Resources/Fonts/Roboto-Regular.ttf" afterDir="false" />
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="możliwe że do publica zmienie czcionke.&#10;Dodane: 3/7">
+      <change afterPath="$PROJECT_DIR$/App/Core/queue_manager.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Core/queue_manager.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/queue_panel.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/App/Gui/queue_panel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Core/config_manager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Core/config_manager.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/config_manager.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Core/downloader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Core/downloader.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/components.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Gui/components.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/container.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/container.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/icon_full.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/icon_full.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_close.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_maximize.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/Icons/window_minimize.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/style.qss" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/Icons/settings.png" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/Icons/settings.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources.qrc" beforeDir="false" afterPath="$PROJECT_DIR$/resources.qrc" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -173,7 +170,9 @@
       <workItem from="1769700863103" duration="3014000" />
       <workItem from="1769704453955" duration="12029000" />
       <workItem from="1769717665620" duration="249000" />
-      <workItem from="1769781478527" duration="17589000" />
+      <workItem from="1769781478527" duration="19765000" />
+      <workItem from="1769814135963" duration="1335000" />
+      <workItem from="1769845970962" duration="9389000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -215,7 +214,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769717089808</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="możliwe że do publica zmienie czcionke.&#10;Dodane: 3/7">
+      <option name="closed" value="true" />
+      <created>1769800518958</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1769800518958</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -240,6 +247,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="rebranding caly. poprawiony cmake 978179 raz i segregacja" />
     <MESSAGE value="gui poki co takie se. ale bedzie dobrze xD" />
-    <option name="LAST_COMMIT_MESSAGE" value="gui poki co takie se. ale bedzie dobrze xD" />
+    <MESSAGE value="możliwe że do publica zmienie czcionke.&#10;Dodane: 3/7" />
+    <option name="LAST_COMMIT_MESSAGE" value="możliwe że do publica zmienie czcionke.&#10;Dodane: 3/7" />
   </component>
 </project>
