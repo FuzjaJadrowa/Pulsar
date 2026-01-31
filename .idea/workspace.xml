@@ -35,7 +35,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="2.1 5/7" />
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="Gradent do dopracowania">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -102,6 +104,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;2.X-dev&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -148,6 +151,11 @@
       <workItem from="1769781478527" duration="19765000" />
       <workItem from="1769814135963" duration="1335000" />
       <workItem from="1769845970962" duration="26388000" />
+      <workItem from="1769878096615" duration="1075000" />
+      <workItem from="1769879205365" duration="196000" />
+      <workItem from="1769879409248" duration="5000" />
+      <workItem from="1769879520678" duration="2777000" />
+      <workItem from="1769882343379" duration="7000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -221,7 +229,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769877395562</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="2.1 5/7">
+      <option name="closed" value="true" />
+      <created>1769878212553</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1769878212553</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Gradent do dopracowania">
+      <option name="closed" value="true" />
+      <created>1769882216372</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1769882216372</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,6 +274,7 @@
     <MESSAGE value="buggy queue" />
     <MESSAGE value="mniej buggy queue" />
     <MESSAGE value="2.1 5/7" />
-    <option name="LAST_COMMIT_MESSAGE" value="2.1 5/7" />
+    <MESSAGE value="Gradent do dopracowania" />
+    <option name="LAST_COMMIT_MESSAGE" value="Gradent do dopracowania" />
   </component>
 </project>
