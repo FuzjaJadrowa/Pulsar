@@ -3,12 +3,28 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QMouseEvent>
+#include <QGraphicsBlurEffect>
 #include "components.h"
 #include "../Core/queue_manager.h"
+
+class QueueControlBtn : public QPushButton {
+    Q_OBJECT
+public:
+    enum Type { Start, Stop, Delete };
+    QueueControlBtn(Type type, QWidget *parent = nullptr);
+protected:
+    void paintEvent(QPaintEvent *e) override;
+    void enterEvent(QEnterEvent *e) override { m_hover = true; update(); }
+    void leaveEvent(QEvent *e) override { m_hover = false; update(); }
+private:
+    Type m_type;
+    bool m_hover = false;
+};
 
 class QueueItemWidget : public QWidget {
     Q_OBJECT
@@ -24,11 +40,15 @@ protected:
 
 private:
     QString m_id;
+    QLabel *m_title;
+    QLabel *m_format;
     QLabel *m_progressLabel;
+
     QWidget *m_progressBar;
     QWidget *m_progressBg;
-    AnimatedButton *m_actionBtn;
-    AnimatedButton *m_btnDelete;
+
+    QueueControlBtn *m_actionBtn;
+    QueueControlBtn *m_btnDelete;
 };
 
 class QueuePanel : public QWidget {
@@ -37,6 +57,7 @@ public:
     explicit QueuePanel(QWidget *parent = nullptr);
     void refresh();
     QueueItemWidget* findWidgetById(const QString &id);
+    int calculateContentHeight() const;
 
 protected:
     void paintEvent(QPaintEvent *e) override;

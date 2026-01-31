@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QStandardPaths>
 #include <QDir>
+#include <QQueue>
 #include "downloader.h"
 
 struct QueueItem {
@@ -36,17 +37,21 @@ public:
     void addItem(const QueueItem &item);
     void removeItem(const QString &id);
     void clearQueue();
-    void startItem(const QString &id);
+
+    void startItem(const QString &id, bool forceImmediate = false);
+
     void stopItem(const QString &id);
     void startAll();
     void stopAll();
 
     QList<QueueItem> getItems() const;
     bool isEmpty() const;
+    bool isRunning() const;
+
     void fetchAndAdd(const QString &url, const QueueItem &partialItem, bool autoStart = false);
 
-    signals:
-        void queueUpdated();
+signals:
+    void queueUpdated();
     void itemProgress(const QString &id, double progress);
     void itemStatusChanged(const QString &id, const QString &status);
     void allFinished();
@@ -56,12 +61,15 @@ public:
 private:
     QueueManager();
     void loadQueue();
+
     void saveQueue();
     void processNext();
 
     QList<QueueItem> m_queue;
     QMap<QString, Downloader*> m_activeDownloaders;
+
     bool m_isSequentialMode = false;
+    QQueue<QString> m_priorityQueue;
 
     QJsonObject itemToJson(const QueueItem &item);
     QueueItem jsonToItem(const QJsonObject &obj);

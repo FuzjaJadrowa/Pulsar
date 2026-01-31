@@ -47,7 +47,7 @@ void NavButton::setActive(bool active) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutBack);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(active ? 90 : 50);
+widthAnim->setEndValue(active ? 150 : 50);
         group->addAnimation(widthAnim);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
@@ -64,7 +64,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutCubic);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(90);
+        widthAnim->setEndValue(150);
         widthAnim->start(QAbstractAnimation::DeleteWhenStopped);
     }
     QPushButton::enterEvent(event);
@@ -113,7 +113,7 @@ void NavButton::paintEvent(QPaintEvent *event) {
         iconPainter.end();
         p.drawPixmap(margin, iconY, iconSize, iconSize, tintedIcon);
     }
-    if (width() > 60) {
+    if (width() > 80) {
         p.setPen(Qt::white);
         QFont f = font();
         f.setBold(true);
@@ -285,6 +285,7 @@ void Container::setupUi() {
     m_btnDownloader = new NavButton("Downloader", ":/Resources/Icons/downloader.png", true);
     m_titleLayout->addWidget(m_btnDownloader);
 
+    m_titleLayout->addSpacing(10);
     m_titleLayout->addStretch();
 
     m_btnConsole = new NavButton("Console", ":/Resources/Icons/console.png", false);
@@ -345,21 +346,28 @@ void Container::setupUi() {
 void Container::resizeEvent(QResizeEvent *event) {
     if (m_queuePanel->isVisible()) {
         int w = m_queuePanel->width();
-        int x = m_titleBar->x() + m_btnQueue->x() + m_btnQueue->width() - w;
-        QPoint btnPos = m_btnQueue->mapTo(this, QPoint(0,0));
-        x = btnPos.x() + m_btnQueue->width() - w;
+        int x = width() - w - 20;
+        int y = m_titleBar->height() + 10;
 
-        if (x + w > width()) x = width() - w - 10;
-        int y = m_titleBar->height() + 5;
-        m_queuePanel->move(x, y);
-        int h = qMin(500, height() - y - 20);
-        m_queuePanel->setFixedHeight(h);
+        int contentH = m_queuePanel->calculateContentHeight();
+        int maxH = height() - y - 20;
+        int finalH = qMin(contentH, maxH);
+
+        m_queuePanel->setGeometry(x, y, w, finalH);
     }
     QWidget::resizeEvent(event);
 }
 
 void Container::toggleQueuePanel() {
     auto *group = new QParallelAnimationGroup(this);
+
+    int w = m_queuePanel->width();
+    int x = width() - w - 20;
+    int y = m_titleBar->height() + 10;
+
+    int contentH = m_queuePanel->calculateContentHeight();
+    int maxH = height() - y - 20;
+    int finalH = qMin(contentH, maxH);
 
     if (m_queuePanel->isVisible()) {
         auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
@@ -370,8 +378,7 @@ void Container::toggleQueuePanel() {
         auto *animPos = new QPropertyAnimation(m_queuePanel, "pos");
         animPos->setDuration(250);
         animPos->setStartValue(m_queuePanel->pos());
-        animPos->setEndValue(m_queuePanel->pos() - QPoint(0, 20));
-        animPos->setEasingCurve(QEasingCurve::InCubic);
+        animPos->setEndValue(QPoint(x, y - 20));
 
         group->addAnimation(animOpacity);
         group->addAnimation(animPos);
@@ -383,15 +390,7 @@ void Container::toggleQueuePanel() {
 
         m_btnQueue->setActive(false);
     } else {
-        int w = m_queuePanel->width();
-        QPoint btnPos = m_btnQueue->mapTo(this, QPoint(0,0));
-        int x = btnPos.x() + m_btnQueue->width() - w;
-        if (x + w > width()) x = width() - w - 10;
-
-        int y = btnPos.y() + m_btnQueue->height() + 5;
-        int h = qMin(500, height() - y - 20);
-
-        m_queuePanel->setGeometry(x, y - 20, w, h);
+        m_queuePanel->setGeometry(x, y - 20, w, finalH);
         m_queuePanel->setVisible(true);
         m_queuePanel->raise();
 
@@ -455,8 +454,27 @@ void Container::setupConnections() {
 
     connect(&QueueManager::instance(), &QueueManager::queueUpdated, this, [this](){
         bool empty = QueueManager::instance().isEmpty();
-        if (!empty && !m_btnQueue->isVisible()) {
-             m_btnQueue->setVisible(true);
+
+        if (empty && m_queuePanel->isVisible()) {
+             toggleQueuePanel();
+        }
+
+        if (empty) {
+            m_btnQueue->setVisible(false);
+        } else {
+            if (!m_btnQueue->isVisible()) {
+                m_btnQueue->setVisible(true);
+                auto *anim = new QPropertyAnimation(m_btnQueue, "windowOpacity");
+                anim->setStartValue(0.0);
+                anim->setEndValue(1.0);
+                anim->setDuration(300);
+                anim->start(QAbstractAnimation::DeleteWhenStopped);
+            }
+        }
+
+        if(m_queuePanel->isVisible()) {
+             QResizeEvent re(size(), size());
+             resizeEvent(&re);
         }
     });
 
@@ -476,6 +494,14 @@ void Container::setupConnections() {
         m_popup->showMessage("App Update", "Version " + version + " is available!", Popup::Success, Popup::Permanent, "Update Now");
         disconnect(m_popup, &Popup::actionClicked, nullptr, nullptr);
         connect(m_popup, &Popup::actionClicked, [this](){ m_appUpdater->startAppUpdate(); });
+    });
+
+    connect(&QueueManager::instance(), &QueueManager::itemFinished, this, [this](const QString &title, bool success){
+        if (success) {
+            m_popup->showMessage("Finished", "Download finished: " + title, Popup::Success, Popup::Temporary);
+        } else {
+            m_popup->showMessage("Error", "Failed to download: " + title, Popup::Error, Popup::Temporary);
+        }
     });
 }
 

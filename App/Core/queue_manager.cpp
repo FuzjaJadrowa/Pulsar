@@ -60,11 +60,16 @@ void QueueManager::removeItem(const QString &id) {
             break;
         }
     }
+    m_priorityQueue.removeAll(id);
     saveQueue();
     emit queueUpdated();
 }
 
-void QueueManager::startItem(const QString &id) {
+bool QueueManager::isRunning() const {
+    return !m_activeDownloaders.isEmpty();
+}
+
+void QueueManager::startItem(const QString &id, bool forceImmediate) {
     QueueItem *target = nullptr;
     for (int i = 0; i < m_queue.size(); ++i) {
         if (m_queue[i].id == id) {
@@ -72,11 +77,24 @@ void QueueManager::startItem(const QString &id) {
             break;
         }
     }
-    if (!target || target->isRunning) return;
+    if (!target) return;
+
+    if (target->isRunning) return;
+
+    if (forceImmediate && isRunning()) {
+        if (!m_priorityQueue.contains(id)) {
+            m_priorityQueue.enqueue(id);
+            target->status = "Waiting...";
+            emit itemStatusChanged(id, "Waiting...");
+        }
+        m_isSequentialMode = true;
+        return;
+    }
 
     target->isRunning = true;
     target->status = "Downloading";
     emit itemStatusChanged(id, "Downloading");
+    emit queueUpdated();
 
     Downloader *dl = new Downloader(this);
     m_activeDownloaders[id] = dl;
@@ -96,6 +114,7 @@ void QueueManager::startItem(const QString &id) {
             m_activeDownloaders[id]->deleteLater();
             m_activeDownloaders.remove(id);
         }
+
         for(auto &it : m_queue) {
             if(it.id == id) {
                 title = it.title;
@@ -105,15 +124,25 @@ void QueueManager::startItem(const QString &id) {
                 break;
             }
         }
+
         emit itemStatusChanged(id, ok ? "Finished" : "Error");
 
-        if(!title.isEmpty()) emit itemFinished(title, ok);
+        if(ok && !title.isEmpty()) {
+            emit itemFinished(title, true);
+        } else if (!ok) {
+            emit itemFinished(title.isEmpty() ? "Download" : title, false);
+        }
 
         saveQueue();
 
         if (m_isSequentialMode) {
             processNext();
+        } else {
+            if (!m_priorityQueue.isEmpty()) {
+                processNext();
+            }
         }
+        emit queueUpdated();
     });
 
     dl->startDownload(target->url, target->path, target->audioOnly,
@@ -125,22 +154,42 @@ void QueueManager::startItem(const QString &id) {
 void QueueManager::stopItem(const QString &id) {
     if (m_activeDownloaders.contains(id)) {
         m_activeDownloaders[id]->stopDownload();
-    }
+        }
+    m_priorityQueue.removeAll(id);
 }
 
 void QueueManager::startAll() {
     m_isSequentialMode = true;
     processNext();
+    emit queueUpdated();
 }
 
 void QueueManager::stopAll() {
     m_isSequentialMode = false;
-    for (auto key : m_activeDownloaders.keys()) {
+    m_priorityQueue.clear();
+    auto keys = m_activeDownloaders.keys();
+    for (const auto &key : keys) {
         stopItem(key);
     }
+    emit queueUpdated();
 }
 
 void QueueManager::processNext() {
+    while (!m_priorityQueue.isEmpty()) {
+        QString nextId = m_priorityQueue.dequeue();
+        bool exists = false;
+        for(const auto &item : m_queue) {
+            if(item.id == nextId && item.status != "Finished") {
+                exists = true;
+                break;
+            }
+        }
+        if(exists) {
+            startItem(nextId, false);
+            return;
+        }
+    }
+
     if (!m_isSequentialMode) return;
 
     for (const auto &item : m_queue) {
@@ -148,18 +197,20 @@ void QueueManager::processNext() {
     }
 
     for (const auto &item : m_queue) {
-        if (item.status != "Finished" && item.status != "Downloading") {
-            startItem(item.id);
+        if (item.status != "Finished" && item.status != "Downloading" && item.status != "Error") {
+            startItem(item.id, false);
             return;
         }
     }
 
     m_isSequentialMode = false;
     emit allFinished();
+    emit queueUpdated();
 }
 
 void QueueManager::fetchAndAdd(const QString &url, const QueueItem &partial, bool autoStart) {
     Downloader *tempDl = new Downloader(this);
+
     connect(tempDl, &Downloader::titleFetched, this, [this, tempDl, partial, autoStart](const QString&, const QString &title){
         QueueItem item = partial;
         item.title = title;
@@ -167,11 +218,13 @@ void QueueManager::fetchAndAdd(const QString &url, const QueueItem &partial, boo
         item.id = QUuid::createUuid().toString();
         item.status = "Queued";
         addItem(item);
+
         if(autoStart) {
-            startItem(item.id);
+            startItem(item.id, true);
         }
         tempDl->deleteLater();
     });
+
     connect(tempDl, &Downloader::finished, this, [this, tempDl, partial, autoStart](bool ok, QString){
         if(!ok) {
              QueueItem item = partial;
@@ -180,12 +233,12 @@ void QueueManager::fetchAndAdd(const QString &url, const QueueItem &partial, boo
              item.status = "Queued";
              addItem(item);
              if(autoStart) {
-                 startItem(item.id);
+                 startItem(item.id, true);
              }
         }
-        tempDl->deleteLater();
+        if (!ok) tempDl->deleteLater();
     });
-    
+
     tempDl->fetchTitle(url);
 }
 
@@ -201,7 +254,6 @@ QJsonObject QueueManager::itemToJson(const QueueItem &item) {
     obj["info"] = item.formatInfo;
     obj["status"] = item.status;
     obj["progress"] = item.progress;
-    
     obj["audioOnly"] = item.audioOnly;
     obj["vFormat"] = item.vFormat; obj["vQuality"] = item.vQuality;
     obj["aFormat"] = item.aFormat; obj["aQuality"] = item.aQuality;
@@ -221,7 +273,6 @@ QueueItem QueueManager::jsonToItem(const QJsonObject &obj) {
     item.formatInfo = obj["info"].toString();
     item.status = obj["status"].toString();
     item.progress = obj["progress"].toDouble();
-    
     item.audioOnly = obj["audioOnly"].toBool();
     item.vFormat = obj["vFormat"].toString(); item.vQuality = obj["vQuality"].toString();
     item.aFormat = obj["aFormat"].toString(); item.aQuality = obj["aQuality"].toString();
