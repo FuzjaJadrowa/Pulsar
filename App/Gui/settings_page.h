@@ -26,9 +26,6 @@ public:
     signals:
         void themeChanged();
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
-
 private slots:
     void onThemeChanged(const QString &theme);
     void onLangChanged(const QString &lang);

@@ -64,7 +64,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutCubic);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(150);
+        widthAnim->setEndValue(130);
         widthAnim->start(QAbstractAnimation::DeleteWhenStopped);
     }
     QPushButton::enterEvent(event);
@@ -315,12 +315,15 @@ void Container::setupUi() {
     m_titleBar = new QWidget(this);
     m_titleBar->setFixedHeight(80);
     m_titleBar->setStyleSheet(
-        "background-color: rgba(20, 20, 30, 180);"
-        "border-bottom: 1px solid rgba(255, 255, 255, 20);"
-        "border-top-left-radius: 15px;"
-        "border-top-right-radius: 15px;"
+        "QWidget {"
+            "background-color: rgba(20, 20, 30, 180);"
+            "border-bottom: 1px solid rgba(255, 255, 255, 20);"
+            "border-top-left-radius: 15px;"
+            "border-top-right-radius: 15px;"
+        "}"
+        "QPushButton { background: transparent; border: none; border-radius: 0px; }"
+        "QLabel { background: transparent; border: none; }"
     );
-
     m_titleLayout = new QHBoxLayout(m_titleBar);
     m_titleLayout->setContentsMargins(20, 10, 20, 10);
     m_titleLayout->setSpacing(15);
@@ -347,8 +350,12 @@ void Container::setupUi() {
     m_titleLayout->addWidget(m_btnQueue);
 
     QWidget *controlsContainer = new QWidget(this);
-    controlsContainer->setFixedSize(145, 40);
-    controlsContainer->setStyleSheet("background-color: transparent; border-radius: 15px;");
+    controlsContainer->setFixedSize(160, 45);
+    controlsContainer->setStyleSheet(
+        "background-color: rgba(255, 255, 255, 10);"
+        "border: 1px solid rgba(255, 255, 255, 20);"
+        "border-radius: 15px;"
+    );
     QHBoxLayout *controlsLayout = new QHBoxLayout(controlsContainer);
     controlsLayout->setContentsMargins(0, 0, 0, 0);
     controlsLayout->setSpacing(5);

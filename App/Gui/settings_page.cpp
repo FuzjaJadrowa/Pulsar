@@ -2,6 +2,7 @@
 #include "components.h"
 #include "../Core/config_manager.h"
 #include <QApplication>
+#include <QAbstractItemView>
 
 SettingsPage::SettingsPage(Popup *popup, QWidget *parent)
     : QWidget(parent), popup(popup) {
@@ -9,22 +10,22 @@ SettingsPage::SettingsPage(Popup *popup, QWidget *parent)
     setupUi();
 }
 
-void SettingsPage::paintEvent(QPaintEvent *event) {
-    QStyleOption opt;
-    opt.initFrom(this);
-    QPainter p(this);
-    p.fillRect(rect(), QColor("#121212"));
-}
-
 void SettingsPage::updateThemeProperty() {}
 
 void SettingsPage::setupUi() {
+    setAttribute(Qt::WA_TranslucentBackground);
+
     auto *rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
 
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
+    scrollArea->viewport()->setAutoFillBackground(false);
     auto *scrollContent = new QWidget();
+    scrollContent->setAttribute(Qt::WA_TranslucentBackground);
+    scrollContent->setStyleSheet("background: transparent;");
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setAlignment(Qt::AlignTop);
     mainLayout->setContentsMargins(20, 40, 40, 40);
@@ -126,6 +127,37 @@ void SettingsPage::setupUi() {
     mainLayout->addStretch();
     scrollArea->setWidget(scrollContent);
     rootLayout->addWidget(scrollArea);
+
+    for (auto *combo : findChildren<QComboBox*>()) {
+        if (combo->view()->window()) {
+            combo->view()->window()->setAttribute(Qt::WA_TranslucentBackground, false);
+        }
+        combo->view()->setStyleSheet(
+            "QAbstractItemView { "
+            "   background-color: #252525; "
+            "   color: #e0e0e0; "
+            "   border: 1px solid #3d3d3d; "
+            "   selection-background-color: #6200ea; "
+            "}"
+        );
+
+        combo->setAttribute(Qt::WA_TranslucentBackground, false);
+
+        combo->setStyleSheet(
+            "QComboBox { "
+            "   background-color: #252525; "
+            "   border: 1px solid #3d3d3d; "
+            "   border-radius: 8px; "
+            "   color: white; "
+            "}"
+            "QComboBox:hover { "
+            "   background-color: #2a2a2a; "
+            "   border: 1px solid #555; "
+            "}"
+            "QComboBox::drop-down { border: none; width: 20px; }"
+            "QComboBox::down-arrow { image: none; border: none; }"
+        );
+    }
 }
 
 QHBoxLayout* SettingsPage::createSection(const QString &title, QWidget *widget) {

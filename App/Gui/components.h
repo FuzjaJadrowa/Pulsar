@@ -73,6 +73,8 @@ public:
                 border: 1px solid #3d3d3d;
                 selection-background-color: #6200ea;
                 outline: none;
+                border-radius: 4px;
+                padding: 4px;
             }
             QLineEdit {
                 background-color: #252525;

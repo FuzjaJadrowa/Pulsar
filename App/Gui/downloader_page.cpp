@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QPropertyAnimation>
+#include <QAbstractItemView>
 
 DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     downloader = new Downloader(this);
@@ -25,6 +26,8 @@ QPoint DownloaderPage::getStartBtnPos() const {
 }
 
 void DownloaderPage::setupUi() {
+    setAttribute(Qt::WA_TranslucentBackground);
+
     auto *rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
@@ -33,8 +36,10 @@ void DownloaderPage::setupUi() {
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
     scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-
+    scrollArea->viewport()->setAutoFillBackground(false);
     auto *scrollContent = new QWidget();
+    scrollContent->setAttribute(Qt::WA_TranslucentBackground);
+    scrollContent->setStyleSheet("background: transparent;");
     auto *mainLayout = new QVBoxLayout(scrollContent);
     mainLayout->setContentsMargins(30, 40, 30, 20);
     mainLayout->setSpacing(20);
@@ -67,7 +72,7 @@ void DownloaderPage::setupUi() {
     mainLayout->addLayout(inputLayout);
 
     auto *optionsGroup = new QWidget(this);
-    optionsGroup->setStyleSheet("background-color: #1e1e1e; border-radius: 10px; padding: 10px;");
+    optionsGroup->setStyleSheet("border-radius: 10px; padding: 10px;");
     auto *gridLayout = new QGridLayout(optionsGroup);
     videoFormatCombo = new QComboBox(this);
     videoFormatCombo->addItems({"Default", "mp4", "mkv", "mov", "avi", "flv", "webm"});
@@ -105,7 +110,7 @@ void DownloaderPage::setupUi() {
     subsLayout->addLayout(subsInputRow);
     subsLayout->addWidget(downloadChatCheck);
     auto *fragLayout = new QVBoxLayout();
-    fragLayout->addWidget(new QLabel("Download fragments:", this));
+    fragLayout->addWidget(new QLabel("Download fragments (hh:mm:ss):", this));
     auto *timeRow = new QHBoxLayout();
     timeStartInput = new QLineEdit(this);
     timeEndInput = new QLineEdit(this);
@@ -163,7 +168,6 @@ void DownloaderPage::setupUi() {
 
     addToQueueBtn = new AnimatedButton("Add to queue", this, QColor("#2979ff"), QColor("#2962ff"));
     addToQueueBtn->setFixedSize(140, 50);;
-    addToQueueBtn->setIconSize(QSize(24, 24));
 
     bottomLayout->addStretch();
     bottomLayout->addWidget(startBtn);
@@ -171,6 +175,37 @@ void DownloaderPage::setupUi() {
     bottomLayout->addStretch();
 
     rootLayout->addWidget(bottomContainer);
+
+    for (auto *combo : findChildren<QComboBox*>()) {
+        if (combo->view()->window()) {
+            combo->view()->window()->setAttribute(Qt::WA_TranslucentBackground, false);
+        }
+        combo->view()->setStyleSheet(
+            "QAbstractItemView { "
+            "   background-color: #252525; "
+            "   color: #e0e0e0; "
+            "   border: 1px solid #3d3d3d; "
+            "   selection-background-color: #6200ea; "
+            "}"
+        );
+
+        combo->setAttribute(Qt::WA_TranslucentBackground, false);
+
+        combo->setStyleSheet(
+            "QComboBox { "
+            "   background-color: #252525; "
+            "   border: 1px solid #3d3d3d; "
+            "   border-radius: 8px; "
+            "   color: white; "
+            "}"
+            "QComboBox:hover { "
+            "   background-color: #2a2a2a; "
+            "   border: 1px solid #555; "
+            "}"
+            "QComboBox::drop-down { border: none; width: 20px; }"
+            "QComboBox::down-arrow { image: none; border: none; }"
+        );
+    }
 
     connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
         advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
