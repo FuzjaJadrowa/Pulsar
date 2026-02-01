@@ -36,11 +36,20 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
 #endif
     args << "--ffmpeg-location" << ffmpegPath;
 
-    QString downloadPath = path.isEmpty() ? QDir::currentPath() : path;
-    args << "-P" << downloadPath;
-    args << "-o" << "%(title)s.%(ext)s";
+    if (!path.isEmpty()) {
+        args << "-P" << path;
+    }
 
     ConfigManager &config = ConfigManager::instance();
+
+    QString cookiesBrowser = config.getCookiesBrowser();
+    if (cookiesBrowser != "None") {
+        args << "--cookies-from-browser" << cookiesBrowser.toLower();
+    }
+
+    if (config.getGeoBypass()) {
+        args << "--geo-bypass";
+    }
 
     if (audioOnly) {
         args << "-x";
@@ -58,17 +67,17 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
     }
 
     if (downloadChat) {
-        args << "--write-subs" << "--sub-langs" << "live_chat";
+        args << "--write-subs" << "--sub-lang" << "\"live_chat\"";
     } else if (downloadSubs) {
         if (subsLang.trimmed().isEmpty()) {
             args << "--write-auto-subs";
         } else {
-            args << "--write-subs" << "--sub-langs" << subsLang.trimmed();
+            args << "--write-subs" << "--sub-lang" << ("\"" + subsLang.trimmed() + "\"");
         }
     }
 
     if (!startTime.isEmpty() && !endTime.isEmpty()) {
-        args << "--download-sections" << QString("*%1-%2").arg(startTime, endTime);
+        args << "--download-sections" << QString("\"*%1-%2\"").arg(startTime, endTime);
         args << "--force-keyframes-at-cuts";
     }
 
@@ -119,9 +128,25 @@ void Downloader::stopDownload() {
 
 void Downloader::onReadyRead() {
     QByteArray data = process->readAllStandardOutput();
-    data.append(process->readAllStandardError());
+    if (!m_fetchingTitle) {
+        data.append(process->readAllStandardError());
+    }
+
     QString output = QString::fromLocal8Bit(data).trimmed();
     if (output.isEmpty()) return;
+
+    if (m_fetchingTitle) {
+        if (!output.isEmpty()) {
+            QStringList lines = output.split('\n');
+            for(const QString& line : lines) {
+                if(!line.isEmpty()) {
+                    emit titleFetched("", line.trimmed());
+                    break;
+                }
+            }
+        }
+        return;
+    }
 
     static QRegularExpression re("(\\d+(\\.\\d+)?)%");
     auto match = re.match(output);
@@ -139,7 +164,28 @@ void Downloader::onReadyRead() {
     emit outputLog(output);
 }
 
+void Downloader::fetchTitle(const QString &url) {
+    if (process->state() != QProcess::NotRunning) return;
+
+    m_fetchingTitle = true;
+    QString requirementsPath = ConfigManager::instance().getRequirementsPath();
+    QString program = requirementsPath + "/yt-dlp";
+#ifdef Q_OS_WIN
+    program += ".exe";
+#endif
+
+    QStringList args;
+    args << "--print" << "title" << "--skip-download" << url;
+
+    process->start(program, args);
+}
+
 void Downloader::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+    if (m_fetchingTitle) {
+        m_fetchingTitle = false;
+        return;
+    }
+
     if (isStopped) emit finished(false, "Download stopped by user.");
     else if (exitCode == 0) emit finished(true, "Download completed successfully!");
     else emit finished(false, "Error occurred. Check console for details.");

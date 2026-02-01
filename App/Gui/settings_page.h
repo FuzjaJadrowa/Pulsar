@@ -15,29 +15,22 @@
 #include <QPainter>
 #include <QDesktopServices>
 #include <QUrl>
-#include "popup.h"
-#include "../Installer/installer_window.h"
+#include "../Core/popup.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT
 public:
-    explicit SettingsPage(Popup *popup, InstallerWindow *installer, QWidget *parent = nullptr);
-    void updateThemeProperty();
+    explicit SettingsPage(Popup *popup, QWidget *parent = nullptr);
+    void refreshStyles();
 
     signals:
         void themeChanged();
-
-protected:
-    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void onThemeChanged(const QString &theme);
     void onLangChanged(const QString &lang);
     void onCloseBehaviorChanged(QAbstractButton *btn);
-    void checkFfmpeg();
-    void checkYtdlp();
     void onCookiesChanged(const QString &browser);
-    void onIgnoreErrorsToggled(bool checked);
     void onGeoBypassToggled(bool checked);
     void onVideoFormatChanged(const QString &val);
     void onVideoQualityChanged(const QString &val);
@@ -47,12 +40,10 @@ private slots:
 
 private:
     Popup *popup;
-    InstallerWindow *m_installer;
-    QPushButton *btnFfmpeg, *btnYtdlp;
     void setupUi();
     QHBoxLayout* createSection(const QString &title, QWidget *widget);
-    QHBoxLayout* createReqRow(const QString &name, QPushButton *btn);
     QVBoxLayout* createVerticalCombo(const QString &label, QComboBox *combo);
+    QLabel *iconLabel;
 };
 
 #endif

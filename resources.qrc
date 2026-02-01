@@ -1,15 +1,14 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/">
-        <file>Resources/Icons/home.png</file>
-        <file>Resources/Icons/home_dark.png</file>
+        <file>Resources/Icons/downloader.png</file>
         <file>Resources/Icons/console.png</file>
-        <file>Resources/Icons/console_dark.png</file>
         <file>Resources/Icons/settings.png</file>
-        <file>Resources/Icons/settings_dark.png</file>
         <file>Resources/Icons/icon.png</file>
-
-        <file>Resources/style.qss</file>
+        <file>Resources/Icons/icon_full.png</file>
+        <file>Resources/Icons/queue.png</file>
 
         <file>Resources/Fonts/Montserrat-ExtraBold.ttf</file>
+        <file>Resources/Fonts/Roboto-Regular.ttf</file>
+        <file>Resources/Fonts/Roboto-Black.ttf</file>
     </qresource>
 </RCC>

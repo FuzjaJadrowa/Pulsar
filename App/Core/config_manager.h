@@ -2,9 +2,9 @@
 #define CONFIG_MANAGER_H
 
 #include <QString>
-#include <QJsonObject>
 #include <QDir>
 #include <QVariant>
+#include <QSettings>
 
 class ConfigManager {
 public:
@@ -25,9 +25,6 @@ public:
     QString getCookiesBrowser() const;
     void setCookiesBrowser(const QString& browser);
 
-    bool getIgnoreErrors() const;
-    void setIgnoreErrors(bool enable);
-
     bool getGeoBypass() const;
     void setGeoBypass(bool enable);
 
@@ -47,9 +44,8 @@ public:
 
 private:
     ConfigManager();
-    QJsonObject configData;
-    QString configPath;
-
+    ~ConfigManager();
+    QSettings* settings;
     void ensureDataDir();
 };
 

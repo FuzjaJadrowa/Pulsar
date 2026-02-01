@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QPropertyAnimation>
+#include <QPixmap>
 
 class Popup : public QWidget {
     Q_OBJECT
@@ -20,6 +21,9 @@ public:
 
     signals:
         void actionClicked();
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void animateIn();
@@ -36,9 +40,11 @@ private:
     QTimer *autoCloseTimer;
     QPropertyAnimation *posAnimation;
     bool isClosing;
+    QColor overlayColor;
+    QPixmap blurredBackground;
 
     void applyStyle(Type type);
-    void updatePosition();
+    void captureAndBlurBackground();
 };
 
 #endif

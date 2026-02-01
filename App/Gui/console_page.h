@@ -11,9 +11,11 @@ class ConsolePage : public QWidget {
 public:
     explicit ConsolePage(QWidget *parent = nullptr);
     void appendLog(const QString &text);
+    void refreshStyles();
 
 private:
     QTextEdit *consoleOutput;
+    QLabel *iconLabel;
 };
 
 #endif

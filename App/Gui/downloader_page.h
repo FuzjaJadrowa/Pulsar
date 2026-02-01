@@ -1,5 +1,5 @@
-#ifndef MAIN_PAGE_H
-#define MAIN_PAGE_H
+#ifndef DOWNLOADER_PAGE_H
+#define DOWNLOADER_PAGE_H
 
 #include <QWidget>
 #include <QLabel>
@@ -8,43 +8,49 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QCheckBox>
-#include <QProgressBar>
 #include <QTextEdit>
 #include <QScrollArea>
-#include "popup.h"
-#include "downloader.h"
+#include "../Core/popup.h"
+#include "../Core/downloader.h"
+#include "components.h"
 
-class MainPage : public QWidget {
+class DownloaderPage : public QWidget {
     Q_OBJECT
 public:
-    explicit MainPage(QWidget *parent = nullptr);
+    explicit DownloaderPage(QWidget *parent = nullptr);
     Downloader* getDownloader() const { return downloader; }
-    void updateThemeProperty();
+    void refreshStyles();
+
+    QPoint getStartBtnPos() const;
+
+    signals:
+        void downloadRequested();
 
 private slots:
     void onBrowseClicked();
     void onAudioOnlyToggled(bool checked);
     void onStartClicked();
-    void onStopClicked();
-    void onDownloadFinished(bool ok, const QString &msg);
-    void onProgressUpdated(double percent, const QString &eta);
+    void onAddToQueueClicked();
     void onSubsOptionsChanged();
     void updateCommandPreview();
 
 private:
     void setupUi();
-    bool isValidTimeFormat(const QString &timeStr);
 
+    bool isValidTimeFormat(const QString &timeStr);
+    bool validateInputs();
+
+    QLabel *iconLabel;
     QLineEdit *urlInput;
     QLineEdit *pathInput;
-    QPushButton *browseBtn;
+    AnimatedButton *browseBtn;
     QComboBox *videoFormatCombo, *videoQualityCombo, *audioFormatCombo, *audioQualityCombo;
     QCheckBox *audioOnlyCheck, *downloadSubsCheck, *downloadChatCheck;
     QLineEdit *subsLangInput, *timeStartInput, *timeEndInput, *customArgsInput;
-    QPushButton *advancedBtn, *startBtn, *stopBtn;
+    AnimatedButton *advancedBtn, *startBtn, *addToQueueBtn;
+    QPushButton *m_lastClickedBtn = nullptr;
     QWidget *advancedContent;
     QTextEdit *cmdPreview;
-    QProgressBar *progressBar;
     Downloader *downloader;
     Popup *popup;
 };
