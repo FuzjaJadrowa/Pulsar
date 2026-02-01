@@ -99,6 +99,18 @@ else()
 
     install(FILES "Resources/Icons/icon.png" DESTINATION share/icons/hicolor/512x512/apps RENAME pulsar.png)
 
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    execute_process(COMMAND "${_qmake_executable}" -query QT_INSTALL_PLUGINS
+            OUTPUT_VARIABLE QT_PLUGINS_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    install(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION plugins)
+    install(DIRECTORY "${QT_PLUGINS_DIR}/platformthemes" DESTINATION plugins)
+    install(DIRECTORY "${QT_PLUGINS_DIR}/styles" DESTINATION plugins)
+    install(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION plugins)
+    install(DIRECTORY "${QT_PLUGINS_DIR}/iconengines" DESTINATION plugins)
+    install(DIRECTORY "${QT_PLUGINS_DIR}/tls" DESTINATION plugins)
+
     file(WRITE "${CMAKE_BINARY_DIR}/qt.conf"
             "[Paths]\n"
             "Prefix = ..\n"
