@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Pulsar)
-set(APP_VERSION 2.1.0)
+project(Pulsar VERSION 2.1.0)
+set(APP_VERSION "${Pulsar_VERSION}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS Widgets Network Gui Core Svg REQUIRED)
 if(APPLE)
     set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
 elseif(UNIX)
-    set(CMAKE_INSTALL_RPATH "$ORIGIN/lib:$ORIGIN/")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/")
 endif()
 
 set(PROJECT_SOURCES
@@ -92,8 +92,21 @@ else()
     set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Pulsar")
 
     install(TARGETS Pulsar RUNTIME DESTINATION bin)
-    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" DESTINATION share/doc/pulsar)
+
+    if(EXISTS "${CMAKE_SOURCE_DIR}/LICENSE")
+        install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/pulsar)
+    endif()
+
     install(FILES "Resources/Icons/icon.png" DESTINATION share/icons/hicolor/512x512/apps RENAME pulsar.png)
+
+    file(WRITE "${CMAKE_BINARY_DIR}/qt.conf"
+            "[Paths]\n"
+            "Prefix = ..\n"
+            "Plugins = plugins\n"
+            "Imports = qml\n"
+            "Qml2Imports = qml\n"
+    )
+    install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION bin)
 
     set(DESKTOP_FILE "${CMAKE_BINARY_DIR}/pulsar.desktop")
     file(WRITE "${DESKTOP_FILE}"
@@ -129,6 +142,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance, cross-platform utility 
 
 if(WIN32)
     set(CPACK_GENERATOR "ZIP;NSIS")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Pulsar")
     set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/Resources/Icons/icon.ico")
     set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/Resources/Icons/icon.ico")
     set(CPACK_NSIS_DISPLAY_NAME "Pulsar")
@@ -150,6 +164,8 @@ else()
     set(CPACK_GENERATOR "DEB;TGZ")
     set(CPACK_SYSTEM_NAME "Linux")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Fuzja Jadrowa")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.34), libgcc-s1 (>= 3.0), libstdc++6 (>= 11)")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Pulsar")
 endif()
 
