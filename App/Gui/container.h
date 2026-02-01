@@ -38,6 +38,8 @@ public:
     void setActive(bool active);
     void setIconColor(const QColor &color);
     void setActiveColor(const QColor &color);
+    void setExpandedWidth(int width);
+
 protected:
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
@@ -45,6 +47,7 @@ protected:
 private:
     bool m_isActive = false;
     bool m_isExpandable = false;
+    int m_expandedWidth = 135;
     QColor m_backgroundColor;
     QColor m_borderColor;
     QColor m_iconColor;

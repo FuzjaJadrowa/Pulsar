@@ -17,6 +17,11 @@ NavButton::NavButton(const QString &text, const QString &iconPath, bool isExpand
     setFixedWidth(m_isExpandable ? 50 : 110);
     setFixedHeight(40);
 }
+
+void NavButton::setExpandedWidth(int width) {
+    m_expandedWidth = width;
+}
+
 void NavButton::setIconColor(const QColor &color) { m_iconColor = color; update(); }
 void NavButton::setActiveColor(const QColor &color) {
     m_activeColor = color;
@@ -40,7 +45,7 @@ void NavButton::setActive(bool active) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutBack);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(active ? 135 : 50);
+        widthAnim->setEndValue(active ? m_expandedWidth : 50);
         group->addAnimation(widthAnim);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
@@ -57,7 +62,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutCubic);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(135);
+        widthAnim->setEndValue(m_expandedWidth);
         widthAnim->start(QAbstractAnimation::DeleteWhenStopped);
     }
     QPushButton::enterEvent(event);
@@ -299,6 +304,7 @@ void Container::setupUi() {
     m_titleLayout->addWidget(logoLabel);
 
     m_btnDownloader = new NavButton("Downloader", ":/Resources/Icons/downloader.png", true);
+    m_btnDownloader->setExpandedWidth(140);
     m_titleLayout->addWidget(m_btnDownloader);
 
     m_titleLayout->addSpacing(10); m_titleLayout->addStretch();
@@ -310,6 +316,7 @@ void Container::setupUi() {
     m_titleLayout->addWidget(m_btnSettings);
 
     m_btnQueue = new NavButton("Queue", ":/Resources/Icons/queue.png", true);
+    m_btnQueue->setExpandedWidth(105);
     m_btnQueue->setVisible(false);
     m_titleLayout->addWidget(m_btnQueue);
 
