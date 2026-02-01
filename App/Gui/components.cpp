@@ -299,3 +299,95 @@ void AnimatedRadioButton::paintEvent(QPaintEvent *e) {
     QRect textRect = rect().adjusted(m_circleSize + m_spacing, 0, 0, 0);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
 }
+
+AnimatedSwitch::AnimatedSwitch(QWidget *parent)
+    : QCheckBox(parent)
+{
+    setCursor(Qt::PointingHandCursor);
+    setFixedSize(m_width, m_height);
+
+    m_progress = isChecked() ? 1.0 : 0.0;
+
+    connect(this, &QCheckBox::toggled, this, [this](bool checked){
+        auto *anim = new QVariantAnimation(this);
+        anim->setDuration(200);
+        anim->setEasingCurve(QEasingCurve::InOutQuad);
+        anim->setStartValue(m_progress);
+        anim->setEndValue(checked ? 1.0 : 0.0);
+
+        connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &v){
+            m_progress = v.toReal();
+            update();
+        });
+
+        anim->start(QAbstractAnimation::DeleteWhenStopped);
+    });
+}
+
+QSize AnimatedSwitch::sizeHint() const {
+    return QSize(m_width, m_height);
+}
+QSize AnimatedSwitch::minimumSizeHint() const { return sizeHint(); }
+
+bool AnimatedSwitch::hitButton(const QPoint &pos) const {
+    return rect().contains(pos);
+}
+
+void AnimatedSwitch::showEvent(QShowEvent *e) {
+    m_progress = isChecked() ? 1.0 : 0.0;
+    QCheckBox::showEvent(e);
+}
+
+void AnimatedSwitch::checkStateSet() {
+    QCheckBox::checkStateSet();
+    auto *anim = new QVariantAnimation(this);
+    anim->setDuration(200);
+    anim->setEasingCurve(QEasingCurve::InOutQuad);
+    anim->setStartValue(m_progress);
+    anim->setEndValue(isChecked() ? 1.0 : 0.0);
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &val){
+        m_progress = val.toReal();
+        this->repaint();
+    });
+    anim->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void AnimatedSwitch::paintEvent(QPaintEvent *e) {
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    bool dark = StyleHelper::isDarkMode();
+    QColor bgOff = dark ? QColor("#3d3d3d") : QColor("#cccccc");
+    QColor bgOn = QColor("#6200ea");
+    QColor circleColor = Qt::white;
+
+    if (!isEnabled()) {
+        bgOff = QColor("#333");
+        bgOn = QColor("#444");
+        circleColor = QColor("#777");
+    }
+
+    QColor currentColor;
+    if (m_progress <= 0.0) currentColor = bgOff;
+    else if (m_progress >= 1.0) currentColor = bgOn;
+    else {
+        int r = bgOff.red() + (bgOn.red() - bgOff.red()) * m_progress;
+        int g = bgOff.green() + (bgOn.green() - bgOff.green()) * m_progress;
+        int b = bgOff.blue() + (bgOn.blue() - bgOff.blue()) * m_progress;
+        currentColor = QColor(r, g, b);
+    }
+
+    QRectF rect(0, 0, m_width, m_height);
+    p.setPen(Qt::NoPen);
+    p.setBrush(currentColor);
+    p.drawRoundedRect(rect, m_height / 2.0, m_height / 2.0);
+
+    qreal circleMargin = 3.0;
+    qreal circleSize = m_height - (circleMargin * 2);
+    qreal startX = circleMargin;
+    qreal endX = m_width - circleSize - circleMargin;
+    qreal currentX = startX + (endX - startX) * m_progress;
+
+    p.setBrush(circleColor);
+    p.drawEllipse(QRectF(currentX, circleMargin, circleSize, circleSize));
+}

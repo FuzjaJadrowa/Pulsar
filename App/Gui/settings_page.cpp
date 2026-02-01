@@ -70,6 +70,25 @@ void SettingsPage::setupUi() {
     closeLayout->addWidget(radioExit);
     mainLayout->addLayout(closeLayout);
 
+    auto *reqLabel = new QLabel("Requirements", this);
+    reqLabel->setObjectName("SectionHeader");
+    mainLayout->addWidget(reqLabel);
+
+    auto *switchApp = new AnimatedSwitch(this);
+    switchApp->setChecked(ConfigManager::instance().getAppAutoUpdate());
+    connect(switchApp, &QCheckBox::toggled, this, [](bool c){ ConfigManager::instance().setAppAutoUpdate(c); });
+    mainLayout->addLayout(createSection("Auto-update Pulsar", switchApp));
+
+    auto *switchYt = new AnimatedSwitch(this);
+    switchYt->setChecked(ConfigManager::instance().getYtDlpAutoUpdate());
+    connect(switchYt, &QCheckBox::toggled, this, [](bool c){ ConfigManager::instance().setYtDlpAutoUpdate(c); });
+    mainLayout->addLayout(createSection("Auto-update yt-dlp", switchYt));
+
+    auto *switchFfmpeg = new AnimatedSwitch(this);
+    switchFfmpeg->setChecked(ConfigManager::instance().getFfmpegAutoUpdate());
+    connect(switchFfmpeg, &QCheckBox::toggled, this, [](bool c){ ConfigManager::instance().setFfmpegAutoUpdate(c); });
+    mainLayout->addLayout(createSection("Auto-update FFmpeg", switchFfmpeg));
+
     auto *dlLabel = new QLabel("Download settings", this);
     dlLabel->setObjectName("SectionHeader");
     mainLayout->addWidget(dlLabel);

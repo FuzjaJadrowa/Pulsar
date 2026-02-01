@@ -104,12 +104,11 @@ else()
             OUTPUT_VARIABLE QT_PLUGINS_DIR
             OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    install(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION plugins)
-    install(DIRECTORY "${QT_PLUGINS_DIR}/platformthemes" DESTINATION plugins)
-    install(DIRECTORY "${QT_PLUGINS_DIR}/styles" DESTINATION plugins)
-    install(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION plugins)
-    install(DIRECTORY "${QT_PLUGINS_DIR}/iconengines" DESTINATION plugins)
-    install(DIRECTORY "${QT_PLUGINS_DIR}/tls" DESTINATION plugins)
+    foreach(PLUGIN_DIR platforms platformthemes styles imageformats iconengines tls)
+        if(EXISTS "${QT_PLUGINS_DIR}/${PLUGIN_DIR}")
+            install(DIRECTORY "${QT_PLUGINS_DIR}/${PLUGIN_DIR}" DESTINATION plugins)
+        endif()
+    endforeach()
 
     file(WRITE "${CMAKE_BINARY_DIR}/qt.conf"
             "[Paths]\n"

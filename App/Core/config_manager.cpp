@@ -42,6 +42,9 @@ void ConfigManager::load() {
     if (!settings->contains("v_quality")) setVideoQuality("1080p");
     if (!settings->contains("a_format")) setAudioFormat("mp3");
     if (!settings->contains("a_quality")) setAudioQuality("128kbps");
+    if (!settings->contains("update_app")) setAppAutoUpdate(true);
+    if (!settings->contains("update_ytdlp")) setYtDlpAutoUpdate(true);
+    if (!settings->contains("update_ffmpeg")) setFfmpegAutoUpdate(true);
     save();
 }
 
@@ -75,6 +78,15 @@ void ConfigManager::setAudioFormat(const QString& f) { settings->setValue("a_for
 
 QString ConfigManager::getAudioQuality() const { return settings->value("a_quality", "128kbps").toString(); }
 void ConfigManager::setAudioQuality(const QString& q) { settings->setValue("a_quality", q); }
+
+bool ConfigManager::getAppAutoUpdate() const { return settings->value("update_app", true).toBool(); }
+void ConfigManager::setAppAutoUpdate(bool enable) { settings->setValue("update_app", enable); }
+
+bool ConfigManager::getYtDlpAutoUpdate() const { return settings->value("update_ytdlp", true).toBool(); }
+void ConfigManager::setYtDlpAutoUpdate(bool enable) { settings->setValue("update_ytdlp", enable); }
+
+bool ConfigManager::getFfmpegAutoUpdate() const { return settings->value("update_ffmpeg", true).toBool(); }
+void ConfigManager::setFfmpegAutoUpdate(bool enable) { settings->setValue("update_ffmpeg", enable); }
 
 QString ConfigManager::getRequirementsPath() const {
     QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);

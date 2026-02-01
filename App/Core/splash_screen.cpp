@@ -1,4 +1,5 @@
 #include "splash_screen.h"
+#include "config_manager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyleOption>
@@ -112,6 +113,11 @@ void SplashScreen::startProcess() {
 
 void SplashScreen::checkAppUpdate() {
     m_statusLabel->setText("Checking for updates...");
+
+    if (!ConfigManager::instance().getAppAutoUpdate()) {
+        checkRequirements();
+        return;
+    }
 
     qint64 lastCheck = getLastCheckTime("app_last_check");
     if (QDateTime::currentSecsSinceEpoch() - lastCheck < 1800) {
@@ -271,12 +277,19 @@ void SplashScreen::checkNextRequirement() {
     } else {
         qint64 lastCheck = getLastCheckTime("req_last_check");
         if (QDateTime::currentSecsSinceEpoch() - lastCheck > 1800) {
-             m_reqChecked = true;
-             m_currentAction = "yt-dlp";
-             fetchReqInfo("yt-dlp");
-             return;
+             if (ConfigManager::instance().getYtDlpAutoUpdate()) {
+                 m_reqChecked = true;
+                 m_currentAction = "yt-dlp";
+                 fetchReqInfo("yt-dlp");
+                 return;
+             }
+             if (ConfigManager::instance().getFfmpegAutoUpdate()) {
+                 m_reqChecked = true;
+                 m_currentAction = "ffmpeg";
+                 fetchReqInfo("ffmpeg");
+                 return;
+             }
         }
-
         finalize();
     }
 }
@@ -296,8 +309,12 @@ void SplashScreen::onReqVersionReceived() {
         m_reply->deleteLater();
         if (QFile::exists(getRequirementsPath() + "/" + getExecutableName(m_currentAction))) {
              if (m_currentAction == "yt-dlp") {
-                 m_currentAction = "ffmpeg";
-                 fetchReqInfo("ffmpeg");
+                 if (ConfigManager::instance().getFfmpegAutoUpdate() || !QFile::exists(getRequirementsPath() + "/" + getExecutableName("ffmpeg"))) {
+                     m_currentAction = "ffmpeg";
+                     fetchReqInfo("ffmpeg");
+                 } else {
+                     finalize();
+                 }
              } else {
                  finalize();
              }
@@ -348,8 +365,12 @@ void SplashScreen::onReqVersionReceived() {
         downloadFile(downloadUrl, getRequirementsPath() + "/" + m_currentAction + "_temp" + ext);
     } else {
         if (m_currentAction == "yt-dlp") {
-            m_currentAction = "ffmpeg";
-            fetchReqInfo("ffmpeg");
+            if (ConfigManager::instance().getFfmpegAutoUpdate() || !QFile::exists(getRequirementsPath() + "/" + getExecutableName("ffmpeg"))) {
+                m_currentAction = "ffmpeg";
+                fetchReqInfo("ffmpeg");
+            } else {
+                finalize();
+            }
         } else {
             finalize();
         }
@@ -405,8 +426,12 @@ void SplashScreen::onDownloadFinished() {
                     setLocalVersion(m_currentAction, m_remoteVersion);
 
                     if (m_currentAction == "yt-dlp") {
-                        m_currentAction = "ffmpeg";
-                        fetchReqInfo("ffmpeg");
+                        if (ConfigManager::instance().getFfmpegAutoUpdate() || !QFile::exists(getRequirementsPath() + "/" + getExecutableName("ffmpeg"))) {
+                            m_currentAction = "ffmpeg";
+                            fetchReqInfo("ffmpeg");
+                        } else {
+                            finalize();
+                        }
                     } else {
                         finalize();
                     }
@@ -416,8 +441,12 @@ void SplashScreen::onDownloadFinished() {
     } else {
         if (!m_isAppUpdate && QFile::exists(getRequirementsPath() + "/" + getExecutableName(m_currentAction))) {
              if (m_currentAction == "yt-dlp") {
-                 m_currentAction = "ffmpeg";
-                 fetchReqInfo("ffmpeg");
+                 if (ConfigManager::instance().getFfmpegAutoUpdate() || !QFile::exists(getRequirementsPath() + "/" + getExecutableName("ffmpeg"))) {
+                     m_currentAction = "ffmpeg";
+                     fetchReqInfo("ffmpeg");
+                 } else {
+                     finalize();
+                 }
              } else {
                  finalize();
              }
@@ -481,8 +510,12 @@ void SplashScreen::extractArchive(const QString &archivePath, const QString &des
         setLocalVersion(m_currentAction, m_remoteVersion);
 
         if (m_currentAction == "yt-dlp") {
-            m_currentAction = "ffmpeg";
-            fetchReqInfo("ffmpeg");
+            if (ConfigManager::instance().getFfmpegAutoUpdate() || !QFile::exists(getRequirementsPath() + "/" + getExecutableName("ffmpeg"))) {
+                m_currentAction = "ffmpeg";
+                fetchReqInfo("ffmpeg");
+            } else {
+                finalize();
+            }
         } else {
             finalize();
         }

@@ -92,7 +92,7 @@ public:
     qreal scaleFactor() const { return m_scale; }
     void setScaleFactor(qreal s) { m_scale = s; update(); }
 
-void setColors(const QColor &base, const QColor &hover);
+    void setColors(const QColor &base, const QColor &hover);
     void setTextColor(const QColor &color);
 
 protected:
@@ -160,6 +160,34 @@ private:
     qreal m_progress = 0.0;
     const int m_circleSize = 20;
     const int m_spacing = 10;
+};
+
+class AnimatedSwitch : public QCheckBox {
+    Q_OBJECT
+    Q_PROPERTY(qreal progress READ progress WRITE setProgress)
+
+public:
+    explicit AnimatedSwitch(QWidget *parent = nullptr);
+
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+    qreal progress() const { return m_progress; }
+    void setProgress(qreal p) { m_progress = p; update(); }
+
+protected:
+    void paintEvent(QPaintEvent *e) override;
+    bool hitButton(const QPoint &pos) const override;
+    void checkStateSet() override;
+    void showEvent(QShowEvent *e) override;
+    void enterEvent(QEnterEvent *e) override { m_hover = true; update(); QCheckBox::enterEvent(e); }
+    void leaveEvent(QEvent *e) override { m_hover = false; update(); QCheckBox::leaveEvent(e); }
+
+private:
+    qreal m_progress = 0.0;
+    bool m_hover = false;
+    const int m_width = 44;
+    const int m_height = 24;
 };
 
 #endif

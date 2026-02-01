@@ -40,6 +40,15 @@ public:
     QString getAudioQuality() const;
     void setAudioQuality(const QString& quality);
 
+    bool getAppAutoUpdate() const;
+    void setAppAutoUpdate(bool enable);
+
+    bool getYtDlpAutoUpdate() const;
+    void setYtDlpAutoUpdate(bool enable);
+
+    bool getFfmpegAutoUpdate() const;
+    void setFfmpegAutoUpdate(bool enable);
+
     QString getRequirementsPath() const;
 
 private:
