@@ -420,9 +420,6 @@ void Container::toggleQueuePanel() {
     int w = m_queuePanel->width();
     int x = width() - w - 20;
     int y = m_titleBar->height() + 10;
-    int contentH = m_queuePanel->calculateContentHeight();
-    int maxH = height() - y - 20;
-    int finalH = qMin(contentH, maxH);
     if (m_queuePanel->isVisible()) {
         auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
         animOpacity->setDuration(250); animOpacity->setStartValue(1.0); animOpacity->setEndValue(0.0);
