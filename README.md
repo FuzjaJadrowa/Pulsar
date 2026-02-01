@@ -41,10 +41,6 @@ To build Pulsar yourself, ensure you have **Qt 6.6+**, **CMake**, and a C++20 co
     cmake --build build --config Release
     ```
 3.  Run the application from the `build` directory.
-## Screenshots
-![Main Page](https://i.ibb.co/7tpCThvy/Zrzut-ekranu-2026-01-26-155842.png)
-![Queue Panel](https://i.ibb.co/LdkmwGhr/Zrzut-ekranu-2026-01-26-155847.png)
-![Settings](https://i.ibb.co/ynCqBqcS/Zrzut-ekranu-2026-01-26-155858.png)
 ## License
 Distributed under the terms specified in the LICENSE file.
 Powered by [Qt6](https://www.qt.io/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://github.com/BtbN/FFmpeg-Builds).
