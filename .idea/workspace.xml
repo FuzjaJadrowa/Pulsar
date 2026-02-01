@@ -35,14 +35,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="6/7 XD">
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="Jeszcze tylko queue dostosowac i bedzie sigma">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/downloader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/downloader.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/splash_screen.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/splash_screen.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Core/splash_screen.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Core/splash_screen.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/container.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/App/Gui/container.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/App/Gui/queue_panel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/queue_panel.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/queue_panel.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/queue_panel.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,7 +165,7 @@
       <workItem from="1769879409248" duration="5000" />
       <workItem from="1769879520678" duration="2777000" />
       <workItem from="1769882343379" duration="7000" />
-      <workItem from="1769936768869" duration="10469000" />
+      <workItem from="1769936768869" duration="13338000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -273,7 +271,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769943012139</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Jeszcze tylko queue dostosowac i bedzie sigma">
+      <option name="closed" value="true" />
+      <created>1769947668855</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1769947668855</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -305,6 +311,7 @@
     <MESSAGE value="Gradent do dopracowania" />
     <MESSAGE value="5,5/7 XD" />
     <MESSAGE value="6/7 XD" />
-    <option name="LAST_COMMIT_MESSAGE" value="6/7 XD" />
+    <MESSAGE value="Jeszcze tylko queue dostosowac i bedzie sigma" />
+    <option name="LAST_COMMIT_MESSAGE" value="Jeszcze tylko queue dostosowac i bedzie sigma" />
   </component>
 </project>

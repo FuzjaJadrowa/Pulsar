@@ -10,6 +10,7 @@
 #include <QMouseEvent>
 #include <QGraphicsBlurEffect>
 #include <QPixmap>
+#include <QPropertyAnimation>
 #include "components.h"
 #include "../Core/queue_manager.h"
 
@@ -56,10 +57,16 @@ class QueuePanel : public QWidget {
     Q_OBJECT
 public:
     explicit QueuePanel(QWidget *parent = nullptr);
+
+    void toggle(const QPoint &targetPos);
+
     void refresh();
     QueueItemWidget* findWidgetById(const QString &id);
     int calculateContentHeight() const;
     void captureAndBlurBackground();
+
+signals:
+    void contentSizeChanged();
 
 protected:
     void paintEvent(QPaintEvent *e) override;
@@ -78,6 +85,7 @@ private:
 
     QWidget *m_itemsContainer;
     QVBoxLayout *m_itemsLayout;
+    QLabel *m_headerLabel;
 
     AnimatedButton *m_btnStartAll;
     AnimatedButton *m_btnStopAll;
@@ -88,6 +96,8 @@ private:
     QLabel *m_pageLabel;
 
     QPixmap m_blurredBg;
+    QPropertyAnimation *m_anim;
+
     int m_currentPage = 0;
     const int ITEMS_PER_PAGE = 4;
 };

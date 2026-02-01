@@ -11,11 +11,9 @@ AnimatedButton::AnimatedButton(const QString &text, QWidget *parent, QColor base
     setFont(QFont("Roboto", 10, QFont::Bold));
 }
 
-// --- NOWE METODY ---
 void AnimatedButton::setColors(const QColor &base, const QColor &hover) {
     m_baseColor = base;
     m_hoverColor = hover;
-    // Jeśli nie jest najechany, zresetuj tło do bazy
     if (!underMouse()) {
         m_bgColor = m_baseColor;
     }
@@ -26,7 +24,6 @@ void AnimatedButton::setTextColor(const QColor &color) {
     m_textColor = color;
     update();
 }
-// -------------------
 
 void AnimatedButton::enterEvent(QEnterEvent *e) {
     if (!isEnabled()) return;
@@ -86,7 +83,6 @@ void AnimatedButton::paintEvent(QPaintEvent *e) {
     }
     p.drawRoundedRect(rect(), 8, 8);
 
-    // Używamy m_textColor zamiast Qt::white na sztywno
     p.setPen(isEnabled() ? m_textColor : QColor(100, 100, 100));
     p.setFont(font());
     p.drawText(rect(), Qt::AlignCenter, text());
@@ -158,13 +154,10 @@ void AnimatedCheckBox::paintEvent(QPaintEvent *e) {
     int yOffset = (height() - m_boxSize) / 2;
     QRect boxRect(0, yOffset, m_boxSize, m_boxSize);
 
-    // --- LOGIKA KOLORÓW ---
     bool dark = StyleHelper::isDarkMode();
 
-    // Puste tło: ciemne w Dark Mode, jasnoszare w Light Mode
     QColor bgUnchecked = dark ? QColor("#2d2d2d") : QColor("#e0e0e0");
 
-    // Ramka
     QColor borderUnchecked = m_hover ? (dark ? QColor("#888") : QColor("#999"))
                                      : (dark ? QColor("#555") : QColor("#bbb"));
 

@@ -40,7 +40,7 @@ void NavButton::setActive(bool active) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutBack);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(active ? 130 : 50);
+        widthAnim->setEndValue(active ? 135 : 50);
         group->addAnimation(widthAnim);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
@@ -57,7 +57,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
         widthAnim->setDuration(300);
         widthAnim->setEasingCurve(QEasingCurve::OutCubic);
         widthAnim->setStartValue(width());
-        widthAnim->setEndValue(130);
+        widthAnim->setEndValue(135);
         widthAnim->start(QAbstractAnimation::DeleteWhenStopped);
     }
     QPushButton::enterEvent(event);
