@@ -38,8 +38,8 @@ jobs:
         with:
           name: Windows-Builds
           path: |
-            build/GUI-Video-Downloader-*-win64.exe
-            build/GUI-Video-Downloader-*-win64.zip
+            build/Pulsar-*-win64.exe
+            build/Pulsar-*-win64.zip
 
   build-macos:
     runs-on: macos-15
@@ -70,8 +70,8 @@ jobs:
         with:
           name: macOS-Builds
           path: |
-            build/GUI-Video-Downloader-*-Darwin.dmg
-            build/GUI-Video-Downloader-*-Darwin.zip
+            build/Pulsar-*-MacOS.dmg
+            build/Pulsar-*-MacOS.zip
 
   build-linux:
     runs-on: ubuntu-22.04
@@ -107,5 +107,5 @@ jobs:
         with:
           name: Linux-Builds
           path: |
-            build/GUI-Video-Downloader-*-Linux.deb
-            build/GUI-Video-Downloader-*-Linux.tar.gz
+            build/Pulsar-*-Linux.deb
+            build/Pulsar-*-Linux.tar.gz
