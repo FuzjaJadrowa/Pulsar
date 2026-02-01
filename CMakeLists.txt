@@ -103,8 +103,6 @@ else()
             "[Paths]\n"
             "Prefix = ..\n"
             "Plugins = plugins\n"
-            "Imports = qml\n"
-            "Qml2Imports = qml\n"
     )
     install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION bin)
 
@@ -127,7 +125,7 @@ else()
             set(DESTDIR \"\$ENV{DESTDIR}\")
             set(APP_BIN \"\${DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/Pulsar\")
             execute_process(
-                COMMAND \"${LINUXDEPLOYQT_EXECUTABLE}\" \"\${APP_BIN}\" -no-translations -always-overwrite -unsupported-allow-new-glibc
+                COMMAND \"${LINUXDEPLOYQT_EXECUTABLE}\" \"\${APP_BIN}\" -always-overwrite -unsupported-allow-new-glibc -extra-plugins=platformthemes,platforms
             )
         " COMPONENT Runtime)
     endif()
