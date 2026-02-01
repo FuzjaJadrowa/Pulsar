@@ -8,9 +8,8 @@ SettingsPage::SettingsPage(Popup *popup, QWidget *parent)
     : QWidget(parent), popup(popup) {
 
     setupUi();
+    refreshStyles();
 }
-
-void SettingsPage::updateThemeProperty() {}
 
 void SettingsPage::setupUi() {
     setAttribute(Qt::WA_TranslucentBackground);
@@ -32,14 +31,8 @@ void SettingsPage::setupUi() {
     mainLayout->setSpacing(15);
 
     auto *titleLayout = new QHBoxLayout();
-    auto *iconLabel = new QLabel(this);
-    QPixmap icon(":/Resources/Icons/settings.png");
-    QPainter p(&icon);
-    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    p.fillRect(icon.rect(), Qt::white);
-    p.end();
+    iconLabel = new QLabel(this);
 
-    iconLabel->setPixmap(icon.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     auto *titleLabel = new QLabel("Settings", this);
     titleLabel->setObjectName("PageTitle");
     titleLayout->addWidget(iconLabel);
@@ -177,10 +170,31 @@ QVBoxLayout* SettingsPage::createVerticalCombo(const QString &label, QComboBox *
 
 void SettingsPage::onThemeChanged(const QString &theme) {
     ConfigManager::instance().setTheme(theme);
-    updateThemeProperty();
     emit themeChanged();
 }
 
+void SettingsPage::refreshStyles() {
+    bool dark = StyleHelper::isDarkMode();
+    QString comboStyle = StyleHelper::getComboBoxStyle(dark);
+
+    QPixmap icon(":/Resources/Icons/settings.png");
+    QPainter p(&icon);
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(icon.rect(), dark ? Qt::white : Qt::black);
+    p.end();
+    if (iconLabel) {
+        iconLabel->setPixmap(icon.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+
+    for (auto *combo : findChildren<QComboBox*>()) {
+        if (combo->view()->window()) {
+            combo->view()->window()->setAttribute(Qt::WA_TranslucentBackground, false);
+        }
+        combo->setStyleSheet(comboStyle);
+        combo->view()->setStyleSheet(comboStyle);
+        combo->setAttribute(Qt::WA_TranslucentBackground, false);
+    }
+}
 void SettingsPage::onLangChanged(const QString &lang) { ConfigManager::instance().setLanguage(lang); }
 void SettingsPage::onCloseBehaviorChanged(QAbstractButton *btn) { ConfigManager::instance().setCloseBehavior(btn->text().contains("Hide") ? "Hide" : "Exit"); }
 void SettingsPage::onCookiesChanged(const QString &browser) { ConfigManager::instance().setCookiesBrowser(browser); }

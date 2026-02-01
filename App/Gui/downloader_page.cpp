@@ -16,8 +16,6 @@ DownloaderPage::DownloaderPage(QWidget *parent) : QWidget(parent) {
     setupUi();
 }
 
-void DownloaderPage::updateThemeProperty() {}
-
 QPoint DownloaderPage::getStartBtnPos() const {
     if (m_lastClickedBtn) {
         return m_lastClickedBtn->mapToGlobal(QPoint(m_lastClickedBtn->width()/2, m_lastClickedBtn->height()/2));
@@ -25,8 +23,7 @@ QPoint DownloaderPage::getStartBtnPos() const {
     return startBtn->mapToGlobal(QPoint(startBtn->width()/2, startBtn->height()/2));
 }
 
-void DownloaderPage::setupUi() {
-    setAttribute(Qt::WA_TranslucentBackground);
+void DownloaderPage::setupUi() {setAttribute(Qt::WA_TranslucentBackground);
 
     auto *rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
@@ -45,13 +42,8 @@ void DownloaderPage::setupUi() {
     mainLayout->setSpacing(20);
 
     auto *headerLayout = new QHBoxLayout();
-    auto *iconLabel = new QLabel(this);
-    QPixmap icon(":/Resources/Icons/downloader.png");
-    QPainter p(&icon);
-    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    p.fillRect(icon.rect(), Qt::white);
-    p.end();
-    iconLabel->setPixmap(icon.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    iconLabel = new QLabel(this);
+
     auto *header = new QLabel("Downloader", this);
     header->setObjectName("PageTitle");
     headerLayout->addWidget(iconLabel);
@@ -64,8 +56,10 @@ void DownloaderPage::setupUi() {
     urlInput->setPlaceholderText("Paste YouTube link here...");
     pathInput = new QLineEdit(this);
     pathInput->setPlaceholderText("Download path...");
+
     browseBtn = new AnimatedButton("Browse", this, QColor("#333"), QColor("#444"));
     browseBtn->setFixedWidth(100);
+
     inputLayout->addWidget(urlInput, 2);
     inputLayout->addWidget(pathInput, 1);
     inputLayout->addWidget(browseBtn, 0);
@@ -152,12 +146,8 @@ void DownloaderPage::setupUi() {
     rootLayout->addWidget(scrollArea);
 
     auto *bottomContainer = new QWidget(this);
-    bottomContainer->setStyleSheet(
-        "background-color: rgba(20, 20, 30, 180);"
-        "border-top: 1px solid rgba(255, 255, 255, 20);"
-        "border-bottom-left-radius: 15px;"
-        "border-bottom-right-radius: 15px;"
-    );
+    bottomContainer->setObjectName("BottomContainer");
+
     auto *bottomLayout = new QHBoxLayout(bottomContainer);
     bottomLayout->setContentsMargins(30, 20, 30, 20);
     bottomLayout->setSpacing(15);
@@ -175,37 +165,6 @@ void DownloaderPage::setupUi() {
     bottomLayout->addStretch();
 
     rootLayout->addWidget(bottomContainer);
-
-    for (auto *combo : findChildren<QComboBox*>()) {
-        if (combo->view()->window()) {
-            combo->view()->window()->setAttribute(Qt::WA_TranslucentBackground, false);
-        }
-        combo->view()->setStyleSheet(
-            "QAbstractItemView { "
-            "   background-color: #252525; "
-            "   color: #e0e0e0; "
-            "   border: 1px solid #3d3d3d; "
-            "   selection-background-color: #6200ea; "
-            "}"
-        );
-
-        combo->setAttribute(Qt::WA_TranslucentBackground, false);
-
-        combo->setStyleSheet(
-            "QComboBox { "
-            "   background-color: #252525; "
-            "   border: 1px solid #3d3d3d; "
-            "   border-radius: 8px; "
-            "   color: white; "
-            "}"
-            "QComboBox:hover { "
-            "   background-color: #2a2a2a; "
-            "   border: 1px solid #555; "
-            "}"
-            "QComboBox::drop-down { border: none; width: 20px; }"
-            "QComboBox::down-arrow { image: none; border: none; }"
-        );
-    }
 
     connect(advancedBtn, &QPushButton::toggled, this, [this](bool c){
         advancedBtn->setText(c ? "Advanced Settings ▲" : "Advanced Settings ▼");
@@ -239,6 +198,63 @@ void DownloaderPage::setupUi() {
     for(auto *c : findChildren<QComboBox*>()) connect(c, &QComboBox::currentTextChanged, this, &DownloaderPage::updateCommandPreview);
     for(auto *x : findChildren<QCheckBox*>()) connect(x, &QCheckBox::toggled, this, &DownloaderPage::updateCommandPreview);
     onAudioOnlyToggled(false);
+
+    refreshStyles();
+}
+
+void DownloaderPage::refreshStyles() {
+    bool dark = StyleHelper::isDarkMode();
+    QString comboStyle = StyleHelper::getComboBoxStyle(dark);
+
+    QPixmap icon(":/Resources/Icons/downloader.png");
+    QPainter p(&icon);
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(icon.rect(), dark ? Qt::white : Qt::black);
+    p.end();
+    iconLabel->setPixmap(icon.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+    for (auto *combo : findChildren<QComboBox*>()) {
+        if (combo->view()->window()) {
+            combo->view()->window()->setAttribute(Qt::WA_TranslucentBackground, false);
+        }
+        combo->setStyleSheet(comboStyle);
+        combo->view()->setStyleSheet(comboStyle);
+        combo->setAttribute(Qt::WA_TranslucentBackground, false);
+    }
+
+    auto *bottomContainer = findChild<QWidget*>("BottomContainer");
+    if (bottomContainer) {
+        QString bg = dark ? "rgba(20, 20, 30, 180)" : "rgba(255, 255, 255, 180)";
+        QString border = dark ? "rgba(255, 255, 255, 20)" : "rgba(0, 0, 0, 20)";
+
+        bottomContainer->setStyleSheet(QString(
+            "#BottomContainer {"
+            "   background-color: %1;"
+            "   border-top: 1px solid %2;"
+            "   border-bottom-left-radius: 15px;"
+            "   border-bottom-right-radius: 15px;"
+            "}"
+        ).arg(bg, border));
+    }
+
+    if (dark) {
+        browseBtn->setColors(QColor("#333"), QColor("#444"));
+        browseBtn->setTextColor(Qt::white);
+    } else {
+        browseBtn->setColors(QColor("#e0e0e0"), QColor("#d0d0d0"));
+        browseBtn->setTextColor(QColor("#333333"));
+    }
+
+    if (dark) {
+        advancedBtn->setColors(Qt::transparent, QColor("#333"));
+        advancedBtn->setTextColor(QColor("#aaaaaa"));
+    } else {
+        advancedBtn->setColors(Qt::transparent, QColor("#e5e5e5"));
+        advancedBtn->setTextColor(QColor("#333333"));
+    }
+
+    for(auto *chk : findChildren<AnimatedCheckBox*>()) chk->update();
+    for(auto *rad : findChildren<AnimatedRadioButton*>()) rad->update();
 }
 
 void DownloaderPage::updateCommandPreview() {

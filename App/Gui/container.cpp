@@ -26,21 +26,36 @@ NavButton::NavButton(const QString &text, const QString &iconPath, bool isExpand
     setCursor(Qt::PointingHandCursor);
     m_backgroundColor = Qt::transparent;
     m_borderColor = Qt::transparent;
+    m_iconColor = Qt::white;
+    m_activeColor = QColor(138, 43, 226);
     setFixedWidth(m_isExpandable ? 50 : 110);
     setFixedHeight(40);
 }
+
+void NavButton::setIconColor(const QColor &color) {
+    m_iconColor = color;
+    update();
+}
+
+void NavButton::setActiveColor(const QColor &color) {
+    m_activeColor = color;
+    if (m_isActive) {
+
+        setBackgroundColor(m_activeColor);
+        setBorderColor(m_activeColor);
+    }
+}
+
 void NavButton::setActive(bool active) {
     m_isActive = active;
     auto *group = new QParallelAnimationGroup(this);
     auto *bgAnim = new QPropertyAnimation(this, "backgroundColor");
     bgAnim->setDuration(200);
     bgAnim->setStartValue(m_backgroundColor);
-    bgAnim->setEndValue(active ? QColor(138, 43, 226) : QColor(Qt::transparent));
-    auto *borderAnim = new QPropertyAnimation(this, "borderColor");
+    bgAnim->setEndValue(active ? m_activeColor : QColor(Qt::transparent));    auto *borderAnim = new QPropertyAnimation(this, "borderColor");
     borderAnim->setDuration(200);
     borderAnim->setStartValue(m_borderColor);
-    borderAnim->setEndValue(active ? QColor(138, 43, 226) : QColor(Qt::transparent));
-    group->addAnimation(bgAnim);
+    borderAnim->setEndValue(active ? m_activeColor : QColor(Qt::transparent));    group->addAnimation(bgAnim);
     group->addAnimation(borderAnim);
     if (m_isExpandable) {
         auto *widthAnim = new QPropertyAnimation(this, "fixedWidth");
@@ -57,7 +72,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
     auto *anim = new QPropertyAnimation(this, "borderColor");
     anim->setDuration(200);
     anim->setStartValue(m_borderColor);
-    anim->setEndValue(QColor(138, 43, 226));
+    anim->setEndValue(m_activeColor);
     anim->start(QAbstractAnimation::DeleteWhenStopped);
     if (m_isExpandable) {
         auto *widthAnim = new QPropertyAnimation(this, "fixedWidth");
@@ -69,6 +84,7 @@ void NavButton::enterEvent(QEnterEvent *event) {
     }
     QPushButton::enterEvent(event);
 }
+
 void NavButton::leaveEvent(QEvent *event) {
     if (m_isActive) return;
     auto *anim = new QPropertyAnimation(this, "borderColor");
@@ -109,12 +125,13 @@ void NavButton::paintEvent(QPaintEvent *event) {
         QPixmap tintedIcon = m_icon;
         QPainter iconPainter(&tintedIcon);
         iconPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        iconPainter.fillRect(tintedIcon.rect(), Qt::white);
+
+        iconPainter.fillRect(tintedIcon.rect(), m_iconColor);
         iconPainter.end();
         p.drawPixmap(margin, iconY, iconSize, iconSize, tintedIcon);
     }
     if (width() > 60) {
-        p.setPen(Qt::white);
+        p.setPen(m_iconColor);
         QFont f = font();
         f.setBold(true);
         f.setPointSize(10);
@@ -170,7 +187,10 @@ void WindowControlBtn::paintEvent(QPaintEvent *event) {
         p.drawRoundedRect(rect(), 4, 4);
     }
 
-    p.setPen(QPen(Qt::white, 2));
+    bool dark = StyleHelper::isDarkMode();
+    QColor iconColor = dark ? Qt::white : QColor("#333333");
+
+    p.setPen(QPen(iconColor, 2));
     p.setBrush(Qt::NoBrush);
 
     int w = width();
@@ -207,6 +227,8 @@ Container::Container(QWidget *parent) : QWidget(parent), m_animProgress(0.0f) {
     setupUi();
     setupConnections();
 
+    updateTheme();
+
     #ifdef Q_OS_WIN
     if (auto *hwnd = reinterpret_cast<HWND>(winId())) {
         LONG style = GetWindowLong(hwnd, GWL_STYLE);
@@ -237,9 +259,13 @@ void Container::updateBackground() {
 }
 
 void Container::paintBackground(QPainter *painter, const QRect &rect) {
-    QColor c1(10, 10, 30);
-    QColor c2(30, 5, 40);
-    QColor c3(40, 0, 20);
+    QColor d1(10, 10, 30), d2(30, 5, 40), d3(40, 0, 20);
+    QColor l1(240, 248, 255), l2(255, 240, 245), l3(230, 230, 250);
+
+    bool dark = StyleHelper::isDarkMode();
+    QColor c1 = dark ? d1 : l1;
+    QColor c2 = dark ? d2 : l2;
+    QColor c3 = dark ? d3 : l3;
 
     float p = m_animProgress * 2.0f * M_PI;
     float factor = (qSin(p) + 1.0f) / 2.0f;
@@ -271,13 +297,15 @@ bool Container::eventFilter(QObject *obj, QEvent *event) {
 
         paintBackground(&p, m_windowContent->rect());
 
-        p.setPen(QPen(QColor(60, 60, 60), 1));
+        bool dark = StyleHelper::isDarkMode();
+        QColor borderColor = dark ? QColor(60, 60, 60) : QColor(200, 200, 200);
+
+        p.setPen(QPen(borderColor, 1));
         p.setBrush(Qt::NoBrush);
         p.drawRoundedRect(m_windowContent->rect(), 15, 15);
 
         return true;
     }
-
     if (event->type() == QEvent::MouseButtonPress) {
         if (m_queuePanel->isVisible()) {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
@@ -299,8 +327,7 @@ bool Container::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-void Container::setupUi() {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+void Container::setupUi() {QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(10, 10, 10, 10);
 
     m_windowContent = new QWidget(this);
@@ -314,16 +341,8 @@ void Container::setupUi() {
 
     m_titleBar = new QWidget(this);
     m_titleBar->setFixedHeight(80);
-    m_titleBar->setStyleSheet(
-        "QWidget {"
-            "background-color: rgba(20, 20, 30, 180);"
-            "border-bottom: 1px solid rgba(255, 255, 255, 20);"
-            "border-top-left-radius: 15px;"
-            "border-top-right-radius: 15px;"
-        "}"
-        "QPushButton { background: transparent; border: none; border-radius: 0px; }"
-        "QLabel { background: transparent; border: none; }"
-    );
+    m_titleBar->setObjectName("TitleBar");
+
     m_titleLayout = new QHBoxLayout(m_titleBar);
     m_titleLayout->setContentsMargins(20, 10, 20, 10);
     m_titleLayout->setSpacing(15);
@@ -380,6 +399,8 @@ void Container::setupUi() {
     m_stackedWidget->addWidget(pageSettings);
     m_stackedWidget->addWidget(pageConsole);
 
+    connect(pageSettings, &SettingsPage::themeChanged, this, &Container::updateTheme);
+
     connect(pageDownloader->getDownloader(), &Downloader::outputLog, pageConsole, &ConsolePage::appendLog);
     connect(&QueueManager::instance(), &QueueManager::logMessage, pageConsole, &ConsolePage::appendLog);
 
@@ -398,99 +419,120 @@ void Container::setupUi() {
     m_queuePanel->setVisible(false);
 }
 
+void Container::updateTheme() {
+    bool dark = StyleHelper::isDarkMode();
+
+    qApp->setStyleSheet(StyleHelper::getGlobalStyle(dark));
+
+    QString titleBg = dark ? "rgba(20, 20, 30, 180)" : "rgba(255, 255, 255, 180)";
+    QString titleBorder = dark ? "rgba(255, 255, 255, 20)" : "rgba(0, 0, 0, 20)";
+
+    m_titleBar->setStyleSheet(QString(
+        "#TitleBar {"
+        "   background-color: %1;"
+        "   border-bottom: 1px solid %2;"
+        "   border-top-left-radius: 15px;"
+        "   border-top-right-radius: 15px;"
+        "}"
+        "QPushButton { background: transparent; border: none; border-radius: 0px; }"
+        "QLabel { background: transparent; border: none; }"
+    ).arg(titleBg, titleBorder));
+
+    QColor iconColor = dark ? Qt::white : QColor("#333333");
+
+    QColor activeColor = dark ? QColor(138, 43, 226) : QColor(179, 157, 219);
+
+    m_btnDownloader->setIconColor(iconColor);
+    m_btnDownloader->setActiveColor(activeColor);
+
+    m_btnSettings->setIconColor(iconColor);
+    m_btnSettings->setActiveColor(activeColor);
+
+    m_btnConsole->setIconColor(iconColor);
+    m_btnConsole->setActiveColor(activeColor);
+
+    m_btnQueue->setIconColor(iconColor);
+    m_btnQueue->setActiveColor(activeColor);
+
+    if (auto *dl = qobject_cast<DownloaderPage *>(m_stackedWidget->widget(0))) dl->refreshStyles();
+    if (auto* st = qobject_cast<SettingsPage *>(m_stackedWidget->widget(1))) st->refreshStyles();
+    if (auto* co = qobject_cast<ConsolePage*>(m_stackedWidget->widget(2))) co->refreshStyles();
+
+    update();
+}
+
 void Container::resizeEvent(QResizeEvent *event) {
     if (m_queuePanel->isVisible()) {
         int w = m_queuePanel->width();
         int x = width() - w - 20;
         int y = m_titleBar->height() + 10;
-
         int contentH = m_queuePanel->calculateContentHeight();
         int maxH = height() - y - 20;
         int finalH = qMin(contentH, maxH);
-
         m_queuePanel->setGeometry(x, y, w, finalH);
     }
     QWidget::resizeEvent(event);
 }
-
 void Container::toggleQueuePanel() {
     auto *group = new QParallelAnimationGroup(this);
-
     int w = m_queuePanel->width();
     int x = width() - w - 20;
     int y = m_titleBar->height() + 10;
-
     int contentH = m_queuePanel->calculateContentHeight();
     int maxH = height() - y - 20;
     int finalH = qMin(contentH, maxH);
-
     if (m_queuePanel->isVisible()) {
         auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
         animOpacity->setDuration(250);
         animOpacity->setStartValue(1.0);
         animOpacity->setEndValue(0.0);
-
         auto *animPos = new QPropertyAnimation(m_queuePanel, "pos");
         animPos->setDuration(250);
         animPos->setStartValue(m_queuePanel->pos());
         animPos->setEndValue(QPoint(x, y - 20));
-
         group->addAnimation(animOpacity);
         group->addAnimation(animPos);
-
         connect(group, &QAbstractAnimation::finished, [this](){
              m_queuePanel->hide();
              m_queuePanel->setWindowOpacity(1.0);
         });
-
         m_btnQueue->setActive(false);
     } else {
         m_queuePanel->captureAndBlurBackground();
-
         m_queuePanel->setVisible(true);
         m_queuePanel->raise();
-
         auto *animOpacity = new QPropertyAnimation(m_queuePanel, "windowOpacity");
         animOpacity->setDuration(250);
         animOpacity->setStartValue(0.0);
         animOpacity->setEndValue(1.0);
-
         auto *animPos = new QPropertyAnimation(m_queuePanel, "pos");
         animPos->setDuration(250);
         animPos->setStartValue(QPoint(x, y - 20));
         animPos->setEndValue(QPoint(x, y));
         animPos->setEasingCurve(QEasingCurve::OutCubic);
-
         group->addAnimation(animOpacity);
         group->addAnimation(animPos);
-
         m_btnQueue->setActive(true);
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
 }
-
 void Container::onDownloadRequested() {
     if (!m_btnQueue->isVisible()) {
         m_btnQueue->setVisible(true);
     }
-
     auto *ball = new QWidget(this);
     ball->setFixedSize(20, 20);
     ball->setStyleSheet("background-color: #00e676; border-radius: 10px;");
     ball->show();
-
     auto *dlPage = qobject_cast<DownloaderPage*>(m_stackedWidget->widget(0));
     QPoint startGlobal = dlPage ? dlPage->getStartBtnPos() : rect().center();
     QPoint startLocal = mapFromGlobal(startGlobal);
-
     QPoint endLocal = m_btnQueue->mapTo(this, QPoint(m_btnQueue->width()/2, m_btnQueue->height()/2));
-
     auto *anim = new QPropertyAnimation(ball, "pos");
     anim->setDuration(600);
     anim->setStartValue(startLocal);
     anim->setEndValue(endLocal);
     anim->setEasingCurve(QEasingCurve::InOutQuad);
-
     connect(anim, &QPropertyAnimation::finished, [ball, this](){
         ball->deleteLater();
         m_btnQueue->setActive(true);
@@ -498,23 +540,18 @@ void Container::onDownloadRequested() {
             if(!m_queuePanel->isVisible()) m_btnQueue->setActive(false);
         });
     });
-
     anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
-
 void Container::setupConnections() {
     connect(m_btnDownloader, &QPushButton::clicked, [this](){ switchPage(0); });
     connect(m_btnSettings, &QPushButton::clicked, [this](){ switchPage(1); });
     connect(m_btnConsole, &QPushButton::clicked, [this](){ switchPage(2); });
     connect(m_btnQueue, &QPushButton::clicked, this, &Container::toggleQueuePanel);
-
     connect(&QueueManager::instance(), &QueueManager::queueUpdated, this, [this](){
         bool empty = QueueManager::instance().isEmpty();
-
         if (empty && m_queuePanel->isVisible()) {
              toggleQueuePanel();
         }
-
         if (empty) {
             m_btnQueue->setVisible(false);
         } else {
@@ -527,13 +564,11 @@ void Container::setupConnections() {
                 anim->start(QAbstractAnimation::DeleteWhenStopped);
             }
         }
-
         if(m_queuePanel->isVisible()) {
              QResizeEvent re(size(), size());
              resizeEvent(&re);
         }
     });
-
     connect(&QueueManager::instance(), &QueueManager::itemFinished, this, [this](const QString &title, bool success){
         if (success) {
             m_popup->showMessage("Finished", "Download finished: " + title, Popup::Success, Popup::Temporary);
@@ -542,7 +577,6 @@ void Container::setupConnections() {
         }
     });
 }
-
 void Container::switchPage(int index) {
     if (m_queuePanel->isVisible()) toggleQueuePanel();
     m_stackedWidget->setCurrentIndex(index);
@@ -550,7 +584,6 @@ void Container::switchPage(int index) {
     m_btnSettings->setActive(index == 1);
     m_btnConsole->setActive(index == 2);
 }
-
 void Container::closeEvent(QCloseEvent *event) {
     auto& config = ConfigManager::instance();
     QString behavior = config.getCloseBehavior();

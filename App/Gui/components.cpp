@@ -11,6 +11,23 @@ AnimatedButton::AnimatedButton(const QString &text, QWidget *parent, QColor base
     setFont(QFont("Roboto", 10, QFont::Bold));
 }
 
+// --- NOWE METODY ---
+void AnimatedButton::setColors(const QColor &base, const QColor &hover) {
+    m_baseColor = base;
+    m_hoverColor = hover;
+    // Jeśli nie jest najechany, zresetuj tło do bazy
+    if (!underMouse()) {
+        m_bgColor = m_baseColor;
+    }
+    update();
+}
+
+void AnimatedButton::setTextColor(const QColor &color) {
+    m_textColor = color;
+    update();
+}
+// -------------------
+
 void AnimatedButton::enterEvent(QEnterEvent *e) {
     if (!isEnabled()) return;
     auto *anim = new QPropertyAnimation(this, "backgroundColor");
@@ -69,7 +86,8 @@ void AnimatedButton::paintEvent(QPaintEvent *e) {
     }
     p.drawRoundedRect(rect(), 8, 8);
 
-    p.setPen(isEnabled() ? Qt::white : QColor(100, 100, 100));
+    // Używamy m_textColor zamiast Qt::white na sztywno
+    p.setPen(isEnabled() ? m_textColor : QColor(100, 100, 100));
     p.setFont(font());
     p.drawText(rect(), Qt::AlignCenter, text());
 }
@@ -140,14 +158,24 @@ void AnimatedCheckBox::paintEvent(QPaintEvent *e) {
     int yOffset = (height() - m_boxSize) / 2;
     QRect boxRect(0, yOffset, m_boxSize, m_boxSize);
 
-    QColor borderUnchecked = m_hover ? QColor("#888") : QColor("#555");
-    QColor bgUnchecked = QColor("#2d2d2d");
+    // --- LOGIKA KOLORÓW ---
+    bool dark = StyleHelper::isDarkMode();
+
+    // Puste tło: ciemne w Dark Mode, jasnoszare w Light Mode
+    QColor bgUnchecked = dark ? QColor("#2d2d2d") : QColor("#e0e0e0");
+
+    // Ramka
+    QColor borderUnchecked = m_hover ? (dark ? QColor("#888") : QColor("#999"))
+                                     : (dark ? QColor("#555") : QColor("#bbb"));
+
     QColor checkedColor = QColor("#6200ea");
+    QColor textColor = dark ? Qt::white : QColor("#333333");
 
     if (!isEnabled()) {
         borderUnchecked = QColor("#333");
         bgUnchecked = QColor("#1f1f1f");
         checkedColor = QColor("#444");
+        textColor = QColor(100, 100, 100);
     }
 
     if (m_progress < 1.0) {
@@ -180,7 +208,7 @@ void AnimatedCheckBox::paintEvent(QPaintEvent *e) {
         p.drawPath(path);
     }
 
-    p.setPen(isEnabled() ? Qt::white : QColor(120, 120, 120));
+    p.setPen(textColor);
     p.setFont(font());
     QRect textRect = rect().adjusted(m_boxSize + m_spacing, 0, 0, 0);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());
@@ -254,6 +282,9 @@ void AnimatedRadioButton::paintEvent(QPaintEvent *e) {
     QColor borderColor = (isChecked() || isDown()) ? QColor("#6200ea") : QColor("#666");
     if (!isEnabled()) borderColor = QColor("#333");
 
+    QColor textColor = StyleHelper::isDarkMode() ? Qt::white : QColor("#333333");
+    if (!isEnabled()) textColor = QColor(100, 100, 100);
+
     p.setPen(QPen(borderColor, 2));
     p.setBrush(Qt::NoBrush);
     p.drawEllipse(circleRect.adjusted(1,1,-1,-1));
@@ -270,7 +301,7 @@ void AnimatedRadioButton::paintEvent(QPaintEvent *e) {
         }
     }
 
-    p.setPen(isEnabled() ? Qt::white : QColor(100, 100, 100));
+    p.setPen(textColor);
     p.setFont(font());
     QRect textRect = rect().adjusted(m_circleSize + m_spacing, 0, 0, 0);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text());

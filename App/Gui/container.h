@@ -39,7 +39,8 @@ public:
     int fixedWidth() const { return width(); }
 
     void setActive(bool active);
-
+    void setIconColor(const QColor &color);
+    void setActiveColor(const QColor &color);
 protected:
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
@@ -50,6 +51,8 @@ private:
     bool m_isExpandable = false;
     QColor m_backgroundColor;
     QColor m_borderColor;
+    QColor m_iconColor;
+    QColor m_activeColor;
     QString m_text;
     QPixmap m_icon;
 };
@@ -92,6 +95,9 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
     void resizeEvent(QResizeEvent *event) override;
+
+public slots:
+    void updateTheme();
 
 private slots:
     void switchPage(int index);

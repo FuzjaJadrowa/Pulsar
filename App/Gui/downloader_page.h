@@ -19,7 +19,7 @@ class DownloaderPage : public QWidget {
 public:
     explicit DownloaderPage(QWidget *parent = nullptr);
     Downloader* getDownloader() const { return downloader; }
-    void updateThemeProperty();
+    void refreshStyles();
 
     QPoint getStartBtnPos() const;
 
@@ -36,16 +36,18 @@ private slots:
 
 private:
     void setupUi();
+
     bool isValidTimeFormat(const QString &timeStr);
     bool validateInputs();
 
+    QLabel *iconLabel;
     QLineEdit *urlInput;
     QLineEdit *pathInput;
-    QPushButton *browseBtn;
+    AnimatedButton *browseBtn;
     QComboBox *videoFormatCombo, *videoQualityCombo, *audioFormatCombo, *audioQualityCombo;
     QCheckBox *audioOnlyCheck, *downloadSubsCheck, *downloadChatCheck;
     QLineEdit *subsLangInput, *timeStartInput, *timeEndInput, *customArgsInput;
-    QPushButton *advancedBtn, *startBtn, *addToQueueBtn;
+    AnimatedButton *advancedBtn, *startBtn, *addToQueueBtn;
     QPushButton *m_lastClickedBtn = nullptr;
     QWidget *advancedContent;
     QTextEdit *cmdPreview;

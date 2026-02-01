@@ -21,7 +21,7 @@ class SettingsPage : public QWidget {
     Q_OBJECT
 public:
     explicit SettingsPage(Popup *popup, QWidget *parent = nullptr);
-    void updateThemeProperty();
+    void refreshStyles();
 
     signals:
         void themeChanged();
@@ -43,6 +43,7 @@ private:
     void setupUi();
     QHBoxLayout* createSection(const QString &title, QWidget *widget);
     QVBoxLayout* createVerticalCombo(const QString &label, QComboBox *combo);
+    QLabel *iconLabel;
 };
 
 #endif

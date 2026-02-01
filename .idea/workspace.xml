@@ -35,8 +35,19 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="Gradent do dopracowania">
+    <list default="true" id="94cf02e1-d127-4b55-9003-a935cb28281e" name="Changes" comment="5,5/7 XD">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/components.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/components.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/console_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/console_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/console_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/container.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/container.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/container.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/downloader_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/downloader_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App/Gui/settings_page.h" beforeDir="false" afterPath="$PROJECT_DIR$/App/Gui/settings_page.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,6 +144,11 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -156,6 +172,7 @@
       <workItem from="1769879409248" duration="5000" />
       <workItem from="1769879520678" duration="2777000" />
       <workItem from="1769882343379" duration="7000" />
+      <workItem from="1769936768869" duration="5879000" />
     </task>
     <task id="LOCAL-00001" summary="rebranding caly. poprawiony cmake 978179 raz i segregacja">
       <option name="closed" value="true" />
@@ -245,7 +262,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769882216372</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="5,5/7 XD">
+      <option name="closed" value="true" />
+      <created>1769891028531</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1769891028531</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,6 +300,7 @@
     <MESSAGE value="mniej buggy queue" />
     <MESSAGE value="2.1 5/7" />
     <MESSAGE value="Gradent do dopracowania" />
-    <option name="LAST_COMMIT_MESSAGE" value="Gradent do dopracowania" />
+    <MESSAGE value="5,5/7 XD" />
+    <option name="LAST_COMMIT_MESSAGE" value="5,5/7 XD" />
   </component>
 </project>

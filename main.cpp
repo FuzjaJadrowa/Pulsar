@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
     QFontDatabase::addApplicationFont(":/Resources/Fonts/Roboto-Black.ttf");
     app.setFont(QFont("Roboto", 10));
 
-    app.setStyleSheet(StyleHelper::getGlobalStyle());
-
+    bool dark = StyleHelper::isDarkMode();
+    app.setStyleSheet(StyleHelper::getGlobalStyle(dark));
     SplashScreen *splash = new SplashScreen();
 
     QObject::connect(splash, &SplashScreen::finished, [splash]() {
