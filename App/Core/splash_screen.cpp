@@ -111,6 +111,29 @@ void SplashScreen::startProcess() {
     checkAppUpdate();
 }
 
+bool SplashScreen::isRemoteNewer(const QString &local, const QString &remote) {
+    QString l = local;
+    QString r = remote;
+
+    if (l.startsWith("v", Qt::CaseInsensitive)) l.remove(0, 1);
+    if (r.startsWith("v", Qt::CaseInsensitive)) r.remove(0, 1);
+
+    QStringList lParts = l.split('.');
+    QStringList rParts = r.split('.');
+
+    int length = std::max(lParts.size(), rParts.size());
+
+    for (int i = 0; i < length; i++) {
+        int lVal = (i < lParts.size()) ? lParts[i].toInt() : 0;
+        int rVal = (i < rParts.size()) ? rParts[i].toInt() : 0;
+
+        if (rVal > lVal) return true;
+        if (rVal < lVal) return false;
+    }
+
+    return false;
+}
+
 void SplashScreen::checkAppUpdate() {
     m_statusLabel->setText("Checking for updates...");
 
@@ -142,7 +165,8 @@ void SplashScreen::onAppVersionReceived() {
     m_reply->deleteLater();
 
     QString remoteVer = json["tag_name"].toString();
-    if (remoteVer.isEmpty() || remoteVer == APP_VERSION) {
+
+    if (remoteVer.isEmpty() || !isRemoteNewer(APP_VERSION, remoteVer)) {
         checkRequirements();
         return;
     }
