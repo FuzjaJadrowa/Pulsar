@@ -52,7 +52,7 @@ endif()
 
 if(WIN32)
     install(TARGETS Pulsar RUNTIME DESTINATION .)
-    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION .)
+    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" DESTINATION .)
 
     get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
@@ -92,7 +92,7 @@ else()
     set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Pulsar")
 
     install(TARGETS Pulsar RUNTIME DESTINATION bin)
-    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/pulsar)
+    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" DESTINATION share/doc/pulsar)
     install(FILES "Resources/Icons/icon.png" DESTINATION share/icons/hicolor/512x512/apps RENAME pulsar.png)
 
     set(DESKTOP_FILE "${CMAKE_BINARY_DIR}/pulsar.desktop")
@@ -111,9 +111,10 @@ else()
 
     if(LINUXDEPLOYQT_EXECUTABLE)
         install(CODE "
-            message(STATUS \"Running linuxdeployqt to bundle Qt libraries...\")
+            set(DESTDIR \"\$ENV{DESTDIR}\")
+            set(APP_BIN \"\${DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/Pulsar\")
             execute_process(
-                COMMAND \"${LINUXDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/bin/Pulsar\" -no-translations -always-overwrite -unsupported-allow-new-glibc
+                COMMAND \"${LINUXDEPLOYQT_EXECUTABLE}\" \"\${APP_BIN}\" -no-translations -always-overwrite -unsupported-allow-new-glibc
             )
         " COMPONENT Runtime)
     endif()
