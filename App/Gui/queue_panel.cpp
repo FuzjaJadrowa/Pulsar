@@ -102,7 +102,7 @@ QueueItemWidget::QueueItemWidget(const QueueItem &item, QWidget *parent) : QWidg
     rightLayout->setAlignment(Qt::AlignCenter);
 
     m_progressLabel = new QLabel(QString("%1%").arg(item.progress, 0, 'f', 0), this);
-    m_progressLabel->setStyleSheet("color: #00e5ff; font-weight: bold; font-size: 12px; background: transparent;");
+    m_progressLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 12px; background: transparent;");
     m_progressLabel->setAlignment(Qt::AlignCenter);
     rightLayout->addWidget(m_progressLabel);
 
@@ -337,7 +337,6 @@ void QueuePanel::paintEvent(QPaintEvent *e) {
         p.drawPixmap(0, 0, m_blurredBg, x(), y(), width(), height());
     }
 
-    // Opcjonalne bardzo lekkie przyciemnienie dla czytelności tekstu (bez koloru)
     p.setBrush(QColor(0, 0, 0, 40));
     p.setPen(Qt::NoPen);
     p.drawRect(rect());

@@ -44,7 +44,7 @@ void LoadingSpinner::paintEvent(QPaintEvent *) {
 SplashScreen::SplashScreen(QWidget *parent) : QWidget(parent) {
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
-    setFixedSize(1000, 700); // Rozmiar zgodny z Container
+    setFixedSize(1000, 700);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
@@ -61,20 +61,45 @@ SplashScreen::SplashScreen(QWidget *parent) : QWidget(parent) {
     m_progressLabel->setStyleSheet("font-size: 12px; color: #aaaaaa; margin-top: 5px;");
     m_progressLabel->setAlignment(Qt::AlignCenter);
 
+    m_skipButton = new QPushButton("Skip Update", this);
+    m_skipButton->setCursor(Qt::PointingHandCursor);
+    m_skipButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #3498db;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 5px;"
+        "   padding: 8px 20px;"
+        "   font-weight: bold;"
+        "   font-size: 13px;"
+        "   margin-top: 15px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #5dade2;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #2980b9;"
+        "}"
+    );
+    m_skipButton->hide();
+    connect(m_skipButton, &QPushButton::clicked, this, &SplashScreen::onSkipClicked);
+
     mainLayout->addStretch();
     mainLayout->addWidget(m_spinner, 0, Qt::AlignCenter);
     mainLayout->addWidget(m_statusLabel);
     mainLayout->addWidget(m_progressLabel);
+    mainLayout->addWidget(m_skipButton, 0, Qt::AlignCenter);
     mainLayout->addStretch();
 
     m_netManager = new QNetworkAccessManager(this);
+    m_appChecked = false;
+    m_reqChecked = false;
 }
 
 void SplashScreen::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
-    // Rysowanie tła w stylu głównego okna (#121212) z ramką (#333)
     p.setBrush(QColor("#121212"));
     p.setPen(QPen(QColor("#333333"), 1));
     p.drawRoundedRect(rect().adjusted(1,1,-1,-1), 15, 15);
@@ -94,14 +119,13 @@ void SplashScreen::checkAppUpdate() {
         return;
     }
 
+    m_appChecked = true;
     QNetworkRequest request((QUrl(APP_REPO_URL)));
     m_reply = m_netManager->get(request);
     connect(m_reply, &QNetworkReply::finished, this, &SplashScreen::onAppVersionReceived);
 }
 
 void SplashScreen::onAppVersionReceived() {
-    setLastCheckTime("app_last_check");
-
     if (m_reply->error() != QNetworkReply::NoError) {
         m_reply->deleteLater();
         checkRequirements();
@@ -148,6 +172,7 @@ void SplashScreen::onAppVersionReceived() {
 
     if (!m_downloadUrl.isEmpty()) {
         m_statusLabel->setText("Updating app to " + remoteVer);
+        m_skipButton->show();
         downloadFile(m_downloadUrl, QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_downloadFileName);
     } else {
         checkRequirements();
@@ -156,6 +181,7 @@ void SplashScreen::onAppVersionReceived() {
 
 void SplashScreen::applyAppUpdate(const QString &archivePath) {
     m_statusLabel->setText("Applying update...");
+    m_skipButton->hide();
 
     QString currentAppDir = QCoreApplication::applicationDirPath();
     QString nativeArchive = QDir::toNativeSeparators(archivePath);
@@ -235,20 +261,23 @@ void SplashScreen::checkNextRequirement() {
     QString reqPath = getRequirementsPath();
 
     if (!QFile::exists(reqPath + "/" + getExecutableName("yt-dlp"))) {
+        m_reqChecked = true;
         m_currentAction = "yt-dlp";
         fetchReqInfo("yt-dlp");
     } else if (!QFile::exists(reqPath + "/" + getExecutableName("ffmpeg"))) {
+        m_reqChecked = true;
         m_currentAction = "ffmpeg";
         fetchReqInfo("ffmpeg");
     } else {
         qint64 lastCheck = getLastCheckTime("req_last_check");
-        if (QDateTime::currentSecsSinceEpoch() - lastCheck > 86400) {
-             setLastCheckTime("req_last_check");
+        if (QDateTime::currentSecsSinceEpoch() - lastCheck > 1800) {
+             m_reqChecked = true;
+             m_currentAction = "yt-dlp";
+             fetchReqInfo("yt-dlp");
+             return;
         }
 
-        m_statusLabel->setText("Starting...");
-        m_spinner->stop();
-        emit finished();
+        finalize();
     }
 }
 
@@ -265,7 +294,16 @@ void SplashScreen::fetchReqInfo(const QString &appName) {
 void SplashScreen::onReqVersionReceived() {
     if (m_reply->error() != QNetworkReply::NoError) {
         m_reply->deleteLater();
-        m_statusLabel->setText("Network Error!");
+        if (QFile::exists(getRequirementsPath() + "/" + getExecutableName(m_currentAction))) {
+             if (m_currentAction == "yt-dlp") {
+                 m_currentAction = "ffmpeg";
+                 fetchReqInfo("ffmpeg");
+             } else {
+                 finalize();
+             }
+        } else {
+            m_statusLabel->setText("Network Error!");
+        }
         return;
     }
 
@@ -294,14 +332,27 @@ void SplashScreen::onReqVersionReceived() {
         }
     }
 
-    if (!downloadUrl.isEmpty()) {
+    bool localExists = QFile::exists(getRequirementsPath() + "/" + getExecutableName(m_currentAction));
+    QString localVer = getLocalVersion(m_currentAction);
+
+    if (!downloadUrl.isEmpty() && (!localExists || localVer != m_remoteVersion)) {
         m_statusLabel->setText("Downloading " + m_currentAction + "...");
+
+        if (localExists) {
+            m_skipButton->show();
+        }
+
         QString ext = downloadUrl.endsWith(".zip") ? ".zip" : (downloadUrl.endsWith(".tar.xz") ? ".tar.xz" : "");
         if(ext.isEmpty()) ext = getExecutableName("");
 
         downloadFile(downloadUrl, getRequirementsPath() + "/" + m_currentAction + "_temp" + ext);
     } else {
-        checkNextRequirement();
+        if (m_currentAction == "yt-dlp") {
+            m_currentAction = "ffmpeg";
+            fetchReqInfo("ffmpeg");
+        } else {
+            finalize();
+        }
     }
 }
 
@@ -324,11 +375,22 @@ void SplashScreen::onDownloadProgress(qint64 rx, qint64 total) {
 }
 
 void SplashScreen::onDownloadFinished() {
+    QNetworkReply *tempReply = m_reply;
+    m_reply = nullptr;
+    m_skipButton->hide();
+
+    if (!tempReply) return;
+
+    if (tempReply->error() == QNetworkReply::OperationCanceledError) {
+        tempReply->deleteLater();
+        return;
+    }
+
     m_progressLabel->setText("");
-    if (m_reply->error() == QNetworkReply::NoError) {
+    if (tempReply->error() == QNetworkReply::NoError) {
         QFile file(m_targetPath);
         if (file.open(QIODevice::WriteOnly)) {
-            file.write(m_reply->readAll());
+            file.write(tempReply->readAll());
             file.close();
 
             if (m_isAppUpdate) {
@@ -341,17 +403,46 @@ void SplashScreen::onDownloadFinished() {
                     QFile::remove(finalName);
                     file.rename(finalName);
                     setLocalVersion(m_currentAction, m_remoteVersion);
-                    checkNextRequirement();
+
+                    if (m_currentAction == "yt-dlp") {
+                        m_currentAction = "ffmpeg";
+                        fetchReqInfo("ffmpeg");
+                    } else {
+                        finalize();
+                    }
                 }
             }
         }
+    } else {
+        if (!m_isAppUpdate && QFile::exists(getRequirementsPath() + "/" + getExecutableName(m_currentAction))) {
+             if (m_currentAction == "yt-dlp") {
+                 m_currentAction = "ffmpeg";
+                 fetchReqInfo("ffmpeg");
+             } else {
+                 finalize();
+             }
+        }
     }
-    m_reply->deleteLater();
-    m_reply = nullptr;
+
+    tempReply->deleteLater();
+}
+
+void SplashScreen::onSkipClicked() {
+    if (m_reply && m_reply->isRunning()) {
+        m_reply->disconnect(this);
+        m_reply->abort();
+        m_reply->deleteLater();
+        m_reply = nullptr;
+    }
+
+    m_skipButton->hide();
+    m_progressLabel->setText("");
+    finalize();
 }
 
 void SplashScreen::extractArchive(const QString &archivePath, const QString &destDir) {
     m_statusLabel->setText("Extracting...");
+    m_skipButton->hide();
 
     auto *process = new QProcess(this);
 #ifdef Q_OS_WIN
@@ -388,8 +479,23 @@ void SplashScreen::extractArchive(const QString &archivePath, const QString &des
         }
 
         setLocalVersion(m_currentAction, m_remoteVersion);
-        checkNextRequirement();
+
+        if (m_currentAction == "yt-dlp") {
+            m_currentAction = "ffmpeg";
+            fetchReqInfo("ffmpeg");
+        } else {
+            finalize();
+        }
     });
+}
+
+void SplashScreen::finalize() {
+    if (m_appChecked) setLastCheckTime("app_last_check");
+    if (m_reqChecked) setLastCheckTime("req_last_check");
+
+    m_statusLabel->setText("Starting...");
+    m_spinner->stop();
+    emit finished();
 }
 
 QString SplashScreen::getRequirementsPath() {
@@ -434,6 +540,14 @@ void SplashScreen::setLastCheckTime(const QString &key) {
 
     QFile fileOut(path);
     if (fileOut.open(QIODevice::WriteOnly)) fileOut.write(QJsonDocument(obj).toJson());
+}
+
+QString SplashScreen::getLocalVersion(const QString &appName) {
+    QFile file(getRequirementsPath() + "/versions.json");
+    if (file.open(QIODevice::ReadOnly)) {
+        return QJsonDocument::fromJson(file.readAll()).object()[appName].toString();
+    }
+    return "";
 }
 
 void SplashScreen::setLocalVersion(const QString &appName, const QString &version) {

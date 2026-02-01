@@ -17,6 +17,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QtMath>
+#include <QScreen>
+#include <QGuiApplication>
 
 #include "queue_panel.h"
 #include "../Core/popup.h"
@@ -26,18 +28,13 @@ class NavButton : public QPushButton {
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor)
     Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor)
     Q_PROPERTY(int fixedWidth READ fixedWidth WRITE setFixedWidth)
-
 public:
     explicit NavButton(const QString &text, const QString &iconPath, bool isExpandable = false, QWidget *parent = nullptr);
-
     QColor backgroundColor() const { return m_backgroundColor; }
     void setBackgroundColor(const QColor &color);
-
     QColor borderColor() const { return m_borderColor; }
     void setBorderColor(const QColor &color);
-
     int fixedWidth() const { return width(); }
-
     void setActive(bool active);
     void setIconColor(const QColor &color);
     void setActiveColor(const QColor &color);
@@ -45,7 +42,6 @@ protected:
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
-
 private:
     bool m_isActive = false;
     bool m_isExpandable = false;
@@ -60,21 +56,16 @@ private:
 class WindowControlBtn : public QPushButton {
     Q_OBJECT
     Q_PROPERTY(QColor hoverColor READ hoverColor WRITE setHoverColor)
-
 public:
     enum ButtonType { Minimize, Maximize, Close };
     explicit WindowControlBtn(ButtonType type, QWidget *parent = nullptr);
-
     QColor hoverColor() const { return m_hoverColor; }
     void setHoverColor(const QColor &color) { m_hoverColor = color; update(); }
-
     void setType(ButtonType type);
-
 protected:
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
-
 private:
     ButtonType m_type;
     QColor m_hoverColor;
@@ -93,15 +84,20 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
-    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
     void resizeEvent(QResizeEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
 public slots:
     void updateTheme();
 
 private slots:
     void switchPage(int index);
-    void toggleMaximize();
+
+    void requestMinimize();
+    void requestMaximize();
+    void requestClose();
+
     void toggleQueuePanel();
     void onDownloadRequested();
     void updateBackground();
@@ -113,6 +109,10 @@ private:
     Qt::Edges getEdges(const QPoint &pos);
     void updateCursorShape(const QPoint &pos);
     void paintBackground(QPainter *painter, const QRect &rect);
+
+    void runStartupAnimation();
+    void runRestoreAnimation();
+    void animateGeometry(const QRect &start, const QRect &end);
 
     Popup *m_popup;
 
@@ -127,7 +127,6 @@ private:
     NavButton *m_btnQueue;
 
     QueuePanel *m_queuePanel;
-    bool m_queueVisible = false;
 
     WindowControlBtn *m_btnMax;
 
@@ -137,6 +136,10 @@ private:
 
     QTimer *m_bgTimer;
     float m_animProgress;
+
+    bool m_isMaximizedCustom = false;
+    QRect m_savedGeometry;
+    bool m_isClosing = false;
 };
 
 #endif

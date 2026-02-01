@@ -42,6 +42,11 @@ static QStringList buildArgsList(const QString &url, const QString &path, bool a
 
     ConfigManager &config = ConfigManager::instance();
 
+    QString cookiesBrowser = config.getCookiesBrowser();
+    if (cookiesBrowser != "None") {
+        args << "--cookies-from-browser" << cookiesBrowser.toLower();
+    }
+
     if (config.getGeoBypass()) {
         args << "--geo-bypass";
     }

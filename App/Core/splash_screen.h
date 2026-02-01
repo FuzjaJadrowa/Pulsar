@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QFile>
@@ -44,11 +45,13 @@ private slots:
     void onReqVersionReceived();
     void onDownloadProgress(qint64 rx, qint64 total);
     void onDownloadFinished();
+    void onSkipClicked();
 
 private:
     LoadingSpinner *m_spinner;
     QLabel *m_statusLabel;
     QLabel *m_progressLabel;
+    QPushButton *m_skipButton;
 
     QNetworkAccessManager *m_netManager;
     QNetworkReply *m_reply = nullptr;
@@ -64,6 +67,8 @@ private:
     QString m_newVersion;
 
     bool m_isAppUpdate = false;
+    bool m_appChecked = false;
+    bool m_reqChecked = false;
 
     void checkAppUpdate();
     void applyAppUpdate(const QString &archivePath);
@@ -73,6 +78,7 @@ private:
     void fetchReqInfo(const QString &appName);
     void downloadFile(const QString &url, const QString &destName);
     void extractArchive(const QString &archivePath, const QString &destDir);
+    void finalize();
 
     QString getRequirementsPath();
     QString getExecutableName(const QString &baseName);
