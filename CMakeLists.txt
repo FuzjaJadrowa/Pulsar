@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS Widgets Network Gui Core Svg REQUIRED)
 if(APPLE)
     set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
 elseif(UNIX)
-    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/lib:$ORIGIN/")
 endif()
 
 set(PROJECT_SOURCES
@@ -89,31 +89,42 @@ elseif(APPLE)
     " COMPONENT Runtime)
 
 else()
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Pulsar")
+
     install(TARGETS Pulsar RUNTIME DESTINATION bin)
+    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/pulsar)
+    install(FILES "Resources/Icons/icon.png" DESTINATION share/icons/hicolor/512x512/apps RENAME pulsar.png)
 
     set(DESKTOP_FILE "${CMAKE_BINARY_DIR}/pulsar.desktop")
     file(WRITE "${DESKTOP_FILE}"
             "[Desktop Entry]\n"
             "Type=Application\n"
             "Name=Pulsar\n"
-            "Comment=Modern Video Downloader\n"
-            "Exec=Pulsar\n"
-            "Icon=pulsar\n"
+            "Exec=/opt/Pulsar/bin/Pulsar\n"
+            "Icon=/opt/Pulsar/share/icons/hicolor/512x512/apps/pulsar.png\n"
             "Categories=Network;Utility;\n"
             "Terminal=false\n"
     )
-
     install(FILES "${DESKTOP_FILE}" DESTINATION share/applications)
-    install(FILES "Resources/Icons/icon.png" DESTINATION share/icons/hicolor/512x512/apps RENAME pulsar.png)
-    install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION share/doc/pulsar)
+
+    find_program(LINUXDEPLOYQT_EXECUTABLE linuxdeployqt)
+
+    if(LINUXDEPLOYQT_EXECUTABLE)
+        install(CODE "
+            message(STATUS \"Running linuxdeployqt to bundle Qt libraries...\")
+            execute_process(
+                COMMAND \"${LINUXDEPLOYQT_EXECUTABLE}\" \"\${CMAKE_INSTALL_PREFIX}/bin/Pulsar\" -no-translations -always-overwrite -unsupported-allow-new-glibc
+            )
+        " COMPONENT Runtime)
+    endif()
 endif()
 
 set(CPACK_PACKAGE_NAME "Pulsar")
 set(CPACK_PACKAGE_VENDOR "Fuzja Jadrowa")
 set(CPACK_PACKAGE_VERSION "${APP_VERSION}")
 set(CPACK_PACKAGE_CONTACT "https://github.com/FuzjaJadrowa")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A helpful tool for downloading media from various sites.")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.")
 
 if(WIN32)
     set(CPACK_GENERATOR "ZIP;NSIS")
@@ -132,14 +143,13 @@ if(WIN32)
 elseif(APPLE)
     set(CPACK_GENERATOR "DragNDrop;ZIP")
     set(CPACK_DMG_VOLUME_NAME "Pulsar")
-    set(CPACK_SYSTEM_NAME "macOS")
+    set(CPACK_SYSTEM_NAME "MacOS")
 
 else()
     set(CPACK_GENERATOR "DEB;TGZ")
     set(CPACK_SYSTEM_NAME "Linux")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Fuzja Jadrowa")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6widgets6 (>= 6.0), libqt6network6 (>= 6.0), libqt6gui6 (>= 6.0)")
-    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Pulsar")
 endif()
 
 include(CPack)
