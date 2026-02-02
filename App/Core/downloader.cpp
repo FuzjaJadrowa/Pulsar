@@ -5,9 +5,21 @@
 
 Downloader::Downloader(QObject *parent) : QObject(parent), isStopped(false) {
     process = new QProcess(this);
+
+    m_fetchingTitle = false;
+
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &Downloader::onProcessFinished);
     connect(process, &QProcess::readyReadStandardOutput, this, &Downloader::onReadyRead);
     connect(process, &QProcess::readyReadStandardError, this, &Downloader::onReadyRead);
+
+    connect(process, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error){
+        if(m_fetchingTitle) {
+            m_fetchingTitle = false;
+            emit finished(false, "Process failed to start");
+        } else {
+            emit finished(false, "Process error occurred");
+        }
+    });
 }
 
 static QString getBasePath() {
@@ -181,6 +193,14 @@ void Downloader::fetchTitle(const QString &url) {
 }
 
 void Downloader::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+    if (m_fetchingTitle) {
+        m_fetchingTitle = false;
+        if (exitCode != 0 || exitStatus != QProcess::NormalExit) {
+            emit finished(false, "Failed to fetch title");
+        }
+        return;
+    }
+
     if (m_fetchingTitle) {
         m_fetchingTitle = false;
         return;
