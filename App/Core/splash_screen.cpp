@@ -1,5 +1,5 @@
 #include "splash_screen.h"
-#include "config_manager.h"
+#include "../System/config_manager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyleOption>

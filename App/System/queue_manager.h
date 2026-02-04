@@ -9,7 +9,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QQueue>
-#include "downloader.h"
+#include "../Core/downloader.h"
 
 struct QueueItem {
     QString id;

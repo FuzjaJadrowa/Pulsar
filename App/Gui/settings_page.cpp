@@ -1,6 +1,6 @@
 #include "settings_page.h"
 #include "components.h"
-#include "../Core/config_manager.h"
+#include "../System/config_manager.h"
 #include <QApplication>
 #include <QAbstractItemView>
 

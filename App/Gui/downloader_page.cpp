@@ -1,7 +1,7 @@
 #include "downloader_page.h"
 #include "components.h"
-#include "../Core/config_manager.h"
-#include "../Core/queue_manager.h"
+#include "../System/config_manager.h"
+#include "../System/queue_manager.h"
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QFileDialog>

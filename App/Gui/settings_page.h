@@ -15,7 +15,7 @@
 #include <QPainter>
 #include <QDesktopServices>
 #include <QUrl>
-#include "../Core/popup.h"
+#include "../System/popup.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT

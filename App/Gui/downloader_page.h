@@ -10,7 +10,7 @@
 #include <QCheckBox>
 #include <QTextEdit>
 #include <QScrollArea>
-#include "../Core/popup.h"
+#include "../System/popup.h"
 #include "../Core/downloader.h"
 #include "components.h"
 

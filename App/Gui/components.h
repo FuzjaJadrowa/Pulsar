@@ -9,7 +9,7 @@
 #include <QEvent>
 #include <QParallelAnimationGroup>
 #include <QApplication>
-#include "../Core/config_manager.h"
+#include "../System/config_manager.h"
 
 class StyleHelper {
 public:

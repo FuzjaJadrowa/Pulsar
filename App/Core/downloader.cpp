@@ -1,5 +1,5 @@
 #include "downloader.h"
-#include "config_manager.h"
+#include "../System/config_manager.h"
 #include <QRegularExpression>
 #include <QStandardPaths>
 

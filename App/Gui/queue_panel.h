@@ -12,7 +12,7 @@
 #include <QPixmap>
 #include <QPropertyAnimation>
 #include "components.h"
-#include "../Core/queue_manager.h"
+#include "../System/queue_manager.h"
 
 class QueueControlBtn : public QPushButton {
     Q_OBJECT

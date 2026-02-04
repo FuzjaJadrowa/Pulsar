@@ -56,7 +56,7 @@ private:
     QNetworkAccessManager *m_netManager;
     QNetworkReply *m_reply = nullptr;
 
-    const QString APP_VERSION = "v2.1.0";
+    const QString APP_VERSION = "v2.1.1";
     const QString APP_REPO_URL = "https://api.github.com/repos/fuzjajadrowa/Pulsar/releases/latest";
 
     QString m_downloadUrl;

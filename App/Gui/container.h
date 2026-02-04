@@ -21,7 +21,7 @@
 #include <QGuiApplication>
 
 #include "queue_panel.h"
-#include "../Core/popup.h"
+#include "../System/popup.h"
 
 class NavButton : public QPushButton {
     Q_OBJECT

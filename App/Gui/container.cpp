@@ -2,7 +2,7 @@
 #include "downloader_page.h"
 #include "settings_page.h"
 #include "console_page.h"
-#include "../Core/config_manager.h"
+#include "../System/config_manager.h"
 #include "../Core/downloader.h"
 #include "QSystemTrayIcon"
 
