@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.DS_Store
+
+src-tauri/target/
+src-tauri/gen/
+src-tauri/Cargo.lock
+
+.idea/
+.vscode/
+*.swp
+
+Thumbs.db
+package-lock.json

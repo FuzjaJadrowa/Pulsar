@@ -1,0 +1,15 @@
+{
+  "name": "pulsar",
+  "version": "2.2.0",
+  "description": "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.",
+  "author": "Fuzja Jadrowa",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "set-version": "node scripts/update-version.js"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

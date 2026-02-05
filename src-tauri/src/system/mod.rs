@@ -1,0 +1,1 @@
+// tu kiedys config okok

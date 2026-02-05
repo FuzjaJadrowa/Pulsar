@@ -1,0 +1,19 @@
+[package]
+name = "pulsar"
+version = "2.2.0"
+description = "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media."
+authors = ["Fuzja Jadrowa"]
+edition = "2021"
+
+[lib]
+name = "pulsar_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
