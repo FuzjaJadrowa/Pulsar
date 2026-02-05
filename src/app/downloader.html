@@ -1,0 +1,66 @@
+<div class="page-container">
+  <div class="page-header">
+    <img src="assets/icons/downloader.png" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+    <span class="page-title" style="font-size: 24px; font-weight: bold; margin-left: 10px;">Downloader</span>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <input type="text" placeholder="Paste YouTube link here..." style="flex: 2;">
+    <input type="text" placeholder="Download path..." style="flex: 1;">
+    <button style="width: 100px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer;">Browse</button>
+  </div>
+
+  <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+    <div>
+      <label style="display: block; margin-bottom: 5px; color: #aaa;">Video Format:</label>
+      <select style="width: 100%;"><option>Default</option><option>mp4</option><option>mkv</option></select>
+    </div>
+    <div>
+      <label style="display: block; margin-bottom: 5px; color: #aaa;">Video Quality:</label>
+      <select style="width: 100%;"><option>Default</option><option>1080p</option><option>720p</option></select>
+    </div>
+    <div style="grid-row: span 2;">
+      <label style="display: flex; align-items: center; cursor: pointer;">
+        <input type="checkbox" id="audio-only" style="margin-right: 10px;"> Audio only mode
+      </label>
+    </div>
+    <div>
+      <label style="display: block; margin-bottom: 5px; color: #aaa;">Audio Format:</label>
+      <select style="width: 100%;" disabled><option>Default</option><option>mp3</option></select>
+    </div>
+    <div>
+      <label style="display: block; margin-bottom: 5px; color: #aaa;">Audio Quality:</label>
+      <select style="width: 100%;" disabled><option>Default</option><option>320kbps</option></select>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; color: #e0e0e0;">
+    <div style="flex: 1;">
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <input type="checkbox"> Download subtitles
+        <input type="text" placeholder="Code" style="width: 60px;">
+      </div>
+      <div><input type="checkbox"> Download live chat</div>
+    </div>
+    <div style="flex: 1;">
+      <div style="margin-bottom: 5px;">Download fragments (hh:mm:ss):</div>
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <input type="text" style="width: 80px;"> - <input type="text" style="width: 80px;">
+      </div>
+    </div>
+  </div>
+
+  <div id="bottom-container" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(20, 20, 30, 0.8); padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; gap: 15px;">
+    <button style="width: 140px; height: 50px; background: #00e676; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 16px; cursor: pointer;">Download</button>
+    <button style="width: 140px; height: 50px; background: #2979ff; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 16px; cursor: pointer;" onclick="addToQueueSim()">Add to queue</button>
+  </div>
+</div>
+
+<script>
+  function addToQueueSim() {
+    const qBtn = document.getElementById('btn-queue');
+    if(qBtn) {
+      qBtn.style.display = 'flex';
+    }
+  }
+</script>

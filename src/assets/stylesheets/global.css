@@ -1,35 +1,152 @@
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../fonts/Montserrat-ExtraBold.ttf');
-}
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/Roboto-Regular.ttf');
-}
-
 :root {
-    --bg-dark-1: rgb(10, 10, 30);
-    --bg-dark-2: rgb(30, 5, 40);
-    --accent-color: rgb(138, 43, 226);
+    --bg-color: #14141e;
     --text-color: #ffffff;
+    --accent-color: #8a2be2;
+    --success-color: #00e676;
+    --panel-bg: rgba(255, 255, 255, 0.05);
     --border-color: rgba(255, 255, 255, 0.1);
-
-    --transition-speed: 0.2s;
 }
 
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     color: var(--text-color);
-    background: linear-gradient(135deg, var(--bg-dark-1), var(--bg-dark-2));
-    background-attachment: fixed;
     overflow: hidden;
+    background: linear-gradient(135deg, #0a0a1e, #1e0528, #280014);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     user-select: none;
 }
 
-.flex-center {
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#titlebar {
+    height: 80px;
     display: flex;
-    justify-content: center;
     align-items: center;
+    padding: 0 20px;
+    background: rgba(20, 20, 30, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    backdrop-filter: blur(10px);
+    app-region: drag;
+}
+
+.nav-btn, .window-controls, .control-btn {
+    app-region: no-drag;
+}
+
+.logo {
+    height: 50px;
+    margin-right: 15px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: bold;
+    font-size: 14px;
+    height: 40px;
+    padding: 0 15px;
+    margin-right: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.nav-btn img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    filter: brightness(0) invert(1);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.nav-btn:hover {
+    border-color: var(--accent-color);
+    color: white;
+}
+.nav-btn:hover img {
+    opacity: 1;
+}
+
+.nav-btn.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+    width: auto;
+}
+.nav-btn.active img {
+    opacity: 1;
+}
+
+#btn-queue {
+    display: none;
+}
+
+.window-controls {
+    width: 160px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    gap: 5px;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    width: 45px;
+    height: 32px;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.control-btn.close:hover {
+    background-color: #e81123;
+    color: white;
+}
+
+#content-area {
+    height: calc(100vh - 80px);
+    overflow: hidden;
+    position: relative;
+}
+
+input[type="text"], select {
+    background: #252525;
+    border: 1px solid #3d3d3d;
+    color: #e0e0e0;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+}
+input[type="text"]:focus {
+    border-color: var(--accent-color);
 }

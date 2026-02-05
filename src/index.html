@@ -1,7 +1,106 @@
 <!DOCTYPE html>
-<html>
-<body style="background: rgb(10, 10, 30); color: white;">
-<h1>Główne okno Pulsar</h1>
-<p>Etap 1 zakończony. Splash screen zadziałał.</p>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pulsar</title>
+    <link rel="stylesheet" href="assets/stylesheets/global.css" />
+</head>
+<body>
+
+<div id="titlebar" data-tauri-drag-region>
+    <img src="assets/icons/icon_full.png" class="logo" alt="Pulsar Logo" />
+
+    <button class="nav-btn active" onclick="loadPage('downloader')" id="nav-downloader">
+        <img src="assets/icons/downloader.png" alt=""> Downloader
+    </button>
+
+    <div style="flex-grow: 1;"></div> <button class="nav-btn" onclick="loadPage('console')" id="nav-console">
+    <img src="assets/icons/console.png" alt=""> Console
+</button>
+    <button class="nav-btn" onclick="loadPage('settings')" id="nav-settings">
+        <img src="assets/icons/settings.png" alt=""> Settings
+    </button>
+    <button class="nav-btn" onclick="toggleQueue()" id="btn-queue">
+        <img src="assets/icons/queue.png" alt=""> Queue
+    </button>
+
+    <div class="window-controls">
+        <button class="control-btn" id="minimize-btn" title="Minimalizuj">
+            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <button class="control-btn" id="maximize-btn" title="Maksymalizuj">
+            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+        </button>
+        <button class="control-btn close" id="close-btn" title="Zamknij">
+            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div id="content-area"></div>
+
+<div id="queue-panel" style="display: none; position: absolute; top: 0; right: 20px; width: 420px; height: 500px; background: rgba(20,20,30,0.95); backdrop-filter: blur(20px); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; padding: 20px;">
+</div>
+
+<script>
+    const { getCurrentWindow } = window.__TAURI__.window;
+    const appWindow = getCurrentWindow();
+
+    document.getElementById('minimize-btn').addEventListener('click', () => appWindow.minimize());
+    document.getElementById('maximize-btn').addEventListener('click', () => appWindow.toggleMaximize());
+    document.getElementById('close-btn').addEventListener('click', () => appWindow.close());
+
+    async function loadPage(pageName) {
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        const navBtn = document.getElementById(`nav-${pageName}`);
+        if(navBtn) navBtn.classList.add('active');
+
+        try {
+            const response = await fetch(`${pageName}.html`);
+            const html = await response.text();
+            document.getElementById('content-area').innerHTML = html;
+
+            const scripts = document.getElementById('content-area').querySelectorAll("script");
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+        } catch (err) {
+            console.error('Failed to load page:', err);
+        }
+    }
+
+    let queueVisible = false;
+    async function toggleQueue() {
+        const panel = document.getElementById('queue-panel');
+        const btn = document.getElementById('btn-queue');
+
+        if (!queueVisible) {
+            if(panel.innerHTML.trim() === "") {
+                const res = await fetch('queue.html');
+                panel.innerHTML = await res.text();
+            }
+            panel.style.display = 'block';
+            panel.animate([{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 250, easing: 'ease-out'});
+            btn.classList.add('active');
+        } else {
+            const anim = panel.animate([{opacity: 1}, {opacity: 0, transform: 'translateY(-20px)'}], {duration: 200});
+            anim.onfinish = () => panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+        queueVisible = !queueVisible;
+    }
+
+    loadPage('downloader');
+</script>
 </body>
 </html>
