@@ -1,1 +1,1 @@
-pub mod splash;
+// uwu

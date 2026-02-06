@@ -18,14 +18,14 @@
       <div>
         <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Video Format:</label>
         <select id="video-fmt" class="custom-select" style="width: 100%;">
-          <option>Default</option><option>mp4</option><option>mkv</option><option>mov</option><option>avi</option><option>webm</option>
+          <option>Default</option><option>mp4</option><option>mkv</option><option>mov</option><option>avi</option><option>flv</option><option>webm</option>
         </select>
       </div>
 
       <div>
         <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Video Quality:</label>
         <select id="video-qual" class="custom-select" style="width: 100%;">
-          <option>Default</option><option>2160p</option><option>1440p</option><option>1080p</option><option>720p</option><option>480p</option>
+          <option>Default</option><option>2160p</option><option>1440p</option><option>1080p</option><option>720p</option><option>480p</option><option>360p</option><option>240p</option><option>144p</option>
         </select>
       </div>
 
@@ -97,57 +97,4 @@
   </div>
 </div>
 
-<script>
-  {
-
-    const audioCheck = document.getElementById('audio-only-check');
-    const subsCheck = document.getElementById('subs-check');
-    const chatCheck = document.getElementById('chat-check');
-    const advBtn = document.getElementById('advanced-toggle-btn');
-
-    const updateAudioState = () => {
-      const isAudio = audioCheck.checked;
-      document.getElementById('video-fmt').disabled = isAudio;
-      document.getElementById('video-qual').disabled = isAudio;
-      document.getElementById('audio-fmt').disabled = !isAudio;
-      document.getElementById('audio-qual').disabled = !isAudio;
-    };
-
-    const updateSubsState = () => {
-      const hasSubs = subsCheck.checked;
-      document.getElementById('subs-code').disabled = !hasSubs;
-      if(hasSubs) chatCheck.checked = false;
-    };
-
-    const updateChatState = () => {
-      if(chatCheck.checked) {
-        subsCheck.checked = false;
-        updateSubsState();
-      }
-    };
-
-    audioCheck.addEventListener('change', updateAudioState);
-    subsCheck.addEventListener('change', updateSubsState);
-    chatCheck.addEventListener('change', updateChatState);
-
-    advBtn.addEventListener('click', function() {
-      const content = document.getElementById('adv-content');
-      const isOpen = content.classList.contains('open');
-      if (isOpen) {
-        content.classList.remove('open');
-        this.innerText = "Advanced Settings ▼";
-      } else {
-        content.classList.add('open');
-        this.innerText = "Advanced Settings ▲";
-      }
-    });
-
-    updateAudioState();
-    if (window.initCustomSelects) window.initCustomSelects();
-  }
-
-  function addToQueueSim() {
-    const qBtn = document.getElementById('btn-queue');
-    if(qBtn) qBtn.style.display = 'flex';
-  }
-</script>
+<script src="assets/scripts/downloader.js"></script>
