@@ -54,46 +54,72 @@ body {
     font-weight: bold;
     font-size: 14px;
     height: 40px;
-    padding: 0 15px;
-    margin-right: 10px;
+    width: 105px;
     border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: all 0.2s ease;
+    justify-content: flex-start;
+    transition: all 0.2s;
     border: 1px solid transparent;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .nav-btn img {
     width: 24px;
     height: 24px;
+    min-width: 24px;
     margin-right: 10px;
     filter: brightness(0) invert(1);
     opacity: 0.7;
     transition: opacity 0.2s;
 }
 
+.nav-btn span {
+    transition: opacity 0.2s;
+    opacity: 1;
+}
+
 .nav-btn:hover {
     border-color: var(--accent-color);
     color: white;
 }
-.nav-btn:hover img {
-    opacity: 1;
-}
+.nav-btn:hover img { opacity: 1; }
 
 .nav-btn.active {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
-    width: auto;
 }
-.nav-btn.active img {
+.nav-btn.active img { opacity: 1; }
+
+.nav-btn.expandable {
+    width: 50px;
+}
+
+.nav-btn.expandable span {
+    opacity: 0;
+}
+
+.nav-btn.expandable:hover,
+.nav-btn.expandable.active {
+    width: 130px;
+}
+
+.nav-btn.expandable:hover span,
+.nav-btn.expandable.active span {
     opacity: 1;
 }
 
 #btn-queue {
     display: none;
+    width: 50px;
 }
+#btn-queue:hover, #btn-queue.active {
+    width: 105px;
+}
+
 
 .window-controls {
     width: 160px;
@@ -149,4 +175,26 @@ input[type="text"], select {
 }
 input[type="text"]:focus {
     border-color: var(--accent-color);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }

@@ -18,7 +18,7 @@ jobs:
       - name: Check changelog file
         run: |
           if [ ! -f .github/changelog.md ]; then
-            echo "Brak changeloga" > .github/changelog.md
+            echo "No changelog detected" > .github/changelog.md
           fi
       - name: Create Release
         id: create_release
@@ -50,23 +50,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install dependencies (ubuntu only)
+      - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
-      - name: setup node
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: install rust stable
+      - name: Install rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
-      - name: install dependencies (node)
+      - name: Install dependencies (Node)
         run: npm install
 
       - name: Get version
@@ -87,12 +87,10 @@ jobs:
           $ver = "${{ env.VERSION }}"
           $os = "${{ matrix.os_name }}"
           
-          # 1. Instalator (.exe)
           $installer = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*.exe" | Select-Object -First 1
           $newNameInstaller = "Pulsar-$ver-$os.exe"
           Copy-Item $installer.FullName -Destination $newNameInstaller
           
-          # 2. Portable (.zip) - Pakujemy sam plik wykonywalny
           $exe = "src-tauri/target/release/pulsar.exe"
           $newNameZip = "Pulsar-$ver-$os.zip"
           Compress-Archive -Path $exe -DestinationPath $newNameZip
@@ -106,10 +104,8 @@ jobs:
           ver="${{ env.VERSION }}"
           os="${{ matrix.os_name }}"
           
-          # 1. Instalator (.dmg)
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
           
-          # 2. Portable (.zip) - Pakujemy Pulsar.app
           # Przechodzimy do folderu, żeby zip nie zawierał ścieżek
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
           zip -r "../../../../../../Pulsar-$ver-$os.zip" "Pulsar.app"
@@ -124,13 +120,10 @@ jobs:
           ver="${{ env.VERSION }}"
           os="${{ matrix.os_name }}"
           
-          # 1. AppImage
           cp src-tauri/target/release/bundle/appimage/*.AppImage "Pulsar-$ver-$os.AppImage"
           
-          # 2. DEB
           cp src-tauri/target/release/bundle/deb/*.deb "Pulsar-$ver-$os.deb"
           
-          # 3. Portable (.tar.gz) - Pakujemy binarkę
           tar -czvf "Pulsar-$ver-$os.tar.gz" -C src-tauri/target/release pulsar
           
           echo "ASSET_APPIMAGE=Pulsar-$ver-$os.AppImage" >> $GITHUB_ENV

@@ -5,42 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pulsar</title>
     <link rel="stylesheet" href="assets/stylesheets/global.css" />
+    <link rel="stylesheet" href="assets/stylesheets/pages.css" />
 </head>
 <body>
 
 <div id="titlebar" data-tauri-drag-region>
     <img src="assets/icons/icon_full.png" class="logo" alt="Pulsar Logo" />
 
-    <button class="nav-btn active" onclick="loadPage('downloader')" id="nav-downloader">
-        <img src="assets/icons/downloader.png" alt=""> Downloader
+    <button class="nav-btn expandable" onclick="loadPage('downloader', 0)" id="nav-downloader">
+        <img src="assets/icons/downloader.png" alt="">
+        <span>Downloader</span>
     </button>
 
-    <div style="flex-grow: 1;"></div> <button class="nav-btn" onclick="loadPage('console')" id="nav-console">
-    <img src="assets/icons/console.png" alt=""> Console
-</button>
-    <button class="nav-btn" onclick="loadPage('settings')" id="nav-settings">
-        <img src="assets/icons/settings.png" alt=""> Settings
+    <div style="flex-grow: 1;"></div>
+
+    <button class="nav-btn" onclick="loadPage('settings', 1)" id="nav-settings">
+        <img src="assets/icons/settings.png" alt="">
+        <span>Settings</span>
     </button>
-    <button class="nav-btn" onclick="toggleQueue()" id="btn-queue">
-        <img src="assets/icons/queue.png" alt=""> Queue
+
+    <button class="nav-btn expandable" onclick="toggleQueue()" id="btn-queue">
+        <img src="assets/icons/queue.png" alt="">
+        <span>Queue</span>
     </button>
 
     <div class="window-controls">
-        <button class="control-btn" id="minimize-btn" title="Minimalizuj">
-            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        </button>
-        <button class="control-btn" id="maximize-btn" title="Maksymalizuj">
-            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-            </svg>
-        </button>
-        <button class="control-btn close" id="close-btn" title="Zamknij">
-            <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        </button>
+        <button class="control-btn" id="minimize-btn"><svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button class="control-btn" id="maximize-btn"><svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+        <button class="control-btn close" id="close-btn"><svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
 </div>
 
@@ -57,23 +49,103 @@
     document.getElementById('maximize-btn').addEventListener('click', () => appWindow.toggleMaximize());
     document.getElementById('close-btn').addEventListener('click', () => appWindow.close());
 
-    async function loadPage(pageName) {
+    window.initCustomSelects = function() {
+        const selects = document.querySelectorAll('select.custom-select');
+        selects.forEach(origSelect => {
+            if (origSelect.nextElementSibling && origSelect.nextElementSibling.classList.contains('select-wrapper')) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'select-wrapper';
+            if (origSelect.style.width) wrapper.style.width = origSelect.style.width;
+
+            const head = document.createElement('div');
+            head.className = 'select-head';
+            head.innerText = origSelect.options[origSelect.selectedIndex].text;
+
+            const list = document.createElement('div');
+            list.className = 'select-list';
+
+            Array.from(origSelect.options).forEach(opt => {
+                const item = document.createElement('div');
+                item.className = 'select-item';
+                if(opt.selected) item.classList.add('selected');
+                item.innerText = opt.text;
+                item.addEventListener('click', () => {
+                    head.innerText = opt.text;
+                    list.querySelectorAll('.select-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    origSelect.value = opt.value;
+                    origSelect.dispatchEvent(new Event('change'));
+                    window.closeAllSelects();
+                });
+                list.appendChild(item);
+            });
+
+            head.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wasOpen = head.classList.contains('open');
+                window.closeAllSelects();
+                if (!wasOpen) { head.classList.add('open'); list.classList.add('open'); }
+            });
+
+            wrapper.appendChild(head);
+            wrapper.appendChild(list);
+            origSelect.parentNode.insertBefore(wrapper, origSelect.nextSibling);
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((m) => {
+                    if (m.attributeName === 'disabled') {
+                        if (origSelect.disabled) { head.style.opacity = '0.5'; head.style.pointerEvents = 'none'; }
+                        else { head.style.opacity = '1'; head.style.pointerEvents = 'auto'; }
+                    }
+                });
+            });
+            observer.observe(origSelect, { attributes: true });
+
+            if (origSelect.disabled) { head.style.opacity = '0.5'; head.style.pointerEvents = 'none'; }
+        });
+        document.addEventListener('click', window.closeAllSelects);
+    };
+
+    window.closeAllSelects = function() {
+        document.querySelectorAll('.select-head').forEach(h => h.classList.remove('open'));
+        document.querySelectorAll('.select-list').forEach(l => l.classList.remove('open'));
+    };
+
+    let currentPageIndex = 0;
+
+    async function loadPage(pageName, pageIndex) {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         const navBtn = document.getElementById(`nav-${pageName}`);
         if(navBtn) navBtn.classList.add('active');
 
         try {
-            const response = await fetch(`${pageName}.html`);
+            const response = await fetch(`app/${pageName}.html`);
             const html = await response.text();
-            document.getElementById('content-area').innerHTML = html;
 
-            const scripts = document.getElementById('content-area').querySelectorAll("script");
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = html;
+
+            const container = contentArea.querySelector('.page-container');
+            if (container) {
+                if (pageIndex > currentPageIndex) {
+                    container.classList.add('slide-in-right');
+                } else if (pageIndex < currentPageIndex) {
+                    container.classList.add('slide-in-left');
+                } else {
+                    container.classList.add('slide-in-right');
+                }
+            }
+            currentPageIndex = pageIndex;
+
+            const scripts = contentArea.querySelectorAll("script");
             scripts.forEach(oldScript => {
                 const newScript = document.createElement("script");
                 Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
                 newScript.appendChild(document.createTextNode(oldScript.innerHTML));
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
+
         } catch (err) {
             console.error('Failed to load page:', err);
         }
@@ -86,8 +158,8 @@
 
         if (!queueVisible) {
             if(panel.innerHTML.trim() === "") {
-                const res = await fetch('queue.html');
-                panel.innerHTML = await res.text();
+                const res = await fetch('app/queue.html');
+                if(res.ok) panel.innerHTML = await res.text();
             }
             panel.style.display = 'block';
             panel.animate([{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 250, easing: 'ease-out'});
@@ -100,7 +172,7 @@
         queueVisible = !queueVisible;
     }
 
-    loadPage('downloader');
+    loadPage('downloader', 0);
 </script>
 </body>
 </html>

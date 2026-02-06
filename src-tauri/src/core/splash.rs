@@ -1,4 +1,21 @@
-use tauri::{AppHandle, Manager, WebviewWindowBuilder, WebviewUrl};
+use tauri::{App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder};
+
+pub fn setup_splash<R: Runtime>(app: &mut App<R>) -> Result<(), Box<dyn std::error::Error>> {
+    WebviewWindowBuilder::new(
+        app,
+        "splash",
+        WebviewUrl::App("splash_screen.html".into()),
+    )
+        .title("Pulsar Loading...")
+        .inner_size(400.0, 300.0)
+        .decorations(false)
+        .transparent(true)
+        .always_on_top(true)
+        .center()
+        .build()?;
+
+    Ok(())
+}
 
 #[tauri::command]
 pub async fn close_splash(app: AppHandle) {

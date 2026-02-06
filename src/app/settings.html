@@ -1,30 +1,107 @@
-<div class="page-container" style="overflow-y: auto;">
+<div class="page-container" style="padding: 20px 40px; padding-bottom: 40px; overflow-y: auto;">
+
   <div class="page-header">
-    <img src="assets/icons/settings.png" style="width: 32px; height: 32px; filter: invert(1);">
+    <img src="assets/icons/settings.png" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
     <span class="page-title">Settings</span>
   </div>
 
-  <h3 style="color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px;">General</h3>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+  <div class="section-header">General</div>
+
+  <div class="setting-row">
     <span>Theme</span>
-    <select style="width: 150px;"><option>System</option><option>Dark</option><option>Light</option></select>
+    <select class="custom-select" style="width: 150px;">
+      <option>System</option><option>Dark</option><option>Light</option>
+    </select>
+  </div>
+
+  <div class="setting-row">
+    <span>Language</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>English</option>
+    </select>
   </div>
 
   <div style="margin: 15px 0;">
-    <div style="margin-bottom: 10px;">When I close Pulsar:</div>
-    <label style="margin-right: 15px;"><input type="radio" name="close" checked> Hide</label>
-    <label><input type="radio" name="close"> Exit</label>
+    <div style="margin-bottom: 12px; color: #e0e0e0;">When I close Pulsar:</div>
+    <div class="radio-group">
+      <label class="custom-radio"><input type="radio" name="close_behavior" value="hide" checked>Hide</label>
+      <label class="custom-radio"><input type="radio" name="close_behavior" value="exit">Exit</label>
+    </div>
   </div>
 
-  <h3 style="color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px;">Requirements</h3>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+  <div class="section-header">Requirements</div>
+
+  <div class="setting-row">
     <span>Auto-update Pulsar</span>
-    <label class="switch"><input type="checkbox" checked><span class="slider round"></span></label>
+    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <span>Auto-update yt-dlp</span>
+    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <span>Auto-update FFmpeg</span>
+    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
   </div>
 
-  <h3 style="color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px;">Support</h3>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+  <div class="section-header">Download settings</div>
+
+  <div class="setting-row">
+    <span>Cookies from browser</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>None</option><option>Brave</option><option>Chrome</option><option>Chromium</option><option>Edge</option><option>Firefox</option><option>Opera</option><option>Safari</option><option>Vivaldi</option><option>Whale</option>
+    </select>
+  </div>
+
+  <div class="setting-row">
+    <span>Bypass country restrictions</span>
+    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+  </div>
+
+  <div class="setting-row">
+    <span>Default Video Format</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>mp4</option><option>mkv</option><option>mov</option><option>avi</option><option>flv</option><option>webm</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <span>Default Video Quality</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>2160p</option><option>1440p</option><option>1080p</option><option>720p</option><option>480p</option><option>360p</option><option>240p</option><option>144p</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <span>Default Audio Format</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>mp3</option><option>m4a</option><option>aac</option><option>opus</option><option>wav</option><option>ogg</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <span>Default Audio Quality</span>
+    <select class="custom-select" style="width: 150px;">
+      <option>320kbps</option><option>256kbps</option><option>192kbps</option><option>128kbps</option>
+    </select>
+  </div>
+
+  <div class="section-header">Support</div>
+
+  <div class="setting-row">
     <span>Show your support!</span>
-    <button style="background: #E91E63; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Support Project</button>
+    <button class="anim-btn" style="background: #E91E63; color: white; padding: 10px 20px;" onclick="window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa')">
+      Support Project
+    </button>
   </div>
 </div>
+
+<script>
+  {
+    if (window.initCustomSelects) window.initCustomSelects();
+
+    const supportBtn = document.querySelector('button[onclick*="openUrl"]');
+    if(supportBtn) {
+      supportBtn.onclick = () => {
+        window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa');
+      };
+    }
+  }
+</script>
