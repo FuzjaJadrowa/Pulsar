@@ -12,7 +12,8 @@ pub fn run() {
         .manage(config_manager)
         .invoke_handler(tauri::generate_handler![
             system::get_config,
-            system::save_config
+            system::save_config,
+            core::splash::run_splash_checks
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,9 +1,93 @@
+const { invoke } = window.__TAURI__.core;
+const { listen } = window.__TAURI__.event;
 const { getCurrentWindow } = window.__TAURI__.window;
 const appWindow = getCurrentWindow();
 
-document.getElementById('minimize-btn').addEventListener('click', () => appWindow.minimize());
-document.getElementById('maximize-btn').addEventListener('click', () => appWindow.toggleMaximize());
-document.getElementById('close-btn').addEventListener('click', () => appWindow.close());
+let isAppLoaded = false;
+let currentPageIndex = 0;
+let currentPageName = null;
+let queueVisible = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
+    document.getElementById('maximize-btn')?.addEventListener('click', () => appWindow.toggleMaximize());
+    document.getElementById('close-btn')?.addEventListener('click', () => appWindow.close());
+
+    await setupSplashListeners();
+
+    window.initCustomSelects();
+    document.addEventListener('click', window.closeAllSelects);
+
+    invoke('run_splash_checks').catch(err => {
+        console.error("Failed to invoke splash checks:", err);
+        finishSplash();
+    });
+});
+
+const splashScreen = document.getElementById('splash-screen');
+const appContent = document.getElementById('app-content');
+const statusLabel = document.getElementById('splash-status');
+const progressLabel = document.getElementById('splash-progress');
+const skipBtn = document.getElementById('splash-skip-btn');
+
+function finishSplash() {
+    if (isAppLoaded) return;
+    isAppLoaded = true;
+
+    if (splashScreen) {
+        splashScreen.classList.add('hidden');
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+        }, 500);
+    }
+
+    if (appContent) {
+        appContent.style.opacity = '1';
+    }
+
+    loadPage('downloader', 0);
+}
+
+if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+        finishSplash();
+    });
+}
+
+async function setupSplashListeners() {
+    try {
+        await listen('splash-status', (event) => {
+            const payload = event.payload;
+            if (statusLabel) statusLabel.innerText = payload.status;
+
+            if (skipBtn) {
+                if (payload.can_skip) {
+                    skipBtn.style.display = 'inline-block';
+                } else {
+                    skipBtn.style.display = 'none';
+                }
+            }
+
+            if (!payload.is_downloading && progressLabel) {
+                progressLabel.innerText = "";
+            }
+        });
+
+        await listen('splash-progress', (event) => {
+            const payload = event.payload;
+            if (payload.progress && progressLabel) {
+                progressLabel.innerText = payload.progress;
+            }
+        });
+
+        await listen('splash-finished', () => {
+            finishSplash();
+        });
+    } catch (error) {
+        console.error("Błąd uprawnień Tauri (event.listen). Sprawdź capabilities/default.json:", error);
+        setTimeout(finishSplash, 2000);
+    }
+}
 
 window.initCustomSelects = function() {
     const selects = document.querySelectorAll('select.custom-select');
@@ -16,7 +100,9 @@ window.initCustomSelects = function() {
 
         const head = document.createElement('div');
         head.className = 'select-head';
-        head.innerText = origSelect.options[origSelect.selectedIndex].text;
+        if (origSelect.options.length > 0) {
+            head.innerText = origSelect.options[origSelect.selectedIndex].text;
+        }
 
         const list = document.createElement('div');
         list.className = 'select-list';
@@ -60,16 +146,12 @@ window.initCustomSelects = function() {
 
         if (origSelect.disabled) { head.style.opacity = '0.5'; head.style.pointerEvents = 'none'; }
     });
-    document.addEventListener('click', window.closeAllSelects);
 };
 
 window.closeAllSelects = function() {
     document.querySelectorAll('.select-head').forEach(h => h.classList.remove('open'));
     document.querySelectorAll('.select-list').forEach(l => l.classList.remove('open'));
 };
-
-let currentPageIndex = 0;
-let currentPageName = null;
 
 async function loadPage(pageName, pageIndex) {
     if (currentPageName === pageName) return;
@@ -80,8 +162,9 @@ async function loadPage(pageName, pageIndex) {
 
     try {
         const response = await fetch(`app/${pageName}.html`);
-        const html = await response.text();
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
+        const html = await response.text();
         const contentArea = document.getElementById('content-area');
         contentArea.innerHTML = html;
 
@@ -107,20 +190,24 @@ async function loadPage(pageName, pageIndex) {
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
 
+        window.initCustomSelects();
+
     } catch (err) {
         console.error('Failed to load page:', err);
     }
 }
 
-let queueVisible = false;
-async function toggleQueue() {
+window.toggleQueue = async function() {
     const panel = document.getElementById('queue-panel');
     const btn = document.getElementById('btn-queue');
+    if (!panel || !btn) return;
 
     if (!queueVisible) {
         if(panel.innerHTML.trim() === "") {
-            const res = await fetch('app/queue.html');
-            if(res.ok) panel.innerHTML = await res.text();
+            try {
+                const res = await fetch('app/queue.html');
+                if(res.ok) panel.innerHTML = await res.text();
+            } catch(e) { console.error("Error loading queue:", e); }
         }
         panel.style.display = 'block';
         panel.animate([{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 250, easing: 'ease-out'});
@@ -131,6 +218,4 @@ async function toggleQueue() {
         btn.classList.remove('active');
     }
     queueVisible = !queueVisible;
-}
-
-loadPage('downloader', 0);
+};

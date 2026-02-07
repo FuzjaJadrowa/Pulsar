@@ -106,9 +106,8 @@ jobs:
           
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
           
-          # Przechodzimy do folderu, żeby zip nie zawierał ścieżek
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
-          zip -r "../../../../../../Pulsar-$ver-$os.zip" "Pulsar.app"
+          zip -r ../../../../../../Pulsar-$ver-$os.zip . -i Pulsar.app
           cd -
           
           echo "ASSET_INSTALLER=Pulsar-$ver-$os.dmg" >> $GITHUB_ENV

@@ -6,8 +6,25 @@
     <title>Pulsar</title>
     <link rel="stylesheet" href="assets/stylesheets/global.css" />
     <link rel="stylesheet" href="assets/stylesheets/pages.css" />
+    <link rel="stylesheet" href="assets/stylesheets/splash.css" />
 </head>
 <body>
+
+<div id="splash-screen">
+    <div class="splash-content">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+        </div>
+
+        <h2 id="splash-status">Starting...</h2>
+
+        <p id="splash-progress"></p>
+
+        <button id="splash-skip-btn" class="skip-btn" style="display: none;">
+            Skip Update
+        </button>
+    </div>
+</div>
 
 <div id="titlebar" data-tauri-drag-region>
     <img src="assets/icons/icon_full.png" class="logo" alt="Pulsar Logo" />

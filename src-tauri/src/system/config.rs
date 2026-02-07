@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ini::Ini;
 use std::sync::Mutex;
 use std::path::PathBuf;
-use directories::ProjectDirs;
+use directories::BaseDirs;
 use std::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,12 +57,13 @@ impl ConfigManager {
     }
 
     fn get_config_path() -> PathBuf {
-        if let Some(proj_dirs) = ProjectDirs::from("com", "pulsar", "pulsar_app") {
-            let config_dir = proj_dirs.config_dir();
-            if !config_dir.exists() {
-                let _ = fs::create_dir_all(config_dir);
+        if let Some(base_dirs) = BaseDirs::new() {
+            let app_dir = base_dirs.data_local_dir().join("Pulsar");
+
+            if !app_dir.exists() {
+                let _ = fs::create_dir_all(&app_dir);
             }
-            return config_dir.join("config.ini");
+            return app_dir.join("config.ini");
         }
         PathBuf::from("config.ini")
     }
