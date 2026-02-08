@@ -1,10 +1,11 @@
-use tauri::{AppHandle, State, Manager};
+use tauri::{AppHandle, State, Manager, Emitter};
 use std::process::{Command, Stdio, Child, ChildStdin};
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::io::{Write, BufReader, BufRead};
 use std::path::PathBuf;
 use std::thread;
 use serde::{Serialize, Deserialize};
+use serde_json::Value;
 use directories::BaseDirs;
 use crate::system::config::ConfigManager;
 
@@ -28,7 +29,7 @@ impl BridgeState {
         }
     }
 
-    pub fn init(&self) -> Result<(), String> {
+    pub fn init(&self, app_handle: &AppHandle) -> Result<(), String> {
         let mut process_guard = self.process.lock().unwrap();
 
         if process_guard.is_some() {
@@ -54,12 +55,16 @@ impl BridgeState {
         let stdout = child.stdout.take().ok_or("Failed to open stdout")?;
         let stderr = child.stderr.take().ok_or("Failed to open stderr")?;
 
+        let app_handle_clone = app_handle.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
                 match line {
                     Ok(l) => {
                         println!("[BRIDGE OUT]: {}", l);
+                        if let Ok(json_val) = serde_json::from_str::<Value>(&l) {
+                            let _ = app_handle_clone.emit("download-event", json_val);
+                        }
                     }
                     Err(e) => eprintln!("Error reading bridge stdout: {}", e),
                 }
@@ -82,8 +87,8 @@ impl BridgeState {
         Ok(())
     }
 
-    pub fn send_command(&self, cmd: BridgeCommand) -> Result<(), String> {
-        self.init()?;
+    pub fn send_command(&self, app_handle: &AppHandle, cmd: BridgeCommand) -> Result<(), String> {
+        self.init(app_handle)?;
 
         if let Some(stdin) = self.stdin.lock().unwrap().as_mut() {
             let json = serde_json::to_string(&cmd).map_err(|e| e.to_string())?;
@@ -212,7 +217,7 @@ pub fn start_download(
         args,
     };
 
-    state.send_command(cmd)?;
+    state.send_command(&app_handle, cmd)?;
 
     Ok(task_id)
 }

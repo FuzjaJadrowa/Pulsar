@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('close-btn')?.addEventListener('click', () => appWindow.close());
 
     await setupSplashListeners();
+    await setupBridgeListeners();
+    checkConnection();
 
     window.initCustomSelects();
     document.addEventListener('click', window.closeAllSelects);
@@ -54,6 +56,25 @@ if (skipBtn) {
     });
 }
 
+function checkConnection() {
+    if (!navigator.onLine) {
+        window.notifier.show(
+            "Error",
+            "No internet connection. Some app features may be unavailable.",
+            "error",
+            true
+        );
+    }
+
+    window.addEventListener('offline', () => {
+        window.notifier.show("Error", "Internet connection lost.", "error", true);
+    });
+
+    window.addEventListener('online', () => {
+        window.notifier.show("Success", "Internet connection restored.", "success", false);
+    });
+}
+
 async function setupSplashListeners() {
     try {
         await listen('splash-status', (event) => {
@@ -84,8 +105,19 @@ async function setupSplashListeners() {
             finishSplash();
         });
     } catch (error) {
-        console.error("Błąd uprawnień Tauri (event.listen). Sprawdź capabilities/default.json:", error);
+        console.error("Splash events error:", error);
         setTimeout(finishSplash, 2000);
+    }
+}
+
+async function setupBridgeListeners() {
+    try {
+        await listen('download-event', (event) => {
+            // This is where we will route events to the Queue later
+            console.log("Bridge Event:", event.payload);
+        });
+    } catch (error) {
+        console.error("Bridge listener error:", error);
     }
 }
 

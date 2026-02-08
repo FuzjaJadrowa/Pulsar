@@ -59,8 +59,18 @@
     initUI();
 
     window.addToQueueSim = function() {
+        const urlInput = document.getElementById('url-input');
+        const pathInput = document.getElementById('path-input');
+
+        if (!urlInput.value || !pathInput.value) {
+            window.notifier.show("Error", "Missing information. Make sure the path and link fields are completed.", "error");
+            return;
+        }
+
         const qBtn = document.getElementById('btn-queue');
         if(qBtn) qBtn.style.display = 'flex';
+
+        window.notifier.show("Success", "Added to queue (Simulation)", "success");
     }
 
     window.startDownload = async function() {
@@ -75,8 +85,8 @@
         const url = urlInput.value;
         const path = pathInput.value;
 
-        if (!url) {
-            console.error("No URL provided");
+        if (!url || !path) {
+            window.notifier.show("Error", "Missing information. Make sure the path and link fields are completed.", "error");
             return;
         }
 
@@ -107,6 +117,7 @@
             console.log("Download started successfully. Task ID:", taskId);
         } catch (error) {
             console.error("Failed to start download:", error);
+            window.notifier.show("Error", `Failed to start download: ${error}`, "error");
         }
     };
 }
