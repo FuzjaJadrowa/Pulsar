@@ -1,18 +1,16 @@
 use std::fs::{self, File};
-use std::io::{self, Cursor, Write};
+use std::io::{Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::env;
 use std::process::Command;
 
-use tauri::{AppHandle, Emitter, Manager, Window};
+use tauri::{AppHandle, Emitter, Window};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use directories::BaseDirs;
 use reqwest::Client;
 use futures_util::StreamExt;
 
-const APP_VERSION: &str = "v1.0.0";
+const APP_VERSION: &str = "v2.1.1"; //TODO: Naprawa tego syfu
 const APP_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar/releases/latest";
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest";

@@ -15,6 +15,30 @@
         'audio_quality': 'audio_quality'
     };
 
+    function refreshCustomSelect(selectId) {
+        const selectEl = document.getElementById(selectId);
+        if (!selectEl) return;
+
+        const wrapper = selectEl.nextElementSibling;
+        if (wrapper && wrapper.classList.contains('select-wrapper')) {
+            const head = wrapper.querySelector('.select-head');
+            const list = wrapper.querySelector('.select-list');
+
+            if (head && selectEl.selectedIndex >= 0) {
+                head.innerText = selectEl.options[selectEl.selectedIndex].text;
+
+                const items = list.querySelectorAll('.select-item');
+                items.forEach((item, index) => {
+                    if (index === selectEl.selectedIndex) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+        }
+    }
+
     async function saveSettings() {
         const config = {};
 
@@ -48,6 +72,9 @@
                         el.checked = config[key];
                     } else {
                         el.value = config[key];
+                        if (el.tagName === 'SELECT') {
+                            refreshCustomSelect(id);
+                        }
                     }
                 }
             }
@@ -55,10 +82,6 @@
             if (config['close_behavior']) {
                 const radio = document.querySelector(`input[name="close_behavior"][value="${config['close_behavior']}"]`);
                 if (radio) radio.checked = true;
-            }
-
-            if (window.initCustomSelects) {
-                window.initCustomSelects();
             }
 
             setupListeners();
@@ -76,12 +99,16 @@
         });
     }
 
+    if (window.initCustomSelects) {
+        window.initCustomSelects();
+    }
+
     loadSettings();
 
     const supportBtn = document.querySelector('button[onclick*="openUrl"]');
     if(supportBtn) {
         supportBtn.onclick = () => {
-            window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa');
+            window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa'); //TODO: Naprawa otwierania linku
         };
     }
 }

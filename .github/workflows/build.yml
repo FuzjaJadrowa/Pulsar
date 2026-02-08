@@ -107,6 +107,8 @@ jobs:
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
           
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
+          //TODO: Naprawa zipowania
+          //TODO: Uploadowania na serw nawet bez taga
           zip -r ../../../../../../Pulsar-$ver-$os.zip . -i Pulsar.app
           cd -
           

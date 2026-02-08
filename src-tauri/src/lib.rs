@@ -2,18 +2,22 @@ mod core;
 mod system;
 
 use system::config::ConfigManager;
+use core::downloader::BridgeState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let config_manager = ConfigManager::new();
+    let bridge_state = BridgeState::new();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(config_manager)
+        .manage(bridge_state)
         .invoke_handler(tauri::generate_handler![
             system::get_config,
             system::save_config,
-            core::splash::run_splash_checks
+            core::splash::run_splash_checks,
+            core::downloader::start_download
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
