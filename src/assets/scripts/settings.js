@@ -2,7 +2,7 @@
     const invoke = window.__TAURI__.core.invoke;
 
     const idMap = {
-        'theme': 'theme',
+        /** 'theme': 'theme', **/
         'language': 'language',
         'update_app': 'update_app',
         'update_ytdlp': 'update_ytdlp',

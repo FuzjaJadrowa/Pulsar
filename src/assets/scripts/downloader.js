@@ -1,123 +1,205 @@
-{
-    const { invoke } = window.__TAURI__.core;
+(function initUi() {
+    const body = document.body;
+    const searchSection = document.getElementById('search-section');
+    const dashboard = document.getElementById('dashboard-section');
+    const urlInput = document.getElementById('url-input');
+    const fetchBtn = document.getElementById('fetch-btn');
 
-    const initUI = () => {
-        const audioCheck = document.getElementById('audio-only-check');
-        const subsCheck = document.getElementById('subs-check');
-        const chatCheck = document.getElementById('chat-check');
-        const advBtn = document.getElementById('advanced-toggle-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const queueBtn = document.getElementById('queue-btn');
+    const browseBtn = document.getElementById('browse-btn');
 
-        if (!audioCheck || !advBtn) return;
+    const pathInput = document.getElementById('path-input');
 
-        const updateAudioState = () => {
-            const isAudio = audioCheck.checked;
-            const vFmt = document.getElementById('video-fmt');
-            const vQual = document.getElementById('video-qual');
-            const aFmt = document.getElementById('audio-fmt');
-            const aQual = document.getElementById('audio-qual');
+    if (!searchSection || !urlInput) return;
 
-            if(vFmt) vFmt.disabled = isAudio;
-            if(vQual) vQual.disabled = isAudio;
-            if(aFmt) aFmt.disabled = !isAudio;
-            if(aQual) aQual.disabled = !isAudio;
-        };
+    const modeVideoBtn = document.getElementById('mode-video');
+    const modeAudioBtn = document.getElementById('mode-audio');
+    const formatList = document.getElementById('format-list');
+    const qualityList = document.getElementById('quality-list');
+    const optionsWrapper = document.getElementById('options-wrapper');
+    const thumbBtns = document.querySelectorAll('.thumb-actions .icon-btn-small');
+    const thumbPreview = document.querySelector('.thumb-preview');
 
-        const updateSubsState = () => {
-            const hasSubs = subsCheck.checked;
-            const sCode = document.getElementById('subs-code');
-            if(sCode) sCode.disabled = !hasSubs;
-            if(hasSubs && chatCheck) chatCheck.checked = false;
-        };
+    const rangeStart = document.getElementById('range-start');
+    const rangeEnd = document.getElementById('range-end');
+    const rangeFill = document.getElementById('range-fill');
+    const timeStartDisplay = document.getElementById('time-start');
+    const timeEndDisplay = document.getElementById('time-end');
 
-        const updateChatState = () => {
-            if(chatCheck.checked && subsCheck) {
-                subsCheck.checked = false;
-                updateSubsState();
-            }
-        };
-
-        audioCheck.onchange = updateAudioState;
-        if(subsCheck) subsCheck.onchange = updateSubsState;
-        if(chatCheck) chatCheck.onchange = updateChatState;
-
-        advBtn.onclick = function() {
-            const content = document.getElementById('adv-content');
-            const isOpen = content.classList.contains('open');
-            if (isOpen) {
-                content.classList.remove('open');
-                this.innerText = "Advanced Settings ▼";
-            } else {
-                content.classList.add('open');
-                this.innerText = "Advanced Settings ▲";
-            }
-        };
-
-        updateAudioState();
-        if (window.initCustomSelects) window.initCustomSelects();
+    let state = {
+        mode: 'video',
+        isAnalyzed: false,
+        duration: 330,
+        selectedFormat: null,
+        selectedQuality: null
     };
 
-    initUI();
+    function activateDashboard() {
+        if (!urlInput.value || urlInput.value.trim() === '') return;
 
-    window.addToQueueSim = function() {
-        const urlInput = document.getElementById('url-input');
-        const pathInput = document.getElementById('path-input');
+        searchSection.classList.remove('centered');
+        searchSection.classList.add('sticky');
 
-        if (!urlInput.value || !pathInput.value) {
-            window.notifier.show("Error", "Missing information. Make sure the path and link fields are completed.", "error");
-            return;
-        }
+        setTimeout(() => {
+            dashboard.classList.remove('hidden');
+            state.isAnalyzed = true;
+            thumbPreview.innerHTML = `<img src="https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="Thumb">`;
+            document.getElementById('meta-title').innerText = "Rick Astley - Never Gonna Give You Up";
+            document.getElementById('meta-duration').innerText = formatTime(state.duration);
 
-        const qBtn = document.getElementById('btn-queue');
-        if(qBtn) qBtn.style.display = 'flex';
-
-        window.notifier.show("Success", "Added to queue (Simulation)", "success");
+            setMode('video');
+        }, 500);
     }
 
-    window.startDownload = async function() {
-        const urlInput = document.getElementById('url-input');
-        const pathInput = document.getElementById('path-input');
+    function resetToZen() {
+        if (urlInput.value.trim() === '') {
+            dashboard.classList.add('hidden');
+            searchSection.classList.remove('sticky');
+            searchSection.classList.add('centered');
+            state.isAnalyzed = false;
+            state.selectedFormat = null;
+            state.selectedQuality = null;
+            validateReadyState();
+        }
+    }
 
-        if (!urlInput || !pathInput) {
-            console.error("Inputs not found!");
-            return;
+    fetchBtn.onclick = activateDashboard;
+    urlInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); activateDashboard(); urlInput.blur(); }};
+    urlInput.oninput = resetToZen;
+
+    async function setMode(mode) {
+        if (state.mode === mode && state.isAnalyzed) return;
+        state.mode = mode;
+
+        if (optionsWrapper) optionsWrapper.classList.add('fading-out');
+
+        await new Promise(r => setTimeout(r, 300));
+
+        body.classList.remove('mode-video', 'mode-audio');
+        if (mode === 'video') {
+            body.classList.add('mode-video');
+            modeVideoBtn.classList.add('active');
+            modeAudioBtn.classList.remove('active');
+            renderVideoOptions();
+        } else {
+            body.classList.add('mode-audio');
+            modeAudioBtn.classList.add('active');
+            modeVideoBtn.classList.remove('active');
+            renderAudioOptions();
         }
 
-        const url = urlInput.value;
-        const path = pathInput.value;
+        state.selectedFormat = null;
+        state.selectedQuality = null;
+        validateReadyState();
+        updateSlider();
 
-        if (!url || !path) {
-            window.notifier.show("Error", "Missing information. Make sure the path and link fields are completed.", "error");
-            return;
-        }
+        if (optionsWrapper) optionsWrapper.classList.remove('fading-out');
+    }
 
-        const timeInputs = document.querySelectorAll('.custom-input[style*="text-align: center"]');
-        const startTime = timeInputs.length > 0 ? timeInputs[0].value : "";
-        const endTime = timeInputs.length > 1 ? timeInputs[1].value : "";
+    modeVideoBtn.onclick = () => setMode('video');
+    modeAudioBtn.onclick = () => setMode('audio');
 
-        const options = {
-            url: url,
-            path: path,
-            audio_only: document.getElementById('audio-only-check').checked,
-            video_format: document.getElementById('video-fmt').value,
-            video_quality: document.getElementById('video-qual').value,
-            audio_format: document.getElementById('audio-fmt').value,
-            audio_quality: document.getElementById('audio-qual').value,
-            download_subs: document.getElementById('subs-check').checked,
-            subs_lang: document.getElementById('subs-code').value,
-            download_chat: document.getElementById('chat-check').checked,
-            start_time: startTime,
-            end_time: endTime,
-            custom_args: document.querySelector('#adv-content input').value || ""
+
+    function createTile(text, subtext = '') {
+        const div = document.createElement('div');
+        div.className = 'tile';
+        div.innerHTML = `<span>${text}</span> ${subtext ? `<small style="font-size:0.7em; opacity:0.7">${subtext}</small>` : ''}`;
+
+        div.onclick = () => {
+            const parent = div.parentElement;
+            parent.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
+            div.classList.add('active');
+
+            if (parent.id === 'format-list') state.selectedFormat = text;
+            if (parent.id === 'quality-list') state.selectedQuality = text;
+            validateReadyState();
         };
+        return div;
+    }
 
-        console.log("Sending download request:", options);
+    function renderVideoOptions() {
+        formatList.innerHTML = ''; qualityList.innerHTML = '';
+        ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV'].forEach(f => formatList.appendChild(createTile(f)));
+        ['4K', '1440p', '1080p', '720p', '480p', '360p'].forEach(q => qualityList.appendChild(createTile(q)));
+    }
 
-        try {
-            const taskId = await invoke('start_download', { options: options });
-            console.log("Download started successfully. Task ID:", taskId);
-        } catch (error) {
-            console.error("Failed to start download:", error);
-            window.notifier.show("Error", `Failed to start download: ${error}`, "error");
-        }
+    function renderAudioOptions() {
+        formatList.innerHTML = ''; qualityList.innerHTML = '';
+        ['MP3', 'M4A', 'FLAC', 'OPUS', 'WAV', 'OGG'].forEach(f => formatList.appendChild(createTile(f)));
+        ['320k', '256k', '192k', '128k', '96k'].forEach(q => qualityList.appendChild(createTile(q)));
+    }
+
+
+    browseBtn.onclick = () => {
+        pathInput.value = "C:/Downloads/Pulsar";
+        validateReadyState();
     };
-}
+    pathInput.oninput = validateReadyState;
+
+
+    function updateSlider() {
+        if (!rangeStart) return;
+        let min = parseInt(rangeStart.value);
+        let max = parseInt(rangeEnd.value);
+
+        if (min > max) { rangeStart.value = max; min = max; }
+        if (max < min) { rangeEnd.value = min; max = min; }
+
+        rangeFill.style.left = min + "%";
+        rangeFill.style.right = (100 - max) + "%";
+
+        if (document.activeElement !== timeStartDisplay)
+            timeStartDisplay.value = formatTime(state.duration * (min/100));
+
+        if (document.activeElement !== timeEndDisplay)
+            timeEndDisplay.value = formatTime(state.duration * (max/100));
+    }
+
+    function formatTime(s) {
+        const min = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = Math.floor(s % 60).toString().padStart(2, '0');
+        return `00:${min}:${sec}`;
+    }
+
+    if(rangeStart) {
+        rangeStart.oninput = updateSlider;
+        rangeEnd.oninput = updateSlider;
+    }
+
+    [timeStartDisplay, timeEndDisplay].forEach(input => {
+        input.onchange = () => {
+            console.log("Time manually changed:", input.value);
+        };
+    });
+
+
+    thumbBtns.forEach(btn => {
+        btn.onclick = () => {
+            thumbBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+    });
+
+
+    function validateReadyState() {
+        const hasPath = pathInput.value.trim().length > 0;
+        const isValid = state.selectedFormat && state.selectedQuality && hasPath;
+
+        if (isValid) {
+            downloadBtn.removeAttribute('disabled');
+            downloadBtn.classList.add('ready');
+
+            queueBtn.removeAttribute('disabled');
+            queueBtn.classList.add('ready');
+        } else {
+            downloadBtn.setAttribute('disabled', 'true');
+            downloadBtn.classList.remove('ready');
+
+            queueBtn.setAttribute('disabled', 'true');
+            queueBtn.classList.remove('ready');
+        }
+    }
+
+    updateSlider();
+})();

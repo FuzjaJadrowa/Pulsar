@@ -1,100 +1,126 @@
-<div class="page-container full-height-layout">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulsar Downloader</title>
+  <link rel="stylesheet" href="assets/stylesheets/downloader.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="mode-zen">
 
-  <div class="scroll-content">
+<div class="app-background"></div>
 
-    <div class="page-header">
-      <img src="assets/icons/downloader.png" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
-      <span class="page-title">Downloader</span>
-    </div>
+<div class="main-container">
 
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <input type="text" id="url-input" class="custom-input" placeholder="Paste YouTube link here..." style="flex: 2;">
-      <input type="text" id="path-input" class="custom-input" placeholder="Download path..." style="flex: 1;">
-      <button class="anim-btn" style="width: 100px; background: #333; color: white; border: 1px solid #444;">Browse</button>
-    </div>
-    <!--TODO: Guzior browse nie działa-->
-    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 10px;">
-
-      <div>
-        <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Video Format:</label>
-        <select id="video-fmt" class="custom-select" style="width: 100%;">
-          <option>Default</option><option>mp4</option><option>mkv</option><option>mov</option><option>avi</option><option>flv</option><option>webm</option>
-        </select>
-      </div>
-
-      <div>
-        <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Video Quality:</label>
-        <select id="video-qual" class="custom-select" style="width: 100%;">
-          <option>Default</option><option>2160p</option><option>1440p</option><option>1080p</option><option>720p</option><option>480p</option><option>360p</option><option>240p</option><option>144p</option>
-        </select>
-      </div>
-
-      <div style="grid-row: span 3; padding-top: 28px;">
-        <label class="custom-checkbox">
-          <input type="checkbox" id="audio-only-check">
-          <span class="checkmark"></span>
-          Audio only mode
-        </label>
-      </div>
-
-      <div>
-        <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Audio Format:</label>
-        <select id="audio-fmt" class="custom-select" style="width: 100%;" disabled>
-          <option>Default</option><option>mp3</option><option>m4a</option><option>aac</option><option>opus</option><option>wav</option>
-        </select>
-      </div>
-
-      <div>
-        <label style="display: block; margin-bottom: 8px; color: #aaa; font-size: 13px;">Audio Quality:</label>
-        <select id="audio-qual" class="custom-select" style="width: 100%;" disabled>
-          <option>Default</option><option>320kbps</option><option>256kbps</option><option>192kbps</option><option>128kbps</option>
-        </select>
-      </div>
-    </div>
-
-    <div style="display: flex; gap: 30px; margin-bottom: 10px; padding: 0 5px;">
-      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <label class="custom-checkbox">
-            <input type="checkbox" id="subs-check">
-            <span class="checkmark"></span>
-            Download subtitles
-          </label>
-          <input type="text" id="subs-code" class="custom-input" placeholder="Code" style="width: 60px;" disabled>
-        </div>
-        <label class="custom-checkbox">
-          <input type="checkbox" id="chat-check">
-          <span class="checkmark"></span>
-          Download live chat
-        </label>
-      </div>
-
-      <div style="flex: 1;">
-        <div style="margin-bottom: 8px; font-size: 13px; color: #e0e0e0;">Download fragments (hh:mm:ss):</div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <input type="text" class="custom-input" style="width: 80px; text-align: center;">
-          <span style="color:#aaa">-</span>
-          <input type="text" class="custom-input" style="width: 80px; text-align: center;">
-        </div>
-      </div>
-    </div>
-
-    <button class="advanced-toggle" id="advanced-toggle-btn">
-      Advanced Settings ▼
-    </button>
-
-    <div id="adv-content" class="advanced-content">
-      <div style="padding-top: 10px;">
-        <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 12px;">Custom Arguments:</label>
-        <input type="text" class="custom-input" style="width: 100%; margin-bottom: 15px;">
-      </div>
+  <div id="search-section" class="search-section centered">
+    <div class="search-box-row">
+      <input type="text" id="url-input" placeholder="Paste YouTube link here..." autocomplete="off">
+      <button id="fetch-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <div class="fixed-footer">
-    <button class="anim-btn" style="width: 140px; height: 50px; background: #00e676; color: white;" onclick="startDownload()">Download</button>
-    <button class="anim-btn" style="width: 140px; height: 50px; background: #2979ff; color: white;" onclick="addToQueueSim()">Add to queue</button>
+  <div id="dashboard-section" class="dashboard-section hidden">
+
+    <div class="meta-info fade-in">
+      <h2 id="meta-title">...</h2>
+      <p><span id="meta-author">Channel Name</span> • <span id="meta-duration">00:00</span></p>
+    </div>
+
+    <div class="path-selector fade-in">
+      <input type="text" id="path-input" placeholder="No save path selected..." autocomplete="off">
+      <button id="browse-btn" class="small-btn" title="Browse Folder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      </button>
+    </div>
+
+    <div class="mode-switcher fade-in">
+      <div class="switch-option active" data-mode="video" id="mode-video">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+        <span>VIDEO</span>
+      </div>
+      <div class="switch-option" data-mode="audio" id="mode-audio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        <span>AUDIO</span>
+      </div>
+    </div>
+
+    <div id="options-wrapper" class="content-transition">
+      <div class="options-grid fade-in">
+        <div class="grid-column">
+          <label>FORMAT</label>
+          <div class="tiles-container" id="format-list"></div>
+        </div>
+        <div class="grid-column">
+          <label>QUALITY</label>
+          <div class="tiles-container" id="quality-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-section fade-in">
+      <div class="time-inputs">
+        <input type="text" class="time-box" id="time-start" value="00:00:00">
+
+        <div class="slider-track-container">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="range-fill"></div>
+          <input type="range" id="range-start" min="0" max="100" value="0">
+          <input type="range" id="range-end" min="0" max="100" value="100">
+        </div>
+
+        <input type="text" class="time-box" id="time-end" value="00:05:30">
+      </div>
+    </div>
+
+    <div class="extras-section fade-in">
+      <div class="thumb-container">
+        <label style="font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 5px;">THUMBNAIL</label>
+        <div class="thumb-preview">
+          <span class="placeholder">PREVIEW</span>
+        </div>
+        <div class="thumb-actions">
+          <button class="icon-btn-small" data-thumb="none" title="None">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+          </button>
+          <button class="icon-btn-small" data-thumb="download" title="Save to File">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button class="icon-btn-small active" data-thumb="embed" title="Embed in Video">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="subs-container">
+        <label style="font-size: 0.75rem; color: #888; font-weight: bold;">SUBTITLES</label>
+        <div class="subs-row">
+          <input type="text" class="time-box" placeholder="Lang" id="subs-lang" style="width: 80px;">
+          <button class="icon-btn-small" id="subs-toggle" style="width: 50px;">CC</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-footer fade-in">
+      <button id="download-btn" class="big-action-btn" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>DOWNLOAD</span>
+      </button>
+
+      <button id="queue-btn" class="big-action-btn" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>ADD TO QUEUE</span>
+      </button>
+    </div>
+
   </div>
 </div>
 
 <script src="assets/scripts/downloader.js"></script>
+</body>
+</html>

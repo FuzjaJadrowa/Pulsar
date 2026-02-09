@@ -113,7 +113,6 @@ async function setupSplashListeners() {
 async function setupBridgeListeners() {
     try {
         await listen('download-event', (event) => {
-            // This is where we will route events to the Queue later
             console.log("Bridge Event:", event.payload);
         });
     } catch (error) {
@@ -251,3 +250,54 @@ window.toggleQueue = async function() {
     }
     queueVisible = !queueVisible;
 };
+
+/** document.addEventListener('DOMContentLoaded', async () => {
+
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (
+            event.key === 'F12' ||
+            (event.ctrlKey && event.shiftKey && event.key === 'I') ||
+            (event.ctrlKey && event.shiftKey && event.key === 'R') ||
+            (event.ctrlKey && event.key === 'r')
+        ) {
+            event.preventDefault();
+        }
+    });
+
+    document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
+
+    const disableAutofill = (element) => {
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            element.setAttribute('autocomplete', 'off');
+            element.setAttribute('autocorrect', 'off');
+            element.setAttribute('autocapitalize', 'off');
+            element.setAttribute('spellcheck', 'false');
+
+            if (element.type === 'password') {
+                element.setAttribute('autocomplete', 'new-password');
+            } else {
+                element.setAttribute('name', Math.random().toString(36).substring(7));
+            }
+        }
+    };
+
+    document.querySelectorAll('input, textarea').forEach(disableAutofill);
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                disableAutofill(node);
+
+                if (node.querySelectorAll) {
+                    node.querySelectorAll('input, textarea').forEach(disableAutofill);
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+}); **/

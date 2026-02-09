@@ -7,7 +7,7 @@ use std::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
-    pub theme: String,
+    // pub theme: String,
     pub language: String,
     pub close_behavior: String,
 
@@ -26,7 +26,6 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            theme: "System".to_string(),
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             update_app: true,
@@ -75,7 +74,7 @@ impl ConfigManager {
         if path.exists() {
             if let Ok(ini) = Ini::load_from_file(&path) {
                 if let Some(section) = ini.section(Some("General")) {
-                    if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
+                    // if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
                     if let Some(v) = section.get("language") { config.language = v.to_string(); }
                     if let Some(v) = section.get("close_behavior") { config.close_behavior = v.to_string(); }
                 }
@@ -109,7 +108,7 @@ impl ConfigManager {
         let mut ini = Ini::new();
 
         ini.with_section(Some("General"))
-            .set("theme", &config.theme)
+            // .set("theme", &config.theme)
             .set("language", &config.language)
             .set("close_behavior", &config.close_behavior);
 
