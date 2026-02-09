@@ -94,36 +94,6 @@
 .anim-btn:hover { filter: brightness(1.1); }
 .anim-btn:active { transform: scale(0.96); }
 
-.custom-checkbox {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    font-size: 14px;
-    color: #e0e0e0;
-}
-.custom-checkbox input { position: absolute; opacity: 0; height: 0; width: 0; }
-.checkmark {
-    height: 18px; width: 18px;
-    background-color: #252525;
-    border: 1px solid #3d3d3d;
-    border-radius: 4px;
-    margin-right: 10px;
-    position: relative;
-    transition: all 0.2s ease;
-}
-.custom-checkbox:hover input ~ .checkmark { border-color: #666; }
-.custom-checkbox input:checked ~ .checkmark {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
-}
-.checkmark:after {
-    content: ""; position: absolute; display: none;
-    left: 6px; top: 2px; width: 3px; height: 8px;
-    border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
-}
-.custom-checkbox input:checked ~ .checkmark:after { display: block; }
-
 .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {

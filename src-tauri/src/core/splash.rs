@@ -134,7 +134,7 @@ async fn check_app_update(client: &Client, app: &AppHandle, window: &Window) -> 
             file_name = "update.zip".to_string();
             break;
         }
-        #[cfg(target_os = "macos")]
+        #[cfg(target_os = "macos")] //jebac maca
         if name.contains("MacOS") && name.ends_with(".zip") {
             download_url = url.to_string();
             file_name = "update.zip".to_string();
@@ -147,7 +147,8 @@ async fn check_app_update(client: &Client, app: &AppHandle, window: &Window) -> 
             break;
         }
     }
-
+    //TODO: trzeba wywalic maca bo nie signowana aplikacja nie pozwala na updaty
+    //TODO: zmiana na stabilniejszy tauri updater
     if download_url.is_empty() {
         emit_status(window, "This build is not updatable", false, false);
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
