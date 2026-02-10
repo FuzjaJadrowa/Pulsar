@@ -1,127 +1,126 @@
-<div class="page-container" style="padding: 20px 40px; padding-bottom: 40px; overflow-y: auto;">
+<div class="settings-page" style="padding: 20px 40px; padding-bottom: 40px; overflow-y: auto;">
 
-  <div class="page-header">
-    <img src="assets/icons/settings.png" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
-    <span class="page-title">Settings</span>
+  <div class="settings-page-header">
+    <img src="assets/icons/settings.png" class="settings-page-icon" alt="Settings icon">
+    <span class="settings-page-title">Settings</span>
   </div>
 
-  <div class="section-header">General</div>
+  <section class="settings-section-card">
+    <div class="settings-section-title">General</div>
 
-<!--  <div class="setting-row">-->
-<!--    <span>Theme</span>-->
-<!--    <select id="theme" class="custom-select" style="width: 150px;">-->
-<!--      <option value="System">System</option>-->
-<!--      <option value="Dark">Dark</option>-->
-<!--      <option value="Light">Light</option>-->
-<!--    </select>-->
-<!--  </div>-->
-
-  <div class="setting-row">
-    <span>Language</span>
-    <select id="language" class="custom-select" style="width: 150px;">
-      <option value="English">English</option>
-    </select>
-  </div>
-
-  <div style="margin: 15px 0;">
-    <div style="margin-bottom: 12px; color: #e0e0e0;">When I close Pulsar:</div>
-    <div class="radio-group">
-      <label class="custom-radio"><input type="radio" name="close_behavior" value="hide">Hide</label>
-      <label class="custom-radio"><input type="radio" name="close_behavior" value="exit">Exit</label>
+    <div class="settings-item-row">
+      <span>Language</span>
+      <select id="language" class="custom-select" style="width: 150px;">
+        <option value="English">English</option>
+      </select>
     </div>
-  </div>
 
-  <div class="section-header">Requirements</div>
+    <div class="settings-inline-group">
+      <div class="settings-inline-label">When I close Pulsar:</div>
+      <div class="radio-group">
+        <label class="custom-radio"><input type="radio" name="close_behavior" value="hide">Hide</label>
+        <label class="custom-radio"><input type="radio" name="close_behavior" value="exit">Exit</label>
+      </div>
+    </div>
+  </section>
 
-  <div class="setting-row">
-    <span>Auto-update Pulsar</span>
-    <label class="switch"><input id="update_app" type="checkbox"><span class="slider"></span></label>
-  </div>
-  <div class="setting-row">
-    <span>Auto-update yt-dlp</span>
-    <label class="switch"><input id="update_ytdlp" type="checkbox"><span class="slider"></span></label>
-  </div>
-  <div class="setting-row">
-    <span>Auto-update FFmpeg</span>
-    <label class="switch"><input id="update_ffmpeg" type="checkbox"><span class="slider"></span></label>
-  </div>
+  <section class="settings-section-card">
+    <div class="settings-section-title">Requirements</div>
 
-  <div class="section-header">Download settings</div>
+    <div class="settings-item-row">
+      <span>Auto-update Pulsar</span>
+      <label class="switch"><input id="update_app" type="checkbox"><span class="slider"></span></label>
+    </div>
+    <div class="settings-item-row">
+      <span>Auto-update yt-dlp</span>
+      <label class="switch"><input id="update_ytdlp" type="checkbox"><span class="slider"></span></label>
+    </div>
+    <div class="settings-item-row">
+      <span>Auto-update FFmpeg</span>
+      <label class="switch"><input id="update_ffmpeg" type="checkbox"><span class="slider"></span></label>
+    </div>
+  </section>
 
-  <div class="setting-row">
-    <span>Cookies from browser</span>
-    <select id="cookies_browser" class="custom-select" style="width: 150px;">
-      <option value="None">None</option>
-      <option value="Brave">Brave</option>
-      <option value="Chrome">Chrome</option>
-      <option value="Chromium">Chromium</option>
-      <option value="Edge">Edge</option>
-      <option value="Firefox">Firefox</option>
-      <option value="Opera">Opera</option>
-      <option value="Safari">Safari</option>
-      <option value="Vivaldi">Vivaldi</option>
-      <option value="Whale">Whale</option>
-    </select>
-  </div>
+  <section class="settings-section-card">
+    <div class="settings-section-title">Download settings</div>
 
-  <div class="setting-row">
-    <span>Bypass country restrictions</span>
-    <label class="switch"><input id="geo_bypass" type="checkbox"><span class="slider"></span></label>
-  </div>
+    <div class="settings-item-row">
+      <span>Cookies from browser</span>
+      <select id="cookies_browser" class="custom-select" style="width: 150px;">
+        <option value="None">None</option>
+        <option value="Brave">Brave</option>
+        <option value="Chrome">Chrome</option>
+        <option value="Chromium">Chromium</option>
+        <option value="Edge">Edge</option>
+        <option value="Firefox">Firefox</option>
+        <option value="Opera">Opera</option>
+        <option value="Safari">Safari</option>
+        <option value="Vivaldi">Vivaldi</option>
+        <option value="Whale">Whale</option>
+      </select>
+    </div>
 
-  <div class="setting-row">
-    <span>Default Video Format</span>
-    <select id="video_format" class="custom-select" style="width: 150px;">
-      <option value="mp4">mp4</option>
-      <option value="mkv">mkv</option>
-      <option value="mov">mov</option>
-      <option value="avi">avi</option>
-      <option value="flv">flv</option>
-      <option value="webm">webm</option>
-    </select>
-  </div>
-  <div class="setting-row">
-    <span>Default Video Quality</span>
-    <select id="video_quality" class="custom-select" style="width: 150px;">
-      <option value="2160p">2160p</option>
-      <option value="1440p">1440p</option>
-      <option value="1080p">1080p</option>
-      <option value="720p">720p</option>
-      <option value="480p">480p</option>
-      <option value="360p">360p</option>
-      <option value="240p">240p</option>
-      <option value="144p">144p</option>
-    </select>
-  </div>
-  <div class="setting-row">
-    <span>Default Audio Format</span>
-    <select id="audio_format" class="custom-select" style="width: 150px;">
-      <option value="mp3">mp3</option>
-      <option value="m4a">m4a</option>
-      <option value="aac">aac</option>
-      <option value="opus">opus</option>
-      <option value="wav">wav</option>
-      <option value="ogg">ogg</option>
-    </select>
-  </div>
-  <div class="setting-row">
-    <span>Default Audio Quality</span>
-    <select id="audio_quality" class="custom-select" style="width: 150px;">
-      <option value="320kbps">320kbps</option>
-      <option value="256kbps">256kbps</option>
-      <option value="192kbps">192kbps</option>
-      <option value="128kbps">128kbps</option>
-    </select>
-  </div>
+    <div class="settings-item-row">
+      <span>Bypass country restrictions</span>
+      <label class="switch"><input id="geo_bypass" type="checkbox"><span class="slider"></span></label>
+    </div>
 
-  <div class="section-header">Support</div>
+    <div class="settings-item-row">
+      <span>Default Video Format</span>
+      <select id="video_format" class="custom-select" style="width: 150px;">
+        <option value="mp4">mp4</option>
+        <option value="mkv">mkv</option>
+        <option value="mov">mov</option>
+        <option value="avi">avi</option>
+        <option value="flv">flv</option>
+        <option value="webm">webm</option>
+      </select>
+    </div>
+    <div class="settings-item-row">
+      <span>Default Video Quality</span>
+      <select id="video_quality" class="custom-select" style="width: 150px;">
+        <option value="2160p">2160p</option>
+        <option value="1440p">1440p</option>
+        <option value="1080p">1080p</option>
+        <option value="720p">720p</option>
+        <option value="480p">480p</option>
+        <option value="360p">360p</option>
+        <option value="240p">240p</option>
+        <option value="144p">144p</option>
+      </select>
+    </div>
+    <div class="settings-item-row">
+      <span>Default Audio Format</span>
+      <select id="audio_format" class="custom-select" style="width: 150px;">
+        <option value="mp3">mp3</option>
+        <option value="m4a">m4a</option>
+        <option value="aac">aac</option>
+        <option value="opus">opus</option>
+        <option value="wav">wav</option>
+        <option value="ogg">ogg</option>
+      </select>
+    </div>
+    <div class="settings-item-row">
+      <span>Default Audio Quality</span>
+      <select id="audio_quality" class="custom-select" style="width: 150px;">
+        <option value="320kbps">320kbps</option>
+        <option value="256kbps">256kbps</option>
+        <option value="192kbps">192kbps</option>
+        <option value="128kbps">128kbps</option>
+      </select>
+    </div>
+  </section>
 
-  <div class="setting-row">
-    <span>Show your support!</span>
-    <button class="anim-btn" style="background: #E91E63; color: white; padding: 10px 20px;" onclick="window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa')">
-      Support Project
-    </button>
-  </div>
+  <section class="settings-section-card">
+    <div class="settings-section-title">Support</div>
+
+    <div class="settings-item-row">
+      <span>Show your support!</span>
+      <button class="anim-btn" style="background: #E91E63; color: white; padding: 10px 20px;" onclick="window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa')">
+        Support Project
+      </button>
+    </div>
+  </section>
 </div>
 
 <script src="assets/scripts/settings.js"></script>

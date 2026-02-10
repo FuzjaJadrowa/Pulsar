@@ -1,4 +1,4 @@
-.page-container {
+.settings-page {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
@@ -50,34 +50,64 @@
     to { opacity: 1; transform: translateX(0); }
 }
 
-.page-header {
+.settings-page-header {
     display: flex;
     align-items: center;
     margin-bottom: 25px;
 }
-.page-title {
+
+.settings-page-icon {
+    width: 32px;
+    height: 32px;
+    filter: brightness(0) invert(1);
+}
+
+.settings-page-title {
     font-size: 24px;
     font-weight: bold;
     margin-left: 15px;
     letter-spacing: 0.5px;
 }
-.section-header {
+
+.settings-section-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(10px);
+}
+
+.settings-section-title {
     color: #aaa;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 8px;
-    margin-top: 25px;
-    margin-bottom: 15px;
+    margin-bottom: 14px;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
 }
-.setting-row {
+
+.settings-item-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 14px;
     min-height: 40px;
+}
+
+.settings-item-row:last-child {
+    margin-bottom: 0;
+}
+
+.settings-inline-group {
+    margin-top: 8px;
+}
+
+.settings-inline-label {
+    margin-bottom: 12px;
+    color: #e0e0e0;
 }
 
 .anim-btn {
