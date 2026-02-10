@@ -7,6 +7,7 @@ let isAppLoaded = false;
 let currentPageIndex = 0;
 let currentPageName = null;
 let queueVisible = false;
+const loadedPages = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
@@ -189,43 +190,56 @@ async function loadPage(pageName, pageIndex) {
 
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${pageName}`);
-    if(navBtn) navBtn.classList.add('active');
+    if (navBtn) navBtn.classList.add('active');
 
-    try {
-        const response = await fetch(`app/${pageName}.html`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const contentArea = document.getElementById('content-area');
 
-        const html = await response.text();
-        const contentArea = document.getElementById('content-area');
-        contentArea.innerHTML = html;
+    document.querySelectorAll('.view-container').forEach(el => {
+        el.classList.remove('active-view');
+    });
 
-        const container = contentArea.querySelector('.page-container');
-        if (container) {
-            if (pageIndex > currentPageIndex) {
-                container.classList.add('slide-in-right');
-            } else if (pageIndex < currentPageIndex) {
-                container.classList.add('slide-in-left');
-            } else {
-                container.classList.add('slide-in-right');
-            }
+    if (loadedPages[pageName]) {
+        const existingView = document.getElementById(`view-${pageName}`);
+        if (existingView) {
+            existingView.classList.add('active-view');
+
+            setTimeout(() => window.initCustomSelects(), 50);
         }
+    } else {
+        try {
+            const response = await fetch(`app/${pageName}.html`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        currentPageIndex = pageIndex;
-        currentPageName = pageName;
+            const html = await response.text();
 
-        const scripts = contentArea.querySelectorAll("script");
-        scripts.forEach(oldScript => {
-            const newScript = document.createElement("script");
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
+            const viewContainer = document.createElement('div');
+            viewContainer.id = `view-${pageName}`;
+            viewContainer.className = 'view-container active-view';
 
-        window.initCustomSelects();
+            viewContainer.innerHTML = html;
+            contentArea.appendChild(viewContainer);
 
-    } catch (err) {
-        console.error('Failed to load page:', err);
+            const scripts = viewContainer.querySelectorAll("script");
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+
+                oldScript.parentNode.removeChild(oldScript);
+                viewContainer.appendChild(newScript);
+            });
+
+            loadedPages[pageName] = true;
+
+            window.initCustomSelects();
+
+        } catch (err) {
+            console.error('Failed to load page:', err);
+        }
     }
+
+    currentPageIndex = pageIndex;
+    currentPageName = pageName;
 }
 
 window.toggleQueue = async function() {
@@ -251,53 +265,3 @@ window.toggleQueue = async function() {
     queueVisible = !queueVisible;
 };
 
-/** document.addEventListener('DOMContentLoaded', async () => {
-
-    document.addEventListener('contextmenu', (event) => {
-        event.preventDefault();
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (
-            event.key === 'F12' ||
-            (event.ctrlKey && event.shiftKey && event.key === 'I') ||
-            (event.ctrlKey && event.shiftKey && event.key === 'R') ||
-            (event.ctrlKey && event.key === 'r')
-        ) {
-            event.preventDefault();
-        }
-    });
-
-    document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
-
-    const disableAutofill = (element) => {
-        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-            element.setAttribute('autocomplete', 'off');
-            element.setAttribute('autocorrect', 'off');
-            element.setAttribute('autocapitalize', 'off');
-            element.setAttribute('spellcheck', 'false');
-
-            if (element.type === 'password') {
-                element.setAttribute('autocomplete', 'new-password');
-            } else {
-                element.setAttribute('name', Math.random().toString(36).substring(7));
-            }
-        }
-    };
-
-    document.querySelectorAll('input, textarea').forEach(disableAutofill);
-
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                disableAutofill(node);
-
-                if (node.querySelectorAll) {
-                    node.querySelectorAll('input, textarea').forEach(disableAutofill);
-                }
-            });
-        });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-}); **/
