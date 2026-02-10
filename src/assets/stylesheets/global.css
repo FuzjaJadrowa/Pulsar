@@ -35,7 +35,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0 20px;
-    background: rgba(10, 10, 15, 0.4);
+    background: rgba(10, 10, 15, 0.2);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -72,12 +72,11 @@ body {
     white-space: nowrap;
 }
 
-.nav-btn img {
+.nav-btn svg {
     width: 24px;
     height: 24px;
     min-width: 24px;
     margin-right: 10px;
-    filter: brightness(0) invert(1);
     opacity: 0.7;
     transition: opacity 0.2s;
 }
@@ -91,14 +90,14 @@ body {
     border-color: var(--accent-color);
     color: white;
 }
-.nav-btn:hover img { opacity: 1; }
+.nav-btn:hover svg { opacity: 1; }
 
 .nav-btn.active {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
 }
-.nav-btn.active img { opacity: 1; }
+.nav-btn.active svg { opacity: 1; }
 
 .nav-btn.expandable {
     width: 50px;
@@ -200,7 +199,7 @@ input[type="text"]:focus {
     top: 0; left: 0;
     width: 100%; height: 100%;
     overflow-y: auto;
-    padding-top: 60px;
+    padding-top: 90px;
     will-change: transform;
     background: transparent;
 }

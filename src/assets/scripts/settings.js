@@ -2,17 +2,12 @@
     const invoke = window.__TAURI__.core.invoke;
 
     const idMap = {
-        /** 'theme': 'theme', **/
+        'theme': 'theme',
         'language': 'language',
         'update_app': 'update_app',
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
-        'cookies_browser': 'cookies_browser',
-        'geo_bypass': 'geo_bypass',
-        'video_format': 'video_format',
-        'video_quality': 'video_quality',
-        'audio_format': 'audio_format',
-        'audio_quality': 'audio_quality'
+        'cookies_browser': 'cookies_browser'
     };
 
     function refreshCustomSelect(selectId) {

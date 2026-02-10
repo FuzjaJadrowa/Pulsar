@@ -7,7 +7,7 @@ use std::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
-    // pub theme: String,
+    pub theme: String,
     pub language: String,
     pub close_behavior: String,
 
@@ -26,6 +26,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            theme: "System".to_string(),
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             update_app: true,
@@ -74,7 +75,7 @@ impl ConfigManager {
         if path.exists() {
             if let Ok(ini) = Ini::load_from_file(&path) {
                 if let Some(section) = ini.section(Some("General")) {
-                    // if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
+                    if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
                     if let Some(v) = section.get("language") { config.language = v.to_string(); }
                     if let Some(v) = section.get("close_behavior") { config.close_behavior = v.to_string(); }
                 }
@@ -85,11 +86,6 @@ impl ConfigManager {
                 }
                 if let Some(section) = ini.section(Some("Download")) {
                     if let Some(v) = section.get("cookies_browser") { config.cookies_browser = v.to_string(); }
-                    config.geo_bypass = section.get("geo_bypass").map(|v| v == "true").unwrap_or(false);
-                    if let Some(v) = section.get("video_format") { config.video_format = v.to_string(); }
-                    if let Some(v) = section.get("video_quality") { config.video_quality = v.to_string(); }
-                    if let Some(v) = section.get("audio_format") { config.audio_format = v.to_string(); }
-                    if let Some(v) = section.get("audio_quality") { config.audio_quality = v.to_string(); }
                 }
             }
         } else {
@@ -108,7 +104,7 @@ impl ConfigManager {
         let mut ini = Ini::new();
 
         ini.with_section(Some("General"))
-            // .set("theme", &config.theme)
+            .set("theme", &config.theme)
             .set("language", &config.language)
             .set("close_behavior", &config.close_behavior);
 
@@ -118,12 +114,7 @@ impl ConfigManager {
             .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
 
         ini.with_section(Some("Download"))
-            .set("cookies_browser", &config.cookies_browser)
-            .set("geo_bypass", if config.geo_bypass { "true" } else { "false" })
-            .set("video_format", &config.video_format)
-            .set("video_quality", &config.video_quality)
-            .set("audio_format", &config.audio_format)
-            .set("audio_quality", &config.audio_quality);
+            .set("cookies_browser", &config.cookies_browser);
 
         let _ = ini.write_to_file(path);
     }

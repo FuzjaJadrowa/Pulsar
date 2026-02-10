@@ -13,7 +13,7 @@
         "title": "Pulsar",
         "width": 1000,
         "height": 700,
-        "minWidth": 950,
+        "minWidth": 1000,
         "minHeight": 650,
         "resizable": true,
         "fullscreen": false,
