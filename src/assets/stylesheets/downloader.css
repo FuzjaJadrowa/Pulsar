@@ -44,7 +44,7 @@ body.mode-audio .app-background::after { opacity: 1; }
 .search-section {
     width: 100%; display: flex; justify-content: center;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    padding: 0 20px; z-index: 100; flex-shrink: 0;
+    padding: 0 20px; z-index: 10; flex-shrink: 0;
 }
 .search-section.centered { height: 80vh; align-items: center; }
 .search-section.sticky { height: 80px; align-items: flex-end; padding-bottom: 10px; }
@@ -216,3 +216,14 @@ body.mode-audio .tile.active { color: #a9f5c6; }
 #download-btn.ready { background: var(--active-color); box-shadow: 0 0 25px rgba(138, 43, 226, 0.4); }
 body.mode-audio #download-btn.ready { box-shadow: 0 0 25px rgba(46, 204, 113, 0.4); }
 #queue-btn.ready { background: #00d2ff; box-shadow: 0 0 25px rgba(0, 210, 255, 0.4); }
+@keyframes quickShake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    45% { transform: translateX(4px); }
+    70% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+
+.shake-feedback {
+    animation: quickShake 0.18s linear;
+}

@@ -38,6 +38,13 @@
         selectedQuality: null
     };
 
+    function triggerShakeFeedback(element) {
+        if (!element) return;
+        element.classList.remove('shake-feedback');
+        void element.offsetWidth;
+        element.classList.add('shake-feedback');
+    }
+
     function activateDashboard() {
         if (!urlInput.value || urlInput.value.trim() === '') return;
 
@@ -103,15 +110,30 @@
         if (optionsWrapper) optionsWrapper.classList.remove('fading-out');
     }
 
-    modeVideoBtn.onclick = () => setMode('video');
-    modeAudioBtn.onclick = () => setMode('audio');
-
+    modeVideoBtn.onclick = () => {
+        if (state.mode === 'video') {
+            triggerShakeFeedback(modeVideoBtn);
+            return;
+        }
+        setMode('video');
+    };
+    modeAudioBtn.onclick = () => {
+        if (state.mode === 'audio') {
+            triggerShakeFeedback(modeAudioBtn);
+            return;
+        }
+        setMode('audio');
+    };
 
     function createTile(text, subtext = '') {
         const div = document.createElement('div');
         div.className = 'tile';
         div.innerHTML = `<span>${text}</span> ${subtext ? `<small style="font-size:0.7em; opacity:0.7">${subtext}</small>` : ''}`;
         div.onclick = () => {
+            if (div.classList.contains('active')) {
+                triggerShakeFeedback(div);
+                return;
+            }
             div.parentElement.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
             div.classList.add('active');
             if (div.parentElement.id === 'format-list') state.selectedFormat = text;
@@ -191,6 +213,10 @@
 
     thumbBtns.forEach(btn => {
         btn.onclick = () => {
+            if (btn.classList.contains('active')) {
+                triggerShakeFeedback(btn);
+                return;
+            }
             thumbBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         };

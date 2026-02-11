@@ -42,6 +42,7 @@ body {
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     app-region: drag;
+    z-index: 100;
 }
 
 .nav-btn, .window-controls, .control-btn {
@@ -228,4 +229,105 @@ input[type="text"]:focus {
 .view-container.active-view {
     display: block;
     animation: fadeInView 0.3s ease-in-out;
+}
+
+#notification-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.notification-toast {
+    background: rgba(30, 30, 40, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    color: #fff;
+    position: relative;
+    pointer-events: auto;
+    overflow: hidden;
+    animation: slideInNotification 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transition: all 0.3s ease;
+}
+
+.notification-toast.hiding {
+    animation: slideOutNotification 0.3s forwards;
+}
+
+.notification-toast.type-info {
+    background: linear-gradient(90deg, rgba(41, 121, 255, 0.1) 0%, rgba(30, 30, 40, 0.7) 100%);
+}
+
+.notification-toast.type-success {
+    background: linear-gradient(90deg, rgba(0, 230, 118, 0.1) 0%, rgba(30, 30, 40, 0.7) 100%);
+}
+
+.notification-toast.type-error {
+    background: linear-gradient(90deg, rgba(255, 23, 68, 0.1) 0%, rgba(30, 30, 40, 0.7) 100%);
+}
+
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+}
+
+.notif-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.notif-message {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+}
+
+.notif-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.notif-close:hover {
+    color: #fff;
+}
+
+@keyframes slideInNotification {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes slideOutNotification {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(50px);
+    }
 }
