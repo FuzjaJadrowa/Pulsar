@@ -1,4 +1,12 @@
 (function initUi() {
+    const { invoke } = window.__TAURI__.core;
+    const { listen } = window.__TAURI__.event;
+
+    const videoQualities = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
+    const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'];
+    const audioFormats = ['MP3', 'M4A', 'ACC', 'OPUS', 'WAV', 'OGG'];
+    const audioQualities = ['320k', '256k', '192k', '128k', '96k'];
+
     const body = document.body;
     const searchSection = document.getElementById('search-section');
     const dashboard = document.getElementById('dashboard-section');
@@ -21,8 +29,11 @@
     const thumbPreview = document.querySelector('.thumb-preview');
 
     const subsToggle = document.getElementById('subs-toggle');
+    const liveChatToggle = document.getElementById('chat-toggle');
+    const liveChatRow = document.getElementById('live-chat-row');
     const langWrapper = document.getElementById('lang-wrapper');
     const subsLangInput = document.getElementById('subs-lang');
+    const subsLangSuggestions = document.getElementById('subs-lang-suggestions');
 
     const rangeStart = document.getElementById('range-start');
     const rangeEnd = document.getElementById('range-end');
@@ -33,9 +44,13 @@
     let state = {
         mode: 'video',
         isAnalyzed: false,
-        duration: 330,
+        duration: 0,
+        metadataTaskId: null,
         selectedFormat: null,
-        selectedQuality: null
+        selectedQuality: null,
+        videoQualityOptions: ['1080p', '720p', '480p', '360p', '240p', '144p'],
+        subtitleOptions: [],
+        currentSuggestions: []
     };
 
     function triggerShakeFeedback(element) {
@@ -45,24 +60,164 @@
         element.classList.add('shake-feedback');
     }
 
-    function activateDashboard() {
-        if (!urlInput.value || urlInput.value.trim() === '') return;
+    function parseVideoQuality(formats = []) {
+        const found = new Set();
 
+        formats.forEach((format) => {
+            const note = String(format.note || '');
+            const resolution = String(format.resolution || '');
+
+            const noteMatch = note.match(/(\d{3,4})p/i);
+            if (noteMatch && VIDEO_QUALITIES.includes(`${noteMatch[1]}p`)) {
+                found.add(`${noteMatch[1]}p`);
+                return;
+            }
+
+            const resolutionMatch = resolution.match(/\d+x(\d{3,4})/i);
+            if (resolutionMatch && VIDEO_QUALITIES.includes(`${resolutionMatch[1]}p`)) {
+                found.add(`${resolutionMatch[1]}p`);
+            }
+        });
+
+        if (!found.size) return state.videoQualityOptions;
+
+        const highest = VIDEO_QUALITIES.find((q) => found.has(q));
+        if (!highest) return state.videoQualityOptions;
+
+        return VIDEO_QUALITIES.slice(VIDEO_QUALITIES.indexOf(highest));
+    }
+
+    function languageDisplayParts(code) {
+        const cleanCode = String(code || '').trim();
+        const normalizedCode = cleanCode.replace('_', '-');
+        const parts = normalizedCode.split('-');
+        const language = (parts[0] || '').toLowerCase();
+        const region = (parts.find((p) => p.length === 2 && /^[a-zA-Z]{2}$/.test(p)) || '').toUpperCase();
+
+        let languageName = language;
+        let countryName = region;
+
+        try {
+            const langDisplay = new Intl.DisplayNames(['en'], { type: 'language' });
+            const langResolved = langDisplay.of(language);
+            if (langResolved) languageName = langResolved;
+        } catch (_) {}
+
+        if (region) {
+            try {
+                const regionDisplay = new Intl.DisplayNames(['en'], { type: 'region' });
+                const regionResolved = regionDisplay.of(region);
+                if (regionResolved) countryName = regionResolved;
+            } catch (_) {}
+        }
+
+        const flag = region
+            ? String.fromCodePoint(...region.split('').map((c) => 127397 + c.charCodeAt(0)))
+            : '🌐';
+
+        return {
+            code: cleanCode,
+            languageName,
+            countryName: countryName || 'Global',
+            flag
+        };
+    }
+
+    function buildSubtitleOptions(data) {
+        const all = [...(data.subtitles_langs || []), ...(data.auto_captions_langs || [])];
+        const unique = [...new Set(all.map((c) => String(c).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        return unique.map(languageDisplayParts);
+    }
+
+    function showSuggestions(matches) {
+        if (!subsLangSuggestions) return;
+        subsLangSuggestions.innerHTML = '';
+
+        if (!matches.length) {
+            subsLangSuggestions.classList.add('hidden');
+            return;
+        }
+
+        matches.slice(0, 8).forEach((entry) => {
+            const item = document.createElement('div');
+            item.className = 'lang-suggestion-item';
+            item.innerText = `${entry.flag} ${entry.countryName} • ${entry.languageName} • ${entry.code}`;
+            item.onclick = () => {
+                subsLangInput.value = entry.code;
+                subsLangSuggestions.classList.add('hidden');
+            };
+            subsLangSuggestions.appendChild(item);
+        });
+
+        subsLangSuggestions.classList.remove('hidden');
+    }
+
+    function updateLanguageSuggestions() {
+        const query = (subsLangInput.value || '').trim().toLowerCase();
+        if (!query) {
+            showSuggestions(state.subtitleOptions);
+            return;
+        }
+
+        const matches = state.subtitleOptions.filter((entry) =>
+            entry.code.toLowerCase().includes(query) ||
+            entry.languageName.toLowerCase().includes(query) ||
+            entry.countryName.toLowerCase().includes(query)
+        );
+        state.currentSuggestions = matches;
+        showSuggestions(matches);
+    }
+
+    async function activateDashboard() {
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        fetchBtn.setAttribute('disabled', 'true');
+
+        try {
+            state.metadataTaskId = await invoke('fetch_metadata', { url });
+        } catch (error) {
+            console.error('Metadata fetch failed:', error);
+            fetchBtn.removeAttribute('disabled');
+        }
+    }
+
+    function showDashboard() {
         searchSection.classList.remove('centered');
         searchSection.classList.add('sticky');
 
         setTimeout(() => {
             dashboard.classList.remove('hidden');
             state.isAnalyzed = true;
-
-            thumbPreview.innerHTML = `<img src="https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="Thumb">`;
-            document.getElementById('meta-title').innerText = "Rick Astley - Never Gonna Give You Up";
-            document.getElementById('meta-duration').innerText = formatTime(state.duration);
-
             state.mode = null;
             setMode('video');
-
         }, 500);
+    }
+
+    function updateMetadataView(data) {
+        state.duration = Number(data.duration) || 0;
+
+        const title = data.title || 'Unknown title';
+        const author = data.channel || data.uploader || 'Unknown channel';
+        const duration = data.duration_string || formatTime(state.duration);
+
+        document.getElementById('meta-title').innerText = title;
+        document.getElementById('meta-author').innerText = author;
+        document.getElementById('meta-duration').innerText = duration;
+
+        if (data.thumbnail) {
+            thumbPreview.innerHTML = `<img src="${data.thumbnail}" alt="Thumbnail">`;
+        } else {
+            thumbPreview.innerHTML = '<span class="placeholder">NO PREVIEW</span>';
+        }
+
+        timeStartDisplay.value = '00:00:00';
+        timeEndDisplay.value = duration;
+        rangeStart.value = 0;
+        rangeEnd.value = 100;
+        updateSlider();
+
+        showDashboard();
     }
 
     function resetToZen() {
@@ -71,8 +226,14 @@
             searchSection.classList.remove('sticky');
             searchSection.classList.add('centered');
             state.isAnalyzed = false;
+            state.metadataTaskId = null;
             state.selectedFormat = null;
             state.selectedQuality = null;
+            state.subtitleOptions = [];
+            if (subsLangSuggestions) {
+                subsLangSuggestions.classList.add('hidden');
+                subsLangSuggestions.innerHTML = '';
+            }
             validateReadyState();
             body.classList.remove('mode-video', 'mode-audio');
         }
@@ -81,6 +242,31 @@
     fetchBtn.onclick = activateDashboard;
     urlInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); activateDashboard(); urlInput.blur(); }};
     urlInput.oninput = resetToZen;
+
+    listen('download-event', (event) => {
+        const payload = event.payload;
+
+        if (!payload || !state.metadataTaskId || payload.id !== state.metadataTaskId) return;
+
+        if (payload.type === 'finished' && payload.success === false) {
+            state.metadataTaskId = null;
+            fetchBtn.removeAttribute('disabled');
+            console.error('Metadata task failed:', payload.error || 'Unknown error');
+            return;
+        }
+
+        if (payload.type !== 'metadata') return;
+
+        state.metadataTaskId = null;
+        fetchBtn.removeAttribute('disabled');
+
+        if (!payload.success || !payload.data) {
+            console.error('Bridge returned invalid metadata payload:', payload);
+            return;
+        }
+
+        updateMetadataView(payload.data);
+    });
 
     async function setMode(mode) {
         if (state.mode === mode) return;
@@ -144,41 +330,46 @@
     }
 
     function renderVideoOptions() {
-        formatList.innerHTML = ''; qualityList.innerHTML = '';
-        ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'].forEach(f => formatList.appendChild(createTile(f)));
-        ['4K', '1440p', '1080p', '720p', '480p', '360p'].forEach(q => qualityList.appendChild(createTile(q)));
+        formatList.innerHTML = '';
+        qualityList.innerHTML = '';
+        videoFormats.forEach(f => formatList.appendChild(createTile(f)));
+        state.videoQualityOptions.forEach(q => qualityList.appendChild(createTile(q)));
     }
     function renderAudioOptions() {
-        formatList.innerHTML = ''; qualityList.innerHTML = '';
-        ['MP3', 'M4A', 'FLAC', 'OPUS', 'WAV', 'OGG'].forEach(f => formatList.appendChild(createTile(f)));
-        ['320k', '256k', '192k', '128k', '96k'].forEach(q => qualityList.appendChild(createTile(q)));
+        formatList.innerHTML = '';
+        qualityList.innerHTML = '';
+        audioFormats.forEach(f => formatList.appendChild(createTile(f)));
+        audioQualities.forEach(q => qualityList.appendChild(createTile(q)));
     }
 
-    browseBtn.onclick = () => { pathInput.value = "C:/Downloads/Pulsar"; validateReadyState(); };
+    browseBtn.onclick = () => { pathInput.value = 'C:/Downloads/Pulsar'; validateReadyState(); };
     pathInput.oninput = validateReadyState;
 
     function updateSlider() {
         if (!rangeStart) return;
-        let min = parseInt(rangeStart.value);
-        let max = parseInt(rangeEnd.value);
+        let min = parseInt(rangeStart.value, 10);
+        let max = parseInt(rangeEnd.value, 10);
 
         if (min > max) { rangeStart.value = max; min = max; }
         if (max < min) { rangeEnd.value = min; max = min; }
 
-        rangeFill.style.left = min + "%";
-        rangeFill.style.right = (100 - max) + "%";
+        rangeFill.style.left = `${min}%`;
+        rangeFill.style.right = `${100 - max}%`;
 
         if (document.activeElement !== timeStartDisplay)
-            timeStartDisplay.value = formatTime(state.duration * (min/100));
+            timeStartDisplay.value = formatTime(state.duration * (min / 100));
 
         if (document.activeElement !== timeEndDisplay)
-            timeEndDisplay.value = formatTime(state.duration * (max/100));
+            timeStartDisplay.value = formatTime(state.duration * (min / 100));
     }
 
     function formatTime(s) {
-        const min = Math.floor(s / 60).toString().padStart(2, '0');
-        const sec = Math.floor(s % 60).toString().padStart(2, '0');
-        return `00:${min}:${sec}`;
+        const safe = Number.isFinite(s) ? s : 0;
+        const total = Math.max(0, Math.floor(safe));
+        const hrs = Math.floor(total / 3600).toString().padStart(2, '0');
+        const min = Math.floor((total % 3600) / 60).toString().padStart(2, '0');
+        const sec = Math.floor(total % 60).toString().padStart(2, '0');
+        return `${hrs}:${min}:${sec}`;
     }
 
     function parseTimeToSeconds(str) {
@@ -189,6 +380,7 @@
     }
 
     function handleManualTimeInput(input, isStart) {
+        if (!state.duration) return;
         const seconds = parseTimeToSeconds(input.value);
         let percent = (seconds / state.duration) * 100;
 
@@ -203,7 +395,7 @@
         updateSlider();
     }
 
-    if(rangeStart) {
+    if (rangeStart) {
         rangeStart.oninput = updateSlider;
         rangeEnd.oninput = updateSlider;
 
@@ -225,11 +417,21 @@
     subsToggle.onchange = () => {
         if (subsToggle.checked) {
             langWrapper.classList.add('visible');
+            updateLanguageSuggestions();
             subsLangInput.focus();
         } else {
             langWrapper.classList.remove('visible');
+            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
         }
     };
+
+    subsLangInput.addEventListener('input', updateLanguageSuggestions);
+    subsLangInput.addEventListener('focus', updateLanguageSuggestions);
+    document.addEventListener('click', (event) => {
+        if (!langWrapper.contains(event.target)) {
+            subsLangSuggestions.classList.add('hidden');
+        }
+    });
 
     function validateReadyState() {
         const hasPath = pathInput.value.trim().length > 0;

@@ -84,13 +84,13 @@
           <span class="placeholder">PREVIEW</span>
         </div>
         <div class="thumb-actions">
-          <button class="icon-btn-small" data-thumb="none" title="None">
+          <button class="icon-btn-small active" data-thumb="none" title="None">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
           </button>
           <button class="icon-btn-small" data-thumb="download" title="Save to File">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
-          <button class="icon-btn-small active" data-thumb="embed" title="Embed in Video">
+          <button class="icon-btn-small" data-thumb="embed" title="Embed in Video">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
           </button>
         </div>
@@ -108,13 +108,19 @@
         </div>
       </div>
 
-      <div class="option-group" style="align-items: flex-end;">
+      <div class="option-group subtitles-group" style="align-items: flex-end;">
         <span class="option-label">SUBTITLES</span>
-        <div class="toggle-row">
-          <div id="lang-wrapper" class="lang-input-wrapper">
-            <input type="text" class="lang-input" placeholder="pl, en" id="subs-lang">
-          </div>
+        <div class="toggle-row subtitles-row">
+          <span class="toggle-text">Download subtitles</span>
           <input type="checkbox" id="subs-toggle" class="toggle-switch">
+        </div>
+        <div class="toggle-row live-chat-row hidden" id="live-chat-row">
+          <span class="toggle-text">Download live chat</span>
+          <input type="checkbox" id="chat-toggle" class="toggle-switch">
+        </div>
+        <div id="lang-wrapper" class="lang-input-wrapper">
+          <input type="text" class="lang-input" placeholder="Code" id="subs-lang" autocomplete="off">
+          <div id="subs-lang-suggestions" class="lang-suggestions hidden"></div>
         </div>
       </div>
 

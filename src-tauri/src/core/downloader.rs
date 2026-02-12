@@ -1,4 +1,4 @@
-use tauri::{AppHandle, State, Manager, Emitter};
+use tauri::{AppHandle, State, Emitter};
 use std::process::{Command, Stdio, Child, ChildStdin};
 use std::sync::Mutex;
 use std::io::{Write, BufReader, BufRead};
@@ -10,7 +10,7 @@ use directories::BaseDirs;
 use crate::system::config::ConfigManager;
 
 #[derive(Serialize)]
-struct BridgeCommand {
+pub struct BridgeCommand {
     command: String,
     id: String,
     args: Vec<String>,
@@ -87,11 +87,15 @@ impl BridgeState {
         Ok(())
     }
 
-    pub fn send_command(&self, app_handle: &AppHandle, cmd: BridgeCommand) -> Result<(), String> {
+    fn send_command(&self, app_handle: &AppHandle, cmd: BridgeCommand) -> Result<(), String> {
+        self.send_raw_command(app_handle, &cmd)
+    }
+
+    pub fn send_raw_command<T: Serialize>(&self, app_handle: &AppHandle, cmd: &T) -> Result<(), String> {
         self.init(app_handle)?;
 
         if let Some(stdin) = self.stdin.lock().unwrap().as_mut() {
-            let json = serde_json::to_string(&cmd).map_err(|e| e.to_string())?;
+            let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
             writeln!(stdin, "{}", json).map_err(|e| format!("Failed to write to bridge: {}", e))?;
             println!("[RUST -> BRIDGE]: {}", json);
             Ok(())

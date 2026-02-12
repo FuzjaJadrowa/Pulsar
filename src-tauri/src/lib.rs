@@ -16,6 +16,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             system::get_config,
             system::save_config,
+            system::metadata::fetch_metadata,
             core::splash::run_splash_checks,
             core::downloader::start_download
         ])

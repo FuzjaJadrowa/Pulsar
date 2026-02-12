@@ -1,4 +1,5 @@
 pub mod config;
+pub mod metadata;
 
 use tauri::State;
 use self::config::{ConfigManager, AppConfig};
