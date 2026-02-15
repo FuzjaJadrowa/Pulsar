@@ -32,6 +32,15 @@
       "../src/assets/icons/icon.icns",
       "../src/assets/icons/icon.ico"
     ],
-    "copyright": "Copyright © 2026 Fuzja Jadrowa"
+    "copyright": "Copyright © 2026 Fuzja Jadrowa",
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "REPLACE_WITH_TAURI_UPDATER_PUBLIC_KEY",
+      "endpoints": [
+        "https://fuzjajadrowa.github.io/pulsar.json"
+      ]
+    }
   }
 }

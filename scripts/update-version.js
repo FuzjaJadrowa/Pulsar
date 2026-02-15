@@ -13,7 +13,6 @@ const filesToUpdate = [
     { path: path.join(rootDir, 'package.json'), type: 'json' },
     { path: path.join(rootDir, 'src-tauri/tauri.conf.json'), type: 'json' },
     { path: path.join(rootDir, 'src-tauri/Cargo.toml'), type: 'toml' }
-    //TODO: Dodanie tutaj splash.rs
 ];
 
 console.log(`Updating version to: ${newVersion}...`);

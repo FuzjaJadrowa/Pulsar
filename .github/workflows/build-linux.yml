@@ -1,0 +1,72 @@
+name: Build Linux
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies (Node)
+        run: npm install
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename Artifacts (Linux)
+        shell: bash
+        run: |
+          ver="${{ env.VERSION }}"
+          os="linux"
+
+          cp src-tauri/target/release/bundle/appimage/*.AppImage "Pulsar-$ver-$os.AppImage"
+          cp src-tauri/target/release/bundle/deb/*.deb "Pulsar-$ver-$os.deb"
+          tar -czvf "Pulsar-$ver-$os.tar.gz" -C src-tauri/target/release pulsar
+
+          echo "ASSET_APPIMAGE=Pulsar-$ver-$os.AppImage" >> $GITHUB_ENV
+          echo "ASSET_DEB=Pulsar-$ver-$os.deb" >> $GITHUB_ENV
+          echo "ASSET_PORTABLE=Pulsar-$ver-$os.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ github.ref_name }}
+          path: |
+            ${{ env.ASSET_APPIMAGE }}
+            ${{ env.ASSET_DEB }}
+            ${{ env.ASSET_PORTABLE }}
+
+      - name: Upload Release Assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.ASSET_APPIMAGE }}
+            ${{ env.ASSET_DEB }}
+            ${{ env.ASSET_PORTABLE }}

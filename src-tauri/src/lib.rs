@@ -11,6 +11,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(config_manager)
         .manage(bridge_state)
         .invoke_handler(tauri::generate_handler![

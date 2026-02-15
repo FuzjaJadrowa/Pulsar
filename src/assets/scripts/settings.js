@@ -100,10 +100,14 @@
 
     loadSettings();
 
-    const supportBtn = document.querySelector('button[onclick*="openUrl"]');
-    if(supportBtn) {
-        supportBtn.onclick = () => {
-            window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa'); //TODO: Naprawa otwierania linku
+    const supportBtn = document.getElementById('support-btn');
+    if (supportBtn) {
+        supportBtn.onclick = async () => {
+            try {
+                await window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa');
+            } catch (error) {
+                console.error('Failed to open support link:', error);
+            }
         };
     }
 }

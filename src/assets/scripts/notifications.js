@@ -51,5 +51,3 @@ class NotificationManager {
 }
 
 window.notifier = new NotificationManager();
-
-// TODO: Zmienić miejsca w kotrych aktywowane sa notyfikacje XD

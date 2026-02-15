@@ -151,6 +151,7 @@ select.custom-select { display: none; }
 }
 .select-head:hover { background-color: #2a2a2a; border-color: #555; }
 .select-head.open { border-color: var(--accent-color); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.select-head.open.open-up { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-top-left-radius: 0; border-top-right-radius: 0; }
 .select-head::after {
     content: ''; width: 0; height: 0; border-left: 5px solid transparent;
     border-right: 5px solid transparent; border-top: 5px solid #aaa;
@@ -158,15 +159,28 @@ select.custom-select { display: none; }
 }
 .select-head.open::after { transform: rotate(180deg); border-top-color: var(--accent-color); }
 .select-list {
-    position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #252525;
+    position: absolute; top: 100%; left: 0; right: 0; background: #252525;
     border: 1px solid #3d3d3d; border-top: none;
     border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
     z-index: 999; max-height: 0; opacity: 0; overflow-y: auto; pointer-events: none;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateY(-10px);
 }
 .select-list.open { max-height: 240px; opacity: 1; pointer-events: auto; transform: translateY(0); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-.select-list.open-up { top: auto; bottom: calc(100% + 4px); border-top: 1px solid #3d3d3d; border-bottom: 1px solid #3d3d3d; border-radius: 8px; transform: translateY(10px); }
-.select-list.open.open-up { transform: translateY(0); }
+.select-list.open-up {
+    top: auto;
+    bottom: 100%;
+    border-top: 1px solid #3d3d3d;
+    border-bottom: 1px solid #3d3d3d;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    transform: translateY(10px);
+}
+.select-list.open.open-up {
+    transform: translateY(0);
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+}
 .select-item { padding: 10px; color: #ccc; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.02); }
 .select-item:hover { background-color: var(--accent-color); color: white; }
 .select-item.selected { background-color: rgba(138, 43, 226, 0.2); color: white; font-weight: bold; }

@@ -1,0 +1,70 @@
+name: Build macOS
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Install dependencies (Node)
+        run: npm install
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target aarch64-apple-darwin
+
+      - name: Rename Artifacts (macOS)
+        shell: bash
+        run: |
+          ver="${{ env.VERSION }}"
+          os="macos"
+
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
+
+          cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
+          zip -r ../../../../../../Pulsar-$ver-$os.zip . -i Pulsar.app
+          cd -
+
+          echo "ASSET_INSTALLER=Pulsar-$ver-$os.dmg" >> $GITHUB_ENV
+          echo "ASSET_PORTABLE=Pulsar-$ver-$os.zip" >> $GITHUB_ENV
+
+      - name: Upload build artifacts (server)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ github.ref_name }}
+          path: |
+            ${{ env.ASSET_INSTALLER }}
+            ${{ env.ASSET_PORTABLE }}
+
+      - name: Upload Release Assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.ASSET_INSTALLER }}
+            ${{ env.ASSET_PORTABLE }}

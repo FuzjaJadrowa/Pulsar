@@ -68,23 +68,23 @@
             const resolution = String(format.resolution || '');
 
             const noteMatch = note.match(/(\d{3,4})p/i);
-            if (noteMatch && VIDEO_QUALITIES.includes(`${noteMatch[1]}p`)) {
+            if (noteMatch && videoQualities.includes(`${noteMatch[1]}p`)) {
                 found.add(`${noteMatch[1]}p`);
                 return;
             }
 
             const resolutionMatch = resolution.match(/\d+x(\d{3,4})/i);
-            if (resolutionMatch && VIDEO_QUALITIES.includes(`${resolutionMatch[1]}p`)) {
+            if (resolutionMatch && videoQualities.includes(`${resolutionMatch[1]}p`)) {
                 found.add(`${resolutionMatch[1]}p`);
             }
         });
 
         if (!found.size) return state.videoQualityOptions;
 
-        const highest = VIDEO_QUALITIES.find((q) => found.has(q));
+        const highest = videoQualities.find((q) => found.has(q));
         if (!highest) return state.videoQualityOptions;
 
-        return VIDEO_QUALITIES.slice(VIDEO_QUALITIES.indexOf(highest));
+        return videoQualities.slice(videoQualities.indexOf(highest));
     }
 
     function languageDisplayParts(code) {
@@ -196,6 +196,14 @@
 
     function updateMetadataView(data) {
         state.duration = Number(data.duration) || 0;
+        state.videoQualityOptions = parseVideoQuality(data.formats || []);
+        state.subtitleOptions = buildSubtitleOptions(data);
+
+        const hasLiveChat = state.subtitleOptions.some((entry) => entry.code.toLowerCase() === 'live_chat');
+        liveChatRow.classList.toggle('hidden', !hasLiveChat);
+        if (!hasLiveChat) {
+            liveChatToggle.checked = false;
+        }
 
         const title = data.title || 'Unknown title';
         const author = data.channel || data.uploader || 'Unknown channel';
@@ -216,6 +224,10 @@
         rangeStart.value = 0;
         rangeEnd.value = 100;
         updateSlider();
+
+        if (state.mode === 'video') {
+            renderVideoOptions();
+        }
 
         showDashboard();
     }
@@ -360,7 +372,7 @@
             timeStartDisplay.value = formatTime(state.duration * (min / 100));
 
         if (document.activeElement !== timeEndDisplay)
-            timeStartDisplay.value = formatTime(state.duration * (min / 100));
+            timeEndDisplay.value = formatTime(state.duration * (max / 100));
     }
 
     function formatTime(s) {

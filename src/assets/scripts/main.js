@@ -59,16 +59,11 @@ if (skipBtn) {
 
 function checkConnection() {
     if (!navigator.onLine) {
-        window.notifier.show(
-            "Error",
-            "No internet connection. Some app features may be unavailable.",
-            "error",
-            true
-        );
+        window.notifier.show("Error", "No internet connection. Some app features may be unavailable.", "error", true);
     }
 
     window.addEventListener('offline', () => {
-        window.notifier.show("Error", "Internet connection lost.", "error", true);
+        window.notifier.show("Error", "Internet connection lost.", "error", false);
     });
 
     window.addEventListener('online', () => {
@@ -159,7 +154,23 @@ window.initCustomSelects = function() {
             e.stopPropagation();
             const wasOpen = head.classList.contains('open');
             window.closeAllSelects();
-            if (!wasOpen) { head.classList.add('open'); list.classList.add('open'); }
+            if (!wasOpen) {
+                const headRect = head.getBoundingClientRect();
+                const optionsCount = origSelect.options.length;
+                const estimatedHeight = Math.min(optionsCount * 40, 240);
+                const spaceBelow = window.innerHeight - headRect.bottom;
+                const spaceAbove = headRect.top;
+                const openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+
+                list.classList.toggle('open-up', openUp);
+                head.classList.toggle('open-up', openUp);
+                head.classList.add('open');
+                list.classList.add('open');
+
+                wrapper.classList.add('select-open');
+                const hostCard = wrapper.closest('.settings-section-card');
+                if (hostCard) hostCard.classList.add('select-open-card');
+            }
         });
 
         wrapper.appendChild(head);
@@ -183,6 +194,8 @@ window.initCustomSelects = function() {
 window.closeAllSelects = function() {
     document.querySelectorAll('.select-head').forEach(h => h.classList.remove('open'));
     document.querySelectorAll('.select-list').forEach(l => l.classList.remove('open'));
+    document.querySelectorAll('.select-wrapper').forEach(w => w.classList.remove('select-open'));
+    document.querySelectorAll('.settings-section-card').forEach(c => c.classList.remove('select-open-card'));
 };
 
 async function loadPage(pageName, pageIndex) {
