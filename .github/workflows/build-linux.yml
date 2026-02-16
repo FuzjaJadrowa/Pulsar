@@ -34,24 +34,11 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
-      - name: Prepare signing key
-        shell: bash
-        env:
-          TAURI_KEY_CONTENT: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: |
-          if [ -z "$TAURI_KEY_CONTENT" ]; then
-            echo "Error: TAURI_SIGNING_PRIVATE_KEY not found in GitHub Secrets"
-            exit 1
-          fi
-          
-          echo "$TAURI_KEY_CONTENT" > "$GITHUB_WORKSPACE/tauri-signing.key"
-          echo "TAURI_SIGNING_PRIVATE_KEY_PATH=$GITHUB_WORKSPACE/tauri-signing.key" >> $GITHUB_ENV
-
       - name: Build app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY_PATH: ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Rename Artifacts (Linux)
