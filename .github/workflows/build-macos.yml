@@ -35,6 +35,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: --target aarch64-apple-darwin
 
@@ -42,12 +44,12 @@ jobs:
         shell: bash
         run: |
           ver="${{ env.VERSION }}"
-          os="macos"
+          os="MacOS"
 
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
 
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
-          zip -r ../../../../../../Pulsar-$ver-$os.zip . -i Pulsar.app
+          ditto -c -k --sequesterRsrc --keepParent "Pulsar.app" ../../../../../../Pulsar-$ver-$os.zip
           cd -
 
           echo "ASSET_INSTALLER=Pulsar-$ver-$os.dmg" >> $GITHUB_ENV

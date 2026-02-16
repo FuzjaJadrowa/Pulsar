@@ -1,17 +1,17 @@
 use std::fs::{self, File};
-use std::io::{Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::process::Command;
 
-use tauri::{AppHandle, Emitter, Window};
-use serde::{Deserialize, Serialize};
 use directories::BaseDirs;
-use reqwest::Client;
 use futures_util::StreamExt;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter, Window};
+use tauri_plugin_updater::UpdaterExt;
 
-const APP_VERSION: &str = "v2.1.1"; //TODO: Naprawa tego syfu
-const APP_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar/releases/latest";
+const APP_UPDATE_INTERVAL_SECS: u64 = 1800;
+const REQ_UPDATE_INTERVAL_SECS: u64 = 1800;
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest";
 
@@ -54,18 +54,15 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
 
     emit_status(&window, "Checking for updates...", false, false);
 
-    let mut app_checked = false;
-    if now - versions.app_last_check >= 1800 {
-        match check_app_update(&client, &app, &window).await {
+    if now - versions.app_last_check >= APP_UPDATE_INTERVAL_SECS {
+        match check_app_update(&app, &window).await {
             Ok(updated) => {
+                versions.app_last_check = now;
                 if updated {
                     return Ok(());
                 }
-                app_checked = true;
             }
-            Err(_) => {
-                emit_status(&window, "Update check failed (App)", false, false);
-            }
+            Err(e) => emit_status(&window, &format!("Update check failed: {}", e), false, false),
         }
     }
 
@@ -74,19 +71,19 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
 
     if !check_file_exists(&req_path, "pulsar-bridge") || !check_file_exists(&req_path, "ffmpeg") {
         needs_check = true;
-    } else if now - versions.req_last_check > 1800 {
+    } else if now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
         needs_check = true;
     }
 
     if needs_check {
-        if !check_file_exists(&req_path, "pulsar-bridge") || now - versions.req_last_check > 1800 {
+        if !check_file_exists(&req_path, "pulsar-bridge") || now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
             match update_component(&client, &window, &req_path, "pulsar-bridge", &mut versions).await {
                 Ok(_) => req_checked = true,
                 Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
             }
         }
 
-        if !check_file_exists(&req_path, "ffmpeg") || now - versions.req_last_check > 1800 {
+        if !check_file_exists(&req_path, "ffmpeg") || now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
             match update_component(&client, &window, &req_path, "ffmpeg", &mut versions).await {
                 Ok(_) => req_checked = true,
                 Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
@@ -94,7 +91,6 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
         }
     }
 
-    if app_checked { versions.app_last_check = now; }
     if req_checked { versions.req_last_check = now; }
     save_versions(&req_path, &versions);
 
@@ -106,63 +102,53 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
     Ok(())
 }
 
-async fn check_app_update(client: &Client, app: &AppHandle, window: &Window) -> Result<bool, String> {
-    let resp = client.get(APP_REPO_URL).send().await.map_err(|e| e.to_string())?;
-
-    if !resp.status().is_success() {
-        return Err("Network error".to_string());
-    }
-
-    let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-    let remote_ver = json["tag_name"].as_str().unwrap_or("").to_string();
-
-    if remote_ver.is_empty() || !is_remote_newer(APP_VERSION, &remote_ver) {
+async fn check_app_update(app: &AppHandle, window: &Window) -> Result<bool, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    let Some(update) = updater.check().await.map_err(|e| e.to_string())? else {
         return Ok(false);
-    }
+    };
 
-    let assets = json["assets"].as_array().ok_or("No assets")?;
-    let mut download_url = String::new();
-    let mut file_name = String::new();
+    let target_version = update.version.clone();
+    emit_status(window, &format!("Updating to {}", target_version), true, true);
 
-    for asset in assets {
-        let name = asset["name"].as_str().unwrap_or("");
-        let url = asset["browser_download_url"].as_str().unwrap_or("");
+    let window_clone = window.clone();
+    let mut downloaded: u64 = 0;
 
-        #[cfg(target_os = "windows")]
-        if name.contains("win64") && name.ends_with(".zip") {
-            download_url = url.to_string();
-            file_name = "update.zip".to_string();
-            break;
-        }
-        #[cfg(target_os = "macos")] //jebac maca
-        if name.contains("MacOS") && name.ends_with(".zip") {
-            download_url = url.to_string();
-            file_name = "update.zip".to_string();
-            break;
-        }
-        #[cfg(target_os = "linux")]
-        if name.contains("Linux") && (name.ends_with(".tar.gz") || name.ends_with(".tgz")) {
-            download_url = url.to_string();
-            file_name = "update.tar.gz".to_string();
-            break;
-        }
-    }
-    //TODO: trzeba wywalic maca bo nie signowana aplikacja nie pozwala na updaty
-    //TODO: zmiana na stabilniejszy tauri updater
-    if download_url.is_empty() {
-        emit_status(window, "This build is not updatable", false, false);
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-        return Ok(false);
-    }
+    update
+        .download_and_install(
+            move |chunk_len, content_length| {
+                downloaded += chunk_len as u64;
+                if let Some(total) = content_length {
+                    let dl_mb = downloaded as f64 / 1_048_576.0;
+                    let total_mb = total as f64 / 1_048_576.0;
+                    let progress_txt = format!("{:.2} MB / {:.2} MB", dl_mb, total_mb);
+                    let _ = window_clone.emit(
+                        "splash-progress",
+                        SplashStatusPayload {
+                            status: format!("Updating to {}", target_version),
+                            progress: Some(progress_txt),
+                            is_downloading: true,
+                            can_skip: false,
+                        },
+                    );
+                }
+            },
+            || {
+                let _ = window.emit(
+                    "splash-progress",
+                    SplashStatusPayload {
+                        status: "Update downloaded".to_string(),
+                        progress: None,
+                        is_downloading: false,
+                        can_skip: false,
+                    },
+                );
+            },
+        )
+        .await
+        .map_err(|e| e.to_string())?;
 
-    emit_status(window, &format!("Updating app to {}", remote_ver), true, true);
-
-    let temp_dir = std::env::temp_dir();
-    let download_path = temp_dir.join(&file_name);
-
-    download_file(client, window, &download_url, &download_path).await?;
-    apply_app_update(app, window, &download_path)?;
-
+    emit_status(window, "Update installed. Restarting...", false, false);
     Ok(true)
 }
 
@@ -310,117 +296,6 @@ fn extract_archive(archive_path: &Path, dest_dir: &Path, component: &str) -> Res
     Ok(())
 }
 
-fn apply_app_update(app: &AppHandle, window: &Window, archive_path: &Path) -> Result<(), String> {
-    emit_status(window, "Applying update...", false, false);
-
-    let _ = window.hide();
-
-    let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
-    let app_dir = current_exe.parent().unwrap();
-    let temp_extract_dir = std::env::temp_dir().join("GVD_Update_Extracted");
-
-    #[cfg(target_os = "windows")]
-    {
-        let updater_path = std::env::temp_dir().join("gvd_updater.bat");
-        let script_content = format!(
-            "@echo off\r\n\
-            chcp 65001 > nul\r\n\
-            timeout /t 2 /nobreak > nul\r\n\
-            if exist \"{}\" rmdir /s /q \"{}\"\r\n\
-            mkdir \"{}\"\r\n\
-            powershell -command \"Expand-Archive -Path '{}' -DestinationPath '{}' -Force\"\r\n\
-            powershell -command \"$subDir = Get-ChildItem -Path '{}' -Directory | Select-Object -First 1; Get-ChildItem -Path $subDir.FullName | Where-Object {{ $_.Name -ne 'Data' }} | Copy-Item -Destination '{}' -Recurse -Force\"\r\n\
-            rmdir /s /q \"{}\"\r\n\
-            del /f /q \"{}\"\r\n\
-            start \"\" \"{}\\Pulsar.exe\"\r\n\
-            del \"%~f0\"\r\n",
-            temp_extract_dir.display(), temp_extract_dir.display(),
-            temp_extract_dir.display(),
-            archive_path.display(), temp_extract_dir.display(),
-            temp_extract_dir.display(), app_dir.display(),
-            temp_extract_dir.display(),
-            archive_path.display(),
-            app_dir.display()
-        );
-
-        let mut file = File::create(&updater_path).map_err(|e| e.to_string())?;
-        file.write_all(script_content.as_bytes()).map_err(|e| e.to_string())?;
-
-        let ps_cmd = format!("Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', '\"{}\"' -Verb RunAs -WindowStyle Hidden", updater_path.display());
-        Command::new("powershell")
-            .args(&["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &ps_cmd])
-            .spawn()
-            .map_err(|e| e.to_string())?;
-
-        app.exit(0);
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    {
-        let updater_path = std::env::temp_dir().join("gvd_updater.sh");
-        let mut content = format!(
-            "#!/bin/bash\n\
-            sleep 2\n\
-            rm -rf \"{}\"\n\
-            mkdir -p \"{}\"\n",
-            temp_extract_dir.display(), temp_extract_dir.display()
-        );
-
-        #[cfg(target_os = "macos")]
-        {
-            let bundle_path = app_dir.parent().unwrap().parent().unwrap();
-            let bundle_parent = bundle_path.parent().unwrap();
-
-            content.push_str(&format!(
-                "unzip -o -q \"{}\" -d \"{}\"\n\
-                NEW_APP=$(find \"{}\" -name \"*.app\" -maxdepth 2 | head -n 1)\n\
-                rm -rf \"{}\"\n\
-                mv \"$NEW_APP\" \"{}/\"\n\
-                open -n \"{}\"\n",
-                archive_path.display(), temp_extract_dir.display(),
-                temp_extract_dir.display(),
-                bundle_path.display(),
-                bundle_parent.display(),
-                bundle_path.display()
-            ));
-        }
-
-        #[cfg(target_os = "linux")]
-        {
-            content.push_str(&format!(
-                "tar -xf \"{}\" -C \"{}\"\n\
-                SUBDIR=$(find \"{}\" -maxdepth 1 -type d ! -path \"{}\" | head -n 1)\n\
-                cp -rf \"$SUBDIR\"/* \"{}/\"\n\
-                chmod +x \"{}/Pulsar\"\n\
-                nohup \"{}/Pulsar\" > /dev/null 2>&1 &\n",
-                archive_path.display(), temp_extract_dir.display(),
-                temp_extract_dir.display(), temp_extract_dir.display(),
-                app_dir.display(),
-                app_dir.display(),
-                app_dir.display()
-            ));
-        }
-
-        content.push_str(&format!(
-            "rm -rf \"{}\"\n\
-            rm \"{}\"\n\
-            rm \"$0\"\n",
-            temp_extract_dir.display(), archive_path.display()
-        ));
-
-        let mut file = File::create(&updater_path).map_err(|e| e.to_string())?;
-        file.write_all(content.as_bytes()).map_err(|e| e.to_string())?;
-
-        let _ = window.hide();
-
-        Command::new("chmod").args(&["+x", updater_path.to_str().unwrap()]).output().expect("Failed to chmod");
-        Command::new("/bin/bash").arg(updater_path).spawn().expect("Failed to spawn updater");
-        app.exit(0);
-    }
-
-    Ok(())
-}
-
 fn emit_status(window: &Window, status: &str, is_downloading: bool, can_skip: bool) {
     let _ = window.emit("splash-status", SplashStatusPayload {
         status: status.to_string(),
@@ -458,25 +333,6 @@ fn get_os_name() -> &'static str {
     if cfg!(target_os = "windows") { "win" }
     else if cfg!(target_os = "macos") { "mac" }
     else { "linux" }
-}
-
-fn is_remote_newer(local: &str, remote: &str) -> bool {
-    let l_clean = local.trim_start_matches('v');
-    let r_clean = remote.trim_start_matches('v');
-
-    let l_parts: Vec<&str> = l_clean.split('.').collect();
-    let r_parts: Vec<&str> = r_clean.split('.').collect();
-
-    let len = std::cmp::max(l_parts.len(), r_parts.len());
-
-    for i in 0..len {
-        let l_val = l_parts.get(i).unwrap_or(&"0").parse::<i32>().unwrap_or(0);
-        let r_val = r_parts.get(i).unwrap_or(&"0").parse::<i32>().unwrap_or(0);
-
-        if r_val > l_val { return true; }
-        if r_val < l_val { return false; }
-    }
-    false
 }
 
 fn load_versions(req_path: &Path) -> Versions {
