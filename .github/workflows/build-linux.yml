@@ -37,19 +37,15 @@ jobs:
       - name: Prepare signing key
         shell: bash
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_CONTENT: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
-            echo "TAURI_SIGNING_PRIVATE_KEY is empty" >&2
+          if [ -z "$TAURI_KEY_CONTENT" ]; then
+            echo "Error: TAURI_SIGNING_PRIVATE_KEY not found in GitHub Secrets"
             exit 1
           fi
-          key_path="$GITHUB_WORKSPACE/tauri-signing.key"
-          if printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" | grep -q "untrusted comment:"; then
-            printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$key_path"
-          else
-            printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" | base64 --decode > "$key_path"
-          fi
-          echo "TAURI_SIGNING_PRIVATE_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+          
+          echo "$TAURI_KEY_CONTENT" > "$GITHUB_WORKSPACE/tauri-signing.key"
+          echo "TAURI_SIGNING_PRIVATE_KEY_PATH=$GITHUB_WORKSPACE/tauri-signing.key" >> $GITHUB_ENV
 
       - name: Build app
         uses: tauri-apps/tauri-action@v0

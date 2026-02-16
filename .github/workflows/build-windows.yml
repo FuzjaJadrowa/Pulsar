@@ -32,18 +32,14 @@ jobs:
       - name: Prepare signing key
         shell: pwsh
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_CONTENT: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          $raw = $env:TAURI_SIGNING_PRIVATE_KEY
-          if (-not $raw) { throw "TAURI_SIGNING_PRIVATE_KEY is empty" }
+          if (-not $env:TAURI_KEY_CONTENT) { throw "TAURI_SIGNING_PRIVATE_KEY not found in GitHub Secrets" }
+          
           $keyPath = Join-Path $env:GITHUB_WORKSPACE "tauri-signing.key"
-          if ($raw -match "untrusted comment:") {
-            [System.IO.File]::WriteAllText($keyPath, $raw)
-          } else {
-            $bytes = [System.Convert]::FromBase64String($raw)
-            [System.IO.File]::WriteAllBytes($keyPath, $bytes)
-          }
-          "TAURI_SIGNING_PRIVATE_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          [System.IO.File]::WriteAllText($keyPath, $env:TAURI_KEY_CONTENT)
+          
+          echo "TAURI_SIGNING_PRIVATE_KEY_PATH=$keyPath" >> $env:GITHUB_ENV
 
       - name: Build app
         uses: tauri-apps/tauri-action@v0

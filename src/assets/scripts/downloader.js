@@ -5,7 +5,7 @@
     const videoQualities = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
     const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'];
     const audioFormats = ['MP3', 'M4A', 'ACC', 'OPUS', 'WAV', 'OGG'];
-    const audioQualities = ['320k', '256k', '192k', '128k', '96k'];
+    const audioQualities = ['320kbps', '256kbps', '192kbps', '128kbps', '96kbps'];
 
     const body = document.body;
     const searchSection = document.getElementById('search-section');
