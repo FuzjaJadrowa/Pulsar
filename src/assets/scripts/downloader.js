@@ -30,6 +30,9 @@
 
     const subsToggle = document.getElementById('subs-toggle');
     const liveChatToggle = document.getElementById('chat-toggle');
+    const geoToggle = document.getElementById('geo-toggle');
+    const tagsToggle = document.getElementById('tags-toggle');
+
     const liveChatRow = document.getElementById('live-chat-row');
     const langWrapper = document.getElementById('lang-wrapper');
     const subsLangInput = document.getElementById('subs-lang');
@@ -50,7 +53,8 @@
         selectedQuality: null,
         videoQualityOptions: ['1080p', '720p', '480p', '360p', '240p', '144p'],
         subtitleOptions: [],
-        currentSuggestions: []
+        currentSuggestions: [],
+        thumbnailAction: 'none'
     };
 
     function triggerShakeFeedback(element) {
@@ -59,6 +63,107 @@
         void element.offsetWidth;
         element.classList.add('shake-feedback');
     }
+
+    browseBtn.onclick = async () => {
+        try {
+            const selectedPath = await invoke('pick_download_directory');
+            if (selectedPath) {
+                pathInput.value = selectedPath;
+                validateReadyState();
+            }
+        } catch (error) {
+            console.error('Failed to pick directory:', error);
+        }
+    };
+
+    thumbBtns.forEach(btn => {
+        btn.onclick = async () => {
+            const action = btn.dataset.thumb;
+
+            if (action === 'download') {
+                const url = urlInput.value.trim();
+                if (!url) {
+                    triggerShakeFeedback(urlInput);
+                    return;
+                }
+
+                try {
+                    await invoke('save_thumbnail_to_disk', { url });
+                    btn.style.color = '#4caf50';
+                    setTimeout(() => btn.style.color = '', 1000);
+                } catch (e) {
+                    console.error("Thumbnail save failed:", e);
+                    alert("Failed to save thumbnail. Check console for details.");
+                }
+                return;
+            }
+
+            if (btn.classList.contains('active')) {
+                triggerShakeFeedback(btn);
+                return;
+            }
+
+            thumbBtns.forEach(b => {
+                if(b.dataset.thumb !== 'download') b.classList.remove('active');
+            });
+
+            btn.classList.add('active');
+            state.thumbnailAction = action;
+        };
+    });
+
+    downloadBtn.onclick = async () => {
+        if (downloadBtn.getAttribute('disabled') === 'true') return;
+
+        const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
+
+        const payload = {
+            url: urlInput.value.trim(),
+            path: pathInput.value.trim(),
+            mode: state.mode,
+
+            video_format: state.mode === 'video' ? state.selectedFormat : null,
+            video_quality: state.mode === 'video' ? state.selectedQuality : null,
+
+            audio_format: state.mode === 'audio' ? state.selectedFormat : null,
+            audio_quality: state.mode === 'audio' ? state.selectedQuality : null,
+
+            is_time_range_active: isTimeRangeActive,
+            start_time: timeStartDisplay.value,
+            end_time: timeEndDisplay.value,
+
+            geo_bypass: geoToggle ? geoToggle.checked : false,
+            embed_tags: tagsToggle ? tagsToggle.checked : false,
+            embed_thumbnail: state.thumbnailAction === 'embed',
+
+            download_subs: subsToggle ? subsToggle.checked : false,
+            download_chat: liveChatToggle ? liveChatToggle.checked : false,
+            subs_code: subsLangInput.value.trim()
+        };
+
+        try {
+            downloadBtn.setAttribute('disabled', 'true');
+            downloadBtn.innerText = 'STARTING...';
+
+            const taskId = await invoke('start_download', { options: payload });
+            console.log("Download started, Task ID:", taskId);
+
+            setTimeout(() => {
+                downloadBtn.removeAttribute('disabled');
+                downloadBtn.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>DOWNLOAD</span>
+                `;
+            }, 1000);
+
+        } catch (error) {
+            console.error("Error starting download:", error);
+            alert("Error: " + error);
+            downloadBtn.removeAttribute('disabled');
+            downloadBtn.innerText = 'DOWNLOAD';
+        }
+    };
+
 
     function parseVideoQuality(formats = []) {
         const found = new Set();
@@ -200,8 +305,10 @@
         state.subtitleOptions = buildSubtitleOptions(data);
 
         const hasLiveChat = state.subtitleOptions.some((entry) => entry.code.toLowerCase() === 'live_chat');
-        liveChatRow.classList.toggle('hidden', !hasLiveChat);
-        if (!hasLiveChat) {
+        if (liveChatRow) {
+            liveChatRow.classList.toggle('hidden', !hasLiveChat);
+        }
+        if (!hasLiveChat && liveChatToggle) {
             liveChatToggle.checked = false;
         }
 
@@ -354,7 +461,6 @@
         audioQualities.forEach(q => qualityList.appendChild(createTile(q)));
     }
 
-    browseBtn.onclick = () => { pathInput.value = 'C:/Downloads/Pulsar'; validateReadyState(); };
     pathInput.oninput = validateReadyState;
 
     function updateSlider() {
@@ -415,33 +521,27 @@
         timeEndDisplay.onchange = () => handleManualTimeInput(timeEndDisplay, false);
     }
 
-    thumbBtns.forEach(btn => {
-        btn.onclick = () => {
-            if (btn.classList.contains('active')) {
-                triggerShakeFeedback(btn);
-                return;
+    if (subsToggle) {
+        subsToggle.onchange = () => {
+            if (subsToggle.checked) {
+                langWrapper.classList.add('visible');
+                updateLanguageSuggestions();
+                subsLangInput.focus();
+            } else {
+                langWrapper.classList.remove('visible');
+                if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
             }
-            thumbBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
         };
-    });
+    }
 
-    subsToggle.onchange = () => {
-        if (subsToggle.checked) {
-            langWrapper.classList.add('visible');
-            updateLanguageSuggestions();
-            subsLangInput.focus();
-        } else {
-            langWrapper.classList.remove('visible');
-            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
-        }
-    };
+    if (subsLangInput) {
+        subsLangInput.addEventListener('input', updateLanguageSuggestions);
+        subsLangInput.addEventListener('focus', updateLanguageSuggestions);
+    }
 
-    subsLangInput.addEventListener('input', updateLanguageSuggestions);
-    subsLangInput.addEventListener('focus', updateLanguageSuggestions);
     document.addEventListener('click', (event) => {
-        if (!langWrapper.contains(event.target)) {
-            subsLangSuggestions.classList.add('hidden');
+        if (langWrapper && !langWrapper.contains(event.target)) {
+            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
         }
     });
 

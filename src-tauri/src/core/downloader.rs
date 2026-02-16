@@ -1,9 +1,11 @@
 use tauri::{AppHandle, State, Emitter};
+use tauri_plugin_dialog::DialogExt;
 use std::process::{Command, Stdio, Child, ChildStdin};
 use std::sync::Mutex;
 use std::io::{Write, BufReader, BufRead};
 use std::path::PathBuf;
 use std::thread;
+use std::fs::File;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use directories::BaseDirs;
@@ -87,7 +89,7 @@ impl BridgeState {
         Ok(())
     }
 
-    fn send_command(&self, app_handle: &AppHandle, cmd: BridgeCommand) -> Result<(), String> {
+    pub fn send_command(&self, app_handle: &AppHandle, cmd: BridgeCommand) -> Result<(), String> {
         self.send_raw_command(app_handle, &cmd)
     }
 
@@ -109,17 +111,72 @@ impl BridgeState {
 pub struct DownloadOptions {
     url: String,
     path: String,
-    audio_only: bool,
-    video_format: String,
-    video_quality: String,
-    audio_format: String,
-    audio_quality: String,
-    download_subs: bool,
-    subs_lang: String,
-    download_chat: bool,
+    mode: String,
+    video_format: Option<String>,
+    video_quality: Option<String>,
+    audio_format: Option<String>,
+    audio_quality: Option<String>,
+    is_time_range_active: bool,
     start_time: String,
     end_time: String,
-    custom_args: String,
+    geo_bypass: bool,
+    embed_tags: bool,
+    embed_thumbnail: bool,
+    download_subs: bool,
+    download_chat: bool,
+    subs_code: String,
+}
+
+#[tauri::command]
+pub async fn pick_download_directory(app_handle: AppHandle) -> Result<String, String> {
+    let file_path = app_handle.dialog().file().blocking_pick_folder();
+
+    match file_path {
+        Some(path) => Ok(path.to_string()),
+        None => Ok("".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn save_thumbnail_to_disk(app_handle: AppHandle, url: String) -> Result<(), String> {
+    let video_id = extract_video_id(&url).ok_or("Could not extract Video ID")?;
+    let thumb_url = format!("https://i3.ytimg.com/vi/{}/maxresdefault.jpg", video_id);
+
+    println!("Fetching thumbnail from: {}", thumb_url);
+
+    let response = reqwest::get(&thumb_url).await.map_err(|e| e.to_string())?;
+
+    if !response.status().is_success() {
+        return Err(format!("Failed to fetch thumbnail: HTTP {}", response.status()));
+    }
+
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+
+    let file_path = app_handle.dialog().file()
+        .set_file_name(format!("{}_thumbnail.jpg", video_id))
+        .add_filter("JPEG Image", &["jpg", "jpeg"])
+        .blocking_save_file();
+
+    if let Some(path) = file_path {
+        let path_buf = path.into_path().map_err(|e| e.to_string())?;
+        let mut file = File::create(path_buf).map_err(|e| e.to_string())?;
+        file.write_all(&bytes).map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+fn extract_video_id(url: &str) -> Option<String> {
+    if let Some(index) = url.find("v=") {
+        let remainder = &url[index + 2..];
+        let end = remainder.find('&').unwrap_or(remainder.len());
+        return Some(remainder[0..end].to_string());
+    } else if let Some(index) = url.find("youtu.be/") {
+        let remainder = &url[index + 9..];
+        let end = remainder.find('?').unwrap_or(remainder.len());
+        return Some(remainder[0..end].to_string());
+    }
+    None
 }
 
 #[tauri::command]
@@ -133,14 +190,9 @@ pub fn start_download(
     println!("Received download request: {:?}", options);
 
     let task_id = format!("task_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
-
     let config = config_mgr.config.lock().unwrap();
 
     let mut args: Vec<String> = Vec::new();
-
-    args.push("--newline".to_string());
-    args.push("--progress".to_string());
-    args.push("--no-colors".to_string());
 
     let req_path = get_requirements_path();
     let ffmpeg_name = if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" };
@@ -158,58 +210,68 @@ pub fn start_download(
         args.push(config.cookies_browser.to_lowercase());
     }
 
-    if config.geo_bypass {
-        args.push("--geo-bypass".to_string());
-    }
-
-    if options.audio_only {
+    if options.mode == "audio" {
         args.push("-x".to_string());
-
-        let a_fmt = if options.audio_format == "Default" { &config.audio_format } else { &options.audio_format };
-        args.push("--audio-format".to_string());
-        args.push(a_fmt.clone());
-
-        let mut a_qual = if options.audio_quality == "Default" { &config.audio_quality } else { &options.audio_quality }.clone();
-        if a_qual.contains("kbps") {
-            a_qual = a_qual.replace("kbps", "K");
+        if let Some(fmt) = options.audio_format {
+            args.push("--audio-format".to_string());
+            args.push(fmt.to_lowercase());
         }
-        args.push("--audio-quality".to_string());
-        args.push(a_qual);
-
+        if let Some(quality) = options.audio_quality {
+            let q_arg = quality.replace("kbps", "K");
+            args.push("--audio-quality".to_string());
+            args.push(q_arg);
+        }
     } else {
-        let v_fmt = if options.video_format == "Default" { &config.video_format } else { &options.video_format };
-        args.push("--merge-output-format".to_string());
-        args.push(v_fmt.clone());
-
-        let mut v_qual = if options.video_quality == "Default" { &config.video_quality } else { &options.video_quality }.clone();
-        v_qual = v_qual.replace("p", "");
-        args.push("-S".to_string());
-        args.push(format!("res:{}", v_qual));
-    }
-
-    if options.download_chat {
-        args.push("--write-subs".to_string());
-        args.push("--sub-lang".to_string());
-        args.push("live_chat".to_string());
-    } else if options.download_subs {
-        if options.subs_lang.trim().is_empty() {
-            args.push("--write-auto-subs".to_string());
-        } else {
-            args.push("--write-subs".to_string());
-            args.push("--sub-lang".to_string());
-            args.push(options.subs_lang.trim().to_string());
+        if let Some(fmt) = options.video_format {
+            args.push("--merge-output-format".to_string());
+            args.push(fmt.to_lowercase());
+        }
+        if let Some(quality) = options.video_quality {
+            let res = quality.replace("p", "");
+            args.push("-S".to_string());
+            args.push(format!("res:{}", res));
         }
     }
 
-    if !options.start_time.is_empty() && !options.end_time.is_empty() {
+    if options.is_time_range_active {
         args.push("--download-sections".to_string());
-        args.push(format!("* {}-{}", options.start_time, options.end_time));
+        args.push(format!("*{}-{}", options.start_time, options.end_time));
         args.push("--force-keyframes-at-cuts".to_string());
     }
 
-    if !options.custom_args.trim().is_empty() {
-        for arg in options.custom_args.split_whitespace() {
-            args.push(arg.to_string());
+    if options.embed_thumbnail {
+        args.push("--embed-thumbnail".to_string());
+    }
+
+    if options.geo_bypass {
+        args.push("--geo-bypass".to_string());
+    }
+
+    if options.embed_tags {
+        args.push("--embed-metadata".to_string());
+    }
+
+    let has_subs = options.download_subs;
+    let has_chat = options.download_chat;
+    let code_input = options.subs_code.trim();
+
+    if has_chat {
+        args.push("--write-auto-subs".to_string());
+        args.push("--sub-lang".to_string());
+        if has_subs {
+            if code_input.is_empty() {
+                args.push("en,live_chat".to_string());
+            } else {
+                args.push(format!("{},live_chat", code_input));
+            }
+        } else {
+            args.push("live_chat".to_string());
+        }
+    } else if has_subs {
+        args.push("--write-auto-subs".to_string());
+        if !code_input.is_empty() {
+            args.push("--sub-lang".to_string());
+            args.push(code_input.to_string());
         }
     }
 
@@ -228,8 +290,7 @@ pub fn start_download(
 
 fn get_requirements_path() -> PathBuf {
     if let Some(base_dirs) = BaseDirs::new() {
-        let path = base_dirs.data_local_dir().join("Pulsar").join("Requirements");
-        return path;
+        return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
     }
     PathBuf::from("Requirements")
 }

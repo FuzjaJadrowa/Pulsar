@@ -12,6 +12,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .manage(config_manager)
         .manage(bridge_state)
         .invoke_handler(tauri::generate_handler![
@@ -19,7 +20,9 @@ pub fn run() {
             system::save_config,
             system::metadata::fetch_metadata,
             core::splash::run_splash_checks,
-            core::downloader::start_download
+            core::downloader::start_download,
+            core::downloader::pick_download_directory,
+            core::downloader::save_thumbnail_to_disk
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
