@@ -7,11 +7,10 @@ use directories::BaseDirs;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Window};
+use tauri::{AppHandle, Emitter, Manager, Window};
 use tauri_plugin_updater::UpdaterExt;
+use crate::system::config::ConfigManager;
 
-const APP_UPDATE_INTERVAL_SECS: u64 = 1800;
-const REQ_UPDATE_INTERVAL_SECS: u64 = 1800;
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest";
 
@@ -48,14 +47,26 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
         .build()
         .map_err(|e| e.to_string())?;
 
+    let app_config = {
+        let state = app.state::<ConfigManager>();
+        let locked = state
+            .config
+            .lock()
+            .map_err(|_| "Failed to lock config".to_string())?;
+        let config = locked.clone();
+        config
+    };
+    let app_update_enabled = app_config.update_app;
+    let update_interval_secs = app_config.update_app_cooldown_minutes.max(1) * 60;
+
     let req_path = get_requirements_path();
     let mut versions = load_versions(&req_path);
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
 
     emit_status(&window, "Checking for updates...", false, false);
 
-    if now - versions.app_last_check >= APP_UPDATE_INTERVAL_SECS {
-        match check_app_update(&app, &window).await {
+    if now - versions.app_last_check >= update_interval_secs {
+        match check_app_update(&app, &window, app_update_enabled).await {
             Ok(updated) => {
                 versions.app_last_check = now;
                 if updated {
@@ -71,19 +82,19 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
 
     if !check_file_exists(&req_path, "pulsar-bridge") || !check_file_exists(&req_path, "ffmpeg") {
         needs_check = true;
-    } else if now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
+    } else if now - versions.req_last_check > update_interval_secs {
         needs_check = true;
     }
 
     if needs_check {
-        if !check_file_exists(&req_path, "pulsar-bridge") || now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
+        if !check_file_exists(&req_path, "pulsar-bridge") || now - versions.req_last_check > update_interval_secs {
             match update_component(&client, &window, &req_path, "pulsar-bridge", &mut versions).await {
                 Ok(_) => req_checked = true,
                 Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
             }
         }
 
-        if !check_file_exists(&req_path, "ffmpeg") || now - versions.req_last_check > REQ_UPDATE_INTERVAL_SECS {
+        if !check_file_exists(&req_path, "ffmpeg") || now - versions.req_last_check > update_interval_secs {
             match update_component(&client, &window, &req_path, "ffmpeg", &mut versions).await {
                 Ok(_) => req_checked = true,
                 Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
@@ -102,16 +113,22 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
     Ok(())
 }
 
-async fn check_app_update(app: &AppHandle, window: &Window) -> Result<bool, String> {
+async fn check_app_update(app: &AppHandle, window: &Window, auto_update_enabled: bool) -> Result<bool, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
     let Some(update) = updater.check().await.map_err(|e| e.to_string())? else {
         return Ok(false);
     };
 
+    if !auto_update_enabled {
+        emit_status(window, "Update available (auto-update disabled)", false, false);
+        return Ok(false);
+    }
+
     let target_version = update.version.clone();
     emit_status(window, &format!("Updating to {}", target_version), true, true);
 
     let window_clone = window.clone();
+    let window_finish = window.clone();
     let mut downloaded: u64 = 0;
 
     update
@@ -133,8 +150,8 @@ async fn check_app_update(app: &AppHandle, window: &Window) -> Result<bool, Stri
                     );
                 }
             },
-            || {
-                let _ = window.emit(
+            move || {
+                let _ = window_finish.emit(
                     "splash-progress",
                     SplashStatusPayload {
                         status: "Update downloaded".to_string(),

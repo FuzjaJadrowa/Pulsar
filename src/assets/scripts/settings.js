@@ -5,6 +5,7 @@
         'theme': 'theme',
         'language': 'language',
         'update_app': 'update_app',
+        'update_app_cooldown_minutes': 'update_app_cooldown_minutes',
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
         'cookies_browser': 'cookies_browser'
@@ -43,6 +44,9 @@
 
             if (el.type === 'checkbox') {
                 config[key] = el.checked;
+            } else if (el.type === 'number') {
+                const parsed = parseInt(el.value, 10);
+                config[key] = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
             } else {
                 config[key] = el.value;
             }

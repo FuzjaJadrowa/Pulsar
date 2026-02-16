@@ -29,11 +29,27 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
+      - name: Prepare signing key
+        shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          $raw = $env:TAURI_SIGNING_PRIVATE_KEY
+          if (-not $raw) { throw "TAURI_SIGNING_PRIVATE_KEY is empty" }
+          $keyPath = Join-Path $env:GITHUB_WORKSPACE "tauri-signing.key"
+          if ($raw -match "untrusted comment:") {
+            [System.IO.File]::WriteAllText($keyPath, $raw)
+          } else {
+            $bytes = [System.Convert]::FromBase64String($raw)
+            [System.IO.File]::WriteAllBytes($keyPath, $bytes)
+          }
+          "TAURI_SIGNING_PRIVATE_KEY_PATH=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Build app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PATH: ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Rename Artifacts (Windows)

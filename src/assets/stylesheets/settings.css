@@ -114,6 +114,15 @@ input:checked + .slider:before { transform: translateX(22px); }
     padding: 10px; border-radius: 8px; font-size: 13px; outline: none;
     transition: border-color 0.2s; font-family: 'Segoe UI', sans-serif;
 }
+.custom-input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+.custom-input[type="number"]::-webkit-inner-spin-button,
+.custom-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 .custom-input:focus { border-color: var(--accent-color); }
 .custom-input:disabled { opacity: 0.5; cursor: not-allowed; }
 

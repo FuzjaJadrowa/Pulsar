@@ -12,6 +12,7 @@ pub struct AppConfig {
     pub close_behavior: String,
 
     pub update_app: bool,
+    pub update_app_cooldown_minutes: u64,
     pub update_ytdlp: bool,
     pub update_ffmpeg: bool,
 
@@ -30,6 +31,7 @@ impl Default for AppConfig {
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             update_app: true,
+            update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
             cookies_browser: "None".to_string(),
@@ -81,6 +83,10 @@ impl ConfigManager {
                 }
                 if let Some(section) = ini.section(Some("Requirements")) {
                     config.update_app = section.get("update_app").map(|v| v == "true").unwrap_or(true);
+                    config.update_app_cooldown_minutes = section
+                        .get("update_app_cooldown_minutes")
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(30);
                     config.update_ytdlp = section.get("update_ytdlp").map(|v| v == "true").unwrap_or(true);
                     config.update_ffmpeg = section.get("update_ffmpeg").map(|v| v == "true").unwrap_or(true);
                 }
@@ -110,6 +116,7 @@ impl ConfigManager {
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })
+            .set("update_app_cooldown_minutes", config.update_app_cooldown_minutes.to_string())
             .set("update_ytdlp", if config.update_ytdlp { "true" } else { "false" })
             .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
 
