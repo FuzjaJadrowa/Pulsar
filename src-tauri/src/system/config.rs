@@ -16,12 +16,7 @@ pub struct AppConfig {
     pub update_ytdlp: bool,
     pub update_ffmpeg: bool,
 
-    pub cookies_browser: String,
-    pub geo_bypass: bool,
-    pub video_format: String,
-    pub video_quality: String,
-    pub audio_format: String,
-    pub audio_quality: String,
+    pub cookies_browser: String
 }
 
 impl Default for AppConfig {
@@ -34,12 +29,7 @@ impl Default for AppConfig {
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
-            cookies_browser: "None".to_string(),
-            geo_bypass: false,
-            video_format: "mp4".to_string(),
-            video_quality: "1080p".to_string(),
-            audio_format: "mp3".to_string(),
-            audio_quality: "128kbps".to_string(),
+            cookies_browser: "None".to_string()
         }
     }
 }

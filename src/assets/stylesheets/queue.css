@@ -1,0 +1,348 @@
+:root {
+    --queue-panel-bg: rgba(9, 13, 20, 0.48);
+    --queue-panel-border: rgba(255, 255, 255, 0.1);
+    --queue-action-bg: rgba(255, 255, 255, 0.05);
+    --queue-action-hover: rgba(255, 255, 255, 0.16);
+    --queue-text-dim: rgba(255, 255, 255, 0.66);
+    --queue-success: rgba(46, 204, 113, 0.3);
+    --queue-error: rgba(231, 76, 60, 0.34);
+}
+
+#queue-panel {
+    position: absolute;
+    top: 88px;
+    right: 20px;
+    width: 560px;
+    max-height: calc(100vh - 104px);
+    background: var(--queue-panel-bg);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border-radius: 18px;
+    border: 1px solid var(--queue-panel-border);
+    box-shadow: 0 18px 52px rgba(0, 0, 0, 0.42);
+    overflow: hidden;
+    z-index: 1000;
+    transition: height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.queue-panel-inner {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.queue-title {
+    font-family: "Montserrat", "Segoe UI", sans-serif;
+    font-size: 1.08rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.queue-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.queue-action {
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--queue-action-bg);
+    color: #fff;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.queue-action:hover {
+    background: var(--queue-action-hover);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.queue-action-start:hover {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.38), rgba(46, 204, 113, 0.16));
+    border-color: rgba(46, 204, 113, 0.7);
+}
+
+.queue-action-stop:hover {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.42), rgba(231, 76, 60, 0.16));
+    border-color: rgba(231, 76, 60, 0.72);
+}
+
+.queue-action-start {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.26), rgba(46, 204, 113, 0.08));
+    border-color: rgba(46, 204, 113, 0.55);
+}
+
+.queue-action-stop {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(231, 76, 60, 0.08));
+    border-color: rgba(231, 76, 60, 0.58);
+}
+
+.queue-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.queue-empty {
+    padding: 18px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.24);
+    color: var(--queue-text-dim);
+    text-align: center;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-size: 0.95rem;
+}
+
+.queue-item {
+    position: relative;
+    border-radius: 13px;
+    overflow: hidden;
+    min-height: 148px;
+    padding: 14px 14px 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: opacity 0.26s ease, transform 0.26s ease, height 0.26s ease, margin 0.26s ease, padding 0.26s ease;
+}
+
+.queue-item.removing {
+    opacity: 0;
+    transform: translateX(24px);
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.queue-item-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(1.5px) saturate(110%);
+    transform: scale(1.03);
+}
+
+.queue-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(10, 12, 18, 0.89) 0%, rgba(10, 12, 18, 0.66) 100%);
+    z-index: 1;
+}
+
+.queue-item.status-pending::before,
+.queue-item.status-downloading::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.15));
+    z-index: 1;
+}
+
+.queue-item.status-failed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--queue-error), rgba(0, 0, 0, 0.18));
+    z-index: 1;
+}
+
+.queue-item.status-completed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--queue-success), rgba(0, 0, 0, 0.2));
+    z-index: 1;
+}
+
+.queue-item-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 122px;
+    padding-right: 106px;
+}
+
+.queue-item-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.queue-mode-icon {
+    width: 20px;
+    height: 20px;
+    color: rgba(255, 255, 255, 0.86);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+}
+
+.queue-mode-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+.queue-item-title {
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-weight: 800;
+    font-size: 0.98rem;
+    line-height: 1.2;
+}
+
+.queue-item-details {
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    color: var(--queue-text-dim);
+}
+
+.queue-item-progress-wrap {
+    margin-top: auto;
+}
+
+.queue-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.queue-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00d2ff, #1aff9c);
+    transition: width 0.2s ease;
+}
+
+.queue-progress-meta {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-size: 0.77rem;
+    color: var(--queue-text-dim);
+}
+
+.queue-item-actions {
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.queue-icon-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.queue-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.queue-icon-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.queue-status-icon {
+    position: absolute;
+    top: 14px;
+    right: 58px;
+    z-index: 3;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.queue-status-icon.success { background: rgba(46, 204, 113, 0.86); }
+.queue-status-icon.failed { background: rgba(231, 76, 60, 0.86); }
+
+.queue-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--queue-text-dim);
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-size: 0.86rem;
+    padding-top: 2px;
+}
+
+.queue-page-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.queue-page-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.queue-page-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.queue-orb {
+    position: fixed;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #e6ffe9, #3cff95 60%, #00d2ff 100%);
+    box-shadow: 0 0 22px rgba(45, 255, 138, 0.72);
+    pointer-events: none;
+    z-index: 2500;
+}
+
+.nav-btn.expandable.queue-pulse,
+.nav-btn.expandable.force-open {
+    width: 102px !important;
+    border-color: var(--c-queue-primary);
+    box-shadow: 0 0 18px rgba(0, 210, 255, 0.46);
+}
+
+.nav-btn.expandable.queue-pulse span,
+.nav-btn.expandable.force-open span {
+    opacity: 1;
+}
+
+.hidden {
+    display: none !important;
+}

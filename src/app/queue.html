@@ -1,0 +1,25 @@
+<div class="queue-panel-inner">
+  <div class="queue-title">Queue</div>
+
+  <div class="queue-actions">
+    <button class="queue-action queue-action-start" data-queue-action="start-all">Start all</button>
+    <button class="queue-action queue-action-stop" data-queue-action="stop-all">Stop all</button>
+    <button class="queue-action" data-queue-action="clear-queue">Clear queue</button>
+  </div>
+
+  <div class="queue-items" id="queue-items"></div>
+
+  <div class="queue-pagination hidden" id="queue-pagination">
+    <button class="queue-page-btn" data-queue-action="prev-page" aria-label="Previous page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <span id="queue-page-label">Page 1/1</span>
+    <button class="queue-page-btn" data-queue-action="next-page" aria-label="Next page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>

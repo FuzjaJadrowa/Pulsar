@@ -58,9 +58,19 @@ body.mode-audio .app-background::after { opacity: 1; }
 }
 .search-box-row:focus-within { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 25px rgba(138, 43, 226, 0.2); }
 #url-input { flex-grow: 1; border: none; background: transparent; color: white; padding: 0 20px; font-size: 1rem; outline: none; }
+#paste-btn {
+    width: 52px; border: none; background: rgba(255,255,255,0.05);
+    border-left: 1px solid rgba(255,255,255,0.1); color: var(--c-text-dim);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+#paste-btn:hover { background: rgba(255,255,255,0.15); color: white; }
 #fetch-btn { width: 60px; border: none; background: rgba(255,255,255,0.05); border-left: 1px solid rgba(255,255,255,0.1); color: var(--c-text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
 #fetch-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+#fetch-btn.loading svg {
+    animation: fetchSpin 0.7s linear infinite;
+}
 .search-section.sticky #fetch-btn { width: 0; padding: 0; opacity: 0; pointer-events: none; }
+@keyframes fetchSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .dashboard-section.hidden { display: none; opacity: 0; }
 .dashboard-section {
     width: 100%; max-width: 900px; margin: 0 auto;

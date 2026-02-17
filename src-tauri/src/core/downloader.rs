@@ -2,6 +2,7 @@ use tauri::{AppHandle, State, Emitter};
 use tauri_plugin_dialog::DialogExt;
 use std::process::{Command, Stdio, Child, ChildStdin};
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::io::{Write, BufReader, BufRead};
 use std::path::PathBuf;
 use std::thread;
@@ -10,6 +11,8 @@ use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use directories::BaseDirs;
 use crate::system::config::ConfigManager;
+
+static TASK_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Serialize)]
 pub struct BridgeCommand {
@@ -179,6 +182,15 @@ fn extract_video_id(url: &str) -> Option<String> {
     None
 }
 
+fn generate_task_id() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_micros();
+    let seq = TASK_COUNTER.fetch_add(1, Ordering::Relaxed);
+    format!("task_{}_{}", now, seq)
+}
+
 #[tauri::command]
 pub fn start_download(
     app_handle: AppHandle,
@@ -189,7 +201,7 @@ pub fn start_download(
 
     println!("Received download request: {:?}", options);
 
-    let task_id = format!("task_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
+    let task_id = generate_task_id();
     let config = config_mgr.config.lock().unwrap();
 
     let mut args: Vec<String> = Vec::new();
@@ -286,6 +298,21 @@ pub fn start_download(
     state.send_command(&app_handle, cmd)?;
 
     Ok(task_id)
+}
+
+#[tauri::command]
+pub fn cancel_download(app_handle: AppHandle, state: State<BridgeState>, task_id: String) -> Result<(), String> {
+    if task_id.trim().is_empty() {
+        return Err("Task ID cannot be empty.".to_string());
+    }
+
+    let cmd = BridgeCommand {
+        command: "cancel".to_string(),
+        id: task_id,
+        args: Vec::new(),
+    };
+
+    state.send_command(&app_handle, cmd)
 }
 
 fn get_requirements_path() -> PathBuf {

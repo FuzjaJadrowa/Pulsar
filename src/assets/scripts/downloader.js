@@ -12,6 +12,7 @@
     const dashboard = document.getElementById('dashboard-section');
     const urlInput = document.getElementById('url-input');
     const fetchBtn = document.getElementById('fetch-btn');
+    const pasteBtn = document.getElementById('paste-btn');
 
     const downloadBtn = document.getElementById('download-btn');
     const queueBtn = document.getElementById('queue-btn');
@@ -54,7 +55,9 @@
         videoQualityOptions: ['1080p', '720p', '480p', '360p', '240p', '144p'],
         subtitleOptions: [],
         currentSuggestions: [],
-        thumbnailAction: 'none'
+        thumbnailAction: 'none',
+        currentTitle: null,
+        currentThumbnail: null
     };
 
     function triggerShakeFeedback(element) {
@@ -62,6 +65,30 @@
         element.classList.remove('shake-feedback');
         void element.offsetWidth;
         element.classList.add('shake-feedback');
+    }
+
+    function setFetchLoading(isLoading) {
+        if (!fetchBtn) return;
+        if (isLoading) {
+            fetchBtn.setAttribute('disabled', 'true');
+            fetchBtn.classList.add('loading');
+            fetchBtn.innerHTML = `
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9" stroke-opacity="0.3"></circle>
+                    <path d="M21 12a9 9 0 0 1-9 9"></path>
+                </svg>
+            `;
+            return;
+        }
+
+        fetchBtn.removeAttribute('disabled');
+        fetchBtn.classList.remove('loading');
+        fetchBtn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        `;
     }
 
     browseBtn.onclick = async () => {
@@ -112,12 +139,10 @@
         };
     });
 
-    downloadBtn.onclick = async () => {
-        if (downloadBtn.getAttribute('disabled') === 'true') return;
-
+    function buildDownloadPayload() {
         const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
 
-        const payload = {
+        return {
             url: urlInput.value.trim(),
             path: pathInput.value.trim(),
             mode: state.mode,
@@ -140,29 +165,82 @@
             download_chat: liveChatToggle ? liveChatToggle.checked : false,
             subs_code: subsLangInput.value.trim()
         };
+    }
+
+    function currentMetaSnapshot() {
+        const title = state.currentTitle || document.getElementById('meta-title')?.innerText || 'Unknown title';
+        return {
+            title,
+            thumbnail: state.currentThumbnail || ''
+        };
+    }
+
+    function animateQueueOrbFrom(element) {
+        if (window.queueManager && window.queueManager.animateQueueOrb) {
+            window.queueManager.animateQueueOrb(element);
+        }
+    }
+
+    function returnToZenAfterQueueAction() {
+        setTimeout(() => {
+            urlInput.value = '';
+            resetToZen();
+        }, 40);
+    }
+
+    downloadBtn.onclick = async () => {
+        if (downloadBtn.getAttribute('disabled') === 'true') return;
+
+        const payload = buildDownloadPayload();
+        const meta = currentMetaSnapshot();
 
         try {
-            downloadBtn.setAttribute('disabled', 'true');
-            downloadBtn.innerText = 'STARTING...';
+            if (window.queueManager && window.queueManager.enqueue) {
+                window.queueManager.enqueue(payload, meta, { autoStart: true, startReason: 'download', source: 'download' });
+            } else {
+                await invoke('start_download', { options: payload });
+            }
 
-            const taskId = await invoke('start_download', { options: payload });
-            console.log("Download started, Task ID:", taskId);
-
-            setTimeout(() => {
-                downloadBtn.removeAttribute('disabled');
-                downloadBtn.innerHTML = `
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>DOWNLOAD</span>
-                `;
-            }, 1000);
+            animateQueueOrbFrom(downloadBtn);
+            returnToZenAfterQueueAction();
 
         } catch (error) {
             console.error("Error starting download:", error);
             alert("Error: " + error);
-            downloadBtn.removeAttribute('disabled');
-            downloadBtn.innerText = 'DOWNLOAD';
         }
     };
+
+    if (pasteBtn) {
+        pasteBtn.onclick = async () => {
+            try {
+                let text = '';
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    text = await navigator.clipboard.readText();
+                }
+                if (text) {
+                    urlInput.value = text.trim();
+                    validateReadyState();
+                }
+            } catch (error) {
+                console.error('Clipboard paste failed:', error);
+            }
+        };
+    }
+
+    if (queueBtn) {
+        queueBtn.onclick = () => {
+            if (queueBtn.getAttribute('disabled') === 'true') return;
+            const payload = buildDownloadPayload();
+            const meta = currentMetaSnapshot();
+
+            if (window.queueManager && window.queueManager.enqueue) {
+                window.queueManager.enqueue(payload, meta, { autoStart: false, source: 'queue' });
+            }
+
+            animateQueueOrbFrom(queueBtn);
+            returnToZenAfterQueueAction();
+        };
+    }
 
 
     function parseVideoQuality(formats = []) {
@@ -277,13 +355,13 @@
         const url = urlInput.value.trim();
         if (!url) return;
 
-        fetchBtn.setAttribute('disabled', 'true');
+        setFetchLoading(true);
 
         try {
             state.metadataTaskId = await invoke('fetch_metadata', { url });
         } catch (error) {
             console.error('Metadata fetch failed:', error);
-            fetchBtn.removeAttribute('disabled');
+            setFetchLoading(false);
         }
     }
 
@@ -320,6 +398,9 @@
         document.getElementById('meta-author').innerText = author;
         document.getElementById('meta-duration').innerText = duration;
 
+        state.currentTitle = title;
+        state.currentThumbnail = data.thumbnail || '';
+
         if (data.thumbnail) {
             thumbPreview.innerHTML = `<img src="${data.thumbnail}" alt="Thumbnail">`;
         } else {
@@ -349,6 +430,9 @@
             state.selectedFormat = null;
             state.selectedQuality = null;
             state.subtitleOptions = [];
+            state.currentTitle = null;
+            state.currentThumbnail = null;
+            setFetchLoading(false);
             if (subsLangSuggestions) {
                 subsLangSuggestions.classList.add('hidden');
                 subsLangSuggestions.innerHTML = '';
@@ -369,7 +453,7 @@
 
         if (payload.type === 'finished' && payload.success === false) {
             state.metadataTaskId = null;
-            fetchBtn.removeAttribute('disabled');
+            setFetchLoading(false);
             console.error('Metadata task failed:', payload.error || 'Unknown error');
             return;
         }
@@ -377,7 +461,7 @@
         if (payload.type !== 'metadata') return;
 
         state.metadataTaskId = null;
-        fetchBtn.removeAttribute('disabled');
+        setFetchLoading(false);
 
         if (!payload.success || !payload.data) {
             console.error('Bridge returned invalid metadata payload:', payload);

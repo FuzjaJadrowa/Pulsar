@@ -8,6 +8,7 @@ let currentPageIndex = 0;
 let currentPageName = null;
 let queueVisible = false;
 const loadedPages = {};
+let queueOutsideBound = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
@@ -206,18 +207,17 @@ async function loadPage(pageName, pageIndex) {
     if (navBtn) navBtn.classList.add('active');
 
     const contentArea = document.getElementById('content-area');
+    const previousView = contentArea ? contentArea.querySelector('.view-container.active-view') : null;
+    const previousIndex = currentPageIndex;
+    const hasPrevious = !!previousView;
+    const direction = hasPrevious
+        ? (pageIndex > previousIndex ? 'right' : 'left')
+        : 'right';
 
-    document.querySelectorAll('.view-container').forEach(el => {
-        el.classList.remove('active-view');
-    });
+    let targetView = document.getElementById(`view-${pageName}`);
 
     if (loadedPages[pageName]) {
-        const existingView = document.getElementById(`view-${pageName}`);
-        if (existingView) {
-            existingView.classList.add('active-view');
-
-            setTimeout(() => window.initCustomSelects(), 50);
-        }
+        targetView = document.getElementById(`view-${pageName}`);
     } else {
         try {
             const response = await fetch(`app/${pageName}.html`);
@@ -227,7 +227,7 @@ async function loadPage(pageName, pageIndex) {
 
             const viewContainer = document.createElement('div');
             viewContainer.id = `view-${pageName}`;
-            viewContainer.className = 'view-container active-view';
+            viewContainer.className = 'view-container';
 
             viewContainer.innerHTML = html;
             contentArea.appendChild(viewContainer);
@@ -243,12 +243,53 @@ async function loadPage(pageName, pageIndex) {
             });
 
             loadedPages[pageName] = true;
-
-            window.initCustomSelects();
+            targetView = viewContainer;
 
         } catch (err) {
             console.error('Failed to load page:', err);
+            return;
         }
+    }
+
+    if (!targetView) return;
+
+    if (!hasPrevious || previousView === targetView) {
+        if (previousView && previousView !== targetView) {
+            previousView.classList.remove('active-view');
+        }
+        targetView.classList.add('active-view');
+        targetView.style.transform = '';
+        targetView.style.opacity = '';
+        setTimeout(() => window.initCustomSelects(), 50);
+    } else {
+        const incomingFrom = direction === 'right' ? '100%' : '-100%';
+        const outgoingTo = direction === 'right' ? '-100%' : '100%';
+
+        targetView.classList.add('active-view');
+        targetView.style.transform = `translateX(${incomingFrom})`;
+        targetView.style.opacity = '0';
+
+        const outgoingAnim = previousView.animate([
+            { transform: 'translateX(0%)', opacity: 1 },
+            { transform: `translateX(${outgoingTo})`, opacity: 0 }
+        ], { duration: 360, easing: 'ease-in-out', fill: 'forwards' });
+
+        const incomingAnim = targetView.animate([
+            { transform: `translateX(${incomingFrom})`, opacity: 0 },
+            { transform: 'translateX(0%)', opacity: 1 }
+        ], { duration: 360, easing: 'ease-in-out', fill: 'forwards' });
+
+        await Promise.allSettled([
+            outgoingAnim.finished,
+            incomingAnim.finished
+        ]);
+
+        previousView.classList.remove('active-view');
+        previousView.style.transform = '';
+        previousView.style.opacity = '';
+        targetView.style.transform = '';
+        targetView.style.opacity = '';
+        setTimeout(() => window.initCustomSelects(), 50);
     }
 
     currentPageIndex = pageIndex;
@@ -256,11 +297,15 @@ async function loadPage(pageName, pageIndex) {
 }
 
 window.toggleQueue = async function() {
+    await window.setQueuePanelVisible(!queueVisible);
+};
+
+window.setQueuePanelVisible = async function(visible) {
     const panel = document.getElementById('queue-panel');
     const btn = document.getElementById('btn-queue');
     if (!panel || !btn) return;
 
-    if (!queueVisible) {
+    if (visible && !queueVisible) {
         if(panel.innerHTML.trim() === "") {
             try {
                 const res = await fetch('app/queue.html');
@@ -268,13 +313,31 @@ window.toggleQueue = async function() {
             } catch(e) { console.error("Error loading queue:", e); }
         }
         panel.style.display = 'block';
+        if (window.queueManager && window.queueManager.bindPanel) {
+            window.queueManager.bindPanel(panel);
+        }
         panel.animate([{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 250, easing: 'ease-out'});
         btn.classList.add('active');
-    } else {
+        queueVisible = true;
+    } else if (!visible && queueVisible) {
         const anim = panel.animate([{opacity: 1}, {opacity: 0, transform: 'translateY(-20px)'}], {duration: 200});
         anim.onfinish = () => panel.style.display = 'none';
         btn.classList.remove('active');
+        queueVisible = false;
     }
-    queueVisible = !queueVisible;
+
+    if (!queueOutsideBound) {
+        document.addEventListener('mousedown', (event) => {
+            if (!queueVisible) return;
+            const queuePanel = document.getElementById('queue-panel');
+            const queueBtn = document.getElementById('btn-queue');
+            const clickedInsidePanel = queuePanel && queuePanel.contains(event.target);
+            const clickedToggleBtn = queueBtn && queueBtn.contains(event.target);
+            if (!clickedInsidePanel && !clickedToggleBtn) {
+                window.setQueuePanelVisible(false);
+            }
+        });
+        queueOutsideBound = true;
+    }
 };
 
