@@ -4,7 +4,7 @@
     const listen = tauri.event ? tauri.event.listen : null;
     const perPage = 4;
     let saveTimer = null;
-    let seq = 0;
+    let hydratePromise = null;
 
     const state = {
         items: [],
@@ -37,7 +37,11 @@
         audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`
     };
 
-    const queueId = () => `queue_${Date.now()}_${++seq}_${Math.floor(Math.random() * 9999)}`;
+    const queueId = () => {
+        let id = Date.now();
+        while (state.items.some((i) => String(i.id) === String(id))) id += 1;
+        return String(id);
+    };
 
     const sanitizeStatus = (s) => ['pending', 'downloading', 'failed', 'completed'].includes(String(s)) ? String(s) : 'pending';
     const clamp = (v) => Math.min(Math.max(Number(v) || 0, 0), 100);
@@ -48,10 +52,25 @@
         const s = String(total % 60).padStart(2, '0');
         return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
     };
+    const t = (key, fallback = '', params = null) => {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key, fallback, params);
+        }
+        if (params && typeof fallback === 'string') {
+            return fallback.replace(/\{(\w+)\}/g, (_, token) => {
+                if (Object.prototype.hasOwnProperty.call(params, token)) return String(params[token]);
+                return `{${token}}`;
+            });
+        }
+        return fallback || key;
+    };
 
     function bindPanel(panel) {
         if (!panel) return;
         state.panel = panel;
+        if (window.i18n && typeof window.i18n.apply === 'function') {
+            window.i18n.apply(panel);
+        }
         state.panelInner = panel.querySelector('.queue-panel-inner');
         state.itemsContainer = panel.querySelector('#queue-items');
         state.pagination = panel.querySelector('#queue-pagination');
@@ -60,19 +79,23 @@
             panel.addEventListener('click', onPanelClick);
             state.bound = true;
         }
-        if (!state.hydrated) hydrate();
+        if (!state.hydrated) ensureHydrated();
         render();
         resizePanel(true);
     }
 
     async function hydrate() {
-        state.hydrated = true;
-        if (!invoke) return updateQueueBtn();
+        if (state.hydrated) return;
+        if (!invoke) {
+            state.hydrated = true;
+            updateQueueBtn();
+            return;
+        }
         try {
             const data = await invoke('get_queue_state');
             state.items = Array.isArray(data?.items) ? data.items.map((raw) => ({
                 id: String(raw.id || queueId()),
-                title: String(raw.title || 'Unknown title'),
+                title: String(raw.title || t('common.unknownTitle', 'Unknown title')),
                 thumbnail: String(raw.thumbnail || ''),
                 status: sanitizeStatus(raw.status) === 'downloading' ? 'pending' : sanitizeStatus(raw.status),
                 progress: sanitizeStatus(raw.status) === 'downloading' ? 0 : clamp(raw.progress),
@@ -97,7 +120,14 @@
         } catch (e) {
             console.error('Queue hydrate failed:', e);
         }
+        state.hydrated = true;
         updateQueueBtn();
+    }
+
+    async function ensureHydrated() {
+        if (state.hydrated) return;
+        if (!hydratePromise) hydratePromise = hydrate().finally(() => { hydratePromise = null; });
+        await hydratePromise;
     }
 
     function persistSoon() {
@@ -200,7 +230,7 @@
         item.status = 'downloading';
         item.progress = 0;
         item.eta = '--';
-        item.taskId = null;
+        item.taskId = item.id;
         item.startReason = reason;
         item.pendingStartReason = null;
         item.skippedByStop = false;
@@ -209,7 +239,7 @@
         persistSoon();
         if (!invoke) return markFailed(item, 'NO_BRIDGE');
         try {
-            const taskId = await invoke('start_download', { options: item.payload });
+            const taskId = await invoke('start_download', { options: { ...item.payload, client_task_id: String(item.id) } });
             if (state.currentItemId !== item.id || item.status !== 'downloading') {
                 if (taskId) await cancelTask(String(taskId));
                 return;
@@ -218,6 +248,7 @@
             persistSoon();
         } catch (e) {
             console.error('Start failed:', e);
+            item.taskId = null;
             markFailed(item, 'START_FAILED');
         }
     }
@@ -342,22 +373,25 @@
         if (f) f.style.width = `${Math.round(item.progress)}%`;
         const spans = el.querySelectorAll('.queue-progress-meta span');
         if (spans[0]) spans[0].textContent = `${Math.round(item.progress)}%`;
-        if (spans[1]) spans[1].textContent = `ETA ${item.eta || '--'}`;
+        if (spans[1]) spans[1].textContent = `${t('common.eta', 'ETA')} ${item.eta || '--'}`;
     }
 
     function infoLine(payload) {
         const mode = String(payload.mode || 'video').toLowerCase();
         const format = mode === 'audio' ? String(payload.audio_format || '--').toUpperCase() : String(payload.video_format || '--').toUpperCase();
         const quality = mode === 'audio' ? String(payload.audio_quality || '--') : String(payload.video_quality || '--');
-        const subs = payload.download_subs || payload.download_chat ? 'Subtitles: ON' : 'Subtitles: OFF';
+        const subtitleState = payload.download_subs || payload.download_chat
+            ? t('queue.subtitles.on', 'ON')
+            : t('queue.subtitles.off', 'OFF');
+        const subs = `${t('queue.subtitles.label', 'Subtitles')}: ${subtitleState}`;
         return `${format} | ${quality} | ${subs}`;
     }
 
     function itemButtons(item) {
-        if (item.status === 'pending') return `<button class="queue-icon-btn" data-item-action="start" title="Start">${icons.play}</button><button class="queue-icon-btn" data-item-action="remove" title="Remove">${icons.trash}</button>`;
-        if (item.status === 'downloading') return `<button class="queue-icon-btn" data-item-action="stop" title="Stop">${icons.stop}</button>`;
-        if (item.status === 'failed') return `<button class="queue-icon-btn" data-item-action="retry" title="Retry">${icons.retry}</button><button class="queue-icon-btn" data-item-action="remove" title="Remove">${icons.trash}</button><button class="queue-icon-btn" data-item-action="open" title="Open location">${icons.open}</button>`;
-        return `<button class="queue-icon-btn" data-item-action="open" title="Open location">${icons.open}</button><button class="queue-icon-btn" data-item-action="remove" title="Remove">${icons.trash}</button>`;
+        if (item.status === 'pending') return `<button class="queue-icon-btn" data-item-action="start" title="${esc(t('queue.itemActions.start', 'Start'))}">${icons.play}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>`;
+        if (item.status === 'downloading') return `<button class="queue-icon-btn" data-item-action="stop" title="${esc(t('queue.itemActions.stop', 'Stop'))}">${icons.stop}</button>`;
+        if (item.status === 'failed') return `<button class="queue-icon-btn" data-item-action="retry" title="${esc(t('queue.itemActions.retry', 'Retry'))}">${icons.retry}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button><button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button>`;
+        return `<button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>`;
     }
 
     const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -370,7 +404,7 @@
         const pageItems = state.items.slice(start, start + perPage);
         state.itemsContainer.innerHTML = '';
         if (!pageItems.length) {
-            state.itemsContainer.innerHTML = '<div class="queue-empty">Queue is empty.</div>';
+            state.itemsContainer.innerHTML = `<div class="queue-empty">${esc(t('queue.empty', 'Queue is empty.'))}</div>`;
         } else {
             pageItems.forEach((item) => {
                 const mode = String(item.payload.mode || 'video').toLowerCase();
@@ -385,7 +419,7 @@
                         <div class="queue-item-details">${esc(infoLine(item.payload))}</div>
                         <div class="queue-item-progress-wrap">
                             <div class="queue-progress-bar"><div class="queue-progress-fill" style="width:${Math.round(item.progress)}%"></div></div>
-                            <div class="queue-progress-meta"><span>${Math.round(item.progress)}%</span><span>ETA ${item.eta || '--'}</span></div>
+                            <div class="queue-progress-meta"><span>${Math.round(item.progress)}%</span><span>${esc(t('common.eta', 'ETA'))} ${item.eta || '--'}</span></div>
                         </div>
                     </div>
                     <div class="queue-item-actions">${itemButtons(item)}</div>
@@ -399,7 +433,12 @@
                 state.itemsContainer.appendChild(el);
             });
         }
-        if (state.pageLabel) state.pageLabel.textContent = `Page ${state.currentPage}/${total}`;
+        if (state.pageLabel) {
+            state.pageLabel.textContent = t('common.pageLabel', 'Page {current}/{total}', {
+                current: state.currentPage,
+                total
+            });
+        }
         if (state.pagination) state.pagination.classList.toggle('hidden', state.items.length <= perPage);
         resizePanel();
         updateQueueBtn();
@@ -553,10 +592,11 @@
         updateQueueBtn();
     }
 
-    function enqueue(payload, meta, opts = {}) {
+    async function enqueue(payload, meta, opts = {}) {
+        await ensureHydrated();
         const item = {
             id: queueId(),
-            title: meta?.title ? String(meta.title) : 'Unknown title',
+            title: meta?.title ? String(meta.title) : t('common.unknownTitle', 'Unknown title'),
             thumbnail: meta?.thumbnail ? String(meta.thumbnail) : '',
             status: 'pending',
             progress: 0,
@@ -579,13 +619,53 @@
         return item;
     }
 
-    function notifySuccessDownload() { if (window.notifier) window.notifier.show('Success', 'Download completed successfully.', 'success', false); }
-    function notifyQueueSuccess() { if (window.notifier) window.notifier.show('Success', 'Queue downloads completed successfully.', 'success', false); }
-    function notifyError(code) { if (window.notifier) window.notifier.show('Error', `Download failed.${code ? ` Error code: ${code}` : ''}`, 'error', false); }
-    function notifyStopped() { if (window.notifier) window.notifier.show('Info', 'Download stopped by user.', 'info', false); }
+    function notifySuccessDownload() {
+        if (window.notifier) {
+            window.notifier.show(
+                t('common.success', 'Success'),
+                t('queue.notifications.downloadCompleted', 'Download completed successfully.'),
+                'success',
+                false
+            );
+        }
+    }
+    function notifyQueueSuccess() {
+        if (window.notifier) {
+            window.notifier.show(
+                t('common.success', 'Success'),
+                t('queue.notifications.queueCompleted', 'Queue downloads completed successfully.'),
+                'success',
+                false
+            );
+        }
+    }
+    function notifyError(code) {
+        if (window.notifier) {
+            const suffix = code
+                ? t('queue.notifications.errorSuffix', ' Error code: {code}', { code })
+                : '';
+            window.notifier.show(
+                t('common.error', 'Error'),
+                t('queue.notifications.downloadFailed', 'Download failed.{suffix}', { suffix }),
+                'error',
+                false
+            );
+        }
+    }
+    function notifyStopped() {
+        if (window.notifier) {
+            window.notifier.show(
+                t('common.info', 'Info'),
+                t('queue.notifications.downloadStopped', 'Download stopped by user.'),
+                'info',
+                false
+            );
+        }
+    }
 
     if (listen) listen('download-event', (event) => onBridgeEvent(event.payload));
     updateQueueBtn();
+    ensureHydrated();
 
     window.queueManager = {
         bindPanel,

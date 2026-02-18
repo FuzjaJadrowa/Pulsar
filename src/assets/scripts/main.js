@@ -9,8 +9,29 @@ let currentPageName = null;
 let queueVisible = false;
 const loadedPages = {};
 let queueOutsideBound = false;
+const t = (key, fallback = '', params = null) => {
+    if (window.i18n && typeof window.i18n.t === 'function') {
+        return window.i18n.t(key, fallback, params);
+    }
+    if (params && typeof fallback === 'string') {
+        return fallback.replace(/\{(\w+)\}/g, (_, token) => {
+            if (Object.prototype.hasOwnProperty.call(params, token)) return String(params[token]);
+            return `{${token}}`;
+        });
+    }
+    return fallback || key;
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
+    if (window.i18n && typeof window.i18n.init === 'function') {
+        try {
+            await window.i18n.init('en');
+            window.i18n.apply(document);
+        } catch (error) {
+            console.error('Failed to initialize i18n:', error);
+        }
+    }
+
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
     document.getElementById('maximize-btn')?.addEventListener('click', () => appWindow.toggleMaximize());
     document.getElementById('close-btn')?.addEventListener('click', () => appWindow.close());
@@ -60,15 +81,30 @@ if (skipBtn) {
 
 function checkConnection() {
     if (!navigator.onLine) {
-        window.notifier.show("Error", "No internet connection. Some app features may be unavailable.", "error", true);
+        window.notifier.show(
+            t('common.error', 'Error'),
+            t('connection.noInternet', 'No internet connection. Some app features may be unavailable.'),
+            'error',
+            true
+        );
     }
 
     window.addEventListener('offline', () => {
-        window.notifier.show("Error", "Internet connection lost.", "error", false);
+        window.notifier.show(
+            t('common.error', 'Error'),
+            t('connection.lost', 'Internet connection lost.'),
+            'error',
+            false
+        );
     });
 
     window.addEventListener('online', () => {
-        window.notifier.show("Success", "Internet connection restored.", "success", false);
+        window.notifier.show(
+            t('common.success', 'Success'),
+            t('connection.restored', 'Internet connection restored.'),
+            'success',
+            false
+        );
     });
 }
 
@@ -230,6 +266,9 @@ async function loadPage(pageName, pageIndex) {
             viewContainer.className = 'view-container';
 
             viewContainer.innerHTML = html;
+            if (window.i18n && typeof window.i18n.apply === 'function') {
+                window.i18n.apply(viewContainer);
+            }
             contentArea.appendChild(viewContainer);
 
             const scripts = viewContainer.querySelectorAll("script");
@@ -252,6 +291,9 @@ async function loadPage(pageName, pageIndex) {
     }
 
     if (!targetView) return;
+    if (window.i18n && typeof window.i18n.apply === 'function') {
+        window.i18n.apply(targetView);
+    }
 
     if (!hasPrevious || previousView === targetView) {
         if (previousView && previousView !== targetView) {
@@ -260,7 +302,10 @@ async function loadPage(pageName, pageIndex) {
         targetView.classList.add('active-view');
         targetView.style.transform = '';
         targetView.style.opacity = '';
-        setTimeout(() => window.initCustomSelects(), 50);
+        setTimeout(() => {
+            window.initCustomSelects();
+            if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
+        }, 50);
     } else {
         const incomingFrom = direction === 'right' ? '100%' : '-100%';
         const outgoingTo = direction === 'right' ? '-100%' : '100%';
@@ -269,15 +314,17 @@ async function loadPage(pageName, pageIndex) {
         targetView.style.transform = `translateX(${incomingFrom})`;
         targetView.style.opacity = '0';
 
+        const transitionEasing = 'cubic-bezier(0.35, 0.0, 0.15, 1)';
+
         const outgoingAnim = previousView.animate([
             { transform: 'translateX(0%)', opacity: 1 },
             { transform: `translateX(${outgoingTo})`, opacity: 0 }
-        ], { duration: 360, easing: 'ease-in-out', fill: 'forwards' });
+        ], { duration: 300, easing: transitionEasing, fill: 'forwards' });
 
         const incomingAnim = targetView.animate([
             { transform: `translateX(${incomingFrom})`, opacity: 0 },
             { transform: 'translateX(0%)', opacity: 1 }
-        ], { duration: 360, easing: 'ease-in-out', fill: 'forwards' });
+        ], { duration: 300, easing: transitionEasing, fill: 'forwards' });
 
         await Promise.allSettled([
             outgoingAnim.finished,
@@ -289,7 +336,10 @@ async function loadPage(pageName, pageIndex) {
         previousView.style.opacity = '';
         targetView.style.transform = '';
         targetView.style.opacity = '';
-        setTimeout(() => window.initCustomSelects(), 50);
+        setTimeout(() => {
+            window.initCustomSelects();
+            if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
+        }, 50);
     }
 
     currentPageIndex = pageIndex;
@@ -309,7 +359,12 @@ window.setQueuePanelVisible = async function(visible) {
         if(panel.innerHTML.trim() === "") {
             try {
                 const res = await fetch('app/queue.html');
-                if(res.ok) panel.innerHTML = await res.text();
+                if(res.ok) {
+                    panel.innerHTML = await res.text();
+                    if (window.i18n && typeof window.i18n.apply === 'function') {
+                        window.i18n.apply(panel);
+                    }
+                }
             } catch(e) { console.error("Error loading queue:", e); }
         }
         panel.style.display = 'block';
@@ -340,4 +395,3 @@ window.setQueuePanelVisible = async function(visible) {
         queueOutsideBound = true;
     }
 };
-

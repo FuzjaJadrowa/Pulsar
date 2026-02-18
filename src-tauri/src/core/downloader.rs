@@ -2,7 +2,6 @@ use tauri::{AppHandle, State, Emitter};
 use tauri_plugin_dialog::DialogExt;
 use std::process::{Command, Stdio, Child, ChildStdin};
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::io::{Write, BufReader, BufRead};
 use std::path::PathBuf;
 use std::thread;
@@ -11,8 +10,6 @@ use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use directories::BaseDirs;
 use crate::system::config::ConfigManager;
-
-static TASK_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Serialize)]
 pub struct BridgeCommand {
@@ -128,6 +125,7 @@ pub struct DownloadOptions {
     download_subs: bool,
     download_chat: bool,
     subs_code: String,
+    client_task_id: Option<String>,
 }
 
 #[tauri::command]
@@ -186,9 +184,8 @@ fn generate_task_id() -> String {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_micros();
-    let seq = TASK_COUNTER.fetch_add(1, Ordering::Relaxed);
-    format!("task_{}_{}", now, seq)
+        .as_millis();
+    now.to_string()
 }
 
 #[tauri::command]
@@ -201,7 +198,12 @@ pub fn start_download(
 
     println!("Received download request: {:?}", options);
 
-    let task_id = generate_task_id();
+    let task_id = options
+        .client_task_id
+        .as_ref()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(generate_task_id);
     let config = config_mgr.config.lock().unwrap();
 
     let mut args: Vec<String> = Vec::new();

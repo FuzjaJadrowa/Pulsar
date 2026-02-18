@@ -1,0 +1,138 @@
+{
+  "common": {
+    "error": "Error",
+    "success": "Success",
+    "info": "Info",
+    "unknownTitle": "Unknown title",
+    "unknownChannel": "Unknown channel",
+    "pageLabel": "Page {current}/{total}",
+    "eta": "ETA"
+  },
+  "connection": {
+    "noInternet": "No internet connection. Some app features may be unavailable.",
+    "lost": "Internet connection lost.",
+    "restored": "Internet connection restored."
+  },
+  "index": {
+    "splash": {
+      "starting": "Starting...",
+      "skipUpdate": "Skip Update"
+    },
+    "nav": {
+      "downloader": "Downloader",
+      "settings": "Settings",
+      "queue": "Queue"
+    }
+  },
+  "downloader": {
+    "search": {
+      "urlPlaceholder": "Paste YouTube link here...",
+      "pasteTitle": "Paste from clipboard"
+    },
+    "meta": {
+      "defaultAuthor": "Channel Name"
+    },
+    "path": {
+      "placeholder": "No save path selected...",
+      "browseTitle": "Browse folder"
+    },
+    "mode": {
+      "video": "VIDEO",
+      "audio": "AUDIO"
+    },
+    "options": {
+      "format": "FORMAT",
+      "quality": "QUALITY",
+      "thumbnail": "THUMBNAIL",
+      "preview": "PREVIEW",
+      "other": "OTHER",
+      "geoBypass": "Geo bypass",
+      "embedTags": "Embed tags",
+      "subtitles": "SUBTITLES",
+      "downloadSubtitles": "Download subtitles",
+      "downloadLiveChat": "Download live chat",
+      "codeOptional": "Code (optional)"
+    },
+    "thumbnail": {
+      "none": "None",
+      "saveToFile": "Save to file",
+      "embedInVideo": "Embed in video",
+      "alt": "Thumbnail",
+      "noPreview": "NO PREVIEW",
+      "saveFailed": "Failed to save thumbnail. Check console for details."
+    },
+    "actions": {
+      "download": "DOWNLOAD",
+      "addToQueue": "ADD TO QUEUE"
+    },
+    "errors": {
+      "invalidLink": "Invalid link.",
+      "startPrefix": "Error: {error}"
+    },
+    "languages": {
+      "global": "Global"
+    }
+  },
+  "queue": {
+    "title": "Queue",
+    "actions": {
+      "startAll": "Start all",
+      "stopAll": "Stop all",
+      "clearQueue": "Clear queue"
+    },
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page",
+      "label": "Page 1/1"
+    },
+    "empty": "Queue is empty.",
+    "itemActions": {
+      "start": "Start",
+      "stop": "Stop",
+      "remove": "Remove",
+      "retry": "Retry",
+      "openLocation": "Open location"
+    },
+    "subtitles": {
+      "label": "Subtitles",
+      "on": "ON",
+      "off": "OFF"
+    },
+    "notifications": {
+      "downloadCompleted": "Download completed successfully.",
+      "queueCompleted": "Queue downloads completed successfully.",
+      "downloadFailed": "Download failed.{suffix}",
+      "errorSuffix": " Error code: {code}",
+      "downloadStopped": "Download stopped by user."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "theme": "Theme",
+    "themeOptions": {
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "language": "Language",
+    "languageOptions": {
+      "english": "English"
+    },
+    "closeBehavior": "When I close Pulsar:",
+    "closeBehaviorOptions": {
+      "hide": "Hide",
+      "exit": "Exit"
+    },
+    "requirements": "Requirements",
+    "autoUpdateApp": "Auto-update Pulsar",
+    "autoUpdateYtdlp": "Auto-update yt-dlp",
+    "autoUpdateFfmpeg": "Auto-update FFmpeg",
+    "updateCooldown": "Update check cooldown (minutes)",
+    "downloadSettings": "Download settings",
+    "cookiesFromBrowser": "Cookies from browser",
+    "support": "Support",
+    "supportText": "Show your support!",
+    "supportButton": "Support Project"
+  }
+}

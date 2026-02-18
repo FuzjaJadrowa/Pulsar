@@ -1,11 +1,8 @@
 use serde::Serialize;
-use std::sync::atomic::{AtomicU64, Ordering};
 use tauri::{AppHandle, State};
 
 use crate::core::downloader::BridgeState;
 use crate::system::config::ConfigManager;
-
-static METADATA_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Serialize)]
 struct BridgeCommand {
@@ -26,12 +23,11 @@ pub fn fetch_metadata(
         return Err("URL cannot be empty".to_string());
     }
 
-    let now = std::time::SystemTime::now()
+    let task_id = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|e| e.to_string())?
-        .as_micros();
-    let seq = METADATA_COUNTER.fetch_add(1, Ordering::Relaxed);
-    let task_id = format!("task_{}_{}", now, seq);
+        .as_millis()
+        .to_string();
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();

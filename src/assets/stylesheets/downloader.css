@@ -58,12 +58,12 @@ body.mode-audio .app-background::after { opacity: 1; }
 }
 .search-box-row:focus-within { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 25px rgba(138, 43, 226, 0.2); }
 #url-input { flex-grow: 1; border: none; background: transparent; color: white; padding: 0 20px; font-size: 1rem; outline: none; }
-#paste-btn {
-    width: 52px; border: none; background: rgba(255,255,255,0.05);
-    border-left: 1px solid rgba(255,255,255,0.1); color: var(--c-text-dim);
-    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+#paste-icon {
+    width: 44px; color: var(--c-text-dim);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s;
 }
-#paste-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+#paste-icon:hover { color: white; }
+#paste-icon.paste-pop { transform: scale(1.08); }
 #fetch-btn { width: 60px; border: none; background: rgba(255,255,255,0.05); border-left: 1px solid rgba(255,255,255,0.1); color: var(--c-text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
 #fetch-btn:hover { background: rgba(255,255,255,0.15); color: white; }
 #fetch-btn.loading svg {

@@ -19,10 +19,10 @@
             <div class="spinner"></div>
         </div>
 
-        <h2 id="splash-status">Starting...</h2>
+        <h2 id="splash-status" data-i18n="index.splash.starting">Starting...</h2>
         <p id="splash-progress"></p>
 
-        <button id="splash-skip-btn" class="skip-btn" style="display: none;">
+        <button id="splash-skip-btn" class="skip-btn" style="display: none;" data-i18n="index.splash.skipUpdate">
             Skip Update
         </button>
     </div>
@@ -39,7 +39,7 @@
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        <span>Downloader</span>
+        <span data-i18n="index.nav.downloader">Downloader</span>
     </button>
 
     <div style="flex-grow: 1;"></div>
@@ -49,7 +49,7 @@
             <circle cx="12" cy="12" r="3" fill="none"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 9.93 3.1V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
-        <span>Settings</span>
+        <span data-i18n="index.nav.settings">Settings</span>
     </button>
 
     <button class="nav-btn expandable" onclick="toggleQueue()" id="btn-queue">
@@ -61,7 +61,7 @@
             <circle cx="4" cy="12" r="1"></circle>
             <circle cx="4" cy="18" r="1"></circle>
         </svg>
-        <span>Queue</span>
+        <span data-i18n="index.nav.queue">Queue</span>
     </button>
 
     <div class="window-controls">
@@ -75,6 +75,7 @@
 
 <div id="queue-panel" style="display: none;"></div>
 
+<script src="assets/scripts/i18n.js"></script>
 <script src="assets/scripts/notifications.js"></script>
 <script src="assets/scripts/queue.js"></script>
 <script src="assets/scripts/main.js"></script>

@@ -6,13 +6,25 @@
     const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'];
     const audioFormats = ['MP3', 'M4A', 'ACC', 'OPUS', 'WAV', 'OGG'];
     const audioQualities = ['320kbps', '256kbps', '192kbps', '128kbps', '96kbps'];
+    const t = (key, fallback = '', params = null) => {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key, fallback, params);
+        }
+        if (params && typeof fallback === 'string') {
+            return fallback.replace(/\{(\w+)\}/g, (_, token) => {
+                if (Object.prototype.hasOwnProperty.call(params, token)) return String(params[token]);
+                return `{${token}}`;
+            });
+        }
+        return fallback || key;
+    };
 
     const body = document.body;
     const searchSection = document.getElementById('search-section');
     const dashboard = document.getElementById('dashboard-section');
     const urlInput = document.getElementById('url-input');
     const fetchBtn = document.getElementById('fetch-btn');
-    const pasteBtn = document.getElementById('paste-btn');
+    const pasteIcon = document.getElementById('paste-icon');
 
     const downloadBtn = document.getElementById('download-btn');
     const queueBtn = document.getElementById('queue-btn');
@@ -120,7 +132,7 @@
                     setTimeout(() => btn.style.color = '', 1000);
                 } catch (e) {
                     console.error("Thumbnail save failed:", e);
-                    alert("Failed to save thumbnail. Check console for details.");
+                    alert(t('downloader.thumbnail.saveFailed', 'Failed to save thumbnail. Check console for details.'));
                 }
                 return;
             }
@@ -168,7 +180,7 @@
     }
 
     function currentMetaSnapshot() {
-        const title = state.currentTitle || document.getElementById('meta-title')?.innerText || 'Unknown title';
+        const title = state.currentTitle || document.getElementById('meta-title')?.innerText || t('common.unknownTitle', 'Unknown title');
         return {
             title,
             thumbnail: state.currentThumbnail || ''
@@ -206,13 +218,17 @@
 
         } catch (error) {
             console.error("Error starting download:", error);
-            alert("Error: " + error);
+            alert(t('downloader.errors.startPrefix', 'Error: {error}', { error: String(error) }));
         }
     };
 
-    if (pasteBtn) {
-        pasteBtn.onclick = async () => {
+    if (pasteIcon) {
+        pasteIcon.onclick = async () => {
             try {
+                pasteIcon.classList.remove('paste-pop');
+                void pasteIcon.offsetWidth;
+                pasteIcon.classList.add('paste-pop');
+                setTimeout(() => pasteIcon.classList.remove('paste-pop'), 140);
                 let text = '';
                 if (navigator.clipboard && navigator.clipboard.readText) {
                     text = await navigator.clipboard.readText();
@@ -281,14 +297,14 @@
         let countryName = region;
 
         try {
-            const langDisplay = new Intl.DisplayNames(['en'], { type: 'language' });
+            const langDisplay = new Intl.DisplayNames([window.i18n?.locale || 'en'], { type: 'language' });
             const langResolved = langDisplay.of(language);
             if (langResolved) languageName = langResolved;
         } catch (_) {}
 
         if (region) {
             try {
-                const regionDisplay = new Intl.DisplayNames(['en'], { type: 'region' });
+                const regionDisplay = new Intl.DisplayNames([window.i18n?.locale || 'en'], { type: 'region' });
                 const regionResolved = regionDisplay.of(region);
                 if (regionResolved) countryName = regionResolved;
             } catch (_) {}
@@ -296,12 +312,12 @@
 
         const flag = region
             ? String.fromCodePoint(...region.split('').map((c) => 127397 + c.charCodeAt(0)))
-            : '🌐';
+            : 'GLB';
 
         return {
             code: cleanCode,
             languageName,
-            countryName: countryName || 'Global',
+            countryName: countryName || t('downloader.languages.global', 'Global'),
             flag
         };
     }
@@ -324,7 +340,7 @@
         matches.slice(0, 8).forEach((entry) => {
             const item = document.createElement('div');
             item.className = 'lang-suggestion-item';
-            item.innerText = `${entry.flag} ${entry.countryName} • ${entry.languageName} • ${entry.code}`;
+            item.innerText = `${entry.flag} ${entry.countryName} - ${entry.languageName} - ${entry.code}`;
             item.onclick = () => {
                 subsLangInput.value = entry.code;
                 subsLangSuggestions.classList.add('hidden');
@@ -390,8 +406,8 @@
             liveChatToggle.checked = false;
         }
 
-        const title = data.title || 'Unknown title';
-        const author = data.channel || data.uploader || 'Unknown channel';
+        const title = data.title || t('common.unknownTitle', 'Unknown title');
+        const author = data.channel || data.uploader || t('common.unknownChannel', 'Unknown channel');
         const duration = data.duration_string || formatTime(state.duration);
 
         document.getElementById('meta-title').innerText = title;
@@ -402,9 +418,9 @@
         state.currentThumbnail = data.thumbnail || '';
 
         if (data.thumbnail) {
-            thumbPreview.innerHTML = `<img src="${data.thumbnail}" alt="Thumbnail">`;
+            thumbPreview.innerHTML = `<img src="${data.thumbnail}" alt="${t('downloader.thumbnail.alt', 'Thumbnail')}">`;
         } else {
-            thumbPreview.innerHTML = '<span class="placeholder">NO PREVIEW</span>';
+            thumbPreview.innerHTML = `<span class="placeholder">${t('downloader.thumbnail.noPreview', 'NO PREVIEW')}</span>`;
         }
 
         timeStartDisplay.value = '00:00:00';
@@ -455,6 +471,14 @@
             state.metadataTaskId = null;
             setFetchLoading(false);
             console.error('Metadata task failed:', payload.error || 'Unknown error');
+            if (window.notifier) {
+                window.notifier.show(
+                    t('common.error', 'Error'),
+                    t('downloader.errors.invalidLink', 'Invalid link.'),
+                    'error',
+                    false
+                );
+            }
             return;
         }
 
