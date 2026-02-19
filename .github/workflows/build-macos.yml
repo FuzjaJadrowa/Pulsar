@@ -47,7 +47,13 @@ jobs:
           os="MacOS"
 
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
+          if ls src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.sig 1> /dev/null 2>&1; then
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg.sig "Pulsar-MacOS.sig"
+          echo "ASSET_SIG=Pulsar-MacOS.sig" >> $GITHUB_ENV
+          else
+          echo "No signature found, skipping..."
+          echo "ASSET_SIG=" >> $GITHUB_ENV
+          fi
 
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
           ditto -c -k --sequesterRsrc --keepParent "Pulsar.app" ../../../../../../Pulsar-$ver-$os.zip
