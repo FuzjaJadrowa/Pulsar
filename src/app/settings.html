@@ -1,4 +1,4 @@
-<div class="settings-page" style="padding: 20px 40px; padding-bottom: 40px; overflow-y: auto;">
+<div class="page-root page-scroll settings-page">
 
   <div class="settings-page-header">
     <span class="settings-page-title" data-i18n="settings.title">Settings</span>
@@ -7,7 +7,7 @@
   <section class="settings-section-card">
     <div class="settings-section-title" data-i18n="settings.general">General</div>
 
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.theme">Theme</span>
       <select id="theme" class="custom-select" style="width: 150px;">
         <option value="System" data-i18n="settings.themeOptions.system">System</option>
@@ -16,7 +16,7 @@
       </select>
     </div>
 
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.language">Language</span>
       <select id="language" class="custom-select" style="width: 150px;">
         <option value="English" data-i18n="settings.languageOptions.english">English</option>
@@ -35,19 +35,19 @@
   <section class="settings-section-card">
     <div class="settings-section-title" data-i18n="settings.requirements">Requirements</div>
 
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.autoUpdateApp">Auto-update Pulsar</span>
       <label class="switch"><input id="update_app" type="checkbox"><span class="slider"></span></label>
     </div>
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.autoUpdateYtdlp">Auto-update yt-dlp</span>
       <label class="switch"><input id="update_ytdlp" type="checkbox"><span class="slider"></span></label>
     </div>
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.autoUpdateFfmpeg">Auto-update FFmpeg</span>
       <label class="switch"><input id="update_ffmpeg" type="checkbox"><span class="slider"></span></label>
     </div>
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.updateCooldown">Update check cooldown (minutes)</span>
       <input id="update_app_cooldown_minutes" class="custom-input" type="number" min="10" step="1" style="width: 120px;">
     </div>
@@ -56,7 +56,7 @@
   <section class="settings-section-card">
     <div class="settings-section-title" data-i18n="settings.downloadSettings">Download settings</div>
 
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.cookiesFromBrowser">Cookies from browser</span>
       <select id="cookies_browser" class="custom-select" style="width: 150px;">
         <option value="None">None</option>
@@ -76,7 +76,7 @@
   <section class="settings-section-card">
     <div class="settings-section-title" data-i18n="settings.support">Support</div>
 
-    <div class="settings-item-row">
+    <div class="form-row">
       <span data-i18n="settings.supportText">Show your support!</span>
       <button id="support-btn" class="anim-btn" style="background: #E91E63; color: white; padding: 10px 20px;">
         <span data-i18n="settings.supportButton">Support Project</span>

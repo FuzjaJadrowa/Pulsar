@@ -1,150 +1,138 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pulsar</title>
-  <link rel="stylesheet" href="assets/stylesheets/downloader.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-</head>
-<body class="mode-zen">
+<div class="page-root downloader-page">
 
-<div class="app-background"></div>
+  <div class="page-scroll downloader-scroll">
 
-<div class="main-container">
-
-  <div id="search-section" class="search-section centered">
-    <div class="search-box-row">
-      <input type="text" id="url-input" placeholder="Paste YouTube link here..." data-i18n-placeholder="downloader.search.urlPlaceholder" autocomplete="off">
-      <span id="paste-icon" class="paste-icon" title="Paste from clipboard" data-i18n-title="downloader.search.pasteTitle" role="button" tabindex="0">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="3" width="6" height="4" rx="1"></rect>
-          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
-        </svg>
-      </span>
-      <button id="fetch-btn">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <div id="dashboard-section" class="dashboard-section hidden">
-
-    <div class="meta-info fade-in">
-      <h2 id="meta-title">...</h2>
-      <p><span id="meta-author" data-i18n="downloader.meta.defaultAuthor">Channel Name</span> - <span id="meta-duration">00:00</span></p>
-    </div>
-
-    <div class="path-selector fade-in">
-      <input type="text" id="path-input" placeholder="No save path selected..." data-i18n-placeholder="downloader.path.placeholder" autocomplete="off">
-      <button id="browse-btn" class="small-btn" title="Browse Folder" data-i18n-title="downloader.path.browseTitle">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-      </button>
-    </div>
-
-    <div class="mode-switcher fade-in">
-      <div class="switch-option active" data-mode="video" id="mode-video">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
-        <span data-i18n="downloader.mode.video">VIDEO</span>
-      </div>
-      <div class="switch-option" data-mode="audio" id="mode-audio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-        <span data-i18n="downloader.mode.audio">AUDIO</span>
+    <div id="search-section" class="search-section centered">
+      <div class="search-box-row">
+        <input type="text" id="url-input" placeholder="Paste YouTube link here..." data-i18n-placeholder="downloader.search.urlPlaceholder" autocomplete="off">
+        <span id="paste-icon" class="paste-icon" title="Paste from clipboard" data-i18n-title="downloader.search.pasteTitle" role="button" tabindex="0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="3" width="6" height="4" rx="1"></rect>
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
+          </svg>
+        </span>
+        <button id="fetch-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div id="options-wrapper" class="content-transition">
-      <div class="options-grid fade-in">
-        <div class="grid-column">
-          <label data-i18n="downloader.options.format">FORMAT</label>
-          <div class="tiles-container" id="format-list"></div>
+    <div id="dashboard-section" class="dashboard-section hidden">
+
+      <div class="meta-info fade-in">
+        <h2 id="meta-title">...</h2>
+        <p><span id="meta-author" data-i18n="downloader.meta.defaultAuthor">Channel Name</span> - <span id="meta-duration">00:00</span></p>
+      </div>
+
+      <div class="path-selector fade-in">
+        <input type="text" id="path-input" placeholder="No save path selected..." data-i18n-placeholder="downloader.path.placeholder" autocomplete="off">
+        <button id="browse-btn" class="small-btn" title="Browse Folder" data-i18n-title="downloader.path.browseTitle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+      </div>
+
+      <div class="mode-switcher fade-in">
+        <div class="switch-option active" data-mode="video" id="mode-video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          <span data-i18n="downloader.mode.video">VIDEO</span>
         </div>
-        <div class="grid-column">
-          <label data-i18n="downloader.options.quality">QUALITY</label>
-          <div class="tiles-container" id="quality-list"></div>
+        <div class="switch-option" data-mode="audio" id="mode-audio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          <span data-i18n="downloader.mode.audio">AUDIO</span>
         </div>
       </div>
+
+      <div id="options-wrapper" class="content-transition">
+        <div class="options-grid fade-in">
+          <div class="grid-column">
+            <label data-i18n="downloader.options.format">FORMAT</label>
+            <div class="tiles-container" id="format-list"></div>
+          </div>
+          <div class="grid-column">
+            <label data-i18n="downloader.options.quality">QUALITY</label>
+            <div class="tiles-container" id="quality-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-section fade-in">
+        <div class="time-inputs">
+          <input type="text" class="time-box" id="time-start" value="00:00:00">
+          <div class="slider-track-container">
+            <div class="track-bg"></div>
+            <div class="track-fill" id="range-fill"></div>
+            <input type="range" id="range-start" min="0" max="100" value="0">
+            <input type="range" id="range-end" min="0" max="100" value="100">
+          </div>
+          <input type="text" class="time-box" id="time-end" value="00:05:30">
+        </div>
+      </div>
+
+      <div class="extras-section fade-in">
+
+        <div class="thumb-container">
+          <span class="option-label" data-i18n="downloader.options.thumbnail">THUMBNAIL</span>
+          <div class="thumb-preview">
+            <span class="placeholder" data-i18n="downloader.options.preview">PREVIEW</span>
+          </div>
+          <div class="thumb-actions">
+            <button class="icon-btn-small active" data-thumb="none" title="None" data-i18n-title="downloader.thumbnail.none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            </button>
+            <button class="icon-btn-small" data-thumb="download" title="Save to File" data-i18n-title="downloader.thumbnail.saveToFile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+            <button class="icon-btn-small" data-thumb="embed" title="Embed in Video" data-i18n-title="downloader.thumbnail.embedInVideo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <span class="option-label" data-i18n="downloader.options.other">OTHER</span>
+          <div class="form-row">
+            <input type="checkbox" id="geo-toggle" class="toggle-switch">
+            <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.geoBypass">Geo bypass</span>
+          </div>
+          <div class="form-row">
+            <input type="checkbox" id="tags-toggle" class="toggle-switch">
+            <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.embedTags">Embed tags</span>
+          </div>
+        </div>
+
+        <div class="option-group subtitles-group" style="align-items: flex-end;">
+          <span class="option-label" data-i18n="downloader.options.subtitles">SUBTITLES</span>
+          <div class="form-row subtitles-row">
+            <span class="toggle-text" data-i18n="downloader.options.downloadSubtitles">Download subtitles</span>
+            <input type="checkbox" id="subs-toggle" class="toggle-switch">
+          </div>
+          <div class="form-row live-chat-row hidden" id="live-chat-row">
+            <span class="toggle-text" data-i18n="downloader.options.downloadLiveChat">Download live chat</span>
+            <input type="checkbox" id="chat-toggle" class="toggle-switch">
+          </div>
+          <div id="lang-wrapper" class="lang-input-wrapper">
+            <input type="text" class="lang-input" placeholder="Code (optional)" data-i18n-placeholder="downloader.options.codeOptional" id="subs-lang" autocomplete="off">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="action-footer fade-in">
+        <button id="download-btn" class="big-action-btn" disabled>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span data-i18n="downloader.actions.download">DOWNLOAD</span>
+        </button>
+        <button id="queue-btn" class="big-action-btn" disabled>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span data-i18n="downloader.actions.addToQueue">ADD TO QUEUE</span>
+        </button>
+      </div>
+
     </div>
-
-    <div class="timeline-section fade-in">
-      <div class="time-inputs">
-        <input type="text" class="time-box" id="time-start" value="00:00:00">
-        <div class="slider-track-container">
-          <div class="track-bg"></div>
-          <div class="track-fill" id="range-fill"></div>
-          <input type="range" id="range-start" min="0" max="100" value="0">
-          <input type="range" id="range-end" min="0" max="100" value="100">
-        </div>
-        <input type="text" class="time-box" id="time-end" value="00:05:30">
-      </div>
-    </div>
-
-    <div class="extras-section fade-in">
-
-      <div class="thumb-container">
-        <span class="option-label" data-i18n="downloader.options.thumbnail">THUMBNAIL</span>
-        <div class="thumb-preview">
-          <span class="placeholder" data-i18n="downloader.options.preview">PREVIEW</span>
-        </div>
-        <div class="thumb-actions">
-          <button class="icon-btn-small active" data-thumb="none" title="None" data-i18n-title="downloader.thumbnail.none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-          </button>
-          <button class="icon-btn-small" data-thumb="download" title="Save to File" data-i18n-title="downloader.thumbnail.saveToFile">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <button class="icon-btn-small" data-thumb="embed" title="Embed in Video" data-i18n-title="downloader.thumbnail.embedInVideo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="option-group">
-        <span class="option-label" data-i18n="downloader.options.other">OTHER</span>
-        <div class="toggle-row">
-          <input type="checkbox" id="geo-toggle" class="toggle-switch">
-          <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.geoBypass">Geo bypass</span>
-        </div>
-        <div class="toggle-row">
-          <input type="checkbox" id="tags-toggle" class="toggle-switch">
-          <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.embedTags">Embed tags</span>
-        </div>
-      </div>
-
-      <div class="option-group subtitles-group" style="align-items: flex-end;">
-        <span class="option-label" data-i18n="downloader.options.subtitles">SUBTITLES</span>
-        <div class="toggle-row subtitles-row">
-          <span class="toggle-text" data-i18n="downloader.options.downloadSubtitles">Download subtitles</span>
-          <input type="checkbox" id="subs-toggle" class="toggle-switch">
-        </div>
-        <div class="toggle-row live-chat-row hidden" id="live-chat-row">
-          <span class="toggle-text" data-i18n="downloader.options.downloadLiveChat">Download live chat</span>
-          <input type="checkbox" id="chat-toggle" class="toggle-switch">
-        </div>
-        <div id="lang-wrapper" class="lang-input-wrapper">
-          <input type="text" class="lang-input" placeholder="Code (optional)" data-i18n-placeholder="downloader.options.codeOptional" id="subs-lang" autocomplete="off">
-        </div>
-      </div>
-
-    </div>
-
-    <div class="action-footer fade-in">
-      <button id="download-btn" class="big-action-btn" disabled>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        <span data-i18n="downloader.actions.download">DOWNLOAD</span>
-      </button>
-      <button id="queue-btn" class="big-action-btn" disabled>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span data-i18n="downloader.actions.addToQueue">ADD TO QUEUE</span>
-      </button>
-    </div>
-
   </div>
 </div>
 
 <script src="assets/scripts/downloader.js"></script>
-</body>
-</html>

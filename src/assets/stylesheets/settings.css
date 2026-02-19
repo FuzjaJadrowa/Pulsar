@@ -1,21 +1,7 @@
-.settings-page {
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-    position: relative;
-    scrollbar-width: none;
-}
 .full-height-layout {
     display: flex;
     flex-direction: column;
     height: 100%;
-}
-.scroll-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 40px;
-    padding-bottom: 20px;
 }
 .slide-in-right {
     animation: slideInRight 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
@@ -63,14 +49,13 @@
     letter-spacing: 1px;
     font-weight: 600;
 }
-.settings-item-row {
+.settings-section-card .form-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 14px;
-    min-height: 40px;
 }
-.settings-item-row:last-child {
+.settings-section-card .form-row:last-child {
     margin-bottom: 0;
 }
 
@@ -193,3 +178,63 @@ select.custom-select { display: none; }
 .select-item { padding: 10px; color: #ccc; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.02); }
 .select-item:hover { background-color: var(--accent-color); color: white; }
 .select-item.selected { background-color: rgba(138, 43, 226, 0.2); color: white; font-weight: bold; }
+
+body.theme-light .settings-section-card {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+body.theme-light .settings-section-title {
+    color: rgba(29, 35, 48, 0.6);
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+body.theme-light .settings-inline-label {
+    color: #2b2f3a;
+}
+
+body.theme-light .anim-btn {
+    color: #1d2330;
+}
+
+body.theme-light .slider {
+    background-color: #cfd6e0;
+}
+body.theme-light input:checked + .slider {
+    background-color: #8a2be2;
+}
+
+body.theme-light .custom-input,
+body.theme-light .custom-select {
+    background: #f4f6fa;
+    border-color: #cfd6e0;
+    color: #1d2330;
+}
+
+body.theme-light .custom-radio input {
+    background-color: #f3f5f8;
+    border-color: #cfd6e0;
+}
+
+body.theme-light .select-head {
+    background: #f4f6fa;
+    border-color: #cfd6e0;
+    color: #1d2330;
+}
+body.theme-light .select-head::after {
+    border-top-color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .select-list {
+    background: #ffffff;
+    border-color: #cfd6e0;
+}
+body.theme-light .select-item {
+    color: #2b2f3a;
+    border-top-color: rgba(0, 0, 0, 0.04);
+}
+body.theme-light .select-item:hover {
+    background-color: rgba(76, 111, 255, 0.12);
+    color: #1d2330;
+}
+body.theme-light .select-item.selected {
+    background-color: rgba(76, 111, 255, 0.2);
+    color: #1d2330;
+}

@@ -55,6 +55,10 @@
         const radio = document.querySelector('input[name="close_behavior"]:checked');
         config['close_behavior'] = radio ? radio.value : 'hide';
 
+        if (window.applyTheme && config.theme) {
+            window.applyTheme(config.theme);
+        }
+
         console.log("Saving config:", config);
         await invoke('save_config', { newConfig: config });
     }
@@ -81,6 +85,10 @@
             if (config['close_behavior']) {
                 const radio = document.querySelector(`input[name="close_behavior"][value="${config['close_behavior']}"]`);
                 if (radio) radio.checked = true;
+            }
+
+            if (window.applyTheme && config.theme) {
+                window.applyTheme(config.theme, { animate: false });
             }
 
             setupListeners();
