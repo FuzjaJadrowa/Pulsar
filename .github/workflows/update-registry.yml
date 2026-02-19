@@ -5,6 +5,8 @@ on:
     workflows: ["Build Linux", "Build macOS", "Build Windows"]
     types:
       - completed
+permissions:
+  contents: write
 
 jobs:
   update-registry:
@@ -12,8 +14,6 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
