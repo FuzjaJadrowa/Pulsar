@@ -26,7 +26,7 @@
   },
   "downloader": {
     "search": {
-      "urlPlaceholder": "Paste YouTube link here...",
+      "urlPlaceholder": "Paste link here...",
       "pasteTitle": "Paste from clipboard"
     },
     "meta": {

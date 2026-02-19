@@ -11,6 +11,7 @@
     "core:window:allow-toggle-maximize",
     "core:event:allow-listen",
     "opener:default",
+    "opener:allow-open-path",
     "updater:default",
     "dialog:default"
   ]

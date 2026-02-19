@@ -41,19 +41,21 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Rename Artifacts (Linux)
+      - name: Rename Artifacts and Extract Signature (Linux)
         shell: bash
         run: |
           ver="${{ env.VERSION }}"
           os="Linux"
 
           cp src-tauri/target/release/bundle/appimage/*.AppImage "Pulsar-$ver-$os.AppImage"
+          cp src-tauri/target/release/bundle/appimage/*.AppImage.sig "Pulsar-Linux.sig"
           cp src-tauri/target/release/bundle/deb/*.deb "Pulsar-$ver-$os.deb"
           tar -czvf "Pulsar-$ver-$os.tar.gz" -C src-tauri/target/release pulsar
 
           echo "ASSET_APPIMAGE=Pulsar-$ver-$os.AppImage" >> $GITHUB_ENV
           echo "ASSET_DEB=Pulsar-$ver-$os.deb" >> $GITHUB_ENV
           echo "ASSET_PORTABLE=Pulsar-$ver-$os.tar.gz" >> $GITHUB_ENV
+          echo "ASSET_SIG=Pulsar-Linux.sig" >> $GITHUB_ENV
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -64,6 +66,12 @@ jobs:
             ${{ env.ASSET_DEB }}
             ${{ env.ASSET_PORTABLE }}
 
+      - name: Upload Signature artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sig-linux
+          path: ${{ env.ASSET_SIG }}
+
       - name: Upload Release Assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
@@ -72,3 +80,4 @@ jobs:
             ${{ env.ASSET_APPIMAGE }}
             ${{ env.ASSET_DEB }}
             ${{ env.ASSET_PORTABLE }}
+            ${{ env.ASSET_SIG }}

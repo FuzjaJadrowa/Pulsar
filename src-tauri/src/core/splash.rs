@@ -207,7 +207,7 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
             }
         } else if name == "ffmpeg" {
             #[cfg(target_os = "windows")]
-            if asset_name.contains("win64-gpl") && asset_name.ends_with(".zip") { download_url = dl_link; break; }
+            if asset_name.contains("win64-gpl-shared") && asset_name.ends_with(".zip") { download_url = dl_link; break; }
         }
     }
 

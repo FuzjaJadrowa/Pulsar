@@ -27,7 +27,7 @@
 
     async function loadDictionary(locale) {
         const targetLocale = locale || 'en';
-        const response = await fetch(`assets/langs/${targetLocale}.json`, { cache: 'force-cache' });
+        const response = await fetch(`assets/langs/${targetLocale}.json`, { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`Failed to load language file: ${response.status}`);
         }

@@ -1,7 +1,8 @@
 use tauri::{AppHandle, State, Emitter};
 use tauri_plugin_dialog::DialogExt;
 use std::process::{Command, Stdio, Child, ChildStdin};
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
+use std::collections::HashMap;
 use std::io::{Write, BufReader, BufRead};
 use std::path::PathBuf;
 use std::thread;
@@ -21,6 +22,7 @@ pub struct BridgeCommand {
 pub struct BridgeState {
     process: Mutex<Option<Child>>,
     stdin: Mutex<Option<ChildStdin>>,
+    ffmpeg_ranges: Arc<Mutex<HashMap<String, FfmpegRange>>>,
 }
 
 impl BridgeState {
@@ -28,6 +30,7 @@ impl BridgeState {
         Self {
             process: Mutex::new(None),
             stdin: Mutex::new(None),
+            ffmpeg_ranges: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -58,13 +61,33 @@ impl BridgeState {
         let stderr = child.stderr.take().ok_or("Failed to open stderr")?;
 
         let app_handle_clone = app_handle.clone();
+        let ffmpeg_ranges = self.ffmpeg_ranges.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
                 match line {
                     Ok(l) => {
                         println!("[BRIDGE OUT]: {}", l);
-                        if let Ok(json_val) = serde_json::from_str::<Value>(&l) {
+                        if let Ok(mut json_val) = serde_json::from_str::<Value>(&l) {
+                            if json_val.get("type").and_then(|v| v.as_str()) == Some("progress_ffmpeg") {
+                                if let Some(id) = json_val.get("id").and_then(|v| v.as_str()) {
+                                    if let Some(total) = ffmpeg_ranges.lock().unwrap().get(id).map(|r| r.total_seconds) {
+                                        if let Some(elapsed) = extract_ffmpeg_elapsed_seconds(&json_val) {
+                                            if total > 0.0 {
+                                                let percent = (elapsed / total * 100.0).clamp(0.0, 100.0);
+                                                let eta_seconds = (total - elapsed).max(0.0);
+                                                json_val["percent"] = Value::from(percent);
+                                                json_val["eta_seconds"] = Value::from(eta_seconds);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if let Some(id) = json_val.get("id").and_then(|v| v.as_str()) {
+                                if is_terminal_event(&json_val) {
+                                    ffmpeg_ranges.lock().unwrap().remove(id);
+                                }
+                            }
                             let _ = app_handle_clone.emit("download-event", json_val);
                         }
                     }
@@ -105,6 +128,21 @@ impl BridgeState {
             Err("Bridge stdin not available".to_string())
         }
     }
+
+    pub fn set_ffmpeg_range(&self, task_id: String, total_seconds: f64) {
+        if total_seconds <= 0.0 {
+            return;
+        }
+        self.ffmpeg_ranges.lock().unwrap().insert(task_id, FfmpegRange { total_seconds });
+    }
+
+    pub fn clear_ffmpeg_range(&self, task_id: &str) {
+        self.ffmpeg_ranges.lock().unwrap().remove(task_id);
+    }
+}
+
+struct FfmpegRange {
+    total_seconds: f64,
 }
 
 #[derive(Deserialize, Debug)]
@@ -165,6 +203,12 @@ pub async fn save_thumbnail_to_disk(app_handle: AppHandle, url: String) -> Resul
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn read_clipboard_text() -> Result<String, String> {
+    let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
+    clipboard.get_text().map_err(|e| e.to_string())
 }
 
 fn extract_video_id(url: &str) -> Option<String> {
@@ -248,6 +292,12 @@ pub fn start_download(
     }
 
     if options.is_time_range_active {
+        if let (Some(start), Some(end)) = (parse_time_to_seconds(&options.start_time), parse_time_to_seconds(&options.end_time)) {
+            let total = (end - start).max(0.0);
+            if total > 0.0 {
+                state.set_ffmpeg_range(task_id.clone(), total);
+            }
+        }
         args.push("--download-sections".to_string());
         args.push(format!("*{}-{}", options.start_time, options.end_time));
         args.push("--force-keyframes-at-cuts".to_string());
@@ -308,13 +358,58 @@ pub fn cancel_download(app_handle: AppHandle, state: State<BridgeState>, task_id
         return Err("Task ID cannot be empty.".to_string());
     }
 
+    let trimmed = task_id.trim().to_string();
     let cmd = BridgeCommand {
         command: "cancel".to_string(),
-        id: task_id,
+        id: trimmed.clone(),
         args: Vec::new(),
     };
 
-    state.send_command(&app_handle, cmd)
+    let result = state.send_command(&app_handle, cmd);
+    state.clear_ffmpeg_range(trimmed.as_str());
+    result
+}
+
+#[tauri::command]
+pub fn open_in_file_manager(path: String) -> Result<(), String> {
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return Err("Path cannot be empty.".to_string());
+    }
+
+    let path_buf = PathBuf::from(trimmed);
+
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new("explorer");
+        if path_buf.is_file() {
+            let arg = format!("/select,{}", path_buf.to_string_lossy());
+            cmd.arg(arg);
+        } else {
+            cmd.arg(path_buf);
+        }
+        cmd.spawn().map_err(|e| e.to_string())?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let mut cmd = Command::new("open");
+        if path_buf.is_file() {
+            cmd.arg("-R").arg(path_buf);
+        } else {
+            cmd.arg(path_buf);
+        }
+        cmd.spawn().map_err(|e| e.to_string())?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let mut cmd = Command::new("xdg-open");
+        cmd.arg(path_buf);
+        cmd.spawn().map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
 }
 
 fn get_requirements_path() -> PathBuf {
@@ -322,4 +417,69 @@ fn get_requirements_path() -> PathBuf {
         return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
     }
     PathBuf::from("Requirements")
+}
+
+fn parse_time_to_seconds(input: &str) -> Option<f64> {
+    let parts: Vec<&str> = input.trim().split(':').collect();
+    if parts.is_empty() {
+        return None;
+    }
+    let mut total = 0.0;
+    for (idx, part) in parts.iter().rev().enumerate() {
+        let value = part.parse::<f64>().ok()?;
+        let factor = match idx {
+            0 => 1.0,
+            1 => 60.0,
+            2 => 3600.0,
+            _ => return None,
+        };
+        total += value * factor;
+    }
+    Some(total)
+}
+
+fn extract_ffmpeg_elapsed_seconds(payload: &Value) -> Option<f64> {
+    if let Some(t) = payload.get("time").and_then(|v| v.as_str()) {
+        return parse_time_to_seconds(t);
+    }
+    if let Some(t) = payload.get("out_time").and_then(|v| v.as_str()) {
+        return parse_time_to_seconds(t);
+    }
+    if let Some(v) = payload.get("out_time_ms") {
+        if let Some(n) = v.as_f64() {
+            return Some(n / 1000.0);
+        }
+        if let Some(s) = v.as_str() {
+            if let Ok(n) = s.parse::<f64>() {
+                return Some(n / 1000.0);
+            }
+        }
+    }
+    if let Some(v) = payload.get("out_time_us") {
+        if let Some(n) = v.as_f64() {
+            return Some(n / 1_000_000.0);
+        }
+        if let Some(s) = v.as_str() {
+            if let Ok(n) = s.parse::<f64>() {
+                return Some(n / 1_000_000.0);
+            }
+        }
+    }
+    None
+}
+
+fn is_terminal_event(payload: &Value) -> bool {
+    let type_val = payload.get("type").and_then(|v| v.as_str()).unwrap_or("");
+    if matches!(type_val, "finished" | "cancelled") {
+        return true;
+    }
+    let status = payload.get("status").and_then(|v| v.as_str()).unwrap_or("");
+    if matches!(status, "finished" | "success" | "error") {
+        return true;
+    }
+    let event = payload.get("event").and_then(|v| v.as_str()).unwrap_or("");
+    if matches!(event, "finished" | "success" | "error") {
+        return true;
+    }
+    payload.get("success").and_then(|v| v.as_bool()).is_some()
 }

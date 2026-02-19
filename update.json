@@ -1,11 +1,11 @@
 {
   "version": "2.1.1",
   "notes": "Latest stable build.",
-  "pub_date": "2026-02-16T12:00:00Z",
+  "pub_date": "2026-02-19T16:57:00Z",
   "platforms": {
     "windows-x86_64": {
       "signature": "",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-win64.exe"
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-win64.zip"
     },
     "linux-x86_64": {
       "signature": "",

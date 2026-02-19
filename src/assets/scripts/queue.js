@@ -525,11 +525,32 @@
         updateQueueBtn();
     }
 
-    function openLocation(id) {
+    async function openLocation(id) {
         const item = state.items.find((x) => x.id === id);
         if (!item || !item.path) return;
-        if (tauri.opener?.openPath) return tauri.opener.openPath(item.path);
-        if (tauri.opener?.revealItemInDir) tauri.opener.revealItemInDir(item.path);
+        if (invoke) {
+            try {
+                await invoke('open_in_file_manager', { path: String(item.path) });
+                return;
+            } catch (e) {
+                console.error('Open location via backend failed, falling back to opener:', e);
+            }
+        }
+        if (tauri.opener?.openPath) {
+            try {
+                await tauri.opener.openPath(item.path);
+                return;
+            } catch (e) {
+                console.error('Open path failed, falling back to reveal:', e);
+            }
+        }
+        if (tauri.opener?.revealItemInDir) {
+            try {
+                await tauri.opener.revealItemInDir(item.path);
+            } catch (e) {
+                console.error('Reveal item failed:', e);
+            }
+        }
     }
 
     function startAll() {

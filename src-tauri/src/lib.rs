@@ -4,6 +4,7 @@ mod system;
 use system::config::ConfigManager;
 use system::queue::QueueManager;
 use core::downloader::BridgeState;
+use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -18,6 +19,18 @@ pub fn run() {
         .manage(config_manager)
         .manage(queue_manager)
         .manage(bridge_state)
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                let config_state = window.state::<ConfigManager>();
+                let config = config_state.config.lock().unwrap();
+                let behavior = config.close_behavior.to_lowercase();
+
+                if behavior == "hide" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             system::get_config,
             system::save_config,
@@ -28,7 +41,9 @@ pub fn run() {
             core::downloader::start_download,
             core::downloader::cancel_download,
             core::downloader::pick_download_directory,
-            core::downloader::save_thumbnail_to_disk
+            core::downloader::save_thumbnail_to_disk,
+            core::downloader::read_clipboard_text,
+            core::downloader::open_in_file_manager
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

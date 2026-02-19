@@ -40,13 +40,14 @@ jobs:
         with:
           args: --target aarch64-apple-darwin
 
-      - name: Rename Artifacts (macOS)
+      - name: Rename Artifacts and Extract Signature (macOS)
         shell: bash
         run: |
           ver="${{ env.VERSION }}"
           os="MacOS"
 
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg.sig "Pulsar-MacOS.sig"
 
           cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
           ditto -c -k --sequesterRsrc --keepParent "Pulsar.app" ../../../../../../Pulsar-$ver-$os.zip
@@ -54,6 +55,7 @@ jobs:
 
           echo "ASSET_INSTALLER=Pulsar-$ver-$os.dmg" >> $GITHUB_ENV
           echo "ASSET_PORTABLE=Pulsar-$ver-$os.zip" >> $GITHUB_ENV
+          echo "ASSET_SIG=Pulsar-MacOS.sig" >> $GITHUB_ENV
 
       - name: Upload build artifacts (server)
         uses: actions/upload-artifact@v4
@@ -63,6 +65,12 @@ jobs:
             ${{ env.ASSET_INSTALLER }}
             ${{ env.ASSET_PORTABLE }}
 
+      - name: Upload Signature artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sig-macos
+          path: ${{ env.ASSET_SIG }}
+
       - name: Upload Release Assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
@@ -70,3 +78,4 @@ jobs:
           files: |
             ${{ env.ASSET_INSTALLER }}
             ${{ env.ASSET_PORTABLE }}
+            ${{ env.ASSET_SIG }}

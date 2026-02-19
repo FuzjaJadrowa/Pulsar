@@ -230,7 +230,9 @@
                 pasteIcon.classList.add('paste-pop');
                 setTimeout(() => pasteIcon.classList.remove('paste-pop'), 140);
                 let text = '';
-                if (navigator.clipboard && navigator.clipboard.readText) {
+                if (typeof invoke === 'function') {
+                    text = await invoke('read_clipboard_text');
+                } else if (navigator.clipboard && navigator.clipboard.readText) {
                     text = await navigator.clipboard.readText();
                 }
                 if (text) {
