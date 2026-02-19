@@ -1,6 +1,4 @@
 # <p align="center">2.1.1</p>
-
----
 ## Added
 * GUI text is now dynamically loaded from JSON files, paving the way for seamless multi-language support.
 * Added the ability to change the frequency (cooldown interval) for checking requirement updates (Bridge, FFmpeg) in the settings.
