@@ -82,4 +82,3 @@ jobs:
             ${{ env.ASSET_APPIMAGE }}
             ${{ env.ASSET_DEB }}
             ${{ env.ASSET_PORTABLE }}
-            ${{ env.ASSET_SIG }}

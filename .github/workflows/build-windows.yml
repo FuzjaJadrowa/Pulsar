@@ -80,4 +80,3 @@ jobs:
           files: |
             ${{ env.ASSET_INSTALLER }}
             ${{ env.ASSET_PORTABLE }}
-            ${{ env.ASSET_SIG }}

@@ -49,20 +49,11 @@ jobs:
           os="MacOS"
 
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Pulsar-$ver-$os.dmg"
-          if ls src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.sig 1> /dev/null 2>&1; then
-          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg.sig "Pulsar-MacOS.sig"
-          echo "ASSET_SIG=Pulsar-MacOS.sig" >> $GITHUB_ENV
-          else
-          echo "No signature found, skipping..."
-          echo "ASSET_SIG=" >> $GITHUB_ENV
-          fi
-
-          cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
-          ditto -c -k --sequesterRsrc --keepParent "Pulsar.app" ../../../../../../Pulsar-$ver-$os.zip
-          cd -
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz "Pulsar-$ver-$os.app.tar.gz"
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig "Pulsar-MacOS.sig"
 
           echo "ASSET_INSTALLER=Pulsar-$ver-$os.dmg" >> $GITHUB_ENV
-          echo "ASSET_PORTABLE=Pulsar-$ver-$os.zip" >> $GITHUB_ENV
+          echo "ASSET_UPDATER=Pulsar-$ver-$os.app.tar.gz" >> $GITHUB_ENV
           echo "ASSET_SIG=Pulsar-MacOS.sig" >> $GITHUB_ENV
 
       - name: Upload build artifacts (server)
@@ -71,7 +62,7 @@ jobs:
           name: macos-${{ github.ref_name }}
           path: |
             ${{ env.ASSET_INSTALLER }}
-            ${{ env.ASSET_PORTABLE }}
+            ${{ env.ASSET_UPDATER }}
 
       - name: Upload Signature artifact
         uses: actions/upload-artifact@v4
@@ -85,5 +76,4 @@ jobs:
         with:
           files: |
             ${{ env.ASSET_INSTALLER }}
-            ${{ env.ASSET_PORTABLE }}
-            ${{ env.ASSET_SIG }}
+            ${{ env.ASSET_UPDATER }}

@@ -457,7 +457,7 @@ window.setQueuePanelVisible = async function(visible) {
     }
 };
 
-/** document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     });
@@ -485,7 +485,9 @@ window.setQueuePanelVisible = async function(visible) {
             if (element.type === 'password') {
             element.setAttribute('autocomplete', 'new-password');
             } else {
-            element.setAttribute('name', Math.random().toString(36).substring(7));
+            if (element.type !== 'radio' && element.type !== 'checkbox' && !element.hasAttribute('name')) {
+                element.setAttribute('name', Math.random().toString(36).substring(7));
+            }
             }
         }
     };
@@ -503,4 +505,4 @@ window.setQueuePanelVisible = async function(visible) {
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
-}); **/
+});

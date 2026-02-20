@@ -5,7 +5,7 @@
   "platforms": {
     "windows-x86_64": {
       "signature": "",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-win64.zip"
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-win64.exe"
     },
     "linux-x86_64": {
       "signature": "",
@@ -13,7 +13,7 @@
     },
     "darwin-aarch64": {
       "signature": "",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-MacOS.dmg"
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-MacOS.app.tar.gz"
     }
   }
 }

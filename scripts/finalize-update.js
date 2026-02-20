@@ -29,7 +29,7 @@ Object.keys(sigFiles).forEach(platform => {
             const baseUrl = `https://github.com/FuzjaJadrowa/Pulsar/releases/download/v${version}`;
             const fileName = platform === 'windows-x86_64' ? `Pulsar-${version}-win64.exe` :
                 platform === 'linux-x86_64' ? `Pulsar-${version}-Linux.AppImage` :
-                    `Pulsar-${version}-MacOS.dmg`;
+                    `Pulsar-${version}-MacOS.app.tar.gz`;
             updateData.platforms[platform].url = `${baseUrl}/${fileName}`;
         }
     }
