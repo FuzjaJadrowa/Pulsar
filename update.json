@@ -1,10 +1,10 @@
 {
   "version": "2.1.1",
   "notes": "Latest stable build.",
-  "pub_date": "2026-02-20T09:59:59.925Z",
+  "pub_date": "2026-02-20T10:00:18.463Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDZzWGJ2QWg3VmNieHdiNjhmQ3VWNXRMbUtvOW1BZTV3aWQ3RGxTdERlazRqYkMyQk9rdnExYnZ3NGZYeHFsR1FPdk12cm5YNHJQRHMzUmdqT01jRmdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcxNTgxNTYyCWZpbGU6UHVsc2FyXzIuMS4xX3g2NC1zZXR1cC5leGUKc21iSDM5Z1dhWEtUdGlibktBdnY3ZThQKzBSRHRIa3B5QkUrZTlTL1JLWnhkOG9oZVVzRG44WWlQQzByVjVid3luVW5lUTBTVnVQYU5aL045djdYQkE9PQo=",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDJkWlI5VkxEV25pZ2EvYlZaKzhmM0RZWlZxSS8xUEg1ZkFUb0RUak00OWpDMzQ2VGlpdVZ0VHVYM3NXSW1rVVViYVREU213ZG9BMkxRRnJxdnlVb3c0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcxNTgxNTkyCWZpbGU6UHVsc2FyXzIuMS4xX3g2NC1zZXR1cC5leGUKU3NIRHpPaFkyaVhFNlpTTG44MkVlYTQ3UzJPb0lqSFp6RHJoaXUwai9tWTVQMnZsVmlSdlF3Y1VPanA5ZEhXMnE5TXJpbzVXWXpZSHNESTNmUVNhQ1E9PQo=",
       "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.1.1/Pulsar-2.1.1-win64.exe"
     },
     "linux-x86_64": {
