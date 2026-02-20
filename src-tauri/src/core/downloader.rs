@@ -171,6 +171,7 @@ pub struct DownloadOptions {
     download_subs: bool,
     download_chat: bool,
     subs_code: String,
+    custom_args: Option<Vec<String>>,
     client_task_id: Option<String>,
 }
 
@@ -344,6 +345,15 @@ pub fn start_download(
         if !code_input.is_empty() {
             args.push("--sub-lang".to_string());
             args.push(code_input.to_string());
+        }
+    }
+
+    if let Some(custom_args) = options.custom_args {
+        for arg in custom_args {
+            let trimmed = arg.trim();
+            if !trimmed.is_empty() {
+                args.push(trimmed.to_string());
+            }
         }
     }
 

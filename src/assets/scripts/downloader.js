@@ -50,6 +50,7 @@
     const langWrapper = document.getElementById('lang-wrapper');
     const subsLangInput = document.getElementById('subs-lang');
     const subsLangSuggestions = document.getElementById('subs-lang-suggestions');
+    const customArgsInput = document.getElementById('custom-args-input');
 
     const rangeStart = document.getElementById('range-start');
     const rangeEnd = document.getElementById('range-end');
@@ -69,8 +70,32 @@
         currentSuggestions: [],
         thumbnailAction: 'none',
         currentTitle: null,
-        currentThumbnail: null
+        currentThumbnail: null,
+        advancedMode: false
     };
+
+    function applyAdvancedMode(enabled) {
+        state.advancedMode = !!enabled;
+        if (document.body) {
+            document.body.classList.toggle('advanced-mode', state.advancedMode);
+        }
+    }
+
+    async function loadAdvancedMode() {
+        try {
+            const config = await invoke('get_config');
+            applyAdvancedMode(config?.advanced_mode);
+        } catch (error) {
+            console.error('Failed to load advanced mode:', error);
+        }
+    }
+
+    window.addEventListener('pulsar-config-updated', (event) => {
+        if (!event?.detail) return;
+        if (typeof event.detail.advanced_mode !== 'undefined') {
+            applyAdvancedMode(event.detail.advanced_mode);
+        }
+    });
 
     function triggerShakeFeedback(element) {
         if (!element) return;
@@ -151,10 +176,55 @@
         };
     });
 
+    function parseCustomArgs(input) {
+        const raw = String(input || '').trim();
+        if (!raw) return [];
+        const args = [];
+        let current = '';
+        let quote = null;
+        let escape = false;
+
+        for (let i = 0; i < raw.length; i += 1) {
+            const ch = raw[i];
+            if (escape) {
+                current += ch;
+                escape = false;
+                continue;
+            }
+            if (ch === '\\') {
+                escape = true;
+                continue;
+            }
+            if (quote) {
+                if (ch === quote) {
+                    quote = null;
+                } else {
+                    current += ch;
+                }
+                continue;
+            }
+            if (ch === '"' || ch === "'") {
+                quote = ch;
+                continue;
+            }
+            if (/\s/.test(ch)) {
+                if (current.length) {
+                    args.push(current);
+                    current = '';
+                }
+                continue;
+            }
+            current += ch;
+        }
+        if (current.length) args.push(current);
+        return args;
+    }
+
     function buildDownloadPayload() {
         const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
+        const customArgs = state.advancedMode && customArgsInput ? parseCustomArgs(customArgsInput.value) : [];
 
-        return {
+        const payload = {
             url: urlInput.value.trim(),
             path: pathInput.value.trim(),
             mode: state.mode,
@@ -177,6 +247,8 @@
             download_chat: liveChatToggle ? liveChatToggle.checked : false,
             subs_code: subsLangInput.value.trim()
         };
+        if (customArgs.length) payload.custom_args = customArgs;
+        return payload;
     }
 
     function currentMetaSnapshot() {
@@ -450,6 +522,7 @@
             state.subtitleOptions = [];
             state.currentTitle = null;
             state.currentThumbnail = null;
+            if (customArgsInput) customArgsInput.value = '';
             setFetchLoading(false);
             if (subsLangSuggestions) {
                 subsLangSuggestions.classList.add('hidden');
@@ -673,4 +746,5 @@
     }
 
     updateSlider();
+    loadAdvancedMode();
 })();

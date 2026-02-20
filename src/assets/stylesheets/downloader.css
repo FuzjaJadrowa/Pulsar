@@ -184,6 +184,22 @@ body.mode-audio .tile.active { color: #a9f5c6; }
 .option-group { display: flex; flex-direction: column; gap: 10px; }
 .option-label { font-size: 0.75rem; color: var(--c-text-dim); font-weight: bold; letter-spacing: 0.5px; }
 .extras-section .form-row { display: flex; align-items: center; gap: 15px; height: 40px; }
+.extras-section .form-row.advanced-only { display: none; }
+body.advanced-mode .extras-section .form-row.advanced-only { display: flex; }
+.custom-args-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #fff;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+.custom-args-input::placeholder { color: rgba(255,255,255,0.4); }
+.custom-args-input:focus { border-color: var(--active-color); background: rgba(0,0,0,0.55); }
 .toggle-switch {
     position: relative; width: 50px; height: 26px;
     appearance: none; background: #333; border-radius: 20px;
@@ -352,6 +368,12 @@ body.theme-light .toggle-switch:checked {
 }
 body.theme-light .toggle-switch:checked::after { background: #1d2330; }
 body.theme-light .toggle-text { color: rgba(29, 35, 48, 0.7); }
+body.theme-light .custom-args-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #1d2330;
+}
+body.theme-light .custom-args-input::placeholder { color: rgba(29, 35, 48, 0.4); }
 
 body.theme-light .lang-input {
     border-bottom-color: rgba(0, 0, 0, 0.2);

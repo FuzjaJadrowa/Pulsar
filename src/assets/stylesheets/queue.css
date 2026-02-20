@@ -331,6 +331,88 @@
     z-index: 2500;
 }
 
+.queue-console-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 12, 18, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 3200;
+}
+
+.queue-console-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.queue-console-modal {
+    width: min(920px, 90vw);
+    height: min(70vh, 720px);
+    background: rgba(12, 14, 18, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(14px) scale(0.98);
+    transition: transform 0.24s ease;
+}
+
+.queue-console-overlay.open .queue-console-modal {
+    transform: translateY(0) scale(1);
+}
+
+.queue-console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.queue-console-title {
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+}
+
+.queue-console-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.queue-console-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.queue-console-body {
+    flex: 1;
+    margin: 0;
+    padding: 14px 16px;
+    overflow: auto;
+    color: rgba(226, 232, 240, 0.9);
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+}
+
 .nav-btn.expandable.queue-pulse,
 .nav-btn.expandable.force-open {
     width: 94px !important;
@@ -416,4 +498,31 @@ body.theme-light .queue-page-btn {
 }
 body.theme-light .queue-page-btn:hover {
     background: rgba(0, 0, 0, 0.08);
+}
+
+body.theme-light .queue-console-overlay {
+    background: rgba(235, 240, 248, 0.75);
+}
+
+body.theme-light .queue-console-modal {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 18px 40px rgba(31, 44, 77, 0.2);
+}
+
+body.theme-light .queue-console-title {
+    color: #1d2330;
+}
+
+body.theme-light .queue-console-close {
+    color: #1d2330;
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.theme-light .queue-console-close:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+body.theme-light .queue-console-body {
+    color: #1f2937;
 }

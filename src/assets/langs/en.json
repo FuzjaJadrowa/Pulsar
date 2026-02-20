@@ -48,6 +48,8 @@
       "other": "OTHER",
       "geoBypass": "Geo bypass",
       "embedTags": "Embed tags",
+      "customArgs": "Custom args",
+      "customArgsPlaceholder": "Optional",
       "subtitles": "SUBTITLES",
       "downloadSubtitles": "Download subtitles",
       "downloadLiveChat": "Download live chat",
@@ -91,7 +93,12 @@
       "stop": "Stop",
       "remove": "Remove",
       "retry": "Retry",
-      "openLocation": "Open location"
+      "openLocation": "Open location",
+      "console": "Console"
+    },
+    "console": {
+      "title": "Console - {id}",
+      "empty": "No console output yet."
     },
     "subtitles": {
       "label": "Subtitles",
@@ -124,6 +131,8 @@
       "hide": "Hide",
       "exit": "Exit"
     },
+    "advancedMode": "Advanced mode",
+    "advancedModeNote": "Shows advanced options and console access.",
     "requirements": "Requirements",
     "autoUpdateApp": "Auto-update Pulsar",
     "autoUpdateYtdlp": "Auto-update yt-dlp",
@@ -131,6 +140,7 @@
     "updateCooldown": "Update check cooldown (minutes)",
     "downloadSettings": "Download settings",
     "cookiesFromBrowser": "Cookies from browser",
+    "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
     "support": "Support",
     "supportText": "Show your support!",

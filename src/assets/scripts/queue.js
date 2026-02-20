@@ -16,6 +16,7 @@
         clearAfterCurrent: false,
         currentPage: 1,
         maxConcurrent: 3,
+        advancedMode: false,
         configLoaded: false,
         panel: null,
         panelInner: null,
@@ -40,7 +41,8 @@
         check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
         cross: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
         video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.2"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>`,
-        audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`
+        audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
+        console: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path><polyline points="7 9 10 12 7 15"></polyline><line x1="12" y1="15" x2="16" y2="15"></line></svg>`
     };
 
     const queueId = () => {
@@ -78,6 +80,13 @@
         return parsed;
     };
 
+    const consoleLogs = new Map();
+    let consoleOverlay = null;
+    let consoleTitle = null;
+    let consoleBody = null;
+    let consoleCloseBtn = null;
+    const consoleState = { openId: null };
+
     const addActive = (id) => {
         if (!state.activeItemIds.includes(id)) state.activeItemIds.push(id);
     };
@@ -88,16 +97,103 @@
 
     const isActive = (id) => state.activeItemIds.includes(id);
 
+    function ensureConsoleOverlay() {
+        if (consoleOverlay) return;
+        consoleOverlay = document.createElement('div');
+        consoleOverlay.className = 'queue-console-overlay';
+        consoleOverlay.innerHTML = `
+            <div class="queue-console-modal">
+                <div class="queue-console-header">
+                    <div class="queue-console-title"></div>
+                    <button class="queue-console-close" aria-label="Close">&times;</button>
+                </div>
+                <pre class="queue-console-body"></pre>
+            </div>
+        `;
+        document.body.appendChild(consoleOverlay);
+        consoleTitle = consoleOverlay.querySelector('.queue-console-title');
+        consoleBody = consoleOverlay.querySelector('.queue-console-body');
+        consoleCloseBtn = consoleOverlay.querySelector('.queue-console-close');
+        consoleOverlay.addEventListener('click', (event) => {
+            if (event.target === consoleOverlay) closeConsole();
+        });
+        if (consoleCloseBtn) {
+            consoleCloseBtn.addEventListener('click', closeConsole);
+        }
+    }
+
+    function updateConsoleContent() {
+        if (!consoleState.openId || !consoleTitle || !consoleBody) return;
+        const id = consoleState.openId;
+        const lines = consoleLogs.get(id) || [];
+        consoleTitle.textContent = t('queue.console.title', 'Console - {id}', { id });
+        consoleBody.textContent = lines.length
+            ? lines.join('\n')
+            : t('queue.console.empty', 'No console output yet.');
+        consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    function openConsole(id) {
+        if (!state.advancedMode) return;
+        ensureConsoleOverlay();
+        consoleState.openId = id;
+        updateConsoleContent();
+        consoleOverlay.classList.add('open');
+    }
+
+    function closeConsole() {
+        if (!consoleOverlay) return;
+        consoleOverlay.classList.remove('open');
+        consoleState.openId = null;
+    }
+
+    function logConsole(item, payload) {
+        if (!item) return;
+        const id = item.id;
+        const lines = consoleLogs.get(id) || [];
+        const timestamp = new Date().toLocaleTimeString();
+        let text = '';
+        try {
+            text = JSON.stringify(payload);
+        } catch (_) {
+            text = String(payload);
+        }
+        lines.push(`[${timestamp}] ${text}`);
+        if (lines.length > 250) lines.splice(0, lines.length - 250);
+        consoleLogs.set(id, lines);
+        if (consoleState.openId === id) updateConsoleContent();
+    }
+
+    function applyAdvancedMode(enabled) {
+        state.advancedMode = !!enabled;
+        if (document.body) {
+            document.body.classList.toggle('advanced-mode', state.advancedMode);
+        }
+        if (!state.advancedMode) closeConsole();
+        if (state.itemsContainer) render();
+    }
+
     async function refreshConfig() {
         if (!invoke) return;
         try {
             const config = await invoke('get_config');
             state.maxConcurrent = normalizeMaxConcurrent(config?.maximum_concurrent_processes);
+            applyAdvancedMode(config?.advanced_mode);
             state.configLoaded = true;
         } catch (e) {
             console.error('Failed to load config:', e);
         }
     }
+
+    window.addEventListener('pulsar-config-updated', (event) => {
+        if (!event?.detail) return;
+        if (typeof event.detail.maximum_concurrent_processes !== 'undefined') {
+            state.maxConcurrent = normalizeMaxConcurrent(event.detail.maximum_concurrent_processes);
+        }
+        if (typeof event.detail.advanced_mode !== 'undefined') {
+            applyAdvancedMode(event.detail.advanced_mode);
+        }
+    });
 
     function bindPanel(panel) {
         if (!panel) return;
@@ -392,6 +488,7 @@
         if (!payload || payload.type === 'metadata' || !payload.id) return;
         const item = findItemByTaskId(String(payload.id));
         if (!item) return;
+        logConsole(item, payload);
         if (payload.type === 'progress' || payload.type === 'progress_ffmpeg' || typeof payload.percent !== 'undefined' || typeof payload.progress !== 'undefined') {
             let p = payload.percent;
             if (typeof p === 'undefined') p = payload.progress;
@@ -446,10 +543,13 @@
     }
 
     function itemButtons(item) {
-        if (item.status === 'pending') return `<button class="queue-icon-btn" data-item-action="start" title="${esc(t('queue.itemActions.start', 'Start'))}">${icons.play}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>`;
-        if (item.status === 'downloading') return `<button class="queue-icon-btn" data-item-action="stop" title="${esc(t('queue.itemActions.stop', 'Stop'))}">${icons.stop}</button>`;
-        if (item.status === 'failed') return `<button class="queue-icon-btn" data-item-action="retry" title="${esc(t('queue.itemActions.retry', 'Retry'))}">${icons.retry}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button><button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button>`;
-        return `<button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>`;
+        const consoleBtn = state.advancedMode
+            ? `<button class="queue-icon-btn" data-item-action="console" title="${esc(t('queue.itemActions.console', 'Console'))}">${icons.console}</button>`
+            : '';
+        if (item.status === 'pending') return `<button class="queue-icon-btn" data-item-action="start" title="${esc(t('queue.itemActions.start', 'Start'))}">${icons.play}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>${consoleBtn}`;
+        if (item.status === 'downloading') return `<button class="queue-icon-btn" data-item-action="stop" title="${esc(t('queue.itemActions.stop', 'Stop'))}">${icons.stop}</button>${consoleBtn}`;
+        if (item.status === 'failed') return `<button class="queue-icon-btn" data-item-action="retry" title="${esc(t('queue.itemActions.retry', 'Retry'))}">${icons.retry}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button><button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button>${consoleBtn}`;
+        return `<button class="queue-icon-btn" data-item-action="open" title="${esc(t('queue.itemActions.openLocation', 'Open location'))}">${icons.open}</button><button class="queue-icon-btn" data-item-action="remove" title="${esc(t('queue.itemActions.remove', 'Remove'))}">${icons.trash}</button>${consoleBtn}`;
     }
 
     const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -524,6 +624,7 @@
         if (action === 'remove') removeItem(id);
         if (action === 'open') openLocation(id);
         if (action === 'retry') startItemById(id, 'queue-manual', true);
+        if (action === 'console') openConsole(id);
     }
 
     const setPage = (p) => { state.currentPage = Math.min(Math.max(1, p), Math.max(1, Math.ceil(state.items.length / perPage))); render(); };
@@ -567,6 +668,8 @@
             requestAnimationFrame(() => { el.style.height = '0px'; });
             el.addEventListener('transitionend', () => {
                 state.items.splice(idx, 1);
+                consoleLogs.delete(id);
+                if (consoleState.openId === id) closeConsole();
                 render();
                 persistSoon();
                 updateQueueBtn();
@@ -574,6 +677,8 @@
             return;
         }
         state.items.splice(idx, 1);
+        consoleLogs.delete(id);
+        if (consoleState.openId === id) closeConsole();
         render();
         persistSoon();
         updateQueueBtn();
@@ -641,6 +746,10 @@
         if (state.activeItemIds.length > 0) {
             state.items = state.items.filter((x) => x.status === 'downloading');
             state.activeItemIds = state.items.map((x) => x.id);
+            const keepIds = new Set(state.activeItemIds);
+            for (const key of consoleLogs.keys()) {
+                if (!keepIds.has(key)) consoleLogs.delete(key);
+            }
             state.clearAfterCurrent = true;
             state.startAllActive = false;
             state.priorityQueue = [];
@@ -657,6 +766,7 @@
         state.items = [];
         state.priorityQueue = [];
         state.activeItemIds = [];
+        consoleLogs.clear();
         state.startAllActive = false;
         state.startAllSuccess = true;
         state.startAllStarted = 0;

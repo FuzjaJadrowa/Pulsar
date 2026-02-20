@@ -30,6 +30,12 @@
         <label class="custom-radio"><input type="radio" name="close_behavior" value="exit"><span data-i18n="settings.closeBehaviorOptions.exit">Exit</span></label>
       </div>
     </div>
+
+    <div class="form-row">
+      <span data-i18n="settings.advancedMode">Advanced mode</span>
+      <label class="switch"><input id="advanced_mode" type="checkbox"><span class="slider"></span></label>
+    </div>
+    <div class="settings-note" data-i18n="settings.advancedModeNote">Shows advanced options and console access.</div>
   </section>
 
   <section class="settings-section-card">
@@ -71,6 +77,7 @@
         <option value="Whale">Whale</option>
       </select>
     </div>
+    <div class="settings-note" data-i18n="settings.cookiesFromBrowserNote">Allows using your browser cookies to download restricted videos you have access to.</div>
     <div class="form-row">
       <span data-i18n="settings.maximumConcurrentProcesses">Maximum concurrent processes</span>
       <input id="maximum_concurrent_processes" class="custom-input" type="number" min="1" max="10" step="1" style="width: 120px;">

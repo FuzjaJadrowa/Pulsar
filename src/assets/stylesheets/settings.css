@@ -67,6 +67,12 @@
     margin-bottom: 12px;
     color: #e0e0e0;
 }
+.settings-note {
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(220, 220, 220, 0.6);
+    margin: -6px 0 12px;
+}
 .anim-btn {
     border: none;
     border-radius: 8px;
@@ -189,6 +195,9 @@ body.theme-light .settings-section-title {
 }
 body.theme-light .settings-inline-label {
     color: #2b2f3a;
+}
+body.theme-light .settings-note {
+    color: rgba(43, 47, 58, 0.6);
 }
 
 body.theme-light .anim-btn {

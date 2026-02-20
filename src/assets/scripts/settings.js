@@ -4,6 +4,7 @@
     const idMap = {
         'theme': 'theme',
         'language': 'language',
+        'advanced_mode': 'advanced_mode',
         'update_app': 'update_app',
         'update_app_cooldown_minutes': 'update_app_cooldown_minutes',
         'update_ytdlp': 'update_ytdlp',
@@ -83,6 +84,7 @@
         if (window.queueManager && typeof window.queueManager.refreshConfig === 'function') {
             window.queueManager.refreshConfig();
         }
+        window.dispatchEvent(new CustomEvent('pulsar-config-updated', { detail: config }));
     }
 
     async function loadSettings() {
