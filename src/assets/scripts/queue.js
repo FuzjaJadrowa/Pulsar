@@ -16,6 +16,7 @@
         currentPage: 1,
         maxConcurrent: 3,
         advancedMode: false,
+        systemNotifications: true,
         configLoaded: false,
         panel: null,
         panelInner: null,
@@ -52,6 +53,12 @@
         video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.2"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>`,
         audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
         console: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path><polyline points="7 9 10 12 7 15"></polyline><line x1="12" y1="15" x2="16" y2="15"></line></svg>`
+    };
+
+    const notificationIcons = {
+        success: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8l-6.5 7L8 13"/></svg>')}`,
+        error: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 8l8 8M16 8l-8 8"/></svg>')}`,
+        info: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v5h-2z"/></svg>')}`
     };
 
     const queueId = () => {
@@ -182,12 +189,72 @@
         if (state.itemsContainer) render();
     }
 
+    const appWindow = tauri.window?.getCurrentWindow ? tauri.window.getCurrentWindow() : null;
+
+    async function shouldSystemNotify() {
+        if (!state.systemNotifications) return false;
+        if (!appWindow) return false;
+        try {
+            const visible = typeof appWindow.isVisible === 'function' ? await appWindow.isVisible() : true;
+            const minimized = typeof appWindow.isMinimized === 'function' ? await appWindow.isMinimized() : false;
+            return minimized || visible === false;
+        } catch (e) {
+            console.error('Failed to check window state:', e);
+            return false;
+        }
+    }
+
+    async function ensureNotificationPermission() {
+        const api = tauri.notification;
+        if (!api) return false;
+        try {
+            if (typeof api.isPermissionGranted === 'function') {
+                const granted = await api.isPermissionGranted();
+                if (granted) return true;
+                if (typeof api.requestPermission === 'function') {
+                    const result = await api.requestPermission();
+                    return result === 'granted';
+                }
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error('Failed to request notification permission:', e);
+            return false;
+        }
+    }
+
+    async function sendSystemNotification(title, body, type) {
+        try {
+            const shouldNotify = await shouldSystemNotify();
+            if (!shouldNotify) return;
+            if (invoke) {
+                await invoke('send_system_notification', { title, body, kind: type });
+                return;
+            }
+        } catch (e) {
+            console.error('Failed to send system notification via backend:', e);
+        }
+
+        const api = tauri.notification;
+        if (!api || typeof api.sendNotification !== 'function') return;
+        const allowed = await ensureNotificationPermission();
+        if (!allowed) return;
+        const icon = notificationIcons[type] || notificationIcons.info;
+        try {
+            await api.sendNotification({ title, body, icon });
+        } catch (e) {
+            console.error('Failed to send system notification via frontend:', e);
+        }
+    }
+
     async function refreshConfig() {
         if (!invoke) return;
         try {
             const config = await invoke('get_config');
             state.maxConcurrent = normalizeMaxConcurrent(config?.maximum_concurrent_processes);
             applyAdvancedMode(config?.advanced_mode);
+            state.systemNotifications = config?.system_notifications !== false;
             state.configLoaded = true;
         } catch (e) {
             console.error('Failed to load config:', e);
@@ -201,6 +268,9 @@
         }
         if (typeof event.detail.advanced_mode !== 'undefined') {
             applyAdvancedMode(event.detail.advanced_mode);
+        }
+        if (typeof event.detail.system_notifications !== 'undefined') {
+            state.systemNotifications = !!event.detail.system_notifications;
         }
     });
 
@@ -826,6 +896,11 @@
                 false
             );
         }
+        sendSystemNotification(
+            t('queue.notifications.systemTitle', 'Pulsar'),
+            t('queue.notifications.downloadCompletedSystem', 'Download completed.'),
+            'success'
+        );
     }
     function notifyQueueSuccess() {
         if (window.notifier) {
@@ -836,6 +911,11 @@
                 false
             );
         }
+        sendSystemNotification(
+            t('queue.notifications.systemTitle', 'Pulsar'),
+            t('queue.notifications.queueCompletedSystem', 'Queue downloads completed.'),
+            'success'
+        );
     }
     function notifyError(code) {
         if (window.notifier) {
@@ -849,6 +929,14 @@
                 false
             );
         }
+        const systemSuffix = code
+            ? t('queue.notifications.errorSuffix', ' Error code: {code}', { code })
+            : '';
+        sendSystemNotification(
+            t('queue.notifications.systemTitle', 'Pulsar'),
+            t('queue.notifications.downloadFailedSystem', 'Download failed.{suffix}', { suffix: systemSuffix }),
+            'error'
+        );
     }
     function notifyStopped() {
         if (window.notifier) {

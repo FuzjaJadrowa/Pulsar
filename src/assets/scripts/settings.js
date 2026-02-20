@@ -4,6 +4,7 @@
     const idMap = {
         'theme': 'theme',
         'language': 'language',
+        'system_notifications': 'system_notifications',
         'advanced_mode': 'advanced_mode',
         'update_app': 'update_app',
         'update_app_cooldown_minutes': 'update_app_cooldown_minutes',

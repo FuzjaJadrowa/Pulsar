@@ -18,6 +18,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(config_manager)
         .manage(queue_manager)
         .manage(bridge_state)
@@ -44,6 +45,7 @@ pub fn run() {
             system::get_queue_state,
             system::save_queue_state,
             system::metadata::fetch_metadata,
+            system::notifications::send_system_notification,
             core::splash::run_splash_checks,
             core::downloader::start_download,
             core::downloader::cancel_download,

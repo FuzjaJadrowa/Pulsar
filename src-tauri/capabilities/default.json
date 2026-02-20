@@ -9,10 +9,12 @@
     "core:window:allow-close",
     "core:window:allow-start-dragging",
     "core:window:allow-toggle-maximize",
+    "core:window:default",
     "core:event:allow-listen",
     "opener:default",
     "opener:allow-open-path",
     "updater:default",
-    "dialog:default"
+    "dialog:default",
+    "notification:default"
   ]
 }

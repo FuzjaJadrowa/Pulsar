@@ -4,7 +4,7 @@
 
     const videoQualities = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
     const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'];
-    const audioFormats = ['MP3', 'M4A', 'ACC', 'OPUS', 'WAV', 'OGG'];
+    const audioFormats = ['MP3', 'M4A', 'AAC', 'OPUS', 'WAV', 'FLAC'];
     const audioQualities = ['320kbps', '256kbps', '192kbps', '128kbps', '96kbps'];
     const t = (key, fallback = '', params = null) => {
         if (window.i18n && typeof window.i18n.t === 'function') {

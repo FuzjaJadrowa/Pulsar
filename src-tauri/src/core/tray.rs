@@ -4,7 +4,7 @@ use crate::system::queue::QueueState;
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem};
 use tauri::path::BaseDirectory;
-use tauri::tray::TrayIconBuilder;
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 pub fn build_tray_icon<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState) -> tauri::Result<()> {
@@ -21,6 +21,17 @@ pub fn build_tray_icon<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState)
                 }
                 "tray_quit" => app.exit(0),
                 _ => {}
+            }
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click { button, button_state, .. } = event {
+                if button == MouseButton::Left && button_state == MouseButtonState::Up {
+                    if let Some(window) = tray.app_handle().get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                    }
+                }
             }
         })
         .build(app)?;

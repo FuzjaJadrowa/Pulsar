@@ -106,9 +106,13 @@
       "off": "OFF"
     },
     "notifications": {
+      "systemTitle": "Pulsar",
       "downloadCompleted": "Download completed successfully.",
+      "downloadCompletedSystem": "Download completed.",
       "queueCompleted": "Queue downloads completed successfully.",
+      "queueCompletedSystem": "Queue downloads completed.",
       "downloadFailed": "Download failed.{suffix}",
+      "downloadFailedSystem": "Download failed.{suffix}",
       "errorSuffix": " Error code: {code}",
       "downloadStopped": "Download stopped by user."
     }
@@ -131,6 +135,7 @@
       "hide": "Hide",
       "exit": "Exit"
     },
+    "systemNotifications": "System notifications",
     "advancedMode": "Advanced mode",
     "advancedModeNote": "Shows advanced options and console access.",
     "requirements": "Requirements",

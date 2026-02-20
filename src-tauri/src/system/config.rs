@@ -11,6 +11,7 @@ pub struct AppConfig {
     pub language: String,
     pub close_behavior: String,
     pub advanced_mode: bool,
+    pub system_notifications: bool,
 
     pub update_app: bool,
     pub update_app_cooldown_minutes: u64,
@@ -29,6 +30,7 @@ impl Default for AppConfig {
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             advanced_mode: false,
+            system_notifications: true,
             update_app: true,
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
@@ -83,6 +85,7 @@ impl ConfigManager {
                     if let Some(v) = section.get("language") { config.language = v.to_string(); }
                     if let Some(v) = section.get("close_behavior") { config.close_behavior = v.to_string(); }
                     config.advanced_mode = section.get("advanced_mode").map(|v| v == "true").unwrap_or(false);
+                    config.system_notifications = section.get("system_notifications").map(|v| v == "true").unwrap_or(true);
                 }
                 if let Some(section) = ini.section(Some("Requirements")) {
                     config.update_app = section.get("update_app").map(|v| v == "true").unwrap_or(true);
@@ -121,7 +124,8 @@ impl ConfigManager {
             .set("theme", &config.theme)
             .set("language", &config.language)
             .set("close_behavior", &config.close_behavior)
-            .set("advanced_mode", if config.advanced_mode { "true" } else { "false" });
+            .set("advanced_mode", if config.advanced_mode { "true" } else { "false" })
+            .set("system_notifications", if config.system_notifications { "true" } else { "false" });
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })

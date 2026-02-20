@@ -1,5 +1,6 @@
 pub mod config;
 pub mod metadata;
+pub mod notifications;
 pub mod queue;
 
 use tauri::{AppHandle, State};
