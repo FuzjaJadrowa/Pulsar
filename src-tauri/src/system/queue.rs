@@ -27,6 +27,8 @@ pub struct QueueItemState {
 pub struct QueueState {
     pub items: Vec<QueueItemState>,
     pub current_item_id: Option<String>,
+    #[serde(default)]
+    pub active_item_ids: Vec<String>,
     pub priority_queue: Vec<String>,
     pub start_all_active: bool,
     pub start_all_success: bool,
@@ -40,6 +42,7 @@ impl Default for QueueState {
         Self {
             items: Vec::new(),
             current_item_id: None,
+            active_item_ids: Vec::new(),
             priority_queue: Vec::new(),
             start_all_active: false,
             start_all_success: true,

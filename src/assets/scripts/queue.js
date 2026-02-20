@@ -8,13 +8,15 @@
 
     const state = {
         items: [],
-        currentItemId: null,
+        activeItemIds: [],
         priorityQueue: [],
         startAllActive: false,
         startAllSuccess: true,
         startAllStarted: 0,
         clearAfterCurrent: false,
         currentPage: 1,
+        maxConcurrent: 3,
+        configLoaded: false,
         panel: null,
         panelInner: null,
         itemsContainer: null,
@@ -24,6 +26,10 @@
         bound: false,
         orbInFlight: false
     };
+
+    const MAX_CONCURRENT_DEFAULT = 3;
+    const MAX_CONCURRENT_MIN = 1;
+    const MAX_CONCURRENT_MAX = 10;
 
     const icons = {
         play: `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"></polygon></svg>`,
@@ -65,6 +71,34 @@
         return fallback || key;
     };
 
+    const normalizeMaxConcurrent = (value) => {
+        const parsed = parseInt(value, 10);
+        if (!Number.isFinite(parsed)) return MAX_CONCURRENT_DEFAULT;
+        if (parsed < MAX_CONCURRENT_MIN || parsed > MAX_CONCURRENT_MAX) return MAX_CONCURRENT_DEFAULT;
+        return parsed;
+    };
+
+    const addActive = (id) => {
+        if (!state.activeItemIds.includes(id)) state.activeItemIds.push(id);
+    };
+
+    const removeActive = (id) => {
+        state.activeItemIds = state.activeItemIds.filter((x) => x !== id);
+    };
+
+    const isActive = (id) => state.activeItemIds.includes(id);
+
+    async function refreshConfig() {
+        if (!invoke) return;
+        try {
+            const config = await invoke('get_config');
+            state.maxConcurrent = normalizeMaxConcurrent(config?.maximum_concurrent_processes);
+            state.configLoaded = true;
+        } catch (e) {
+            console.error('Failed to load config:', e);
+        }
+    }
+
     function bindPanel(panel) {
         if (!panel) return;
         state.panel = panel;
@@ -92,6 +126,9 @@
             return;
         }
         try {
+            if (!state.configLoaded) {
+                await refreshConfig();
+            }
             const data = await invoke('get_queue_state');
             state.items = Array.isArray(data?.items) ? data.items.map((raw) => ({
                 id: String(raw.id || queueId()),
@@ -109,7 +146,7 @@
                 pendingStartReason: raw.pending_start_reason ? String(raw.pending_start_reason) : null,
                 source: String(raw.source || 'queue')
             })) : [];
-            state.currentItemId = null;
+            state.activeItemIds = [];
             state.priorityQueue = Array.isArray(data?.priority_queue) ? data.priority_queue.filter((id) => state.items.some((i) => i.id === id)) : [];
             state.startAllActive = false;
             state.startAllSuccess = true;
@@ -140,7 +177,8 @@
                     added_at: i.addedAt, payload: i.payload, path: i.path, task_id: i.taskId, skipped_by_stop: !!i.skippedByStop,
                     start_reason: i.startReason, pending_start_reason: i.pendingStartReason, source: i.source
                 })),
-                current_item_id: state.currentItemId,
+                current_item_id: state.activeItemIds.length ? state.activeItemIds[0] : null,
+                active_item_ids: [...state.activeItemIds],
                 priority_queue: [...state.priorityQueue],
                 start_all_active: state.startAllActive,
                 start_all_success: state.startAllSuccess,
@@ -227,6 +265,7 @@
     }
 
     async function startItem(item, reason) {
+        if (item.status === 'downloading') return;
         item.status = 'downloading';
         item.progress = 0;
         item.eta = '--';
@@ -234,13 +273,13 @@
         item.startReason = reason;
         item.pendingStartReason = null;
         item.skippedByStop = false;
-        state.currentItemId = item.id;
+        addActive(item.id);
         render();
         persistSoon();
         if (!invoke) return markFailed(item, 'NO_BRIDGE');
         try {
             const taskId = await invoke('start_download', { options: { ...item.payload, client_task_id: String(item.id) } });
-            if (state.currentItemId !== item.id || item.status !== 'downloading') {
+            if (!isActive(item.id) || item.status !== 'downloading') {
                 if (taskId) await cancelTask(String(taskId));
                 return;
             }
@@ -254,7 +293,8 @@
     }
 
     function startItemOrQueue(item, reason) {
-        if (state.currentItemId && state.currentItemId !== item.id) {
+        if (item.status === 'downloading') return;
+        if (state.activeItemIds.length >= state.maxConcurrent) {
             if (!state.priorityQueue.includes(item.id)) state.priorityQueue.push(item.id);
             item.pendingStartReason = reason;
             item.skippedByStop = false;
@@ -262,34 +302,52 @@
             persistSoon();
             return;
         }
+        state.priorityQueue = state.priorityQueue.filter((id) => id !== item.id);
         startItem(item, reason);
     }
 
     function maybeStartNext() {
-        if (state.currentItemId) return;
         if (state.clearAfterCurrent) {
-            clearAllItems();
-            state.clearAfterCurrent = false;
-            persistSoon();
+            if (state.activeItemIds.length === 0) {
+                clearAllItems();
+                state.clearAfterCurrent = false;
+                persistSoon();
+            }
             return;
         }
-        const prio = state.priorityQueue.find((id) => state.items.some((i) => i.id === id && i.status === 'pending'));
-        if (prio) {
+
+        let slots = state.maxConcurrent - state.activeItemIds.length;
+        if (slots <= 0) return;
+
+        while (slots > 0) {
+            const prio = state.priorityQueue.find((id) => state.items.some((i) => i.id === id && i.status === 'pending'));
+            if (!prio) break;
             state.priorityQueue = state.priorityQueue.filter((id) => id !== prio);
             const item = state.items.find((i) => i.id === prio);
-            if (item) return startItem(item, item.pendingStartReason || 'download');
-        }
-        if (state.startAllActive) {
-            const next = state.items.find((i) => i.status === 'pending' && !i.skippedByStop);
-            if (next) {
-                state.startAllStarted += 1;
-                return startItem(next, 'start-all');
+            if (item) {
+                startItem(item, item.pendingStartReason || 'download');
+                slots -= 1;
+            } else {
+                break;
             }
-            state.startAllActive = false;
-            if (state.startAllSuccess && state.startAllStarted > 0) notifyQueueSuccess();
-            state.startAllSuccess = true;
-            state.startAllStarted = 0;
-            persistSoon();
+        }
+
+        if (state.startAllActive) {
+            while (slots > 0) {
+                const next = state.items.find((i) => i.status === 'pending' && !i.skippedByStop);
+                if (!next) break;
+                state.startAllStarted += 1;
+                startItem(next, 'start-all');
+                slots -= 1;
+            }
+            const hasPending = state.items.some((i) => i.status === 'pending' && !i.skippedByStop);
+            if (!hasPending && state.activeItemIds.length === 0) {
+                state.startAllActive = false;
+                if (state.startAllSuccess && state.startAllStarted > 0) notifyQueueSuccess();
+                state.startAllSuccess = true;
+                state.startAllStarted = 0;
+                persistSoon();
+            }
         }
     }
 
@@ -298,7 +356,7 @@
         item.progress = 100;
         item.eta = '00:00';
         item.taskId = null;
-        state.currentItemId = null;
+        removeActive(item.id);
         if (item.startReason === 'download' || item.startReason === 'queue-manual') notifySuccessDownload();
         render();
         persistSoon();
@@ -314,15 +372,15 @@
             item.taskId = null;
             item.skippedByStop = true;
             item.startReason = null;
-            state.currentItemId = null;
+            removeActive(item.id);
             render();
             persistSoon();
-            if (state.startAllActive) maybeStartNext();
+            maybeStartNext();
             return;
         }
         item.status = 'failed';
         item.taskId = null;
-        state.currentItemId = null;
+        removeActive(item.id);
         if (state.startAllActive && item.startReason === 'start-all') state.startAllSuccess = false;
         notifyError(code);
         render();
@@ -353,10 +411,10 @@
             item.taskId = null;
             item.skippedByStop = true;
             item.startReason = null;
-            state.currentItemId = null;
+            removeActive(item.id);
             render();
             persistSoon();
-            if (state.startAllActive) maybeStartNext();
+            maybeStartNext();
             return;
         }
         const finished = payload.type === 'finished' || payload.status === 'finished' || payload.event === 'finished';
@@ -479,9 +537,9 @@
     }
 
     async function stopItem(id) {
-        if (state.currentItemId !== id) return;
         const item = state.items.find((x) => x.id === id);
         if (!item) return;
+        if (item.status !== 'downloading') return;
         if (item.taskId) await cancelTask(item.taskId);
         item.status = 'pending';
         item.progress = 0;
@@ -490,22 +548,18 @@
         item.skippedByStop = true;
         item.startReason = null;
         item.pendingStartReason = null;
-        state.currentItemId = null;
+        removeActive(item.id);
         notifyStopped();
-        if (state.clearAfterCurrent) {
-            clearAllItems();
-            state.clearAfterCurrent = false;
-            persistSoon();
-            return;
-        }
         render();
         persistSoon();
-        if (state.startAllActive) maybeStartNext();
+        maybeStartNext();
     }
 
     function removeItem(id) {
         const idx = state.items.findIndex((x) => x.id === id);
-        if (idx === -1 || state.currentItemId === id) return;
+        if (idx === -1) return;
+        if (state.items[idx].status === 'downloading') return;
+        state.priorityQueue = state.priorityQueue.filter((itemId) => itemId !== id);
         const el = state.itemsContainer ? state.itemsContainer.querySelector(`.queue-item[data-id="${id}"]`) : null;
         if (el) {
             el.style.height = `${el.offsetHeight}px`;
@@ -558,7 +612,7 @@
         state.startAllActive = true;
         state.startAllSuccess = true;
         state.startAllStarted = 0;
-        if (!state.currentItemId) maybeStartNext();
+        maybeStartNext();
         render();
         persistSoon();
     }
@@ -566,28 +620,27 @@
     async function stopAll() {
         state.startAllActive = false;
         state.priorityQueue = [];
-        if (state.currentItemId) {
-            const item = state.items.find((x) => x.id === state.currentItemId);
-            if (item) {
-                if (item.taskId) await cancelTask(item.taskId);
-                item.status = 'pending';
-                item.progress = 0;
-                item.eta = '--';
-                item.taskId = null;
-                item.skippedByStop = true;
-                item.startReason = null;
-                item.pendingStartReason = null;
-            }
-            state.currentItemId = null;
+        const activeItems = state.items.filter((x) => x.status === 'downloading');
+        for (const item of activeItems) {
+            if (item.taskId) await cancelTask(item.taskId);
+            item.status = 'pending';
+            item.progress = 0;
+            item.eta = '--';
+            item.taskId = null;
+            item.skippedByStop = true;
+            item.startReason = null;
+            item.pendingStartReason = null;
         }
+        state.activeItemIds = [];
         notifyStopped();
         render();
         persistSoon();
     }
 
     function clearQueue() {
-        if (state.currentItemId) {
-            state.items = state.items.filter((x) => x.id === state.currentItemId);
+        if (state.activeItemIds.length > 0) {
+            state.items = state.items.filter((x) => x.status === 'downloading');
+            state.activeItemIds = state.items.map((x) => x.id);
             state.clearAfterCurrent = true;
             state.startAllActive = false;
             state.priorityQueue = [];
@@ -603,7 +656,7 @@
     function clearAllItems() {
         state.items = [];
         state.priorityQueue = [];
-        state.currentItemId = null;
+        state.activeItemIds = [];
         state.startAllActive = false;
         state.startAllSuccess = true;
         state.startAllStarted = 0;
@@ -633,7 +686,7 @@
         };
         state.items.push(item);
         if (opts.autoStart) startItemOrQueue(item, opts.startReason || 'download');
-        else if (state.startAllActive && !state.currentItemId) maybeStartNext();
+        else if (state.startAllActive) maybeStartNext();
         else render();
         persistSoon();
         updateQueueBtn();
@@ -685,6 +738,7 @@
     }
 
     if (listen) listen('download-event', (event) => onBridgeEvent(event.payload));
+    if (listen) listen('tray-clear-queue', () => clearQueue());
     updateQueueBtn();
     ensureHydrated();
 
@@ -695,7 +749,9 @@
         stopAll,
         clearQueue,
         animateQueueOrb,
+        refreshConfig,
         handleBridgeEvent: onBridgeEvent,
-        hasItems: () => state.items.length > 0
+        hasItems: () => state.items.length > 0,
+        getMaxConcurrent: () => state.maxConcurrent
     };
 })();

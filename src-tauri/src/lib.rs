@@ -1,9 +1,11 @@
 mod core;
 mod system;
 
+use core::downloader::BridgeState;
+use core::tray::build_tray_icon;
+pub use core::tray::sync_tray_from_queue;
 use system::config::ConfigManager;
 use system::queue::QueueManager;
-use core::downloader::BridgeState;
 use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,6 +21,11 @@ pub fn run() {
         .manage(config_manager)
         .manage(queue_manager)
         .manage(bridge_state)
+        .setup(|app| {
+            let queue_state = app.state::<QueueManager>().load();
+            build_tray_icon(app.handle(), &queue_state)?;
+            Ok(())
+        })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let config_state = window.state::<ConfigManager>();

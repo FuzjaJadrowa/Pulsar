@@ -16,7 +16,9 @@ pub struct AppConfig {
     pub update_ytdlp: bool,
     pub update_ffmpeg: bool,
 
-    pub cookies_browser: String
+    pub cookies_browser: String,
+    #[serde(default)]
+    pub maximum_concurrent_processes: u64
 }
 
 impl Default for AppConfig {
@@ -29,8 +31,16 @@ impl Default for AppConfig {
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
-            cookies_browser: "None".to_string()
+            cookies_browser: "None".to_string(),
+            maximum_concurrent_processes: 3
         }
+    }
+}
+
+impl AppConfig {
+    pub fn sanitize(&mut self) {
+        self.update_app_cooldown_minutes = clamp_range(self.update_app_cooldown_minutes, 10, 500, 30);
+        self.maximum_concurrent_processes = clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
     }
 }
 
@@ -82,12 +92,17 @@ impl ConfigManager {
                 }
                 if let Some(section) = ini.section(Some("Download")) {
                     if let Some(v) = section.get("cookies_browser") { config.cookies_browser = v.to_string(); }
+                    config.maximum_concurrent_processes = section
+                        .get("maximum_concurrent_processes")
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(3);
                 }
             }
         } else {
             Self::save_to_disk_internal(&path, &config);
         }
 
+        config.sanitize();
         (path, config)
     }
 
@@ -111,8 +126,16 @@ impl ConfigManager {
             .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
 
         ini.with_section(Some("Download"))
-            .set("cookies_browser", &config.cookies_browser);
+            .set("cookies_browser", &config.cookies_browser)
+            .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string());
 
         let _ = ini.write_to_file(path);
     }
+}
+
+fn clamp_range(value: u64, min: u64, max: u64, default_value: u64) -> u64 {
+    if value < min || value > max {
+        return default_value;
+    }
+    value
 }

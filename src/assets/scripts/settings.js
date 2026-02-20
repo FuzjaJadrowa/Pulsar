@@ -8,7 +8,19 @@
         'update_app_cooldown_minutes': 'update_app_cooldown_minutes',
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
-        'cookies_browser': 'cookies_browser'
+        'cookies_browser': 'cookies_browser',
+        'maximum_concurrent_processes': 'maximum_concurrent_processes'
+    };
+
+    const numberConstraints = {
+        update_app_cooldown_minutes: { min: 10, max: 500, fallback: 30 },
+        maximum_concurrent_processes: { min: 1, max: 10, fallback: 3 }
+    };
+
+    const clampNumber = (value, min, max, fallback) => {
+        if (!Number.isFinite(value)) return fallback;
+        if (value < min || value > max) return fallback;
+        return value;
     };
 
     function refreshCustomSelect(selectId) {
@@ -46,7 +58,14 @@
                 config[key] = el.checked;
             } else if (el.type === 'number') {
                 const parsed = parseInt(el.value, 10);
-                config[key] = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+                const constraints = numberConstraints[key];
+                if (constraints) {
+                    const clamped = clampNumber(parsed, constraints.min, constraints.max, constraints.fallback);
+                    config[key] = clamped;
+                    el.value = clamped;
+                } else {
+                    config[key] = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+                }
             } else {
                 config[key] = el.value;
             }
@@ -61,6 +80,9 @@
 
         console.log("Saving config:", config);
         await invoke('save_config', { newConfig: config });
+        if (window.queueManager && typeof window.queueManager.refreshConfig === 'function') {
+            window.queueManager.refreshConfig();
+        }
     }
 
     async function loadSettings() {
@@ -74,7 +96,18 @@
                     if (el.type === 'checkbox') {
                         el.checked = config[key];
                     } else {
-                        el.value = config[key];
+                        if (el.type === 'number') {
+                            const constraints = numberConstraints[key];
+                            const parsed = parseInt(config[key], 10);
+                            if (constraints) {
+                                const clamped = clampNumber(parsed, constraints.min, constraints.max, constraints.fallback);
+                                el.value = clamped;
+                            } else {
+                                el.value = config[key];
+                            }
+                        } else {
+                            el.value = config[key];
+                        }
                         if (el.tagName === 'SELECT') {
                             refreshCustomSelect(id);
                         }

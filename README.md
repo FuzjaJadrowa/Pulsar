@@ -47,7 +47,7 @@ To build Pulsar yourself, ensure you have **Node.js (v20+)** and the **Rust stab
    ```
 2. Clone the repository
 ```bash
-  git clone [https://github.com/fuzjajadrowa/Pulsar.git](https://github.com/fuzjajadrowa/Pulsar.git)
+  git clone https://github.com/fuzjajadrowa/Pulsar.git
   cd Pulsar
 ```
 3. Install node packages

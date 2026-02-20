@@ -49,7 +49,7 @@
     </div>
     <div class="form-row">
       <span data-i18n="settings.updateCooldown">Update check cooldown (minutes)</span>
-      <input id="update_app_cooldown_minutes" class="custom-input" type="number" min="10" step="1" style="width: 120px;">
+      <input id="update_app_cooldown_minutes" class="custom-input" type="number" min="10" max="500" step="1" style="width: 120px;">
     </div>
   </section>
 
@@ -70,6 +70,10 @@
         <option value="Vivaldi">Vivaldi</option>
         <option value="Whale">Whale</option>
       </select>
+    </div>
+    <div class="form-row">
+      <span data-i18n="settings.maximumConcurrentProcesses">Maximum concurrent processes</span>
+      <input id="maximum_concurrent_processes" class="custom-input" type="number" min="1" max="10" step="1" style="width: 120px;">
     </div>
   </section>
 

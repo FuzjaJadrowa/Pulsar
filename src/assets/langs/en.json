@@ -131,6 +131,7 @@
     "updateCooldown": "Update check cooldown (minutes)",
     "downloadSettings": "Download settings",
     "cookiesFromBrowser": "Cookies from browser",
+    "maximumConcurrentProcesses": "Maximum concurrent processes",
     "support": "Support",
     "supportText": "Show your support!",
     "supportButton": "Support Project"
