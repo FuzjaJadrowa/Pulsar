@@ -81,6 +81,11 @@ body.page-downloader.mode-audio::after { opacity: 1; }
 .meta-info { text-align: center; margin-bottom: 1.5rem; animation-delay: 0.1s; }
 .meta-info h2 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; margin: 0; }
 .meta-info p { color: var(--c-text-dim); margin: 5px 0 0; font-size: 0.9rem; }
+.meta-author-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: inherit;
+}
 .path-selector {
     display: flex; align-items: center;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);

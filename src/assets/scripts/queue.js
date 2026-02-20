@@ -2,7 +2,6 @@
     const tauri = window.__TAURI__ || {};
     const invoke = tauri.core ? tauri.core.invoke : null;
     const listen = tauri.event ? tauri.event.listen : null;
-    const perPage = 4;
     let saveTimer = null;
     let hydratePromise = null;
 
@@ -31,6 +30,16 @@
     const MAX_CONCURRENT_DEFAULT = 3;
     const MAX_CONCURRENT_MIN = 1;
     const MAX_CONCURRENT_MAX = 10;
+
+    const calcPerPage = () => {
+        const h = window.innerHeight || 800;
+        const w = window.innerWidth || 1000;
+        if (h < 760 || w < 900) return 2;
+        if (h < 900 || w < 1100) return 3;
+        return 4;
+    };
+
+    const getPerPage = () => calcPerPage();
 
     const icons = {
         play: `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"></polygon></svg>`,
@@ -556,6 +565,7 @@
 
     function render() {
         if (!state.itemsContainer) return;
+        const perPage = getPerPage();
         const total = Math.max(1, Math.ceil(state.items.length / perPage));
         state.currentPage = Math.min(state.currentPage, total);
         const start = (state.currentPage - 1) * perPage;
@@ -627,7 +637,11 @@
         if (action === 'console') openConsole(id);
     }
 
-    const setPage = (p) => { state.currentPage = Math.min(Math.max(1, p), Math.max(1, Math.ceil(state.items.length / perPage))); render(); };
+    const setPage = (p) => {
+        const perPage = getPerPage();
+        state.currentPage = Math.min(Math.max(1, p), Math.max(1, Math.ceil(state.items.length / perPage)));
+        render();
+    };
 
     function startItemById(id, reason, reset) {
         const item = state.items.find((x) => x.id === id);
@@ -849,6 +863,7 @@
 
     if (listen) listen('download-event', (event) => onBridgeEvent(event.payload));
     if (listen) listen('tray-clear-queue', () => clearQueue());
+    window.addEventListener('resize', () => { if (state.itemsContainer) render(); });
     updateQueueBtn();
     ensureHydrated();
 

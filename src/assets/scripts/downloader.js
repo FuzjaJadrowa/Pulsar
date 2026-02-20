@@ -25,6 +25,7 @@
     const urlInput = document.getElementById('url-input');
     const fetchBtn = document.getElementById('fetch-btn');
     const pasteIcon = document.getElementById('paste-icon');
+    const metaAuthor = document.getElementById('meta-author');
 
     const downloadBtn = document.getElementById('download-btn');
     const queueBtn = document.getElementById('queue-btn');
@@ -71,14 +72,46 @@
         thumbnailAction: 'none',
         currentTitle: null,
         currentThumbnail: null,
+        currentUploaderUrl: null,
         advancedMode: false
     };
+
+    const openExternalUrl = async (url) => {
+        const target = String(url || '').trim();
+        if (!target) return;
+        try {
+            if (window.__TAURI__?.opener?.openUrl) {
+                await window.__TAURI__.opener.openUrl(target);
+            } else {
+                window.open(target, '_blank');
+            }
+        } catch (error) {
+            console.error('Failed to open url:', error);
+        }
+    };
+
+    if (metaAuthor) {
+        metaAuthor.addEventListener('click', () => {
+            if (metaAuthor.dataset.url) openExternalUrl(metaAuthor.dataset.url);
+        });
+        metaAuthor.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                if (metaAuthor.dataset.url) openExternalUrl(metaAuthor.dataset.url);
+            }
+        });
+    }
 
     function applyAdvancedMode(enabled) {
         state.advancedMode = !!enabled;
         if (document.body) {
             document.body.classList.toggle('advanced-mode', state.advancedMode);
         }
+    }
+
+    function setZenMode(enabled) {
+        if (!document.body) return;
+        document.body.classList.toggle('zen-mode', !!enabled);
     }
 
     async function loadAdvancedMode() {
@@ -145,7 +178,7 @@
             const action = btn.dataset.thumb;
 
             if (action === 'download') {
-                const url = urlInput.value.trim();
+                const url = String(state.currentThumbnail || '').trim();
                 if (!url) {
                     triggerShakeFeedback(urlInput);
                     return;
@@ -157,7 +190,6 @@
                     setTimeout(() => btn.style.color = '', 1000);
                 } catch (e) {
                     console.error("Thumbnail save failed:", e);
-                    alert(t('downloader.thumbnail.saveFailed', 'Failed to save thumbnail. Check console for details.'));
                 }
                 return;
             }
@@ -458,6 +490,7 @@
     function showDashboard() {
         searchSection.classList.remove('centered');
         searchSection.classList.add('sticky');
+        setZenMode(false);
 
         setTimeout(() => {
             dashboard.classList.remove('hidden');
@@ -482,14 +515,27 @@
 
         const title = data.title || t('common.unknownTitle', 'Unknown title');
         const author = data.channel || data.uploader || t('common.unknownChannel', 'Unknown channel');
+        const uploaderUrl = data.uploader_url || data.uploaderUrl || '';
         const duration = data.duration_string || formatTime(state.duration);
 
         document.getElementById('meta-title').innerText = title;
-        document.getElementById('meta-author').innerText = author;
+        if (metaAuthor) {
+            metaAuthor.innerText = author;
+            metaAuthor.dataset.url = uploaderUrl || '';
+            metaAuthor.classList.toggle('meta-author-link', !!uploaderUrl);
+            if (uploaderUrl) {
+                metaAuthor.setAttribute('role', 'button');
+                metaAuthor.tabIndex = 0;
+            } else {
+                metaAuthor.removeAttribute('role');
+                metaAuthor.tabIndex = -1;
+            }
+        }
         document.getElementById('meta-duration').innerText = duration;
 
         state.currentTitle = title;
         state.currentThumbnail = data.thumbnail || '';
+        state.currentUploaderUrl = uploaderUrl || '';
 
         if (data.thumbnail) {
             thumbPreview.innerHTML = `<img src="${data.thumbnail}" alt="${t('downloader.thumbnail.alt', 'Thumbnail')}">`;
@@ -515,6 +561,7 @@
             dashboard.classList.add('hidden');
             searchSection.classList.remove('sticky');
             searchSection.classList.add('centered');
+            setZenMode(true);
             state.isAnalyzed = false;
             state.metadataTaskId = null;
             state.selectedFormat = null;
@@ -522,6 +569,13 @@
             state.subtitleOptions = [];
             state.currentTitle = null;
             state.currentThumbnail = null;
+            state.currentUploaderUrl = null;
+            if (metaAuthor) {
+                metaAuthor.dataset.url = '';
+                metaAuthor.classList.remove('meta-author-link');
+                metaAuthor.removeAttribute('role');
+                metaAuthor.tabIndex = -1;
+            }
             if (customArgsInput) customArgsInput.value = '';
             setFetchLoading(false);
             if (subsLangSuggestions) {
@@ -746,5 +800,6 @@
     }
 
     updateSlider();
+    setZenMode(true);
     loadAdvancedMode();
 })();

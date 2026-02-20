@@ -52,7 +52,7 @@ jobs:
           cp src-tauri/target/release/bundle/appimage/*.AppImage "Pulsar-$ver-$os.AppImage"
           cp src-tauri/target/release/bundle/appimage/*.AppImage.sig "Pulsar-Linux.sig"
           cp src-tauri/target/release/bundle/deb/*.deb "Pulsar-$ver-$os.deb"
-          tar -czvf "Pulsar-$ver-$os.tar.gz" -C src-tauri/target/release pulsar
+          tar -czvf "Pulsar-$ver-$os.tar.gz" -C src-tauri/target/release Pulsar
 
           echo "ASSET_APPIMAGE=Pulsar-$ver-$os.AppImage" >> $GITHUB_ENV
           echo "ASSET_DEB=Pulsar-$ver-$os.deb" >> $GITHUB_ENV

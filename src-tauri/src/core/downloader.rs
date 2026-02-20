@@ -187,22 +187,34 @@ pub async fn pick_download_directory(app_handle: AppHandle) -> Result<String, St
 
 #[tauri::command]
 pub async fn save_thumbnail_to_disk(app_handle: AppHandle, url: String) -> Result<(), String> {
-    let video_id = extract_video_id(&url).ok_or("Could not extract Video ID")?;
-    let thumb_url = format!("https://i3.ytimg.com/vi/{}/maxresdefault.jpg", video_id);
+    let trimmed = url.trim();
+    if trimmed.is_empty() {
+        return Err("Thumbnail URL cannot be empty".to_string());
+    }
 
-    println!("Fetching thumbnail from: {}", thumb_url);
+    println!("Fetching thumbnail from: {}", trimmed);
 
-    let response = reqwest::get(&thumb_url).await.map_err(|e| e.to_string())?;
+    let response = reqwest::get(trimmed).await.map_err(|e| e.to_string())?;
 
     if !response.status().is_success() {
         return Err(format!("Failed to fetch thumbnail: HTTP {}", response.status()));
     }
 
+    let content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+
     let bytes = response.bytes().await.map_err(|e| e.to_string())?;
 
+    let ext = guess_thumbnail_extension(&content_type, trimmed).unwrap_or_else(|| "jpg".to_string());
+    let file_name = format!("thumbnail.{}", ext);
+
     let file_path = app_handle.dialog().file()
-        .set_file_name(format!("{}_thumbnail.jpg", video_id))
-        .add_filter("JPEG Image", &["jpg", "jpeg"])
+        .set_file_name(file_name)
+        .add_filter("Image", &["jpg", "jpeg", "png", "webp"])
         .blocking_save_file();
 
     if let Some(path) = file_path {
@@ -220,15 +232,24 @@ pub fn read_clipboard_text() -> Result<String, String> {
     clipboard.get_text().map_err(|e| e.to_string())
 }
 
-fn extract_video_id(url: &str) -> Option<String> {
-    if let Some(index) = url.find("v=") {
-        let remainder = &url[index + 2..];
-        let end = remainder.find('&').unwrap_or(remainder.len());
-        return Some(remainder[0..end].to_string());
-    } else if let Some(index) = url.find("youtu.be/") {
-        let remainder = &url[index + 9..];
-        let end = remainder.find('?').unwrap_or(remainder.len());
-        return Some(remainder[0..end].to_string());
+fn guess_thumbnail_extension(content_type: &str, url: &str) -> Option<String> {
+    let ct = content_type.to_lowercase();
+    if ct.contains("image/png") {
+        return Some("png".to_string());
+    }
+    if ct.contains("image/webp") {
+        return Some("webp".to_string());
+    }
+    if ct.contains("image/jpeg") || ct.contains("image/jpg") {
+        return Some("jpg".to_string());
+    }
+
+    let clean = url.split('?').next().unwrap_or(url);
+    if let Some(ext) = clean.rsplit('.').next() {
+        let ext_lower = ext.to_lowercase();
+        if matches!(ext_lower.as_str(), "jpg" | "jpeg" | "png" | "webp") {
+            return Some(if ext_lower == "jpeg" { "jpg".to_string() } else { ext_lower });
+        }
     }
     None
 }

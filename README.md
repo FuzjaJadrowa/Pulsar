@@ -28,7 +28,11 @@
 ### For macOS (Apple Silicon / aarch64)
 * **Installer (.dmg)**: Open the `.dmg` file and drag the Pulsar icon into your **Applications** folder.
 * **Portable (.app.tar.gz)**: Unzip the file and run the `Pulsar.app` bundle.
-    * *Note:* If you encounter a security warning, Right-Click the app and select **Open** to authorize the first launch.
+    * *Note:* If you encounter a damage warning, type in command prompt:
+  ```bash
+  sudo xattr -cr [Path to Pulsar.app]
+  ```
+  and select **Open** to authorize the first launch.
 ### For Linux (x86_64)
 * **AppImage (.AppImage)**: Download, make it executable (`chmod +x Pulsar-X.X.X-Linux.AppImage`), and run it directly.
 * **Debian/Ubuntu (.deb)**: Install via your package manager:

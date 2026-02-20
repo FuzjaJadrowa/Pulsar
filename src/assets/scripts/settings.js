@@ -151,7 +151,7 @@
     if (supportBtn) {
         supportBtn.onclick = async () => {
             try {
-                await window.__TAURI__.opener.openUrl('https://tipply.pl/@fuzjajadrowa');
+                await window.__TAURI__.opener.openUrl('https://www.patreon.com/FuzjaJadrowa');
             } catch (error) {
                 console.error('Failed to open support link:', error);
             }
