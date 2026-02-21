@@ -191,6 +191,11 @@
 
     const appWindow = tauri.window?.getCurrentWindow ? tauri.window.getCurrentWindow() : null;
 
+    const successSound = {
+        audio: null,
+        src: 'assets/success.mp3'
+    };
+
     async function shouldSystemNotify() {
         if (!state.systemNotifications) return false;
         if (!appWindow) return false;
@@ -201,6 +206,41 @@
         } catch (e) {
             console.error('Failed to check window state:', e);
             return false;
+        }
+    }
+
+    async function shouldPlaySuccessSound() {
+        if (!appWindow) {
+            return document.visibilityState === 'visible' && !document.hidden;
+        }
+        try {
+            const visible = typeof appWindow.isVisible === 'function' ? await appWindow.isVisible() : true;
+            const minimized = typeof appWindow.isMinimized === 'function' ? await appWindow.isMinimized() : false;
+            return visible && minimized === false;
+        } catch (e) {
+            console.error('Failed to check window state for sound:', e);
+            return document.visibilityState === 'visible' && !document.hidden;
+        }
+    }
+
+    function getSuccessAudio() {
+        if (!successSound.audio) {
+            const audio = new Audio(successSound.src);
+            audio.preload = 'auto';
+            successSound.audio = audio;
+        }
+        return successSound.audio;
+    }
+
+    async function playSuccessSound() {
+        const canPlay = await shouldPlaySuccessSound();
+        if (!canPlay) return;
+        try {
+            const audio = getSuccessAudio();
+            audio.currentTime = 0;
+            await audio.play();
+        } catch (e) {
+            console.error('Failed to play success sound:', e);
         }
     }
 
@@ -896,6 +936,7 @@
                 false
             );
         }
+        playSuccessSound();
         sendSystemNotification(
             t('queue.notifications.systemTitle', 'Pulsar'),
             t('queue.notifications.downloadCompletedSystem', 'Download completed.'),
@@ -911,6 +952,7 @@
                 false
             );
         }
+        playSuccessSound();
         sendSystemNotification(
             t('queue.notifications.systemTitle', 'Pulsar'),
             t('queue.notifications.queueCompletedSystem', 'Queue downloads completed.'),
