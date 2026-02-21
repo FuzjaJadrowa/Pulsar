@@ -109,12 +109,6 @@
         }
     }
 
-    function applyAuroraEnabled(enabled) {
-        if (!document.body) return;
-        const isEnabled = enabled !== false;
-        document.body.classList.toggle('aurora-enabled', isEnabled);
-    }
-
     function setZenMode(enabled) {
         if (!document.body) return;
         document.body.classList.toggle('zen-mode', !!enabled);
@@ -124,7 +118,6 @@
         try {
             const config = await invoke('get_config');
             applyAdvancedMode(config?.advanced_mode);
-            applyAuroraEnabled(config?.idle_aurora);
         } catch (error) {
             console.error('Failed to load advanced mode:', error);
         }
@@ -134,9 +127,6 @@
         if (!event?.detail) return;
         if (typeof event.detail.advanced_mode !== 'undefined') {
             applyAdvancedMode(event.detail.advanced_mode);
-        }
-        if (typeof event.detail.idle_aurora !== 'undefined') {
-            applyAuroraEnabled(event.detail.idle_aurora);
         }
     });
 
@@ -530,6 +520,7 @@
 
         document.getElementById('meta-title').innerText = title;
         if (metaAuthor) {
+            metaAuthor.setAttribute('data-i18n-lock', 'true');
             metaAuthor.innerText = author;
             metaAuthor.dataset.url = uploaderUrl || '';
             metaAuthor.classList.toggle('meta-author-link', !!uploaderUrl);
@@ -581,6 +572,8 @@
             state.currentThumbnail = null;
             state.currentUploaderUrl = null;
             if (metaAuthor) {
+                metaAuthor.removeAttribute('data-i18n-lock');
+                metaAuthor.innerText = t('downloader.meta.defaultAuthor', 'Channel Name');
                 metaAuthor.dataset.url = '';
                 metaAuthor.classList.remove('meta-author-link');
                 metaAuthor.removeAttribute('role');

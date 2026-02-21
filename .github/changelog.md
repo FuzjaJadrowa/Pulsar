@@ -1,15 +1,16 @@
-# <p align="center">2.1.1</p>
+# <p align="center">2.2.0</p>
 ## Added
-* GUI text is now dynamically loaded from JSON files, paving the way for seamless multi-language support.
-* Added the ability to change the frequency for checking requirement updates (App, Bridge, FFmpeg) in the settings.
-
+* FFmpeg auto-download now supports Linux builds.
+* Stable FFmpeg line support (n8.0) with GPL-shared artifacts.
+* Added Tray Icon with data about version, currently processing downloads etc.
+* Clicking on the author now opens creator YouTube channel.
+* Added advanced mode setting that unlocks readded custom argument and console preview.
+* Added ability to change max concurrent downloads in settings.
+* Added system notifications when your app is minimalized or hided, you can of course disable it in settings.
 ## Changed
-* Pulsar has been completely rebuilt from the ground up! We transitioned from Qt C++ to **Tauri v2** (Rust + web technologies), resulting in a much lighter, faster, and more modern application.
-* Transitioned from executing standard `yt-dlp` commands to a dedicated, highly stable `pulsar-bridge` process, ensuring reliable downloads and better background communication.
-* The downloader interface has been completely overhauled with a brand-new, intuitive, and modern style.
-* The settings tab has received a fresh new look and improved layout for easier navigation.
-* The dedicated console tab has been removed.
-* The option to pass custom CLI arguments has been removed.
-
+* FFmpeg update checks now use build checksums to avoid re-downloading identical autobuilds.
+* Moved Theme setting to new Appearance section.
+* Changed tipply to Parteon link in Support Project button.
 ## Fixed
-* Thanks to the new Rust-based backend, a huge number of legacy bugs, crashes, and unexpected behaviors from the previous C++ version have been resolved.
+* Smooth background color transitions between Settings and Downloader pages.
+* Wrong audio formats provided error.

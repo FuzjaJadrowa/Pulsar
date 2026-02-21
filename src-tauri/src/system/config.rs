@@ -8,8 +8,6 @@ use std::fs;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub theme: String,
-    #[serde(default)]
-    pub idle_aurora: bool,
     pub language: String,
     pub close_behavior: String,
     pub advanced_mode: bool,
@@ -29,7 +27,6 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             theme: "System".to_string(),
-            idle_aurora: true,
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             advanced_mode: false,
@@ -90,10 +87,6 @@ impl ConfigManager {
                         config.theme = v.to_string();
                         theme_loaded = true;
                     }
-                    config.idle_aurora = section
-                        .get("idle_aurora")
-                        .map(|v| v == "true")
-                        .unwrap_or(config.idle_aurora);
                 }
 
                 if let Some(section) = ini.section(Some("General")) {
@@ -145,8 +138,7 @@ impl ConfigManager {
             .set("system_notifications", if config.system_notifications { "true" } else { "false" });
 
         ini.with_section(Some("Appearance"))
-            .set("theme", &config.theme)
-            .set("idle_aurora", if config.idle_aurora { "true" } else { "false" });
+            .set("theme", &config.theme);
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })

@@ -355,11 +355,15 @@ async function loadPage(pageName, pageIndex) {
         window.i18n.apply(targetView);
     }
 
-    document.body.classList.remove('page-downloader', 'page-settings');
-    if (pageName === 'downloader') document.body.classList.add('page-downloader');
-    if (pageName === 'settings') document.body.classList.add('page-settings');
+    const body = document.body;
+    const applyPageClass = (name) => {
+        if (!body) return;
+        body.classList.toggle('page-downloader', name === 'downloader');
+        body.classList.toggle('page-settings', name === 'settings');
+    };
 
     if (!hasPrevious || previousView === targetView) {
+        applyPageClass(pageName);
         if (previousView && previousView !== targetView) {
             previousView.classList.remove('active-view');
         }
@@ -371,6 +375,10 @@ async function loadPage(pageName, pageIndex) {
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
         }, 50);
     } else {
+        if (body) {
+            body.classList.add('page-transition');
+        }
+        applyPageClass(pageName);
         const incomingFrom = direction === 'right' ? '100%' : '-100%';
         const outgoingTo = direction === 'right' ? '-100%' : '100%';
 
@@ -401,6 +409,7 @@ async function loadPage(pageName, pageIndex) {
         targetView.style.transform = '';
         targetView.style.opacity = '';
         setTimeout(() => {
+            if (body) body.classList.remove('page-transition');
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
         }, 50);

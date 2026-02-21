@@ -295,38 +295,94 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
     }
 
     let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-    let remote_ver = json["published_at"].as_str().unwrap_or("").to_string();
     let assets = json["assets"].as_array().ok_or("No assets")?;
 
-    let local_ver = versions.local_versions.get(name).cloned().unwrap_or_default();
-    let local_exists = check_file_exists(req_path, name);
-
-    if local_exists && local_ver == remote_ver {
-        return Ok(());
-    }
-
     let mut download_url = String::new();
+    let mut selected_asset_name = String::new();
     let os = get_os_name();
+    let arch = get_arch_name();
 
     for asset in assets {
-        let asset_name = asset["name"].as_str().unwrap_or("").to_lowercase();
+        let name_raw = asset["name"].as_str().unwrap_or("");
+        let asset_name = name_raw.to_lowercase();
         let dl_link = asset["browser_download_url"].as_str().unwrap_or("").to_string();
 
         if name == "pulsar-bridge" {
             if os == "win" && asset_name == "pulsar-bridge-windows.exe" {
-                download_url = dl_link; break;
+                download_url = dl_link;
+                selected_asset_name = name_raw.to_string();
+                break;
             } else if os == "mac" && asset_name == "pulsar-bridge-macos" {
-                download_url = dl_link; break;
+                download_url = dl_link;
+                selected_asset_name = name_raw.to_string();
+                break;
             } else if os == "linux" && asset_name == "pulsar-bridge-linux" {
-                download_url = dl_link; break;
+                download_url = dl_link;
+                selected_asset_name = name_raw.to_string();
+                break;
             }
         } else if name == "ffmpeg" {
-            #[cfg(target_os = "windows")]
-            if asset_name.contains("win64-gpl-shared") && asset_name.ends_with(".zip") { download_url = dl_link; break; }
+            if os == "win" {
+                if arch == "aarch64" && asset_name == "ffmpeg-n8.0-latest-winarm64-gpl-shared-8.0.zip" {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "x86_64" && asset_name == "ffmpeg-n8.0-latest-win64-gpl-shared-8.0.zip" {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "aarch64" && asset_name.contains("winarm64-gpl-shared-8.0") && asset_name.ends_with(".zip") {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "x86_64" && asset_name.contains("win64-gpl-shared-8.0") && asset_name.ends_with(".zip") {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+            } else if os == "linux" {
+                if arch == "aarch64" && asset_name == "ffmpeg-n8.0-latest-linuxarm64-gpl-shared-8.0.tar.xz" {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "x86_64" && asset_name == "ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz" {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "aarch64" && asset_name.contains("linuxarm64-gpl-shared-8.0") && asset_name.ends_with(".tar.xz") {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+                if arch == "x86_64" && asset_name.contains("linux64-gpl-shared-8.0") && asset_name.ends_with(".tar.xz") {
+                    download_url = dl_link;
+                    selected_asset_name = name_raw.to_string();
+                    break;
+                }
+            }
         }
     }
 
     if download_url.is_empty() { return Ok(()); }
+
+    let mut remote_ver = json["published_at"].as_str().unwrap_or("").to_string();
+    if name == "ffmpeg" && !selected_asset_name.is_empty() {
+        if let Some(checksum) = fetch_ffmpeg_checksum(client, assets, &selected_asset_name, splash_state).await {
+            remote_ver = format!("sha256:{}", checksum);
+        }
+    }
+
+    let local_ver = versions.local_versions.get(name).cloned().unwrap_or_default();
+    let local_exists = check_file_exists(req_path, name);
+
+    if local_exists && !local_ver.is_empty() && local_ver == remote_ver {
+        return Ok(());
+    }
 
     emit_status(window, &format!("Downloading {}...", name), true, local_exists);
 
@@ -481,6 +537,43 @@ fn get_os_name() -> &'static str {
     if cfg!(target_os = "windows") { "win" }
     else if cfg!(target_os = "macos") { "mac" }
     else { "linux" }
+}
+
+fn get_arch_name() -> &'static str {
+    if cfg!(target_arch = "x86_64") { "x86_64" }
+    else if cfg!(target_arch = "aarch64") { "aarch64" }
+    else { "unknown" }
+}
+
+async fn fetch_ffmpeg_checksum(client: &Client, assets: &[serde_json::Value], asset_name: &str, splash_state: &SplashState) -> Option<String> {
+    if splash_state.is_cancelled() {
+        return None;
+    }
+
+    let checksum_asset = assets.iter().find(|asset| {
+        asset["name"]
+            .as_str()
+            .map(|name| name.eq_ignore_ascii_case("checksums.sha256"))
+            .unwrap_or(false)
+    })?;
+
+    let url = checksum_asset["browser_download_url"].as_str()?;
+    let response = client.get(url).send().await.ok()?;
+    if !response.status().is_success() {
+        return None;
+    }
+
+    let text = response.text().await.ok()?;
+    for line in text.lines() {
+        let mut parts = line.split_whitespace();
+        let hash = parts.next()?;
+        let file = parts.next()?;
+        if file == asset_name {
+            return Some(hash.to_string());
+        }
+    }
+
+    None
 }
 
 fn load_versions(req_path: &Path) -> Versions {

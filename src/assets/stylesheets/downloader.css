@@ -21,24 +21,21 @@ html, body { height: 100%; }
 .downloader-scroll::-webkit-scrollbar { display: none; }
 body.mode-video { --active-color: var(--c-video-primary); }
 body.mode-audio { --active-color: var(--c-audio-primary); }
-body.page-downloader::before,
-body.page-downloader::after {
+body::before,
+body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
     transition: opacity 0.4s ease-in-out, background 0.45s ease-in-out;
-}
-body.page-downloader::before {
-    background: var(--c-video-bg-gradient);
     opacity: 0;
 }
-body.page-downloader::after {
-    background: var(--c-audio-bg-gradient);
-    opacity: 0;
-}
+body::before { background: var(--c-video-bg-gradient); }
+body::after { background: var(--c-audio-bg-gradient); }
 body.page-downloader.mode-video::before { opacity: 1; }
 body.page-downloader.mode-audio::after { opacity: 1; }
+body.page-transition::before,
+body.page-transition::after { opacity: 0; }
 .search-section {
     width: 100%; display: flex; justify-content: center;
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);

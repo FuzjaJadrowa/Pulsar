@@ -59,6 +59,8 @@
         if (!root || typeof root.querySelectorAll !== 'function') return;
 
         root.querySelectorAll('[data-i18n]').forEach((el) => {
+            const lockValue = el.getAttribute('data-i18n-lock');
+            if (lockValue && lockValue !== 'false') return;
             const key = el.getAttribute('data-i18n');
             if (!key) return;
             const fallback = (el.textContent || '').trim();
