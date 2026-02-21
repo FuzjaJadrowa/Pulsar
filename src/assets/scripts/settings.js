@@ -3,6 +3,7 @@
 
     const idMap = {
         'theme': 'theme',
+        'idle_aurora': 'idle_aurora',
         'language': 'language',
         'system_notifications': 'system_notifications',
         'advanced_mode': 'advanced_mode',

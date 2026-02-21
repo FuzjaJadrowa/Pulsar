@@ -2,6 +2,7 @@ mod core;
 mod system;
 
 use core::downloader::BridgeState;
+use core::splash::SplashState;
 use core::tray::build_tray_icon;
 pub use core::tray::sync_tray_from_queue;
 use system::config::ConfigManager;
@@ -13,6 +14,7 @@ pub fn run() {
     let config_manager = ConfigManager::new();
     let queue_manager = QueueManager::new();
     let bridge_state = BridgeState::new();
+    let splash_state = SplashState::new();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -22,6 +24,7 @@ pub fn run() {
         .manage(config_manager)
         .manage(queue_manager)
         .manage(bridge_state)
+        .manage(splash_state)
         .setup(|app| {
             let queue_state = app.state::<QueueManager>().load();
             build_tray_icon(app.handle(), &queue_state)?;
@@ -47,6 +50,7 @@ pub fn run() {
             system::metadata::fetch_metadata,
             system::notifications::send_system_notification,
             core::splash::run_splash_checks,
+            core::splash::cancel_splash_checks,
             core::downloader::start_download,
             core::downloader::cancel_download,
             core::downloader::pick_download_directory,

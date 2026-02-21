@@ -1,13 +1,14 @@
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use directories::BaseDirs;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager, Window};
+use tauri::{AppHandle, Emitter, Manager, Window, State};
 use tauri_plugin_updater::UpdaterExt;
 use crate::system::config::ConfigManager;
 
@@ -15,9 +16,12 @@ const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 struct Versions {
     app_last_check: u64,
     req_last_check: u64,
+    bridge_last_check: u64,
+    ffmpeg_last_check: u64,
     #[serde(flatten)]
     local_versions: std::collections::HashMap<String, String>,
 }
@@ -27,8 +31,32 @@ impl Default for Versions {
         Self {
             app_last_check: 0,
             req_last_check: 0,
+            bridge_last_check: 0,
+            ffmpeg_last_check: 0,
             local_versions: std::collections::HashMap::new(),
         }
+    }
+}
+
+pub struct SplashState {
+    cancel_flag: AtomicBool,
+}
+
+impl SplashState {
+    pub fn new() -> Self {
+        Self { cancel_flag: AtomicBool::new(false) }
+    }
+
+    fn reset(&self) {
+        self.cancel_flag.store(false, Ordering::Relaxed);
+    }
+
+    fn cancel(&self) {
+        self.cancel_flag.store(true, Ordering::Relaxed);
+    }
+
+    fn is_cancelled(&self) -> bool {
+        self.cancel_flag.load(Ordering::Relaxed)
     }
 }
 
@@ -40,8 +68,21 @@ struct SplashStatusPayload {
     can_skip: bool,
 }
 
+enum AppUpdateResult {
+    Updated,
+    NotUpdated,
+    Cancelled,
+}
+
 #[tauri::command]
-pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), String> {
+pub fn cancel_splash_checks(state: State<'_, SplashState>) {
+    state.cancel();
+}
+
+#[tauri::command]
+pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: State<'_, SplashState>) -> Result<(), String> {
+    splash_state.reset();
+
     let client = Client::builder()
         .user_agent("Pulsar-App")
         .build()
@@ -57,6 +98,8 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
         config
     };
     let app_update_enabled = app_config.update_app;
+    let bridge_update_enabled = app_config.update_ytdlp;
+    let ffmpeg_update_enabled = app_config.update_ffmpeg;
     let update_interval_secs = app_config.update_app_cooldown_minutes.max(1) * 60;
 
     let req_path = get_requirements_path();
@@ -64,46 +107,95 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
 
     emit_status(&window, "Checking for updates...", false, false);
+    if splash_state.is_cancelled() {
+        return Ok(());
+    }
 
-    if now - versions.app_last_check >= update_interval_secs {
-        match check_app_update(&app, &window, app_update_enabled).await {
-            Ok(updated) => {
+    if app_update_enabled && now - versions.app_last_check >= update_interval_secs {
+        match check_app_update(&app, &window, app_update_enabled, &splash_state).await {
+            Ok(AppUpdateResult::Updated) => {
                 versions.app_last_check = now;
-                if updated {
-                    return Ok(());
-                }
+                save_versions(&req_path, &versions);
+                return Ok(());
+            }
+            Ok(AppUpdateResult::NotUpdated) => {
+                versions.app_last_check = now;
+            }
+            Ok(AppUpdateResult::Cancelled) => {
+                save_versions(&req_path, &versions);
+                return Ok(());
             }
             Err(e) => emit_status(&window, &format!("Update check failed: {}", e), false, false),
         }
     }
 
-    let mut req_checked = false;
-    let mut needs_check = false;
-
-    if !check_file_exists(&req_path, "pulsar-bridge") || !check_file_exists(&req_path, "ffmpeg") {
-        needs_check = true;
-    } else if now - versions.req_last_check > update_interval_secs {
-        needs_check = true;
+    if splash_state.is_cancelled() {
+        save_versions(&req_path, &versions);
+        return Ok(());
     }
 
-    if needs_check {
-        if !check_file_exists(&req_path, "pulsar-bridge") || now - versions.req_last_check > update_interval_secs {
-            match update_component(&client, &window, &req_path, "pulsar-bridge", &mut versions).await {
-                Ok(_) => req_checked = true,
-                Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
-            }
-        }
+    let bridge_exists = check_file_exists(&req_path, "pulsar-bridge");
+    let ffmpeg_exists = check_file_exists(&req_path, "ffmpeg");
 
-        if !check_file_exists(&req_path, "ffmpeg") || now - versions.req_last_check > update_interval_secs {
-            match update_component(&client, &window, &req_path, "ffmpeg", &mut versions).await {
-                Ok(_) => req_checked = true,
-                Err(e) => emit_status(&window, &format!("Error: {}", e), false, false),
+    let bridge_needs_check = if bridge_update_enabled {
+        !bridge_exists || now - versions.bridge_last_check > update_interval_secs
+    } else {
+        !bridge_exists
+    };
+
+    let ffmpeg_needs_check = if ffmpeg_update_enabled {
+        !ffmpeg_exists || now - versions.ffmpeg_last_check > update_interval_secs
+    } else {
+        !ffmpeg_exists
+    };
+
+    if bridge_needs_check {
+        if splash_state.is_cancelled() {
+            save_versions(&req_path, &versions);
+            return Ok(());
+        }
+        match update_component(&client, &window, &req_path, "pulsar-bridge", &mut versions, &splash_state).await {
+            Ok(_) => {
+                if bridge_update_enabled {
+                    versions.bridge_last_check = now;
+                }
+            }
+            Err(e) => {
+                if e == "Cancelled" {
+                    save_versions(&req_path, &versions);
+                    return Ok(());
+                }
+                emit_status(&window, &format!("Error: {}", e), false, false);
             }
         }
     }
 
-    if req_checked { versions.req_last_check = now; }
+    if ffmpeg_needs_check {
+        if splash_state.is_cancelled() {
+            save_versions(&req_path, &versions);
+            return Ok(());
+        }
+        match update_component(&client, &window, &req_path, "ffmpeg", &mut versions, &splash_state).await {
+            Ok(_) => {
+                if ffmpeg_update_enabled {
+                    versions.ffmpeg_last_check = now;
+                }
+            }
+            Err(e) => {
+                if e == "Cancelled" {
+                    save_versions(&req_path, &versions);
+                    return Ok(());
+                }
+                emit_status(&window, &format!("Error: {}", e), false, false);
+            }
+        }
+    }
+
     save_versions(&req_path, &versions);
+
+    if splash_state.is_cancelled() {
+        return Ok(());
+    }
 
     emit_status(&window, "Starting...", false, false);
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -113,19 +205,31 @@ pub async fn run_splash_checks(app: AppHandle, window: Window) -> Result<(), Str
     Ok(())
 }
 
-async fn check_app_update(app: &AppHandle, window: &Window, auto_update_enabled: bool) -> Result<bool, String> {
+async fn check_app_update(app: &AppHandle, window: &Window, auto_update_enabled: bool, splash_state: &SplashState) -> Result<AppUpdateResult, String> {
+    if splash_state.is_cancelled() {
+        return Ok(AppUpdateResult::Cancelled);
+    }
+
     let updater = app.updater().map_err(|e| e.to_string())?;
     let Some(update) = updater.check().await.map_err(|e| e.to_string())? else {
-        return Ok(false);
+        return Ok(AppUpdateResult::NotUpdated);
     };
+
+    if splash_state.is_cancelled() {
+        return Ok(AppUpdateResult::Cancelled);
+    }
 
     if !auto_update_enabled {
         emit_status(window, "Update available (auto-update disabled)", false, false);
-        return Ok(false);
+        return Ok(AppUpdateResult::NotUpdated);
     }
 
     let target_version = update.version.clone();
     emit_status(window, &format!("Updating to {}", target_version), true, true);
+
+    if splash_state.is_cancelled() {
+        return Ok(AppUpdateResult::Cancelled);
+    }
 
     let window_clone = window.clone();
     let window_finish = window.clone();
@@ -166,17 +270,28 @@ async fn check_app_update(app: &AppHandle, window: &Window, auto_update_enabled:
         .map_err(|e| e.to_string())?;
 
     emit_status(window, "Update installed. Restarting...", false, false);
-    Ok(true)
+    Ok(AppUpdateResult::Updated)
 }
 
-async fn update_component(client: &Client, window: &Window, req_path: &Path, name: &str, versions: &mut Versions) -> Result<(), String> {
+async fn update_component(client: &Client, window: &Window, req_path: &Path, name: &str, versions: &mut Versions, splash_state: &SplashState) -> Result<(), String> {
+    if splash_state.is_cancelled() {
+        return Err("Cancelled".to_string());
+    }
+
     emit_status(window, &format!("Checking {}...", name), false, false);
 
     let url = if name == "pulsar-bridge" { BRIDGE_REPO_URL } else { FFMPEG_REPO_URL };
+    if splash_state.is_cancelled() {
+        return Err("Cancelled".to_string());
+    }
     let resp = client.get(url).send().await.map_err(|e| e.to_string())?;
 
     if !resp.status().is_success() {
         return Err("Network error".to_string());
+    }
+
+    if splash_state.is_cancelled() {
+        return Err("Cancelled".to_string());
     }
 
     let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
@@ -218,8 +333,18 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
     let temp_name = if download_url.ends_with(".zip") { "temp.zip" } else if download_url.ends_with(".tar.xz") { "temp.tar.xz" } else { "temp_bin" };
     let target_dl_path = req_path.join(temp_name);
 
-    download_file(client, window, &download_url, &target_dl_path).await?;
+    if splash_state.is_cancelled() {
+        return Err("Cancelled".to_string());
+    }
+    if let Err(e) = download_file(client, window, &download_url, &target_dl_path, splash_state).await {
+        let _ = fs::remove_file(&target_dl_path);
+        return Err(e);
+    }
     emit_status(window, "Extracting...", false, false);
+    if splash_state.is_cancelled() {
+        let _ = fs::remove_file(&target_dl_path);
+        return Err("Cancelled".to_string());
+    }
 
     if name == "pulsar-bridge" {
         let final_name = get_executable_name("pulsar-bridge");
@@ -243,7 +368,7 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
     Ok(())
 }
 
-async fn download_file(client: &Client, window: &Window, url: &str, dest: &PathBuf) -> Result<(), String> {
+async fn download_file(client: &Client, window: &Window, url: &str, dest: &PathBuf, splash_state: &SplashState) -> Result<(), String> {
     let res = client.get(url).send().await.map_err(|e| e.to_string())?;
     let total_size = res.content_length().unwrap_or(0);
 
@@ -252,6 +377,12 @@ async fn download_file(client: &Client, window: &Window, url: &str, dest: &PathB
     let mut stream = res.bytes_stream();
 
     while let Some(item) = stream.next().await {
+        if splash_state.is_cancelled() {
+            drop(file);
+            let _ = fs::remove_file(dest);
+            return Err("Cancelled".to_string());
+        }
+
         let chunk = item.map_err(|e| e.to_string())?;
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         downloaded += chunk.len() as u64;

@@ -120,12 +120,14 @@
   "settings": {
     "title": "Settings",
     "general": "General",
+    "appearance": "Appearance",
     "theme": "Theme",
     "themeOptions": {
       "system": "System",
       "dark": "Dark",
       "light": "Light"
     },
+    "auroraIdle": "Aurora idle animation",
     "language": "Language",
     "languageOptions": {
       "english": "English"

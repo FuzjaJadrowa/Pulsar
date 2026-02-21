@@ -16,6 +16,7 @@ html, body { height: 100%; }
     display: flex; flex-direction: column;
     overflow-y: auto; scrollbar-width: none;
     padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
+    z-index: 1;
 }
 .downloader-scroll::-webkit-scrollbar { display: none; }
 body.mode-video { --active-color: var(--c-video-primary); }

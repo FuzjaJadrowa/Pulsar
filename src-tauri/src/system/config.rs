@@ -8,6 +8,8 @@ use std::fs;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub theme: String,
+    #[serde(default)]
+    pub idle_aurora: bool,
     pub language: String,
     pub close_behavior: String,
     pub advanced_mode: bool,
@@ -27,6 +29,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             theme: "System".to_string(),
+            idle_aurora: true,
             language: "English".to_string(),
             close_behavior: "hide".to_string(),
             advanced_mode: false,
@@ -80,8 +83,23 @@ impl ConfigManager {
 
         if path.exists() {
             if let Ok(ini) = Ini::load_from_file(&path) {
+                let mut theme_loaded = false;
+
+                if let Some(section) = ini.section(Some("Appearance")) {
+                    if let Some(v) = section.get("theme") {
+                        config.theme = v.to_string();
+                        theme_loaded = true;
+                    }
+                    config.idle_aurora = section
+                        .get("idle_aurora")
+                        .map(|v| v == "true")
+                        .unwrap_or(config.idle_aurora);
+                }
+
                 if let Some(section) = ini.section(Some("General")) {
-                    if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
+                    if !theme_loaded {
+                        if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
+                    }
                     if let Some(v) = section.get("language") { config.language = v.to_string(); }
                     if let Some(v) = section.get("close_behavior") { config.close_behavior = v.to_string(); }
                     config.advanced_mode = section.get("advanced_mode").map(|v| v == "true").unwrap_or(false);
@@ -121,11 +139,14 @@ impl ConfigManager {
         let mut ini = Ini::new();
 
         ini.with_section(Some("General"))
-            .set("theme", &config.theme)
             .set("language", &config.language)
             .set("close_behavior", &config.close_behavior)
             .set("advanced_mode", if config.advanced_mode { "true" } else { "false" })
             .set("system_notifications", if config.system_notifications { "true" } else { "false" });
+
+        ini.with_section(Some("Appearance"))
+            .set("theme", &config.theme)
+            .set("idle_aurora", if config.idle_aurora { "true" } else { "false" });
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })

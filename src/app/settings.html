@@ -8,15 +8,6 @@
     <div class="settings-section-title" data-i18n="settings.general">General</div>
 
     <div class="form-row">
-      <span data-i18n="settings.theme">Theme</span>
-      <select id="theme" class="custom-select" style="width: 150px;">
-        <option value="System" data-i18n="settings.themeOptions.system">System</option>
-        <option value="Dark" data-i18n="settings.themeOptions.dark">Dark</option>
-        <option value="Light" data-i18n="settings.themeOptions.light">Light</option>
-      </select>
-    </div>
-
-    <div class="form-row">
       <span data-i18n="settings.language">Language</span>
       <select id="language" class="custom-select" style="width: 150px;">
         <option value="English" data-i18n="settings.languageOptions.english">English</option>
@@ -41,6 +32,24 @@
       <label class="switch"><input id="advanced_mode" type="checkbox"><span class="slider"></span></label>
     </div>
     <div class="settings-note" data-i18n="settings.advancedModeNote">Shows advanced options and console access.</div>
+  </section>
+
+  <section class="settings-section-card">
+    <div class="settings-section-title" data-i18n="settings.appearance">Appearance</div>
+
+    <div class="form-row">
+      <span data-i18n="settings.theme">Theme</span>
+      <select id="theme" class="custom-select" style="width: 150px;">
+        <option value="System" data-i18n="settings.themeOptions.system">System</option>
+        <option value="Dark" data-i18n="settings.themeOptions.dark">Dark</option>
+        <option value="Light" data-i18n="settings.themeOptions.light">Light</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <span data-i18n="settings.auroraIdle">Aurora idle animation</span>
+      <label class="switch"><input id="idle_aurora" type="checkbox"><span class="slider"></span></label>
+    </div>
   </section>
 
   <section class="settings-section-card">

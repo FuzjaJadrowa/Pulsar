@@ -132,6 +132,9 @@ function finishSplash() {
 
 if (skipBtn) {
     skipBtn.addEventListener('click', () => {
+        invoke('cancel_splash_checks').catch(err => {
+            console.error("Failed to cancel splash checks:", err);
+        });
         finishSplash();
     });
 }

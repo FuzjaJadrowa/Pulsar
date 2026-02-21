@@ -109,6 +109,12 @@
         }
     }
 
+    function applyAuroraEnabled(enabled) {
+        if (!document.body) return;
+        const isEnabled = enabled !== false;
+        document.body.classList.toggle('aurora-enabled', isEnabled);
+    }
+
     function setZenMode(enabled) {
         if (!document.body) return;
         document.body.classList.toggle('zen-mode', !!enabled);
@@ -118,6 +124,7 @@
         try {
             const config = await invoke('get_config');
             applyAdvancedMode(config?.advanced_mode);
+            applyAuroraEnabled(config?.idle_aurora);
         } catch (error) {
             console.error('Failed to load advanced mode:', error);
         }
@@ -127,6 +134,9 @@
         if (!event?.detail) return;
         if (typeof event.detail.advanced_mode !== 'undefined') {
             applyAdvancedMode(event.detail.advanced_mode);
+        }
+        if (typeof event.detail.idle_aurora !== 'undefined') {
+            applyAuroraEnabled(event.detail.idle_aurora);
         }
     });
 
