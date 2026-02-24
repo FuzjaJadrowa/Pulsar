@@ -239,7 +239,7 @@ body.theme-light .notif-close {
 
 #btn-queue {
     display: none;
-    width: 50px;
+    width: 40px;
     margin-left: 10px;
 }
 #btn-queue:hover, #btn-queue.active, #btn-queue.force-open {

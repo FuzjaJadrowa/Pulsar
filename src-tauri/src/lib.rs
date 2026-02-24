@@ -48,6 +48,7 @@ pub fn run() {
             system::get_queue_state,
             system::save_queue_state,
             system::metadata::fetch_metadata,
+            system::metadata::search,
             system::notifications::send_system_notification,
             core::splash::run_splash_checks,
             core::splash::cancel_splash_checks,

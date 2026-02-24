@@ -26,8 +26,13 @@
   },
   "downloader": {
     "search": {
-      "urlPlaceholder": "Paste link here...",
-      "pasteTitle": "Paste from clipboard"
+      "urlPlaceholder": "Type something here...",
+      "pasteTitle": "Paste from clipboard",
+      "providerLabel": "Search on",
+      "resultsTitle": "SEARCH RESULTS",
+      "resultsCount": "{count} results",
+      "loading": "Searching...",
+      "empty": "No results."
     },
     "meta": {
       "defaultAuthor": "Channel Name"
@@ -69,7 +74,8 @@
     },
     "errors": {
       "invalidLink": "Invalid link.",
-      "startPrefix": "Error: {error}"
+      "startPrefix": "Error: {error}",
+      "searchFailed": "Search failed."
     },
     "languages": {
       "global": "Global"

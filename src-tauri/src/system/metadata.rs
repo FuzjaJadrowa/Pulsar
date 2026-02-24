@@ -49,3 +49,42 @@ pub fn fetch_metadata(
 
     Ok(task_id)
 }
+
+#[tauri::command]
+pub fn search(
+    app_handle: AppHandle,
+    state: State<BridgeState>,
+    config_mgr: State<ConfigManager>,
+    query: String,
+) -> Result<String, String> {
+    let trimmed_query = query.trim();
+    if trimmed_query.is_empty() {
+        return Err("Query cannot be empty".to_string());
+    }
+
+    let task_id = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_millis()
+        .to_string();
+
+    let config = config_mgr.config.lock().unwrap();
+    let mut args: Vec<String> = Vec::new();
+
+    if config.cookies_browser != "None" {
+        args.push("--cookies-from-browser".to_string());
+        args.push(config.cookies_browser.to_lowercase());
+    }
+
+    args.push(format!("ytsearch10:{}", trimmed_query));
+
+    let cmd = BridgeCommand {
+        command: "search".to_string(),
+        id: task_id.clone(),
+        args,
+    };
+
+    state.send_raw_command(&app_handle, &cmd)?;
+
+    Ok(task_id)
+}

@@ -59,19 +59,23 @@ jobs:
           echo "ASSET_PORTABLE=$newNameZip" >> $env:GITHUB_ENV
           echo "ASSET_SIG=Pulsar-win64.sig" >> $env:GITHUB_ENV
 
+      - name: Encrypt Artifacts for Actions
+        shell: pwsh
+        run: |
+          7z a -p"${{ secrets.ARTIFACT_PASSWORD }}" secure-windows-artifacts.zip $env:ASSET_INSTALLER $env:ASSET_PORTABLE
+          7z a -p"${{ secrets.ARTIFACT_PASSWORD }}" secure-sig-windows.zip $env:ASSET_SIG
+
       - name: Upload build artifacts (server)
         uses: actions/upload-artifact@v4
         with:
           name: windows-${{ github.ref_name }}
-          path: |
-            ${{ env.ASSET_INSTALLER }}
-            ${{ env.ASSET_PORTABLE }}
+          path: secure-windows-artifacts.zip
 
       - name: Upload Signature artifact
         uses: actions/upload-artifact@v4
         with:
           name: sig-windows
-          path: ${{ env.ASSET_SIG }}
+          path: secure-sig-windows.zip
 
       - name: Upload Release Assets
         if: startsWith(github.ref, 'refs/tags/v')

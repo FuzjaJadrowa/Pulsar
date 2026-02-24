@@ -56,19 +56,23 @@ jobs:
           echo "ASSET_UPDATER=Pulsar-$ver-$os.app.tar.gz" >> $GITHUB_ENV
           echo "ASSET_SIG=Pulsar-MacOS.sig" >> $GITHUB_ENV
 
+      - name: Encrypt Artifacts for Actions
+        shell: bash
+        run: |
+          zip -j -P "${{ secrets.ARTIFACT_PASSWORD }}" secure-macos-artifacts.zip ${{ env.ASSET_INSTALLER }} ${{ env.ASSET_UPDATER }}
+          zip -j -P "${{ secrets.ARTIFACT_PASSWORD }}" secure-sig-macos.zip ${{ env.ASSET_SIG }}
+
       - name: Upload build artifacts (server)
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ github.ref_name }}
-          path: |
-            ${{ env.ASSET_INSTALLER }}
-            ${{ env.ASSET_UPDATER }}
+          path: secure-macos-artifacts.zip
 
       - name: Upload Signature artifact
         uses: actions/upload-artifact@v4
         with:
           name: sig-macos
-          path: ${{ env.ASSET_SIG }}
+          path: secure-sig-macos.zip
 
       - name: Upload Release Assets
         if: startsWith(github.ref, 'refs/tags/v')

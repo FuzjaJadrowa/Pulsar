@@ -52,6 +52,7 @@
     const subsLangInput = document.getElementById('subs-lang');
     const subsLangSuggestions = document.getElementById('subs-lang-suggestions');
     const customArgsInput = document.getElementById('custom-args-input');
+    const subtitlesGroup = document.querySelector('.subtitles-group');
 
     const rangeStart = document.getElementById('range-start');
     const rangeEnd = document.getElementById('range-end');
@@ -73,7 +74,8 @@
         currentTitle: null,
         currentThumbnail: null,
         currentUploaderUrl: null,
-        advancedMode: false
+        advancedMode: false,
+        audioOnlySource: false
     };
 
     const openExternalUrl = async (url) => {
@@ -109,6 +111,50 @@
         }
     }
 
+    function isAudioOnlySourceUrl(rawUrl) {
+        const input = String(rawUrl || '').trim();
+        if (!input) return false;
+
+        try {
+            const url = new URL(input);
+            const host = url.hostname.toLowerCase();
+            if (host === 'music.youtube.com' || host.endsWith('.music.youtube.com')) return true;
+            if (host === 'soundcloud.com' || host.endsWith('.soundcloud.com')) return true;
+            if (host === 'soundcloud.app.goo.gl') return true;
+            if (host === 'spotify.com' || host.endsWith('.spotify.com')) return true;
+            return false;
+        } catch (_) {
+            const lowered = input.toLowerCase();
+            return lowered.includes('music.youtube.com') || lowered.includes('soundcloud.com') || lowered.includes('soundcloud.app.goo.gl') || lowered.includes('spotify.com') || lowered.includes('open.spotify');
+        }
+    }
+
+    function applySourceConstraints(rawUrl) {
+        const audioOnly = isAudioOnlySourceUrl(rawUrl);
+        state.audioOnlySource = audioOnly;
+
+        if (body) {
+            body.classList.toggle('audio-only-source', audioOnly);
+        }
+        if (modeVideoBtn) {
+            modeVideoBtn.classList.toggle('hidden', audioOnly);
+        }
+        if (subtitlesGroup) {
+            subtitlesGroup.classList.toggle('hidden', audioOnly);
+        }
+
+        if (audioOnly) {
+            if (subsToggle) subsToggle.checked = false;
+            if (liveChatToggle) liveChatToggle.checked = false;
+            if (langWrapper) langWrapper.classList.remove('visible');
+            if (subsLangInput) subsLangInput.value = '';
+            if (subsLangSuggestions) {
+                subsLangSuggestions.classList.add('hidden');
+                subsLangSuggestions.innerHTML = '';
+            }
+        }
+    }
+
     function setZenMode(enabled) {
         if (!document.body) return;
         document.body.classList.toggle('zen-mode', !!enabled);
@@ -135,6 +181,12 @@
         element.classList.remove('shake-feedback');
         void element.offsetWidth;
         element.classList.add('shake-feedback');
+    }
+
+    function isHttpUrl(value) {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return false;
+        return /^https?:\/\//i.test(trimmed);
     }
 
     function setFetchLoading(isLoading) {
@@ -477,13 +529,26 @@
         const url = urlInput.value.trim();
         if (!url) return;
 
+        if (!isHttpUrl(url)) {
+            if (window.searchUi && typeof window.searchUi.startSearch === 'function') {
+                window.searchUi.startSearch(url);
+                return null;
+            }
+            triggerShakeFeedback(urlInput);
+            return null;
+        }
+
+        applySourceConstraints(url);
         setFetchLoading(true);
 
         try {
-            state.metadataTaskId = await invoke('fetch_metadata', { url });
+            const taskId = await invoke('fetch_metadata', { url });
+            state.metadataTaskId = taskId;
+            return taskId;
         } catch (error) {
             console.error('Metadata fetch failed:', error);
             setFetchLoading(false);
+            return null;
         }
     }
 
@@ -496,7 +561,8 @@
             dashboard.classList.remove('hidden');
             state.isAnalyzed = true;
             state.mode = null;
-            setMode('video');
+            const defaultMode = state.audioOnlySource ? 'audio' : 'video';
+            setMode(defaultMode);
         }, 500);
     }
 
@@ -559,6 +625,7 @@
 
     function resetToZen() {
         if (urlInput.value.trim() === '') {
+            applySourceConstraints('');
             dashboard.classList.add('hidden');
             searchSection.classList.remove('sticky');
             searchSection.classList.add('centered');
@@ -592,7 +659,10 @@
 
     fetchBtn.onclick = activateDashboard;
     urlInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); activateDashboard(); urlInput.blur(); }};
-    urlInput.oninput = resetToZen;
+    urlInput.oninput = () => {
+        resetToZen();
+        applySourceConstraints(urlInput.value);
+    };
 
     listen('download-event', (event) => {
         const payload = event.payload;
@@ -628,6 +698,7 @@
     });
 
     async function setMode(mode) {
+        if (state.audioOnlySource && mode === 'video') mode = 'audio';
         if (state.mode === mode) return;
         state.mode = mode;
 
@@ -656,6 +727,10 @@
     }
 
     modeVideoBtn.onclick = () => {
+        if (state.audioOnlySource) {
+            triggerShakeFeedback(modeAudioBtn);
+            return;
+        }
         if (state.mode === 'video') {
             triggerShakeFeedback(modeVideoBtn);
             return;
@@ -805,4 +880,22 @@
     updateSlider();
     setZenMode(true);
     loadAdvancedMode();
+
+    window.downloaderUi = {
+        startMetadataForUrl: async (url) => {
+            const trimmed = String(url || '').trim();
+            if (!trimmed) return null;
+            urlInput.value = trimmed;
+            applySourceConstraints(trimmed);
+            return activateDashboard();
+        },
+        setFetchLoading: (isLoading) => setFetchLoading(!!isLoading),
+        hideDashboard: () => {
+            if (dashboard) dashboard.classList.add('hidden');
+        },
+        clearModeClasses: () => {
+            if (body) body.classList.remove('mode-video', 'mode-audio');
+        },
+        triggerShake: (element) => triggerShakeFeedback(element || urlInput)
+    };
 })();
