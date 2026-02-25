@@ -52,11 +52,12 @@
       "preview": "PREVIEW",
       "other": "OTHER",
       "geoBypass": "Geo bypass",
-      "embedTags": "Embed tags",
+      "embedMetadata": "Embed metadata",
       "customArgs": "Custom args",
       "customArgsPlaceholder": "Optional",
       "subtitles": "SUBTITLES",
       "downloadSubtitles": "Download subtitles",
+      "embedSubtitles": "Embed subtitles",
       "downloadLiveChat": "Download live chat",
       "codeOptional": "Code (optional)"
     },

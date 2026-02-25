@@ -65,7 +65,10 @@
 
     function updateProviderPanelVisibility() {
         const raw = urlInput.value.trim();
-        const shouldShow = raw.length > 0 && !looksLikeUrl(raw);
+        const hasQuery = raw.length > 0 && !looksLikeUrl(raw);
+        const resultsHidden = resultsSection ? resultsSection.classList.contains('hidden') : true;
+        const dashboardHidden = dashboard ? dashboard.classList.contains('hidden') : true;
+        const shouldShow = hasQuery && resultsHidden && dashboardHidden && !isSearching;
         setProviderPanelVisible(shouldShow);
     }
 
@@ -175,6 +178,7 @@
         pendingMetadataBtn = null;
         const prefix = prefixOverride || selectedPrefix || 'ytsearch10';
 
+        setProviderPanelVisible(false);
         if (window.downloaderUi && typeof window.downloaderUi.setFetchLoading === 'function') {
             window.downloaderUi.setFetchLoading(true);
         }
@@ -361,6 +365,7 @@
             } else {
                 revealResultsSection();
             }
+            setProviderPanelVisible(false);
             return;
         }
 
@@ -369,6 +374,7 @@
             if (window.downloaderUi && typeof window.downloaderUi.setFetchLoading === 'function') {
                 window.downloaderUi.setFetchLoading(false);
             }
+            updateProviderPanelVisibility();
             if (window.notifier) {
                 window.notifier.show(
                     t('common.error', 'Error'),
@@ -378,6 +384,10 @@
                 );
             }
             return;
+        }
+
+        if (payload.type === 'metadata' && payload.success) {
+            setProviderPanelVisible(false);
         }
 
         if (pendingMetadataId && payload.id === pendingMetadataId) {

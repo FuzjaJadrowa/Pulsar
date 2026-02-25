@@ -45,12 +45,15 @@
     const subsToggle = document.getElementById('subs-toggle');
     const liveChatToggle = document.getElementById('chat-toggle');
     const geoToggle = document.getElementById('geo-toggle');
-    const tagsToggle = document.getElementById('tags-toggle');
+    const metadataToggle = document.getElementById('metadata-toggle');
 
     const liveChatRow = document.getElementById('live-chat-row');
     const langWrapper = document.getElementById('lang-wrapper');
     const subsLangInput = document.getElementById('subs-lang');
     const subsLangSuggestions = document.getElementById('subs-lang-suggestions');
+    const subsRow = document.querySelector('.subtitles-row');
+    const embedSubsRow = document.getElementById('embed-subs-row');
+    const embedSubsToggle = document.getElementById('embed-subs-toggle');
     const customArgsInput = document.getElementById('custom-args-input');
     const subtitlesGroup = document.querySelector('.subtitles-group');
 
@@ -122,10 +125,30 @@
             if (host === 'soundcloud.com' || host.endsWith('.soundcloud.com')) return true;
             if (host === 'soundcloud.app.goo.gl') return true;
             if (host === 'spotify.com' || host.endsWith('.spotify.com')) return true;
+            if (host === 'music.apple.com' || host.endsWith('.music.apple.com')) return true;
+            if (host === 'itunes.apple.com' || host.endsWith('.itunes.apple.com')) return true;
+            if (host === 'apple.co') return true;
+            if (host === 'deezer.com' || host.endsWith('.deezer.com')) return true;
+            if (host === 'deezer.page.link') return true;
+            if (host === 'dzr.page.link') return true;
+            if (host === 'link.deezer.com') return true;
+            if (host === 'dzr.fm') return true;
             return false;
         } catch (_) {
             const lowered = input.toLowerCase();
-            return lowered.includes('music.youtube.com') || lowered.includes('soundcloud.com') || lowered.includes('soundcloud.app.goo.gl') || lowered.includes('spotify.com') || lowered.includes('open.spotify');
+            return lowered.includes('music.youtube.com')
+                || lowered.includes('soundcloud.com')
+                || lowered.includes('soundcloud.app.goo.gl')
+                || lowered.includes('spotify.com')
+                || lowered.includes('open.spotify')
+                || lowered.includes('music.apple.com')
+                || lowered.includes('itunes.apple.com')
+                || lowered.includes('apple.co/')
+                || lowered.includes('deezer.com')
+                || lowered.includes('deezer.page.link')
+                || lowered.includes('dzr.page.link')
+                || lowered.includes('link.deezer.com')
+                || lowered.includes('dzr.fm');
         }
     }
 
@@ -140,19 +163,26 @@
             modeVideoBtn.classList.toggle('hidden', audioOnly);
         }
         if (subtitlesGroup) {
-            subtitlesGroup.classList.toggle('hidden', audioOnly);
+            subtitlesGroup.classList.toggle('audio-only', audioOnly);
         }
 
         if (audioOnly) {
             if (subsToggle) subsToggle.checked = false;
             if (liveChatToggle) liveChatToggle.checked = false;
+            if (subsRow) subsRow.classList.add('hidden');
+            if (embedSubsRow) embedSubsRow.classList.remove('hidden');
             if (langWrapper) langWrapper.classList.remove('visible');
             if (subsLangInput) subsLangInput.value = '';
             if (subsLangSuggestions) {
                 subsLangSuggestions.classList.add('hidden');
                 subsLangSuggestions.innerHTML = '';
             }
+        } else {
+            if (subsRow) subsRow.classList.remove('hidden');
+            if (embedSubsRow) embedSubsRow.classList.add('hidden');
+            if (embedSubsToggle) embedSubsToggle.checked = false;
         }
+        updateSubtitleInputVisibility();
     }
 
     function setZenMode(enabled) {
@@ -304,6 +334,48 @@
         return args;
     }
 
+    function detectSourceFromUrl(rawUrl) {
+        const input = String(rawUrl || '').trim().toLowerCase();
+        if (!input) return null;
+        try {
+            const url = new URL(input);
+            const host = url.hostname.toLowerCase();
+            if (host === 'music.youtube.com' || host.endsWith('.music.youtube.com')) return 'ytmusic';
+            if (host === 'youtube.com' || host.endsWith('.youtube.com') || host === 'youtu.be') return 'youtube';
+            if (host === 'soundcloud.com' || host.endsWith('.soundcloud.com') || host === 'soundcloud.app.goo.gl') return 'soundcloud';
+            if (host === 'spotify.com' || host.endsWith('.spotify.com')) return 'spotify';
+            if (host === 'music.apple.com' || host.endsWith('.music.apple.com') || host === 'itunes.apple.com' || host.endsWith('.itunes.apple.com') || host === 'apple.co') return 'applemusic';
+            if (host === 'deezer.com' || host.endsWith('.deezer.com') || host === 'deezer.page.link') return 'deezer';
+            if (host === 'dzr.page.link' || host === 'link.deezer.com' || host === 'dzr.fm') return 'deezer';
+        } catch (_) {
+            if (input.includes('music.youtube.com')) return 'ytmusic';
+            if (input.includes('youtube.com') || input.includes('youtu.be')) return 'youtube';
+            if (input.includes('soundcloud.com') || input.includes('soundcloud.app.goo.gl')) return 'soundcloud';
+            if (input.includes('spotify.com')) return 'spotify';
+            if (input.includes('music.apple.com') || input.includes('itunes.apple.com') || input.includes('apple.co/')) return 'applemusic';
+            if (input.includes('deezer.com') || input.includes('deezer.page.link') || input.includes('dzr.page.link') || input.includes('link.deezer.com') || input.includes('dzr.fm')) return 'deezer';
+        }
+        return null;
+    }
+
+    function createSourceIcon(source) {
+        const icons = {
+            youtube: `<svg viewBox="0 0 28.57 20" aria-hidden="true"><path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z"/><path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z"/></svg>`,
+            ytmusic: `<svg viewBox="0 0 176 176" aria-hidden="true"><circle cx="88" cy="88" r="88"/><path d="M88,46c23.1,0,42,18.8,42,42s-18.8,42-42,42s-42-18.8-42-42S64.9,46,88,46 M88,42c-25.4,0-46,20.6-46,46s20.6,46,46,46s46-20.6,46-46S113.4,42,88,42L88,42z"/><polygon points="72,111 111,87 72,65"/></svg>`,
+            soundcloud: `<svg viewBox="0 0 2499.998 1386.695" aria-hidden="true"><path d="M0 1137.737c0 31.024 11.247 54.481 33.737 70.382 22.491 15.898 46.533 21.52 72.126 16.868 24.041-4.653 40.91-13.185 50.607-25.593 9.693-12.408 14.542-32.962 14.542-61.657V800.372c0-24.044-8.336-44.403-25.012-61.075-16.672-16.676-37.03-25.012-61.074-25.012-23.267 0-43.237 8.336-59.912 25.012C8.339 755.969 0 776.327 0 800.372zm267.566 144.253c0 22.495 7.95 39.36 23.848 50.608 15.9 11.247 36.26 16.868 61.075 16.868 25.593 0 46.338-5.624 62.238-16.868 15.898-11.245 23.849-28.113 23.849-50.608V495.58c0-23.267-8.34-43.239-25.012-59.912-16.675-16.672-37.033-25.011-61.075-25.011-23.266 0-43.239 8.339-59.911 25.011-16.676 16.676-25.012 36.645-25.012 59.912zm266.403 37.227c0 22.492 8.143 39.36 24.43 50.607 16.286 11.245 37.226 16.869 62.822 16.869 24.816 0 45.174-5.624 61.072-16.869 15.9-11.247 23.851-28.115 23.851-50.607V601.442c0-24.041-8.339-44.595-25.012-61.657-16.675-17.061-36.644-25.59-59.911-25.59-24.044 0-44.595 8.529-61.657 25.59-17.061 17.062-25.593 37.616-25.593 61.657v717.775zm267.566 3.49c0 42.657 28.695 63.986 86.086 63.986 57.39 0 86.084-21.329 86.084-63.986V159.377c0-65.147-19.776-101.985-59.33-110.517-25.593-6.205-50.8 1.163-75.616 22.103-24.818 20.94-37.227 50.41-37.227 88.413v1163.331zm272.222 33.737V90.74c0-40.328 12.02-64.37 36.063-72.127C1161.78 6.205 1213.356 0 1264.543 0c118.657 0 229.176 27.92 331.547 83.76 102.373 55.84 185.165 132.038 248.37 228.594 63.21 96.56 99.854 203.001 109.936 319.337 47.308-20.165 97.717-30.247 151.23-30.247 108.578 0 201.452 38.39 278.618 115.17 77.168 76.782 115.754 169.072 115.754 276.875 0 108.578-38.586 201.256-115.754 278.036-77.166 76.78-169.651 115.17-277.455 115.17l-1012.097-1.163c-6.983-2.327-12.218-6.594-15.708-12.797s-5.227-11.638-5.227-16.291z"/></svg>`,
+            spotify: `<svg viewBox="0 0 496 512" aria-hidden="true"><path d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8Z"/><path d="M406.6 231.1c-5.2 0-8.4-1.3-12.9-3.9-71.2-42.5-198.5-52.7-280.9-29.7-3.6 1-8.1 2.6-12.9 2.6-13.2 0-23.3-10.3-23.3-23.6 0-13.6 8.4-21.3 17.4-23.9 35.2-10.3 74.6-15.2 117.5-15.2 73 0 149.5 15.2 205.4 47.8 7.8 4.5 12.9 10.7 12.9 22.6 0 13.6-11 23.3-23.2 23.3zm-31 76.2c-5.2 0-8.7-2.3-12.3-4.2-62.5-37-155.7-51.9-238.6-29.4-4.8 1.3-7.4 2.6-11.9 2.6-10.7 0-19.4-8.7-19.4-19.4s5.2-17.8 15.5-20.7c27.8-7.8 56.2-13.6 97.8-13.6 64.9 0 127.6 16.1 177 45.5 8.1 4.8 11.3 11 11.3 19.7-.1 10.8-8.5 19.5-19.4 19.5zm-26.9 65.6c-4.2 0-6.8-1.3-10.7-3.6-62.4-37.6-135-39.2-206.7-24.5-3.9 1-9 2.6-11.9 2.6-9.7 0-15.8-7.7-15.8-15.8 0-10.3 6.1-15.2 13.6-16.8 81.9-18.1 165.6-16.5 237 26.2 6.1 3.9 9.7 7.4 9.7 16.5s-7.1 15.4-15.2 15.4z"/></svg>`
+            ,
+            applemusic: `<svg version="1.1" id="Artwork" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="361px" height="361px" viewBox="0 0 361 361" style="enable-background:new 0 0 361 361;" xml:space="preserve"><style type="text/css">.st0{fill-rule:evenodd;clip-rule:evenodd;fill:url(#SVGID_1_);} .st1{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}</style><g id="Layer_5"></g><g><linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="180" y1="358.6047" x2="180" y2="7.7586"><stop offset="0" style="stop-color:#FA233B"/><stop offset="1" style="stop-color:#FB5C74"/></linearGradient><path class="st0" d="M360,112.61c0-4.3,0-8.6-0.02-12.9c-0.02-3.62-0.06-7.24-0.16-10.86c-0.21-7.89-0.68-15.84-2.08-23.64   c-1.42-7.92-3.75-15.29-7.41-22.49c-3.6-7.07-8.3-13.53-13.91-19.14c-5.61-5.61-12.08-10.31-19.15-13.91   c-7.19-3.66-14.56-5.98-22.47-7.41c-7.8-1.4-15.76-1.87-23.65-2.08c-3.62-0.1-7.24-0.14-10.86-0.16C255.99,0,251.69,0,247.39,0   H112.61c-4.3,0-8.6,0-12.9,0.02c-3.62,0.02-7.24,0.06-10.86,0.16C80.96,0.4,73,0.86,65.2,2.27c-7.92,1.42-15.28,3.75-22.47,7.41   c-7.07,3.6-13.54,8.3-19.15,13.91c-5.61,5.61-10.31,12.07-13.91,19.14c-3.66,7.2-5.99,14.57-7.41,22.49   c-1.4,7.8-1.87,15.76-2.08,23.64c-0.1,3.62-0.14,7.24-0.16,10.86C0,104.01,0,108.31,0,112.61v134.77c0,4.3,0,8.6,0.02,12.9   c0.02,3.62,0.06,7.24,0.16,10.86c0.21,7.89,0.68,15.84,2.08,23.64c1.42,7.92,3.75,15.29,7.41,22.49c3.6,7.07,8.3,13.53,13.91,19.14   c5.61,5.61,12.08,10.31,19.15,13.91c7.19,3.66,14.56,5.98,22.47,7.41c7.8,1.4,15.76,1.87,23.65,2.08c3.62,0.1,7.24,0.14,10.86,0.16   c4.3,0.03,8.6,0.02,12.9,0.02h134.77c4.3,0,8.6,0,12.9-0.02c3.62-0.02,7.24-0.06,10.86-0.16c7.89-0.21,15.85-0.68,23.65-2.08   c7.92-1.42,15.28-3.75,22.47-7.41c7.07-3.6,13.54-8.3,19.15-13.91c5.61-5.61,10.31-12.07,13.91-19.14   c3.66-7.2,5.99-14.57,7.41-22.49c1.4-7.8,1.87-15.76,2.08-23.64c0.1-3.62,0.14-7.24,0.16-10.86c0.03-4.3,0.02-8.6,0.02-12.9V112.61   z"/></g><g id="Glyph_2_"><g><path class="st1" d="M254.5,55c-0.87,0.08-8.6,1.45-9.53,1.64l-107,21.59l-0.04,0.01c-2.79,0.59-4.98,1.58-6.67,3    c-2.04,1.71-3.17,4.13-3.6,6.95c-0.09,0.6-0.24,1.82-0.24,3.62c0,0,0,109.32,0,133.92c0,3.13-0.25,6.17-2.37,8.76    c-2.12,2.59-4.74,3.37-7.81,3.99c-2.33,0.47-4.66,0.94-6.99,1.41c-8.84,1.78-14.59,2.99-19.8,5.01    c-4.98,1.93-8.71,4.39-11.68,7.51c-5.89,6.17-8.28,14.54-7.46,22.38c0.7,6.69,3.71,13.09,8.88,17.82    c3.49,3.2,7.85,5.63,12.99,6.66c5.33,1.07,11.01,0.7,19.31-0.98c4.42-0.89,8.56-2.28,12.5-4.61c3.9-2.3,7.24-5.37,9.85-9.11    c2.62-3.75,4.31-7.92,5.24-12.35c0.96-4.57,1.19-8.7,1.19-13.26l0-116.15c0-6.22,1.76-7.86,6.78-9.08c0,0,88.94-17.94,93.09-18.75    c5.79-1.11,8.52,0.54,8.52,6.61l0,79.29c0,3.14-0.03,6.32-2.17,8.92c-2.12,2.59-4.74,3.37-7.81,3.99    c-2.33,0.47-4.66,0.94-6.99,1.41c-8.84,1.78-14.59,2.99-19.8,5.01c-4.98,1.93-8.71,4.39-11.68,7.51    c-5.89,6.17-8.49,14.54-7.67,22.38c0.7,6.69,3.92,13.09,9.09,17.82c3.49,3.2,7.85,5.56,12.99,6.6c5.33,1.07,11.01,0.69,19.31-0.98    c4.42-0.89,8.56-2.22,12.5-4.55c3.9-2.3,7.24-5.37,9.85-9.11c2.62-3.75,4.31-7.92,5.24-12.35c0.96-4.57,1-8.7,1-13.26V64.46    C263.54,58.3,260.29,54.5,254.5,55z"/></g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>`,
+            deezer: `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="Layer_1" x="0" y="0" version="1.1" viewBox="-0.02 0 277.13 277.12"><style id="style2" type="text/css">.st0{fill:#a238ff}</style><g id="g10" transform="translate(-13.9)"><path id="path4" d="M21.9 115.7c4.4 0 8-14.5 8-32.4s-3.6-32.4-8-32.4-8 14.5-8 32.4 3.6 32.4 8 32.4" class="st0"/><path id="path6" d="M256.8 18c-4.2 0-7.9 9.3-10.5 24.2C242.1 16.7 235.4 0 227.8 0c-9 0-16.9 23.5-20.6 57.7C203.5 32.9 198 17 191.9 17c-8.6 0-16 31.2-18.7 74.7-5.1-22.3-12.5-36.3-20.7-36.3s-15.6 14-20.7 36.3C129 48.2 121.7 17 113 17c-6.2 0-11.7 15.9-15.3 40.8C94 23.5 86.2 0 77.1 0c-7.6 0-14.4 16.7-18.5 42.3C56 27.4 52.3 18 48.1 18 40.3 18 34 50.5 34 90.5s6.3 72.4 14.1 72.4c3.2 0 6.2-5.5 8.5-14.7 3.7 33.8 11.5 57 20.5 57 7 0 13.2-13.9 17.4-35.9 2.9 41.8 10.1 71.5 18.5 71.5 5.3 0 10.1-11.8 13.7-30.9 4.3 39.5 14.2 67.2 25.8 67.2s21.5-27.7 25.8-67.2c3.6 19.1 8.4 30.9 13.7 30.9 8.4 0 15.6-29.7 18.5-71.5 4.2 22 10.4 35.9 17.4 35.9 9 0 16.8-23.2 20.5-57 2.4 9.2 5.3 14.7 8.5 14.7 7.8 0 14.1-32.4 14.1-72.4-.2-40-6.5-72.5-14.2-72.5" class="st0"/><path id="path8" d="M283 115.7c4.4 0 8-14.5 8-32.4s-3.6-32.4-8-32.4-8 14.5-8 32.4 3.6 32.4 8 32.4" class="st0"/></g></svg>`
+        };
+        const markup = icons[source];
+        if (!markup) return null;
+        const span = document.createElement('span');
+        span.className = `meta-source-icon ${source}-icon`;
+        span.innerHTML = markup;
+        return span;
+    }
+
     function buildDownloadPayload() {
         const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
         const customArgs = state.advancedMode && customArgsInput ? parseCustomArgs(customArgsInput.value) : [];
@@ -324,12 +396,13 @@
             end_time: timeEndDisplay.value,
 
             geo_bypass: geoToggle ? geoToggle.checked : false,
-            embed_tags: tagsToggle ? tagsToggle.checked : false,
+            embed_tags: metadataToggle ? metadataToggle.checked : false,
             embed_thumbnail: state.thumbnailAction === 'embed',
 
             download_subs: subsToggle ? subsToggle.checked : false,
             download_chat: liveChatToggle ? liveChatToggle.checked : false,
-            subs_code: subsLangInput.value.trim()
+            subs_code: subsLangInput.value.trim(),
+            embed_subs: embedSubsToggle ? embedSubsToggle.checked : false
         };
         if (customArgs.length) payload.custom_args = customArgs;
         return payload;
@@ -587,7 +660,17 @@
         document.getElementById('meta-title').innerText = title;
         if (metaAuthor) {
             metaAuthor.setAttribute('data-i18n-lock', 'true');
-            metaAuthor.innerText = author;
+            metaAuthor.innerHTML = '';
+            const source = detectSourceFromUrl(data.webpage_url || urlInput.value);
+            const sourceIcon = createSourceIcon(source);
+            if (sourceIcon) {
+                metaAuthor.appendChild(sourceIcon);
+            }
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'meta-author-name';
+            nameSpan.innerText = author;
+            metaAuthor.appendChild(nameSpan);
+
             metaAuthor.dataset.url = uploaderUrl || '';
             metaAuthor.classList.toggle('meta-author-link', !!uploaderUrl);
             if (uploaderUrl) {
@@ -674,9 +757,10 @@
             setFetchLoading(false);
             console.error('Metadata task failed:', payload.error || 'Unknown error');
             if (window.notifier) {
+                const errorMessage = payload.error || t('downloader.errors.invalidLink', 'Invalid link.');
                 window.notifier.show(
                     t('common.error', 'Error'),
-                    t('downloader.errors.invalidLink', 'Invalid link.'),
+                    errorMessage,
                     'error',
                     false
                 );
@@ -836,18 +920,21 @@
         timeEndDisplay.onchange = () => handleManualTimeInput(timeEndDisplay, false);
     }
 
-    if (subsToggle) {
-        subsToggle.onchange = () => {
-            if (subsToggle.checked) {
-                langWrapper.classList.add('visible');
-                updateLanguageSuggestions();
-                subsLangInput.focus();
-            } else {
-                langWrapper.classList.remove('visible');
-                if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
-            }
-        };
+    function updateSubtitleInputVisibility() {
+        if (!langWrapper) return;
+        const wantsSubs = (subsToggle && subsToggle.checked) || (embedSubsToggle && embedSubsToggle.checked);
+        if (wantsSubs) {
+            langWrapper.classList.add('visible');
+            updateLanguageSuggestions();
+            if (subsLangInput) subsLangInput.focus();
+        } else {
+            langWrapper.classList.remove('visible');
+            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
+        }
     }
+
+    if (subsToggle) subsToggle.onchange = updateSubtitleInputVisibility;
+    if (embedSubsToggle) embedSubsToggle.onchange = updateSubtitleInputVisibility;
 
     if (subsLangInput) {
         subsLangInput.addEventListener('input', updateLanguageSuggestions);

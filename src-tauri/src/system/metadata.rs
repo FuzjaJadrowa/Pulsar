@@ -56,6 +56,7 @@ pub fn search(
     state: State<BridgeState>,
     config_mgr: State<ConfigManager>,
     query: String,
+    prefix: Option<String>,
 ) -> Result<String, String> {
     let trimmed_query = query.trim();
     if trimmed_query.is_empty() {
@@ -76,7 +77,24 @@ pub fn search(
         args.push(config.cookies_browser.to_lowercase());
     }
 
-    args.push(format!("ytsearch10:{}", trimmed_query));
+    let normalized = prefix.unwrap_or_default().to_lowercase();
+    match normalized.as_str() {
+        "ytmsearch10" | "ytmsearch" => {
+            let encoded_query = trimmed_query.replace(' ', "+");
+            args.push(format!(
+                "https://music.youtube.com/search?q={}",
+                encoded_query
+            ));
+        }
+        _ => {
+            let search_prefix = match normalized.as_str() {
+                "ytsearch10" | "ytsearch" => normalized.as_str(),
+                "scsearch10" | "scsearch" => normalized.as_str(),
+                _ => "ytsearch10",
+            };
+            args.push(format!("{}:{}", search_prefix, trimmed_query));
+        }
+    }
 
     let cmd = BridgeCommand {
         command: "search".to_string(),

@@ -35,11 +35,13 @@ pub fn run() {
                 let config_state = window.state::<ConfigManager>();
                 let config = config_state.config.lock().unwrap();
                 let behavior = config.close_behavior.to_lowercase();
-
                 if behavior == "hide" {
                     api.prevent_close();
                     let _ = window.hide();
+                    return;
                 }
+                let bridge_state = window.state::<BridgeState>();
+                bridge_state.shutdown();
             }
         })
         .invoke_handler(tauri::generate_handler![

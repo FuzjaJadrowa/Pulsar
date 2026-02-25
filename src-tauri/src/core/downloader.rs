@@ -34,6 +34,13 @@ impl BridgeState {
         }
     }
 
+    pub fn shutdown(&self) {
+        if let Some(mut child) = self.process.lock().unwrap().take() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+
     pub fn init(&self, app_handle: &AppHandle) -> Result<(), String> {
         let mut process_guard = self.process.lock().unwrap();
 
@@ -171,6 +178,8 @@ pub struct DownloadOptions {
     download_subs: bool,
     download_chat: bool,
     subs_code: String,
+    #[serde(default)]
+    embed_subs: bool,
     custom_args: Option<Vec<String>>,
     client_task_id: Option<String>,
 }
@@ -347,12 +356,13 @@ pub fn start_download(
 
     let has_subs = options.download_subs;
     let has_chat = options.download_chat;
+    let wants_embed = options.embed_subs;
     let code_input = options.subs_code.trim();
 
     if has_chat {
         args.push("--write-auto-subs".to_string());
         args.push("--sub-lang".to_string());
-        if has_subs {
+        if has_subs || wants_embed {
             if code_input.is_empty() {
                 args.push("en,live_chat".to_string());
             } else {
@@ -361,12 +371,15 @@ pub fn start_download(
         } else {
             args.push("live_chat".to_string());
         }
-    } else if has_subs {
+    } else if has_subs || wants_embed {
         args.push("--write-auto-subs".to_string());
         if !code_input.is_empty() {
             args.push("--sub-lang".to_string());
             args.push(code_input.to_string());
         }
+    }
+    if wants_embed {
+        args.push("--embed-subs".to_string());
     }
 
     if let Some(custom_args) = options.custom_args {

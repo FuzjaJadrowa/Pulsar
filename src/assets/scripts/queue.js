@@ -352,6 +352,7 @@
                 status: sanitizeStatus(raw.status) === 'downloading' ? 'pending' : sanitizeStatus(raw.status),
                 progress: sanitizeStatus(raw.status) === 'downloading' ? 0 : clamp(raw.progress),
                 eta: String(raw.eta || '--'),
+                listProgress: null,
                 addedAt: Number(raw.added_at) || Date.now(),
                 payload: (raw.payload && typeof raw.payload === 'object') ? raw.payload : {},
                 path: String(raw.path || ''),
@@ -617,6 +618,11 @@
             item.progress = clamp(n);
             if (typeof payload.eta_seconds !== 'undefined') item.eta = eta(payload.eta_seconds);
             else if (typeof payload.eta !== 'undefined') item.eta = typeof payload.eta === 'number' ? eta(payload.eta) : String(payload.eta);
+            const index = Number(payload.item_index);
+            const count = Number(payload.item_count);
+            if (Number.isFinite(index) && Number.isFinite(count)) {
+                item.listProgress = `${Math.max(1, Math.floor(index))}/${Math.max(1, Math.floor(count))}`;
+            }
             updateVisible(item);
             persistSoon();
         }
@@ -646,7 +652,10 @@
         const f = el.querySelector('.queue-progress-fill');
         if (f) f.style.width = `${Math.round(item.progress)}%`;
         const spans = el.querySelectorAll('.queue-progress-meta span');
-        if (spans[0]) spans[0].textContent = `${Math.round(item.progress)}%`;
+        if (spans[0]) {
+            const suffix = item.listProgress ? ` (${item.listProgress})` : '';
+            spans[0].textContent = `${Math.round(item.progress)}%${suffix}`;
+        }
         if (spans[1]) spans[1].textContent = `${t('common.eta', 'ETA')} ${item.eta || '--'}`;
     }
 
@@ -654,7 +663,7 @@
         const mode = String(payload.mode || 'video').toLowerCase();
         const format = mode === 'audio' ? String(payload.audio_format || '--').toUpperCase() : String(payload.video_format || '--').toUpperCase();
         const quality = mode === 'audio' ? String(payload.audio_quality || '--') : String(payload.video_quality || '--');
-        const subtitleState = payload.download_subs || payload.download_chat
+        const subtitleState = payload.download_subs || payload.download_chat || payload.embed_subs
             ? t('queue.subtitles.on', 'ON')
             : t('queue.subtitles.off', 'OFF');
         const subs = `${t('queue.subtitles.label', 'Subtitles')}: ${subtitleState}`;
@@ -697,7 +706,7 @@
                         <div class="queue-item-details">${esc(infoLine(item.payload))}</div>
                         <div class="queue-item-progress-wrap">
                             <div class="queue-progress-bar"><div class="queue-progress-fill" style="width:${Math.round(item.progress)}%"></div></div>
-                            <div class="queue-progress-meta"><span>${Math.round(item.progress)}%</span><span>${esc(t('common.eta', 'ETA'))} ${item.eta || '--'}</span></div>
+                            <div class="queue-progress-meta"><span>${Math.round(item.progress)}%${item.listProgress ? ` (${esc(item.listProgress)})` : ''}</span><span>${esc(t('common.eta', 'ETA'))} ${item.eta || '--'}</span></div>
                         </div>
                     </div>
                     <div class="queue-item-actions">${itemButtons(item)}</div>
@@ -909,6 +918,7 @@
             status: 'pending',
             progress: 0,
             eta: '--',
+            listProgress: null,
             addedAt: Date.now(),
             payload: payload && typeof payload === 'object' ? payload : {},
             path: payload?.path ? String(payload.path) : '',
