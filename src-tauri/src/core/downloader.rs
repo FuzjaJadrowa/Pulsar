@@ -180,8 +180,89 @@ pub struct DownloadOptions {
     subs_code: String,
     #[serde(default)]
     embed_subs: bool,
+    #[serde(default)]
+    meta_sub_langs: Vec<String>,
+    #[serde(default)]
+    meta_auto_langs: Vec<String>,
     custom_args: Option<Vec<String>>,
     client_task_id: Option<String>,
+}
+
+fn push_unique(target: &mut Vec<String>, value: String) {
+    if !target.iter().any(|existing| existing == &value) {
+        target.push(value);
+    }
+}
+
+fn ensure_flag(args: &mut Vec<String>, flag: &str) {
+    if !args.iter().any(|existing| existing == flag) {
+        args.push(flag.to_string());
+    }
+}
+
+fn find_lang_match<'a>(langs: &'a [String], requested: &str) -> Option<&'a str> {
+    let requested_lower = requested.to_lowercase();
+    langs.iter().find_map(|lang| {
+        let trimmed = lang.trim();
+        if trimmed.to_lowercase().starts_with(&requested_lower) {
+            Some(trimmed)
+        } else {
+            None
+        }
+    })
+}
+
+fn build_subtitle_args(options: &DownloadOptions) -> Vec<String> {
+    let mut args: Vec<String> = Vec::new();
+    let mut target_langs: Vec<String> = Vec::new();
+
+    if options.download_chat {
+        ensure_flag(&mut args, "--write-subs");
+        push_unique(&mut target_langs, "live_chat".to_string());
+    }
+
+    if options.download_subs {
+        let code_input = options.subs_code.trim();
+        if !code_input.is_empty() {
+            for raw in code_input.split(',') {
+                let lang_req = raw.trim();
+                if lang_req.is_empty() {
+                    continue;
+                }
+
+                if let Some(found) = find_lang_match(&options.meta_sub_langs, lang_req) {
+                    push_unique(&mut target_langs, found.to_string());
+                    ensure_flag(&mut args, "--write-subs");
+                    continue;
+                }
+                if let Some(found) = find_lang_match(&options.meta_auto_langs, lang_req) {
+                    push_unique(&mut target_langs, found.to_string());
+                    ensure_flag(&mut args, "--write-auto-subs");
+                    continue;
+                }
+
+                push_unique(&mut target_langs, lang_req.to_string());
+                ensure_flag(&mut args, "--write-subs");
+                ensure_flag(&mut args, "--write-auto-subs");
+            }
+        } else {
+            ensure_flag(&mut args, "--write-subs");
+            if !options.meta_auto_langs.is_empty() {
+                ensure_flag(&mut args, "--write-auto-subs");
+            }
+        }
+    }
+
+    if !target_langs.is_empty() {
+        args.push("--sub-langs".to_string());
+        args.push(target_langs.join(","));
+    }
+
+    if options.embed_subs && (options.download_subs || options.download_chat) {
+        ensure_flag(&mut args, "--embed-subs");
+    }
+
+    args
 }
 
 #[tauri::command]
@@ -309,21 +390,21 @@ pub fn start_download(
 
     if options.mode == "audio" {
         args.push("-x".to_string());
-        if let Some(fmt) = options.audio_format {
+        if let Some(ref fmt) = options.audio_format {
             args.push("--audio-format".to_string());
             args.push(fmt.to_lowercase());
         }
-        if let Some(quality) = options.audio_quality {
+        if let Some(ref quality) = options.audio_quality {
             let q_arg = quality.replace("kbps", "K");
             args.push("--audio-quality".to_string());
             args.push(q_arg);
         }
     } else {
-        if let Some(fmt) = options.video_format {
+        if let Some(ref fmt) = options.video_format {
             args.push("--merge-output-format".to_string());
             args.push(fmt.to_lowercase());
         }
-        if let Some(quality) = options.video_quality {
+        if let Some(ref quality) = options.video_quality {
             let res = quality.replace("p", "");
             args.push("-S".to_string());
             args.push(format!("res:{}", res));
@@ -354,33 +435,8 @@ pub fn start_download(
         args.push("--embed-metadata".to_string());
     }
 
-    let has_subs = options.download_subs;
-    let has_chat = options.download_chat;
-    let wants_embed = options.embed_subs;
-    let code_input = options.subs_code.trim();
-
-    if has_chat {
-        args.push("--write-auto-subs".to_string());
-        args.push("--sub-lang".to_string());
-        if has_subs || wants_embed {
-            if code_input.is_empty() {
-                args.push("en,live_chat".to_string());
-            } else {
-                args.push(format!("{},live_chat", code_input));
-            }
-        } else {
-            args.push("live_chat".to_string());
-        }
-    } else if has_subs || wants_embed {
-        args.push("--write-auto-subs".to_string());
-        if !code_input.is_empty() {
-            args.push("--sub-lang".to_string());
-            args.push(code_input.to_string());
-        }
-    }
-    if wants_embed {
-        args.push("--embed-subs".to_string());
-    }
+    let subtitle_args = build_subtitle_args(&options);
+    args.extend(subtitle_args);
 
     if let Some(custom_args) = options.custom_args {
         for arg in custom_args {

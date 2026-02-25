@@ -72,6 +72,10 @@
         selectedQuality: null,
         videoQualityOptions: ['1080p', '720p', '480p', '360p', '240p', '144p'],
         subtitleOptions: [],
+        metaSubLangs: [],
+        metaAutoLangs: [],
+        preferredMode: null,
+        lastResolvedMode: null,
         currentSuggestions: [],
         thumbnailAction: 'none',
         currentTitle: null,
@@ -165,22 +169,8 @@
         if (subtitlesGroup) {
             subtitlesGroup.classList.toggle('audio-only', audioOnly);
         }
-
-        if (audioOnly) {
-            if (subsToggle) subsToggle.checked = false;
-            if (liveChatToggle) liveChatToggle.checked = false;
-            if (subsRow) subsRow.classList.add('hidden');
-            if (embedSubsRow) embedSubsRow.classList.remove('hidden');
-            if (langWrapper) langWrapper.classList.remove('visible');
-            if (subsLangInput) subsLangInput.value = '';
-            if (subsLangSuggestions) {
-                subsLangSuggestions.classList.add('hidden');
-                subsLangSuggestions.innerHTML = '';
-            }
-        } else {
-            if (subsRow) subsRow.classList.remove('hidden');
-            if (embedSubsRow) embedSubsRow.classList.add('hidden');
-            if (embedSubsToggle) embedSubsToggle.checked = false;
+        if (state.isAnalyzed && state.mode && audioOnly && state.mode === 'video') {
+            setMode('audio');
         }
         updateSubtitleInputVisibility();
     }
@@ -402,7 +392,9 @@
             download_subs: subsToggle ? subsToggle.checked : false,
             download_chat: liveChatToggle ? liveChatToggle.checked : false,
             subs_code: subsLangInput.value.trim(),
-            embed_subs: embedSubsToggle ? embedSubsToggle.checked : false
+            embed_subs: embedSubsToggle ? embedSubsToggle.checked : false,
+            meta_sub_langs: state.metaSubLangs || [],
+            meta_auto_langs: state.metaAutoLangs || []
         };
         if (customArgs.length) payload.custom_args = customArgs;
         return payload;
@@ -611,7 +603,9 @@
             return null;
         }
 
-        applySourceConstraints(url);
+        if (!state.isAnalyzed) {
+            applySourceConstraints(url);
+        }
         setFetchLoading(true);
 
         try {
@@ -634,15 +628,29 @@
             dashboard.classList.remove('hidden');
             state.isAnalyzed = true;
             state.mode = null;
-            const defaultMode = state.audioOnlySource ? 'audio' : 'video';
+            const preferredMode = state.preferredMode || state.lastResolvedMode;
+            const defaultMode = state.audioOnlySource ? 'audio' : (preferredMode || 'video');
             setMode(defaultMode);
         }, 500);
     }
 
     function updateMetadataView(data) {
+        const inputUrl = urlInput ? urlInput.value.trim() : '';
+        const metaUrl = String(data.webpage_url || '').trim();
+        const sourceUrl = isAudioOnlySourceUrl(inputUrl) ? inputUrl : (metaUrl || inputUrl);
+        applySourceConstraints(sourceUrl);
         state.duration = Number(data.duration) || 0;
         state.videoQualityOptions = parseVideoQuality(data.formats || []);
         state.subtitleOptions = buildSubtitleOptions(data);
+        state.metaSubLangs = Array.isArray(data.subtitles_langs)
+            ? data.subtitles_langs.map((lang) => String(lang).trim()).filter(Boolean)
+            : [];
+        state.metaAutoLangs = Array.isArray(data.auto_captions_langs)
+            ? data.auto_captions_langs.map((lang) => String(lang).trim()).filter(Boolean)
+            : [];
+        if (subsToggle && subsToggle.checked) {
+            updateLanguageSuggestions();
+        }
 
         const hasLiveChat = state.subtitleOptions.some((entry) => entry.code.toLowerCase() === 'live_chat');
         if (liveChatRow) {
@@ -661,7 +669,7 @@
         if (metaAuthor) {
             metaAuthor.setAttribute('data-i18n-lock', 'true');
             metaAuthor.innerHTML = '';
-            const source = detectSourceFromUrl(data.webpage_url || urlInput.value);
+            const source = detectSourceFromUrl(sourceUrl);
             const sourceIcon = createSourceIcon(source);
             if (sourceIcon) {
                 metaAuthor.appendChild(sourceIcon);
@@ -708,7 +716,6 @@
 
     function resetToZen() {
         if (urlInput.value.trim() === '') {
-            applySourceConstraints('');
             dashboard.classList.add('hidden');
             searchSection.classList.remove('sticky');
             searchSection.classList.add('centered');
@@ -718,6 +725,8 @@
             state.selectedFormat = null;
             state.selectedQuality = null;
             state.subtitleOptions = [];
+            state.metaSubLangs = [];
+            state.metaAutoLangs = [];
             state.currentTitle = null;
             state.currentThumbnail = null;
             state.currentUploaderUrl = null;
@@ -743,8 +752,14 @@
     fetchBtn.onclick = activateDashboard;
     urlInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); activateDashboard(); urlInput.blur(); }};
     urlInput.oninput = () => {
-        resetToZen();
-        applySourceConstraints(urlInput.value);
+        if (urlInput.value.trim() === '') {
+            resetToZen();
+        }
+    };
+    urlInput.onblur = () => {
+        if (urlInput.value.trim() === '') {
+            applySourceConstraints('');
+        }
     };
 
     listen('download-event', (event) => {
@@ -785,6 +800,7 @@
         if (state.audioOnlySource && mode === 'video') mode = 'audio';
         if (state.mode === mode) return;
         state.mode = mode;
+        state.lastResolvedMode = mode;
 
         if (optionsWrapper) optionsWrapper.classList.add('fading-out');
         await new Promise(r => setTimeout(r, 200));
@@ -819,9 +835,11 @@
             triggerShakeFeedback(modeVideoBtn);
             return;
         }
+        state.preferredMode = 'video';
         setMode('video');
     };
     modeAudioBtn.onclick = () => {
+        state.preferredMode = 'audio';
         if (state.mode === 'audio') {
             triggerShakeFeedback(modeAudioBtn);
             return;
@@ -921,16 +939,22 @@
     }
 
     function updateSubtitleInputVisibility() {
-        if (!langWrapper) return;
-        const wantsSubs = (subsToggle && subsToggle.checked) || (embedSubsToggle && embedSubsToggle.checked);
-        if (wantsSubs) {
-            langWrapper.classList.add('visible');
-            updateLanguageSuggestions();
-            if (subsLangInput) subsLangInput.focus();
-        } else {
-            langWrapper.classList.remove('visible');
-            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
+        const wantsSubs = !!(subsToggle && subsToggle.checked);
+        if (embedSubsRow) {
+            embedSubsRow.classList.toggle('visible', wantsSubs);
         }
+        if (langWrapper) {
+            langWrapper.classList.toggle('visible', wantsSubs);
+        }
+        if (!wantsSubs && embedSubsToggle) {
+            embedSubsToggle.checked = false;
+        }
+        if (!wantsSubs) {
+            if (subsLangSuggestions) subsLangSuggestions.classList.add('hidden');
+            return;
+        }
+        updateLanguageSuggestions();
+        if (subsLangInput) subsLangInput.focus();
     }
 
     if (subsToggle) subsToggle.onchange = updateSubtitleInputVisibility;
@@ -964,6 +988,7 @@
         }
     }
 
+    updateSubtitleInputVisibility();
     updateSlider();
     setZenMode(true);
     loadAdvancedMode();
@@ -973,7 +998,9 @@
             const trimmed = String(url || '').trim();
             if (!trimmed) return null;
             urlInput.value = trimmed;
-            applySourceConstraints(trimmed);
+            if (!state.isAnalyzed) {
+                applySourceConstraints(trimmed);
+            }
             return activateDashboard();
         },
         setFetchLoading: (isLoading) => setFetchLoading(!!isLoading),

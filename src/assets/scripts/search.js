@@ -36,7 +36,45 @@
     let pendingMetadataId = null;
     let pendingMetadataBtn = null;
     let isSearching = false;
-    let selectedPrefix = 'ytsearch10';
+    let maxSearchResults = 10;
+    let selectedBasePrefix = 'ytsearch';
+    let selectedPrefix = buildProviderPrefix(selectedBasePrefix);
+
+    function clampSearchLimit(value) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return 10;
+        const rounded = Math.floor(parsed);
+        if (rounded < 1) return 1;
+        if (rounded > 50) return 50;
+        return rounded;
+    }
+
+    function extractBasePrefix(value) {
+        const raw = String(value || '').trim().toLowerCase();
+        if (!raw) return 'ytsearch';
+        return raw.replace(/\d+$/, '') || 'ytsearch';
+    }
+
+    function buildProviderPrefix(value) {
+        const base = extractBasePrefix(value);
+        return `${base}${maxSearchResults}`;
+    }
+
+    function applyMaxSearchResults(value) {
+        maxSearchResults = clampSearchLimit(value);
+        selectedPrefix = buildProviderPrefix(selectedBasePrefix);
+    }
+
+    async function loadSearchConfig() {
+        try {
+            const config = await invoke('get_config');
+            if (config && typeof config.maximum_search_results !== 'undefined') {
+                applyMaxSearchResults(config.maximum_search_results);
+            }
+        } catch (error) {
+            console.error('Failed to load search config:', error);
+        }
+    }
 
     function triggerShake(element) {
         if (element) {
@@ -78,7 +116,8 @@
             btn.classList.toggle('active', btn === button);
             btn.setAttribute('aria-pressed', btn === button ? 'true' : 'false');
         });
-        selectedPrefix = button.dataset.prefix || 'ytsearch10';
+        selectedBasePrefix = extractBasePrefix(button.dataset.prefix || 'ytsearch');
+        selectedPrefix = buildProviderPrefix(selectedBasePrefix);
     }
 
     function formatDuration(totalSeconds) {
@@ -176,7 +215,7 @@
         currentSearchId = null;
         pendingMetadataId = null;
         pendingMetadataBtn = null;
-        const prefix = prefixOverride || selectedPrefix || 'ytsearch10';
+        const prefix = prefixOverride ? buildProviderPrefix(prefixOverride) : (selectedPrefix || buildProviderPrefix('ytsearch'));
 
         setProviderPanelVisible(false);
         if (window.downloaderUi && typeof window.downloaderUi.setFetchLoading === 'function') {
@@ -244,7 +283,7 @@
 
     function renderResults(entries) {
         clearResults();
-        const data = Array.isArray(entries) ? entries.slice(0, 10) : [];
+        const data = Array.isArray(entries) ? entries.slice(0, maxSearchResults) : [];
         if (!data.length) {
             showSearchEmpty();
             return;
@@ -413,6 +452,13 @@
             btn.addEventListener('click', () => applyProviderSelection(btn));
         });
     }
+    window.addEventListener('pulsar-config-updated', (event) => {
+        if (!event?.detail) return;
+        if (typeof event.detail.maximum_search_results !== 'undefined') {
+            applyMaxSearchResults(event.detail.maximum_search_results);
+        }
+    });
+    loadSearchConfig();
     updateProviderPanelVisibility();
 
     window.searchUi = {

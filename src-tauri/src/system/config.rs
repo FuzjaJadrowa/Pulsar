@@ -20,7 +20,9 @@ pub struct AppConfig {
 
     pub cookies_browser: String,
     #[serde(default)]
-    pub maximum_concurrent_processes: u64
+    pub maximum_concurrent_processes: u64,
+    #[serde(default)]
+    pub maximum_search_results: u64
 }
 
 impl Default for AppConfig {
@@ -36,7 +38,8 @@ impl Default for AppConfig {
             update_ytdlp: true,
             update_ffmpeg: true,
             cookies_browser: "None".to_string(),
-            maximum_concurrent_processes: 3
+            maximum_concurrent_processes: 3,
+            maximum_search_results: 10
         }
     }
 }
@@ -45,6 +48,7 @@ impl AppConfig {
     pub fn sanitize(&mut self) {
         self.update_app_cooldown_minutes = clamp_range(self.update_app_cooldown_minutes, 10, 500, 30);
         self.maximum_concurrent_processes = clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
+        self.maximum_search_results = clamp_range(self.maximum_search_results, 1, 50, 10);
     }
 }
 
@@ -113,6 +117,10 @@ impl ConfigManager {
                         .get("maximum_concurrent_processes")
                         .and_then(|v| v.parse::<u64>().ok())
                         .unwrap_or(3);
+                    config.maximum_search_results = section
+                        .get("maximum_search_results")
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(10);
                 }
             }
         } else {
@@ -148,7 +156,8 @@ impl ConfigManager {
 
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)
-            .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string());
+            .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string())
+            .set("maximum_search_results", config.maximum_search_results.to_string());
 
         let _ = ini.write_to_file(path);
     }

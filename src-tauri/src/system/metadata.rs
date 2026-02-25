@@ -72,29 +72,34 @@ pub fn search(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
+    let max_results = config.maximum_search_results.clamp(1, 50);
+    let normalized = prefix.unwrap_or_default().to_lowercase();
+    let base_prefix = normalized.trim_end_matches(|c: char| c.is_ascii_digit());
+    if base_prefix == "ytmsearch" {
+        args.push(trimmed_query.to_string());
+        args.push(max_results.to_string());
+
+        let cmd = BridgeCommand {
+            command: "ytmusic_search".to_string(),
+            id: task_id.clone(),
+            args,
+        };
+
+        state.send_raw_command(&app_handle, &cmd)?;
+        return Ok(task_id);
+    }
+
     if config.cookies_browser != "None" {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }
 
-    let normalized = prefix.unwrap_or_default().to_lowercase();
-    match normalized.as_str() {
-        "ytmsearch10" | "ytmsearch" => {
-            let encoded_query = trimmed_query.replace(' ', "+");
-            args.push(format!(
-                "https://music.youtube.com/search?q={}",
-                encoded_query
-            ));
-        }
-        _ => {
-            let search_prefix = match normalized.as_str() {
-                "ytsearch10" | "ytsearch" => normalized.as_str(),
-                "scsearch10" | "scsearch" => normalized.as_str(),
-                _ => "ytsearch10",
-            };
-            args.push(format!("{}:{}", search_prefix, trimmed_query));
-        }
-    }
+    let search_prefix = match base_prefix {
+        "ytsearch" => format!("ytsearch{}", max_results),
+        "scsearch" => format!("scsearch{}", max_results),
+        _ => format!("ytsearch{}", max_results),
+    };
+    args.push(format!("{}:{}", search_prefix, trimmed_query));
 
     let cmd = BridgeCommand {
         command: "search".to_string(),

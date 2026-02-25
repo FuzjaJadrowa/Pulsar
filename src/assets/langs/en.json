@@ -155,6 +155,7 @@
     "cookiesFromBrowser": "Cookies from browser",
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
+    "maximumSearchResults": "Maximum search results",
     "support": "Support",
     "supportText": "Show your support!",
     "supportButton": "Support Project"

@@ -11,12 +11,14 @@
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
         'cookies_browser': 'cookies_browser',
-        'maximum_concurrent_processes': 'maximum_concurrent_processes'
+        'maximum_concurrent_processes': 'maximum_concurrent_processes',
+        'maximum_search_results': 'maximum_search_results'
     };
 
     const numberConstraints = {
         update_app_cooldown_minutes: { min: 10, max: 500, fallback: 30 },
-        maximum_concurrent_processes: { min: 1, max: 10, fallback: 3 }
+        maximum_concurrent_processes: { min: 1, max: 10, fallback: 3 },
+        maximum_search_results: { min: 1, max: 50, fallback: 10 }
     };
 
     const clampNumber = (value, min, max, fallback) => {
