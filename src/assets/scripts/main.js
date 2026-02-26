@@ -65,16 +65,226 @@ themeMedia.addEventListener('change', () => {
     }
 });
 
+const dataSea = (() => {
+    let canvas = null;
+    let ctx = null;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let rafId = null;
+    let running = false;
+    let lastTs = null;
+    let waveOffsetBack = 0;
+    let waveOffsetFront = 0;
+    let dataItems = [];
+    let bound = false;
+
+    const backSpeed = 0.55;
+    const frontSpeed = 0.9;
+
+    const selectCanvas = () => {
+        canvas = document.getElementById('data-sea-canvas');
+        if (canvas) {
+            ctx = canvas.getContext('2d');
+        } else {
+            ctx = null;
+        }
+    };
+
+    const isActive = () => {
+        const body = document.body;
+        if (!body) return false;
+        if (!body.classList.contains('page-downloader')) return false;
+        if (!body.classList.contains('zen-mode')) return false;
+        if (!body.classList.contains('idle-anim-enabled')) return false;
+        if (body.classList.contains('search-mode')) return false;
+        return !!(canvas && ctx);
+    };
+
+    const resize = () => {
+        if (!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        initDataItems();
+    };
+
+    const initDataItems = () => {
+        const count = Math.max(30, Math.floor(width / 18));
+        dataItems = [];
+        for (let i = 0; i < count; i += 1) {
+            const isBinary = Math.random() > 0.4;
+            dataItems.push({
+                x: Math.random() * width,
+                speed: 14 + Math.random() * 26,
+                depth: 10 + Math.random() * height * 0.5,
+                size: 6 + Math.random() * 6,
+                opacity: 0.18 + Math.random() * 0.25,
+                char: isBinary ? (Math.random() > 0.5 ? '1' : '0') : null,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+    };
+
+    const waveY = (x, base, amplitude, wavelength, offset) => {
+        return base
+            + Math.sin((x / wavelength) + offset) * amplitude
+            + Math.sin((x / (wavelength * 0.55)) + offset * 1.7) * amplitude * 0.35;
+    };
+
+    const drawWave = (color, base, amplitude, wavelength, offset) => {
+        if (!ctx) return;
+        const step = Math.max(10, Math.floor(width / 140));
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        for (let x = 0; x <= width; x += step) {
+            const y = waveY(x, base, amplitude, wavelength, offset);
+            ctx.lineTo(x, y);
+        }
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    };
+
+    const drawDataItems = (frontBase, frontAmplitude, frontWavelength, frontOffset) => {
+        if (!ctx) return;
+        ctx.textBaseline = 'middle';
+        dataItems.forEach((item) => {
+            const waveHeight = waveY(item.x, frontBase, frontAmplitude, frontWavelength, frontOffset);
+            const float = Math.sin(item.phase) * 2.2;
+            const y = Math.min(height - 6, waveHeight + item.depth + float);
+            ctx.globalAlpha = item.opacity;
+            if (item.char) {
+                ctx.fillStyle = 'rgba(180, 245, 255, 0.9)';
+                ctx.font = `${item.size + 2}px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace`;
+                ctx.fillText(item.char, item.x, y);
+            } else {
+                ctx.fillStyle = 'rgba(120, 220, 255, 0.7)';
+                ctx.fillRect(item.x, y, item.size, item.size);
+            }
+        });
+        ctx.globalAlpha = 1;
+    };
+
+    const tick = (ts) => {
+        if (!running) {
+            rafId = null;
+            return;
+        }
+        if (!ctx) return;
+        if (lastTs === null) lastTs = ts;
+        const dt = Math.min(60, ts - lastTs) / 1000;
+        lastTs = ts;
+
+        waveOffsetBack += backSpeed * dt;
+        waveOffsetFront += frontSpeed * dt;
+
+        ctx.clearRect(0, 0, width, height);
+
+        const backBase = height * 0.45;
+        const frontBase = height * 0.58;
+        const backAmp = height * 0.08;
+        const frontAmp = height * 0.12;
+        const backWavelength = Math.max(180, width * 0.32);
+        const frontWavelength = Math.max(160, width * 0.26);
+
+        drawWave('rgba(0, 150, 200, 0.4)', backBase, backAmp, backWavelength, waveOffsetBack);
+
+        dataItems.forEach((item) => {
+            item.x -= item.speed * dt;
+            item.phase += dt * 1.4;
+            if (item.x < -30) {
+                item.x = width + 30 + Math.random() * 60;
+                item.depth = 10 + Math.random() * height * 0.5;
+                item.opacity = 0.18 + Math.random() * 0.25;
+                item.char = Math.random() > 0.4 ? (Math.random() > 0.5 ? '1' : '0') : null;
+                item.size = 6 + Math.random() * 6;
+            }
+        });
+
+        drawDataItems(frontBase, frontAmp, frontWavelength, waveOffsetFront);
+        drawWave('rgba(0, 120, 180, 1)', frontBase, frontAmp, frontWavelength, waveOffsetFront);
+
+        rafId = window.requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+        if (running) return;
+        running = true;
+        lastTs = null;
+        if (!rafId) rafId = window.requestAnimationFrame(tick);
+    };
+
+    const stop = () => {
+        if (!running) return;
+        running = false;
+        if (rafId) window.cancelAnimationFrame(rafId);
+        rafId = null;
+        lastTs = null;
+        if (ctx) ctx.clearRect(0, 0, width, height);
+    };
+
+    const sync = () => {
+        selectCanvas();
+        if (!canvas || !ctx) {
+            stop();
+            return;
+        }
+        resize();
+        if (isActive()) start();
+        else stop();
+    };
+
+    const bind = () => {
+        selectCanvas();
+        if (!bound) {
+            bound = true;
+            window.addEventListener('resize', () => resize());
+            if (document.body && window.MutationObserver) {
+                const observer = new MutationObserver(() => sync());
+                observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+            }
+        }
+        sync();
+    };
+
+    return { bind, sync };
+})();
+
+function setIdleAnimation(enabled) {
+    const body = document.body;
+    if (!body) return;
+    body.classList.toggle('idle-anim-enabled', enabled !== false);
+    dataSea.sync();
+}
+
 async function initThemeFromConfig() {
     try {
         const config = await invoke('get_config');
         if (config && config.theme) {
             window.applyTheme(config.theme, { animate: false });
         }
+        if (config && typeof config.idle_animation !== 'undefined') {
+            setIdleAnimation(config.idle_animation);
+        } else {
+            setIdleAnimation(true);
+        }
     } catch (error) {
         console.error('Failed to load theme from config:', error);
     }
 }
+
+window.addEventListener('pulsar-config-updated', (event) => {
+    if (!event?.detail) return;
+    if (typeof event.detail.idle_animation !== 'undefined') {
+        setIdleAnimation(event.detail.idle_animation);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (window.i18n && typeof window.i18n.init === 'function') {
@@ -87,6 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     initThemeFromConfig();
+    dataSea.bind();
 
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
     document.getElementById('maximize-btn')?.addEventListener('click', () => appWindow.toggleMaximize());
@@ -414,6 +625,8 @@ async function loadPage(pageName, pageIndex) {
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
         }, 50);
     }
+
+    dataSea.bind();
 
     currentPageIndex = pageIndex;
     currentPageName = pageName;
