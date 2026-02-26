@@ -12,6 +12,8 @@ pub struct AppConfig {
     pub close_behavior: String,
     pub advanced_mode: bool,
     pub system_notifications: bool,
+    #[serde(default)]
+    pub idle_animation: bool,
 
     pub update_app: bool,
     pub update_app_cooldown_minutes: u64,
@@ -22,7 +24,9 @@ pub struct AppConfig {
     #[serde(default)]
     pub maximum_concurrent_processes: u64,
     #[serde(default)]
-    pub maximum_search_results: u64
+    pub maximum_search_results: u64,
+    #[serde(default)]
+    pub title_template: String
 }
 
 impl Default for AppConfig {
@@ -33,13 +37,15 @@ impl Default for AppConfig {
             close_behavior: "hide".to_string(),
             advanced_mode: false,
             system_notifications: true,
+            idle_animation: true,
             update_app: true,
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
             cookies_browser: "None".to_string(),
             maximum_concurrent_processes: 3,
-            maximum_search_results: 10
+            maximum_search_results: 10,
+            title_template: "%(title)s [%(id)s]".to_string()
         }
     }
 }
@@ -49,6 +55,9 @@ impl AppConfig {
         self.update_app_cooldown_minutes = clamp_range(self.update_app_cooldown_minutes, 10, 500, 30);
         self.maximum_concurrent_processes = clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
         self.maximum_search_results = clamp_range(self.maximum_search_results, 1, 50, 10);
+        if self.title_template.trim().is_empty() {
+            self.title_template = "%(title)s [%(id)s]".to_string();
+        }
     }
 }
 
@@ -91,6 +100,10 @@ impl ConfigManager {
                         config.theme = v.to_string();
                         theme_loaded = true;
                     }
+                    config.idle_animation = section
+                        .get("idle_animation")
+                        .map(|v| v == "true")
+                        .unwrap_or(true);
                 }
 
                 if let Some(section) = ini.section(Some("General")) {
@@ -121,6 +134,7 @@ impl ConfigManager {
                         .get("maximum_search_results")
                         .and_then(|v| v.parse::<u64>().ok())
                         .unwrap_or(10);
+                    if let Some(v) = section.get("title_template") { config.title_template = v.to_string(); }
                 }
             }
         } else {
@@ -146,7 +160,8 @@ impl ConfigManager {
             .set("system_notifications", if config.system_notifications { "true" } else { "false" });
 
         ini.with_section(Some("Appearance"))
-            .set("theme", &config.theme);
+            .set("theme", &config.theme)
+            .set("idle_animation", if config.idle_animation { "true" } else { "false" });
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })
@@ -157,7 +172,8 @@ impl ConfigManager {
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)
             .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string())
-            .set("maximum_search_results", config.maximum_search_results.to_string());
+            .set("maximum_search_results", config.maximum_search_results.to_string())
+            .set("title_template", &config.title_template);
 
         let _ = ini.write_to_file(path);
     }

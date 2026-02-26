@@ -220,7 +220,7 @@ body.theme-light .notif-close {
 .nav-btn.active svg { opacity: 1; }
 
 .nav-btn.expandable {
-    width: 50px;
+    width: 40px;
 }
 
 .nav-btn.expandable span {
@@ -229,7 +229,7 @@ body.theme-light .notif-close {
 
 .nav-btn.expandable:hover,
 .nav-btn.expandable.active {
-    width: 130px;
+    width: 115px;
 }
 
 .nav-btn.expandable:hover span,

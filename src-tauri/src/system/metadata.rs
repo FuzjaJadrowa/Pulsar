@@ -72,30 +72,17 @@ pub fn search(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    let max_results = config.maximum_search_results.clamp(1, 50);
-    let normalized = prefix.unwrap_or_default().to_lowercase();
-    let base_prefix = normalized.trim_end_matches(|c: char| c.is_ascii_digit());
-    if base_prefix == "ytmsearch" {
-        args.push(trimmed_query.to_string());
-        args.push(max_results.to_string());
-
-        let cmd = BridgeCommand {
-            command: "ytmusic_search".to_string(),
-            id: task_id.clone(),
-            args,
-        };
-
-        state.send_raw_command(&app_handle, &cmd)?;
-        return Ok(task_id);
-    }
-
     if config.cookies_browser != "None" {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }
 
+    let max_results = config.maximum_search_results.clamp(1, 50);
+    let normalized = prefix.unwrap_or_default().to_lowercase();
+    let base_prefix = normalized.trim_end_matches(|c: char| c.is_ascii_digit());
     let search_prefix = match base_prefix {
         "ytsearch" => format!("ytsearch{}", max_results),
+        "ytmsearch" => format!("ytmsearch{}", max_results),
         "scsearch" => format!("scsearch{}", max_results),
         _ => format!("ytsearch{}", max_results),
     };

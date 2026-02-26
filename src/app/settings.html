@@ -45,6 +45,10 @@
         <option value="Light" data-i18n="settings.themeOptions.light">Light</option>
       </select>
     </div>
+    <div class="form-row">
+      <span data-i18n="settings.idleAnimation">Idle animation</span>
+      <label class="switch"><input id="idle-anim-toggle" type="checkbox"><span class="slider"></span></label>
+    </div>
 
   </section>
 
@@ -95,6 +99,54 @@
     <div class="form-row">
       <span data-i18n="settings.maximumSearchResults">Maximum search results</span>
       <input id="maximum_search_results" class="custom-input" type="number" min="1" max="50" step="1" style="width: 120px;">
+    </div>
+
+    <div class="title-constructor">
+      <div class="title-constructor-title" data-i18n="settings.titleConstructor">Title Constructor</div>
+      <div class="title-constructor-input-row">
+        <div id="title-template-input" class="title-template-input" contenteditable="true" spellcheck="false" data-placeholder="%(title)s [%(id)s]"></div>
+      </div>
+      <input type="hidden" id="title_template" value="">
+      <div class="title-constructor-note" data-i18n="settings.titleConstructorNote">Not every tag is available for all media.</div>
+      <div id="title-canvas" class="title-canvas">
+        <div class="title-canvas-group">
+          <div class="title-canvas-title" data-i18n="settings.titleConstructorCategories.video">Video</div>
+          <div class="title-canvas-tags">
+            <button type="button" class="title-tag" data-token="%(title)s" data-i18n="settings.titleConstructorTags.title">Title</button>
+            <button type="button" class="title-tag" data-token="%(id)s" data-i18n="settings.titleConstructorTags.id">Video ID</button>
+            <button type="button" class="title-tag" data-token="%(resolution)s" data-i18n="settings.titleConstructorTags.resolution">Resolution</button>
+            <button type="button" class="title-tag" data-token="%(duration_string)s" data-i18n="settings.titleConstructorTags.durationString">Duration</button>
+            <button type="button" class="title-tag" data-token="%(fps)s" data-i18n="settings.titleConstructorTags.fps">FPS</button>
+          </div>
+        </div>
+        <div class="title-canvas-group">
+          <div class="title-canvas-title" data-i18n="settings.titleConstructorCategories.statsDates">Stats & Dates</div>
+          <div class="title-canvas-tags">
+            <button type="button" class="title-tag" data-token="%(upload_date)s" data-i18n="settings.titleConstructorTags.uploadDate">Upload Date</button>
+            <button type="button" class="title-tag" data-token="%(view_count)s" data-i18n="settings.titleConstructorTags.viewCount">View Count</button>
+            <button type="button" class="title-tag" data-token="%(like_count)s" data-i18n="settings.titleConstructorTags.likeCount">Like Count</button>
+            <button type="button" class="title-tag" data-token="%(dislike_count)s" data-i18n="settings.titleConstructorTags.dislikeCount">Dislike Count</button>
+            <button type="button" class="title-tag" data-token="%(uploader)s" data-i18n="settings.titleConstructorTags.uploader">Uploader</button>
+          </div>
+        </div>
+        <div class="title-canvas-group">
+          <div class="title-canvas-title" data-i18n="settings.titleConstructorCategories.playlist">Playlist</div>
+          <div class="title-canvas-tags">
+            <button type="button" class="title-tag" data-token="%(playlist)s" data-i18n="settings.titleConstructorTags.playlist">Playlist Name</button>
+            <button type="button" class="title-tag" data-token="%(playlist_index)s" data-i18n="settings.titleConstructorTags.playlistIndex">Playlist Index</button>
+            <button type="button" class="title-tag" data-token="%(video_autonumber)s" data-i18n="settings.titleConstructorTags.videoAutonumber">Queue Number</button>
+          </div>
+        </div>
+        <div class="title-canvas-group">
+          <div class="title-canvas-title" data-i18n="settings.titleConstructorCategories.music">Music</div>
+          <div class="title-canvas-tags">
+            <button type="button" class="title-tag" data-token="%(track)s" data-i18n="settings.titleConstructorTags.track">Track Name</button>
+            <button type="button" class="title-tag" data-token="%(artist)s" data-i18n="settings.titleConstructorTags.artist">Artist</button>
+            <button type="button" class="title-tag" data-token="%(album)s" data-i18n="settings.titleConstructorTags.album">Album</button>
+            <button type="button" class="title-tag" data-token="%(release_year)s" data-i18n="settings.titleConstructorTags.releaseYear">Release Year</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

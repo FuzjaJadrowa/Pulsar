@@ -46,6 +46,12 @@
       </div>
     </div>
 
+    <div class="zen-aurora" aria-hidden="true">
+      <span class="zen-aurora-layer layer-1"></span>
+      <span class="zen-aurora-layer layer-2"></span>
+      <span class="zen-aurora-layer layer-3"></span>
+    </div>
+
     <div id="dashboard-section" class="dashboard-section hidden">
 
       <div class="meta-info fade-in">
@@ -180,6 +186,15 @@
     </div>
   </div>
 </div>
+
+<svg class="aurora-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <filter id="aurora-wave">
+      <feTurbulence id="turbulence" baseFrequency="0.003 0.003" numOctaves="3" result="noise" seed="10"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="96"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
 
 <script src="assets/scripts/downloader.js"></script>
 <script src="assets/scripts/search.js"></script>

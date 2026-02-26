@@ -6,13 +6,15 @@
         'language': 'language',
         'system_notifications': 'system_notifications',
         'advanced_mode': 'advanced_mode',
+        'idle-anim-toggle': 'idle_animation',
         'update_app': 'update_app',
         'update_app_cooldown_minutes': 'update_app_cooldown_minutes',
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
         'cookies_browser': 'cookies_browser',
         'maximum_concurrent_processes': 'maximum_concurrent_processes',
-        'maximum_search_results': 'maximum_search_results'
+        'maximum_search_results': 'maximum_search_results',
+        'title_template': 'title_template'
     };
 
     const numberConstraints = {
@@ -25,6 +27,397 @@
         if (!Number.isFinite(value)) return fallback;
         if (value < min || value > max) return fallback;
         return value;
+    };
+
+    const DEFAULT_TITLE_TEMPLATE = '%(title)s [%(id)s]';
+    let titleConstructorReady = false;
+    let titleSaveTimer = null;
+
+    const scheduleTitleSave = () => {
+        if (titleSaveTimer) window.clearTimeout(titleSaveTimer);
+        titleSaveTimer = window.setTimeout(() => {
+            saveSettings();
+        }, 300);
+    };
+
+    const initTitleConstructor = (initialTemplate) => {
+        if (titleConstructorReady) return;
+
+        const input = document.getElementById('title-template-input');
+        const hidden = document.getElementById('title_template');
+        const canvas = document.getElementById('title-canvas');
+        if (!input || !hidden || !canvas) return;
+
+        const tags = Array.from(canvas.querySelectorAll('.title-tag'));
+        if (!tags.length) return;
+
+        const getTagIconMarkup = () => (
+            '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M4 10.5V5h5.5L20 15.5 15.5 20 4 10.5z" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linejoin="round"/>' +
+            '<circle cx="8.5" cy="8.5" r="2.1" fill="currentColor"/>' +
+            '</svg>'
+        );
+
+        const tokenMap = new Map();
+        tags.forEach((btn) => {
+            const token = String(btn.dataset.token || '').trim();
+            if (!token) return;
+            const label = String(btn.textContent || '').trim();
+            tokenMap.set(token, label);
+            btn.textContent = '';
+            const icon = document.createElement('span');
+            icon.className = 'title-tag-icon';
+            icon.innerHTML = getTagIconMarkup();
+            const text = document.createElement('span');
+            text.textContent = label;
+            btn.appendChild(icon);
+            btn.appendChild(text);
+        });
+
+        const markTokenUsed = (token, used) => {
+            const btn = tags.find((item) => item.dataset.token === token);
+            if (!btn) return;
+            btn.classList.toggle('used', used);
+            btn.setAttribute('aria-disabled', used ? 'true' : 'false');
+            btn.disabled = used;
+            if (!used) {
+                btn.classList.remove('transfer-out');
+                btn.classList.remove('transfer-in');
+                void btn.offsetWidth;
+                btn.classList.add('transfer-in');
+            }
+        };
+
+        const syncTokenUsage = (token) => {
+            const stillUsed = !!input.querySelector(`.title-pill[data-token="${token}"]`);
+            markTokenUsed(token, stillUsed);
+        };
+
+        const ZERO_WIDTH = '\u200b';
+
+        const cleanText = (value) => value.replace(/\u200b/g, '');
+
+        const hasContent = () => {
+            const rawText = cleanText(input.textContent || '').trim();
+            return rawText !== '' || !!input.querySelector('.title-pill');
+        };
+
+        const stripZeroWidthSpaces = () => {
+            const nodes = Array.from(input.childNodes);
+            nodes.forEach((node) => {
+                if (node.nodeType !== Node.TEXT_NODE) return;
+                const cleaned = cleanText(node.nodeValue || '');
+                if (cleaned === '') {
+                    node.remove();
+                } else {
+                    node.nodeValue = cleaned;
+                }
+            });
+        };
+
+        const ensureEmptyAnchor = () => {
+            if (hasContent()) return;
+            if (
+                input.childNodes.length === 1 &&
+                input.firstChild &&
+                input.firstChild.nodeType === Node.TEXT_NODE &&
+                input.firstChild.nodeValue === ZERO_WIDTH
+            ) {
+                return;
+            }
+            input.innerHTML = '';
+            input.appendChild(document.createTextNode(ZERO_WIDTH));
+        };
+
+        const setEmptyState = () => {
+            if (hasContent()) {
+                input.dataset.empty = 'false';
+                stripZeroWidthSpaces();
+            } else {
+                input.dataset.empty = 'true';
+                ensureEmptyAnchor();
+            }
+        };
+
+        const ensureSelectionOutsidePill = () => {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+            const anchor = selection.anchorNode;
+            if (!anchor) return;
+            const anchorEl = anchor.nodeType === Node.ELEMENT_NODE ? anchor : anchor.parentElement;
+            if (!anchorEl) return;
+            const pill = anchorEl.closest('.title-pill');
+            if (!pill || !input.contains(pill)) return;
+            const range = document.createRange();
+            range.setStartAfter(pill);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        };
+
+        const createPill = (token) => {
+            const pill = document.createElement('span');
+            pill.className = 'title-pill pill-in';
+            pill.dataset.token = token;
+            pill.setAttribute('contenteditable', 'false');
+            pill.setAttribute('draggable', 'false');
+            const icon = document.createElement('span');
+            icon.className = 'title-pill-icon';
+            icon.innerHTML = getTagIconMarkup();
+            const text = document.createElement('span');
+            text.textContent = tokenMap.get(token) || token;
+            pill.appendChild(icon);
+            pill.appendChild(text);
+            pill.addEventListener('click', () => {
+                pill.classList.add('pill-out');
+                scheduleTitleSave();
+                setTimeout(() => {
+                    pill.remove();
+                    syncTokenUsage(token);
+                    setEmptyState();
+                    updateHidden();
+                }, 160);
+            });
+            return pill;
+        };
+
+        const insertAtCursor = (node) => {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                input.appendChild(node);
+                return;
+            }
+            const range = selection.getRangeAt(0);
+            if (!input.contains(range.commonAncestorContainer)) {
+                input.appendChild(node);
+                return;
+            }
+            const container = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                ? range.commonAncestorContainer
+                : range.commonAncestorContainer.parentElement;
+            if (container && container.classList && container.classList.contains('title-pill')) {
+                range.setStartAfter(container);
+                range.setEndAfter(container);
+            }
+            range.deleteContents();
+            range.insertNode(node);
+            range.setStartAfter(node);
+            range.setEndAfter(node);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        };
+
+        const renderFromTemplate = (template) => {
+            const value = String(template || '').trim() || DEFAULT_TITLE_TEMPLATE;
+            input.innerHTML = '';
+            tags.forEach((btn) => markTokenUsed(btn.dataset.token, false));
+            const tokenRegex = /%\([a-zA-Z0-9_]+\)s/g;
+            let lastIndex = 0;
+            let match;
+            while ((match = tokenRegex.exec(value)) !== null) {
+                const token = match[0];
+                if (match.index > lastIndex) {
+                    input.appendChild(document.createTextNode(value.slice(lastIndex, match.index)));
+                }
+                if (tokenMap.has(token)) {
+                    const pill = createPill(token);
+                    input.appendChild(pill);
+                    markTokenUsed(token, true);
+                } else {
+                    input.appendChild(document.createTextNode(token));
+                }
+                lastIndex = match.index + token.length;
+            }
+            if (lastIndex < value.length) {
+                input.appendChild(document.createTextNode(value.slice(lastIndex)));
+            }
+            updateHidden();
+            setEmptyState();
+        };
+
+        const updateHidden = () => {
+            const parts = [];
+            input.childNodes.forEach((node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    parts.push(cleanText(node.nodeValue || ''));
+                    return;
+                }
+                if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('title-pill')) {
+                    parts.push(node.dataset.token || '');
+                }
+            });
+            const output = parts.join('');
+            hidden.value = output;
+            hidden.dispatchEvent(new Event('change'));
+        };
+
+        const replaceTypedTokens = () => {
+            const walker = document.createTreeWalker(input, NodeFilter.SHOW_TEXT, null);
+            const tokenRegex = /%\([a-zA-Z0-9_]+\)s/g;
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach((textNode) => {
+                const text = cleanText(textNode.nodeValue || '');
+                let match;
+                let lastIndex = 0;
+                const frag = document.createDocumentFragment();
+                let replaced = false;
+                tokenRegex.lastIndex = 0;
+                while ((match = tokenRegex.exec(text)) !== null) {
+                    const token = match[0];
+                    if (!tokenMap.has(token)) continue;
+                    if (match.index > lastIndex) {
+                        frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+                    if (input.querySelector(`.title-pill[data-token="${token}"]`)) {
+                        frag.appendChild(document.createTextNode(token));
+                    } else {
+                        const pill = createPill(token);
+                        frag.appendChild(pill);
+                        markTokenUsed(token, true);
+                    }
+                    lastIndex = match.index + token.length;
+                    replaced = true;
+                }
+                if (replaced) {
+                    if (lastIndex < text.length) {
+                        frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+                    }
+                    textNode.parentNode.replaceChild(frag, textNode);
+                }
+            });
+        };
+
+        const replaceTypedTokenAtCursor = () => {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+            const range = selection.getRangeAt(0);
+            if (!input.contains(range.endContainer)) return;
+            if (range.endContainer.nodeType !== Node.TEXT_NODE) return;
+            const textNode = range.endContainer;
+            const text = cleanText(textNode.nodeValue || '');
+            const caretOffset = range.endOffset;
+            const tokenRegex = /%\([a-zA-Z0-9_]+\)s/g;
+            let match;
+            let matchedToken = null;
+            let matchedIndex = null;
+            while ((match = tokenRegex.exec(text)) !== null) {
+                if (match.index + match[0].length === caretOffset) {
+                    matchedToken = match[0];
+                    matchedIndex = match.index;
+                }
+            }
+            if (!matchedToken || matchedIndex === null) return;
+            if (!tokenMap.has(matchedToken)) return;
+            if (input.querySelector(`.title-pill[data-token="${matchedToken}"]`)) return;
+
+            const before = text.slice(0, matchedIndex);
+            const after = text.slice(matchedIndex + matchedToken.length);
+            const frag = document.createDocumentFragment();
+            if (before) frag.appendChild(document.createTextNode(before));
+            const pill = createPill(matchedToken);
+            frag.appendChild(pill);
+            if (after) frag.appendChild(document.createTextNode(after));
+            textNode.parentNode.replaceChild(frag, textNode);
+            markTokenUsed(matchedToken, true);
+
+            const newRange = document.createRange();
+            newRange.setStartAfter(pill);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        };
+
+        tags.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const token = btn.dataset.token;
+                if (!token || btn.classList.contains('used')) return;
+                btn.classList.add('transfer-out');
+                const pill = createPill(token);
+                insertAtCursor(pill);
+                markTokenUsed(token, true);
+                setEmptyState();
+                updateHidden();
+                scheduleTitleSave();
+            });
+        });
+
+        input.addEventListener('input', () => {
+            stripZeroWidthSpaces();
+            replaceTypedTokenAtCursor();
+            setEmptyState();
+            updateHidden();
+            scheduleTitleSave();
+        });
+
+        input.addEventListener('mousedown', (event) => {
+            if (event.target && event.target.closest && event.target.closest('.title-pill')) {
+                event.preventDefault();
+            }
+        });
+
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+            if (event.key === 'Backspace') {
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount) {
+                    const isEmpty = cleanText(input.textContent || '').trim() === '' && !input.querySelector('.title-pill');
+                    if (isEmpty) {
+                        event.preventDefault();
+                    }
+                }
+            }
+        });
+        input.addEventListener('focus', () => {
+            setEmptyState();
+            if (!hasContent()) {
+                const selection = window.getSelection();
+                if (selection) {
+                    const range = document.createRange();
+                    range.selectNodeContents(input);
+                    range.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+        });
+        input.addEventListener('drop', (event) => {
+            event.preventDefault();
+        });
+        input.addEventListener('beforeinput', (event) => {
+            if (event.target && event.target.closest && event.target.closest('.title-pill')) {
+                event.preventDefault();
+            }
+        });
+        input.addEventListener('mouseup', () => ensureSelectionOutsidePill());
+        input.addEventListener('keyup', () => ensureSelectionOutsidePill());
+
+        input.addEventListener('paste', (event) => {
+            event.preventDefault();
+            const text = (event.clipboardData || window.clipboardData)?.getData('text') || '';
+            if (text) {
+                insertAtCursor(document.createTextNode(text));
+                stripZeroWidthSpaces();
+                replaceTypedTokens();
+                setEmptyState();
+                updateHidden();
+                scheduleTitleSave();
+            }
+        });
+
+        input.addEventListener('blur', () => {
+            const trimmed = cleanText(input.textContent || '').trim();
+            if (!trimmed && !input.querySelector('.title-pill')) {
+                tags.forEach((btn) => markTokenUsed(btn.dataset.token, false));
+                renderFromTemplate(DEFAULT_TITLE_TEMPLATE);
+                scheduleTitleSave();
+            }
+        });
+
+        renderFromTemplate(initialTemplate || hidden.value || DEFAULT_TITLE_TEMPLATE);
+        titleConstructorReady = true;
     };
 
     function refreshCustomSelect(selectId) {
@@ -129,6 +522,7 @@
                 window.applyTheme(config.theme, { animate: false });
             }
 
+            initTitleConstructor(config?.title_template);
             setupListeners();
 
         } catch (e) {

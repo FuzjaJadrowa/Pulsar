@@ -19,7 +19,7 @@
       "skipUpdate": "Skip Update"
     },
     "nav": {
-      "downloader": "Downloader",
+      "download": "Download",
       "settings": "Settings",
       "queue": "Queue"
     }
@@ -146,6 +146,7 @@
     "systemNotifications": "System notifications",
     "advancedMode": "Advanced mode",
     "advancedModeNote": "Shows advanced options and console access.",
+    "idleAnimation": "Idle animation",
     "requirements": "Requirements",
     "autoUpdateApp": "Auto-update Pulsar",
     "autoUpdateYtdlp": "Auto-update yt-dlp",
@@ -156,6 +157,33 @@
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
     "maximumSearchResults": "Maximum search results",
+    "titleConstructor": "Title Constructor",
+    "titleConstructorNote": "Not every tag is available for all media.",
+    "titleConstructorCategories": {
+      "video": "Video",
+      "statsDates": "Stats & Dates",
+      "playlist": "Playlist",
+      "music": "Music"
+    },
+    "titleConstructorTags": {
+      "title": "Title",
+      "id": "Video ID",
+      "resolution": "Resolution",
+      "durationString": "Duration",
+      "fps": "FPS",
+      "uploadDate": "Upload Date",
+      "viewCount": "View Count",
+      "likeCount": "Like Count",
+      "dislikeCount": "Dislike Count",
+      "uploader": "Uploader",
+      "playlist": "Playlist Name",
+      "playlistIndex": "Playlist Index",
+      "videoAutonumber": "Queue Number",
+      "track": "Track Name",
+      "artist": "Artist",
+      "album": "Album",
+      "releaseYear": "Release Year"
+    },
     "support": "Support",
     "supportText": "Show your support!",
     "supportButton": "Support Project"

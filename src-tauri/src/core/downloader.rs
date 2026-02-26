@@ -435,6 +435,15 @@ pub fn start_download(
         args.push("--embed-metadata".to_string());
     }
 
+    if !config.title_template.trim().is_empty() {
+        let mut output_template = config.title_template.trim().to_string();
+        if !output_template.contains(".%(ext)s") {
+            output_template.push_str(".%(ext)s");
+        }
+        args.push("-o".to_string());
+        args.push(output_template);
+    }
+
     let subtitle_args = build_subtitle_args(&options);
     args.extend(subtitle_args);
 

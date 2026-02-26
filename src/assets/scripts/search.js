@@ -1,4 +1,4 @@
-﻿(function initSearch() {
+﻿﻿(function initSearch() {
     const tauriCore = window.__TAURI__.core;
     const tauriEvent = window.__TAURI__.event;
     if (!tauriCore || !tauriEvent) return;
@@ -99,6 +99,9 @@
         providerPanel.classList.toggle('visible', visible);
         providerPanel.setAttribute('aria-hidden', visible ? 'false' : 'true');
         searchSection.classList.toggle('has-provider-panel', visible);
+        if (window.downloaderUi && typeof window.downloaderUi.updateRadarAnchor === 'function') {
+            window.downloaderUi.updateRadarAnchor();
+        }
     }
 
     function updateProviderPanelVisibility() {

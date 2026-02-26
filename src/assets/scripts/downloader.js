@@ -26,6 +26,7 @@
     const fetchBtn = document.getElementById('fetch-btn');
     const pasteIcon = document.getElementById('paste-icon');
     const metaAuthor = document.getElementById('meta-author');
+    const auroraTurbulence = document.getElementById('turbulence');
 
     const downloadBtn = document.getElementById('download-btn');
     const queueBtn = document.getElementById('queue-btn');
@@ -33,6 +34,45 @@
     const pathInput = document.getElementById('path-input');
 
     if (!searchSection || !urlInput) return;
+
+    let auroraFrame = null;
+    let auroraActive = false;
+    let auroraPhase = 0;
+
+    function isAuroraEnabled() {
+        if (!document.body) return false;
+        if (!document.body.classList.contains('zen-mode')) return false;
+        if (!document.body.classList.contains('idle-anim-enabled')) return false;
+        if (document.body.classList.contains('search-mode')) return false;
+        if (searchSection && !searchSection.classList.contains('centered')) return false;
+        return true;
+    }
+
+    function tickAurora() {
+        if (!auroraActive || !auroraTurbulence) {
+            auroraFrame = null;
+            return;
+        }
+        auroraPhase += 0.3;
+        const bfx = 0.003 + 0.0015 * Math.cos(auroraPhase * Math.PI / 180);
+        const bfy = 0.003 + 0.0015 * Math.sin(auroraPhase * Math.PI / 180);
+        auroraTurbulence.setAttribute('baseFrequency', `${bfx.toFixed(5)} ${bfy.toFixed(5)}`);
+        auroraFrame = window.requestAnimationFrame(tickAurora);
+    }
+
+    function syncAuroraAnimation() {
+        const shouldRun = isAuroraEnabled();
+        if (shouldRun && !auroraActive) {
+            auroraActive = true;
+            tickAurora();
+            return;
+        }
+        if (!shouldRun && auroraActive) {
+            auroraActive = false;
+            if (auroraFrame) window.cancelAnimationFrame(auroraFrame);
+            auroraFrame = null;
+        }
+    }
 
     const modeVideoBtn = document.getElementById('mode-video');
     const modeAudioBtn = document.getElementById('mode-audio');
@@ -118,6 +158,13 @@
         }
     }
 
+    function applyIdleAnimation(enabled) {
+        if (document.body) {
+            document.body.classList.toggle('idle-anim-enabled', enabled !== false);
+        }
+        syncAuroraAnimation();
+    }
+
     function isAudioOnlySourceUrl(rawUrl) {
         const input = String(rawUrl || '').trim();
         if (!input) return false;
@@ -178,14 +225,17 @@
     function setZenMode(enabled) {
         if (!document.body) return;
         document.body.classList.toggle('zen-mode', !!enabled);
+        syncAuroraAnimation();
     }
 
     async function loadAdvancedMode() {
         try {
             const config = await invoke('get_config');
             applyAdvancedMode(config?.advanced_mode);
+            applyIdleAnimation(config?.idle_animation);
         } catch (error) {
             console.error('Failed to load advanced mode:', error);
+            applyIdleAnimation(true);
         }
     }
 
@@ -193,6 +243,9 @@
         if (!event?.detail) return;
         if (typeof event.detail.advanced_mode !== 'undefined') {
             applyAdvancedMode(event.detail.advanced_mode);
+        }
+        if (typeof event.detail.idle_animation !== 'undefined') {
+            applyIdleAnimation(event.detail.idle_animation);
         }
     });
 
@@ -992,6 +1045,17 @@
     updateSlider();
     setZenMode(true);
     loadAdvancedMode();
+    syncAuroraAnimation();
+    if (window.MutationObserver) {
+        if (document.body) {
+            const auroraObserver = new MutationObserver(() => syncAuroraAnimation());
+            auroraObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        }
+        if (searchSection) {
+            const searchObserver = new MutationObserver(() => syncAuroraAnimation());
+            searchObserver.observe(searchSection, { attributes: true, attributeFilter: ['class'] });
+        }
+    }
 
     window.downloaderUi = {
         startMetadataForUrl: async (url) => {
@@ -1010,6 +1074,7 @@
         clearModeClasses: () => {
             if (body) body.classList.remove('mode-video', 'mode-audio');
         },
-        triggerShake: (element) => triggerShakeFeedback(element || urlInput)
+        triggerShake: (element) => triggerShakeFeedback(element || urlInput),
+        syncAurora: () => syncAuroraAnimation()
     };
 })();

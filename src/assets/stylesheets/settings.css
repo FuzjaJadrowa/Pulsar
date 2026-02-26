@@ -185,6 +185,214 @@ select.custom-select { display: none; }
 .select-item:hover { background-color: var(--accent-color); color: white; }
 .select-item.selected { background-color: rgba(138, 43, 226, 0.2); color: white; font-weight: bold; }
 
+.title-constructor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.title-constructor-title {
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #c5c5c5;
+    font-weight: 600;
+}
+.title-constructor-input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+.title-template-input {
+    flex: 1 1 0%;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 56px;
+    padding: 16px 12px;
+    border-radius: 10px;
+    border: 1px solid #3d3d3d;
+    background: #252525;
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 24px;
+    outline: none;
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    white-space: pre-wrap;
+    cursor: text;
+    caret-color: #e0e0e0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    overflow: hidden;
+}
+.title-template-input * {
+    max-width: 100%;
+}
+.title-template-input > br { display: none; }
+.title-template-input:focus {
+    border-color: var(--accent-color);
+}
+.title-template-input[data-empty="true"]::before {
+    content: attr(data-placeholder);
+    color: rgba(224, 224, 224, 0.45);
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+.title-template-input[data-empty="true"]::before,
+.title-template-input[data-empty="true"]:focus::before {
+    display: block;
+}
+.title-constructor-note {
+    font-size: 12px;
+    color: rgba(220, 220, 220, 0.6);
+    margin-top: -4px;
+}
+.title-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+.title-canvas-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.title-canvas-title {
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: #9a9a9a;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.title-canvas-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: relative;
+}
+.title-tag {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: #dadada;
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    white-space: nowrap;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.title-tag * {
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
+.title-tag-icon {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    flex-shrink: 0;
+}
+.title-tag-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+}
+.title-tag:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+.title-tag.used {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.title-tag.transfer-out {
+    animation: tagLeave 0.18s ease forwards;
+}
+.title-tag.transfer-in {
+    animation: tagEnter 0.18s ease;
+}
+.title-tag.returned {
+    animation: tagReturn 0.2s ease;
+}
+.title-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(138, 43, 226, 0.2);
+    border: 1px solid rgba(138, 43, 226, 0.4);
+    color: #f3e9ff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    white-space: nowrap;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    line-height: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 2px 6px 2px 0;
+    vertical-align: middle;
+}
+.title-pill span { user-select: none; }
+.title-pill * {
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
+.title-pill-icon {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    flex-shrink: 0;
+}
+.title-pill-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+}
+.title-pill.pill-in { animation: pillIn 0.18s ease; }
+.title-pill.pill-out { opacity: 0; transform: scale(0.92); }
+@keyframes pillIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes tagReturn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+@keyframes tagLeave {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0.35; transform: scale(0.95); }
+}
+@keyframes tagEnter {
+    from { opacity: 0.35; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 body.theme-light .settings-section-card {
     background: rgba(255, 255, 255, 0.72);
     border-color: rgba(0, 0, 0, 0.08);
@@ -245,5 +453,39 @@ body.theme-light .select-item:hover {
 }
 body.theme-light .select-item.selected {
     background-color: rgba(76, 111, 255, 0.2);
+    color: #1d2330;
+}
+body.theme-light .title-constructor {
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+body.theme-light .title-constructor-title {
+    color: rgba(29, 35, 48, 0.7);
+}
+body.theme-light .title-template-input {
+    background: #f4f6fa;
+    border-color: #cfd6e0;
+    color: #1d2330;
+    caret-color: #1d2330;
+}
+body.theme-light .title-template-input[data-empty="true"]::before {
+    color: rgba(29, 35, 48, 0.4);
+}
+body.theme-light .title-constructor-note {
+    color: rgba(43, 47, 58, 0.6);
+}
+body.theme-light .title-canvas-title {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .title-tag {
+    background: rgba(29, 35, 48, 0.06);
+    border-color: rgba(29, 35, 48, 0.16);
+    color: #1d2330;
+}
+body.theme-light .title-tag:hover {
+    background: rgba(29, 35, 48, 0.12);
+}
+body.theme-light .title-pill {
+    background: rgba(76, 111, 255, 0.16);
+    border-color: rgba(76, 111, 255, 0.4);
     color: #1d2330;
 }
