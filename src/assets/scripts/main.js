@@ -226,7 +226,6 @@ const dataSea = (() => {
         if (rafId) window.cancelAnimationFrame(rafId);
         rafId = null;
         lastTs = null;
-        if (ctx) ctx.clearRect(0, 0, width, height);
     };
 
     const sync = () => {
@@ -235,9 +234,12 @@ const dataSea = (() => {
             stop();
             return;
         }
-        resize();
-        if (isActive()) start();
-        else stop();
+        if (isActive()) {
+            resize();
+            start();
+        } else {
+            stop();
+        }
     };
 
     const bind = () => {

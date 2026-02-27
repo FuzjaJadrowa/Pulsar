@@ -57,6 +57,7 @@
     const embedSubsToggle = document.getElementById('embed-subs-toggle');
     const customArgsInput = document.getElementById('custom-args-input');
     const subtitlesGroup = document.querySelector('.subtitles-group');
+    const subsLabel = subtitlesGroup ? subtitlesGroup.querySelector('.option-label') : null;
 
     const rangeStart = document.getElementById('range-start');
     const rangeEnd = document.getElementById('range-end');
@@ -660,6 +661,7 @@
         state.metaAutoLangs = Array.isArray(data.auto_captions_langs)
             ? data.auto_captions_langs.map((lang) => String(lang).trim()).filter(Boolean)
             : [];
+        setSubtitlesAvailability(state.metaSubLangs.length > 0 || state.metaAutoLangs.length > 0);
         if (subsToggle && subsToggle.checked) {
             updateLanguageSuggestions();
         }
@@ -751,6 +753,7 @@
                 metaAuthor.tabIndex = -1;
             }
             if (customArgsInput) customArgsInput.value = '';
+            setSubtitlesAvailability(true);
             setFetchLoading(false);
             if (subsLangSuggestions) {
                 subsLangSuggestions.classList.add('hidden');
@@ -951,6 +954,11 @@
     }
 
     function updateSubtitleInputVisibility() {
+        if (subsRow && subsRow.classList.contains('hidden')) {
+            if (embedSubsRow) embedSubsRow.classList.remove('visible');
+            if (langWrapper) langWrapper.classList.remove('visible');
+            return;
+        }
         const wantsSubs = !!(subsToggle && subsToggle.checked);
         if (embedSubsRow) {
             embedSubsRow.classList.toggle('visible', wantsSubs);
@@ -967,6 +975,27 @@
         }
         updateLanguageSuggestions();
         if (subsLangInput) subsLangInput.focus();
+    }
+
+    function setSubtitlesAvailability(hasSubs) {
+        if (subsRow) subsRow.classList.toggle('hidden', !hasSubs);
+        if (subsLabel) subsLabel.classList.toggle('hidden', !hasSubs);
+        if (subsToggle) {
+            subsToggle.disabled = !hasSubs;
+            if (!hasSubs) subsToggle.checked = false;
+        }
+        if (embedSubsToggle && !hasSubs) {
+            embedSubsToggle.checked = false;
+        }
+        if (liveChatToggle && !hasSubs) {
+            liveChatToggle.checked = false;
+        }
+        if (!hasSubs) {
+            if (liveChatRow) liveChatRow.classList.add('hidden');
+            if (embedSubsRow) embedSubsRow.classList.remove('visible');
+            if (langWrapper) langWrapper.classList.remove('visible');
+        }
+        updateSubtitleInputVisibility();
     }
 
     if (subsToggle) subsToggle.onchange = updateSubtitleInputVisibility;

@@ -292,7 +292,7 @@ select.custom-select { display: none; }
     font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -313,7 +313,18 @@ select.custom-select { display: none; }
 .title-tag-icon svg {
     width: 22px;
     height: 22px;
+    display: block;
+}
+.title-tag-icon .tag-outline {
+    fill: none;
     stroke: currentColor;
+    stroke-width: 24;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+.title-tag-icon .tag-dot {
+    fill: currentColor;
+    stroke: none;
 }
 .title-tag:hover {
     background: rgba(255, 255, 255, 0.12);
@@ -352,6 +363,7 @@ select.custom-select { display: none; }
     -webkit-user-select: none;
     margin: 2px 6px 2px 0;
     vertical-align: middle;
+    gap: 5px;
 }
 .title-pill span { user-select: none; }
 .title-pill * {
@@ -371,7 +383,18 @@ select.custom-select { display: none; }
 .title-pill-icon svg {
     width: 22px;
     height: 22px;
+    display: block;
+}
+.title-pill-icon .tag-outline {
+    fill: none;
     stroke: currentColor;
+    stroke-width: 24;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+.title-pill-icon .tag-dot {
+    fill: currentColor;
+    stroke: none;
 }
 .title-pill.pill-in { animation: pillIn 0.18s ease; }
 .title-pill.pill-out { opacity: 0; transform: scale(0.92); }
