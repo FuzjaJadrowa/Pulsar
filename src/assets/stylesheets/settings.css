@@ -49,6 +49,15 @@
     letter-spacing: 1px;
     font-weight: 600;
 }
+.presets-manager-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+}
+.presets-manager-card .settings-section-title {
+    font-family: "Segoe UI", sans-serif;
+}
 .settings-section-card .form-row {
     display: flex;
     justify-content: space-between;
@@ -512,22 +521,14 @@ body.theme-light .title-pill {
     border-color: rgba(76, 111, 255, 0.4);
     color: #1d2330;
 }
-
-.presets-manager-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
-}
-.presets-manager-card .settings-section-title {
-    font-family: "Segoe UI", sans-serif;
-}
 .presets-manager-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    margin-bottom: 6px;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
 }
 .presets-manager-actions {
     display: flex;
@@ -580,6 +581,7 @@ body.theme-light .title-pill {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: min-height 0.2s ease;
 }
 .presets-manager-empty {
     font-size: 13px;
@@ -600,12 +602,26 @@ body.theme-light .title-pill {
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, opacity 0.18s ease,
+        max-height 0.22s ease-out, margin 0.22s ease-out, padding 0.22s ease-out, border-width 0.22s ease-out;
+    max-height: 140px;
+    overflow: hidden;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
 }
 .preset-item:hover {
     transform: translateY(-1px);
     border-color: rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.08);
+}
+.preset-item.removing {
+    opacity: 0;
+    transform: translateY(6px);
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
 }
 .preset-item.is-hidden {
     opacity: 0.6;

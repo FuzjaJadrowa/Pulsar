@@ -38,6 +38,14 @@
         }
     };
 
+    const updateCountAndEmpty = (countOverride = null) => {
+        const count = typeof countOverride === 'number'
+            ? countOverride
+            : listEl.querySelectorAll('.preset-item').length;
+        emptyEl.classList.toggle('visible', count === 0);
+        countEl.textContent = formatCountLabel(count);
+    };
+
     const formatCountLabel = (count) => {
         if (count === 1) {
             return t('settings.presetsManager.countSingle', '1 preset');
@@ -124,10 +132,29 @@
             deleteBtn.addEventListener('click', async () => {
                 if (!window.__TAURI__?.core?.invoke) return;
                 try {
+                    deleteBtn.disabled = true;
+                    exportBtn.disabled = true;
                     await window.__TAURI__.core.invoke('delete_preset', { id: preset.id });
-                    await refreshFromBackend();
+                    state.presets = state.presets.filter((item) => item.id !== preset.id);
+                    updateCountAndEmpty(Math.max(0, listEl.querySelectorAll('.preset-item').length - 1));
+                    item.style.maxHeight = `${item.offsetHeight}px`;
+                    item.getBoundingClientRect();
+                    const finalizeRemoval = () => {
+                        if (item.dataset.removed) return;
+                        item.dataset.removed = 'true';
+                        item.remove();
+                        updateCountAndEmpty();
+                    };
+                    item.classList.add('removing');
+                    item.addEventListener('transitionend', (event) => {
+                        if (event.propertyName !== 'max-height') return;
+                        finalizeRemoval();
+                    }, { once: true });
+                    window.setTimeout(finalizeRemoval, 260);
                 } catch (error) {
                     console.error('Preset delete failed:', error);
+                    deleteBtn.disabled = false;
+                    exportBtn.disabled = false;
                     showNotification(t('settings.presetsManager.notifications.deleteFailed', 'Failed to delete preset.'), 'error');
                 }
             });
@@ -171,8 +198,7 @@
             listEl.appendChild(item);
         });
 
-        emptyEl.classList.toggle('visible', safePresets.length === 0);
-        countEl.textContent = formatCountLabel(safePresets.length);
+        updateCountAndEmpty(safePresets.length);
     };
 
     const setPresets = (presets) => {
