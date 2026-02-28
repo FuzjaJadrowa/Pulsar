@@ -187,5 +187,63 @@
     "support": "Support",
     "supportText": "Show your support!",
     "supportButton": "Support Project"
+  },
+  "formats": {
+    "flv": {
+      "label": "FLV",
+      "description": "Legacy Flash format."
+    },
+    "mkv": {
+      "label": "MKV",
+      "description": "Universal container that fits everything."
+    },
+    "mp4": {
+      "label": "MP4",
+      "description": "Most popular video format."
+    },
+    "mov": {
+      "label": "MOV",
+      "description": "Apple format with RGBA support."
+    },
+    "avi": {
+      "label": "AVI",
+      "description": "Legacy but still popular."
+    },
+    "ts": {
+      "label": "TS",
+      "description": "Used mainly for streaming and TV."
+    },
+    "wav": {
+      "label": "WAV",
+      "description": "Lossless Windows audio format."
+    },
+    "aiff": {
+      "label": "AIFF",
+      "description": "Lossless Apple audio format."
+    },
+    "m4a": {
+      "label": "M4A",
+      "description": "Better quality and compression than MP3."
+    },
+    "flac": {
+      "label": "FLAC",
+      "description": "Lossless audio compression."
+    },
+    "mp3": {
+      "label": "MP3",
+      "description": "Most popular audio format."
+    },
+    "ogg": {
+      "label": "OGG",
+      "description": "Open audio container."
+    },
+    "opus": {
+      "label": "OPUS",
+      "description": "Open, efficient, lossy audio format."
+    },
+    "wma": {
+      "label": "WMA",
+      "description": "Microsoft audio compression format."
+    }
   }
 }
