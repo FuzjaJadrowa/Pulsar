@@ -1,0 +1,173 @@
+<div class="preset-modal-overlay" id="preset-modal-overlay" aria-hidden="true">
+  <div class="preset-modal" role="dialog" aria-modal="true">
+    <div class="preset-modal-header">
+      <div class="preset-modal-title" id="preset-modal-title" data-i18n="presetCreator.title.new">Create Preset</div>
+      <button class="preset-modal-close" type="button" data-action="close" data-i18n-aria-label="presetCreator.actions.close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="preset-modal-body">
+      <div class="preset-section">
+        <div class="preset-section-title" data-i18n="presetCreator.sections.basic">Preset Details</div>
+        <div class="preset-form-grid">
+          <label class="preset-field">
+            <span data-i18n="presetCreator.fields.title">Title</span>
+            <input id="preset-title" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.title" placeholder="Preset title">
+          </label>
+          <label class="preset-field">
+            <span data-i18n="presetCreator.fields.summary">Summary</span>
+            <input id="preset-summary" class="custom-input" type="text" maxlength="50" data-i18n-placeholder="presetCreator.placeholders.summary" placeholder="Short description">
+          </label>
+        </div>
+
+        <div class="preset-field preset-field-icon">
+          <span data-i18n="presetCreator.fields.icon">Icon</span>
+          <div class="preset-icon-drop" id="preset-icon-drop">
+            <div class="preset-icon-preview" id="preset-icon-preview"></div>
+            <div class="preset-icon-meta">
+              <div class="preset-icon-title" data-i18n="presetCreator.icon.title">Drop icon here</div>
+              <div class="preset-icon-hint" data-i18n="presetCreator.icon.hint">1:1 ratio, PNG/JPG/SVG</div>
+              <button type="button" class="anim-btn preset-icon-browse" id="preset-icon-browse" data-i18n="presetCreator.icon.browse">Browse</button>
+            </div>
+            <input id="preset-icon-file" class="preset-icon-file" type="file" accept="image/*,.svg">
+          </div>
+        </div>
+      </div>
+
+      <div class="preset-section">
+        <div class="preset-section-title" data-i18n="presetCreator.sections.type">Preset Type</div>
+        <div class="preset-type-list">
+          <button type="button" class="preset-choice active" data-preset-type="downloader" data-i18n="presetCreator.types.downloader">Downloader</button>
+        </div>
+      </div>
+
+      <div class="preset-section">
+        <div class="preset-section-title" data-i18n="presetCreator.sections.format">Format</div>
+        <div class="preset-format-input">
+          <input id="preset-format" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.format" placeholder="Type format">
+          <div id="preset-format-suggestions" class="preset-format-suggestions"></div>
+        </div>
+      </div>
+
+      <div class="preset-advanced" id="preset-advanced">
+        <div class="preset-section">
+          <div class="preset-section-title" data-i18n="presetCreator.sections.misc">Misc</div>
+          <div class="preset-form-grid">
+            <label class="preset-field preset-path-field">
+              <span data-i18n="presetCreator.fields.path">Save path</span>
+              <div class="preset-inline">
+                <input id="preset-path" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.path" placeholder="Optional">
+                <button type="button" class="anim-btn preset-browse-btn" id="preset-path-browse" data-i18n="presetCreator.actions.browse">Browse</button>
+              </div>
+            </label>
+          </div>
+
+          <div class="preset-toggle-grid">
+            <div class="preset-toggle-row">
+              <span data-i18n="presetCreator.toggles.downloadSubtitles">Download subtitles</span>
+              <label class="switch"><input id="preset-download-subs" type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="preset-toggle-row preset-subs-extra" id="preset-embed-subs-row">
+              <span data-i18n="presetCreator.toggles.embedSubtitles">Embed subtitles</span>
+              <label class="switch"><input id="preset-embed-subs" type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="preset-toggle-row preset-subs-extra" id="preset-subs-code-row">
+              <span data-i18n="presetCreator.toggles.subtitlesCode">Code (optional)</span>
+              <input id="preset-subs-code" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.subtitlesCode" placeholder="en">
+            </div>
+            <div class="preset-toggle-row">
+              <span data-i18n="presetCreator.toggles.embedMetadata">Embed metadata</span>
+              <label class="switch"><input id="preset-embed-meta" type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="preset-toggle-row">
+              <span data-i18n="presetCreator.toggles.embedThumbnail">Embed thumbnail</span>
+              <label class="switch"><input id="preset-embed-thumb" type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="preset-toggle-row">
+              <span data-i18n="presetCreator.toggles.geoBypass">Geo bypass</span>
+              <label class="switch"><input id="preset-geo-bypass" type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="preset-toggle-row" id="preset-mute-row">
+              <span data-i18n="presetCreator.toggles.muteAudio">Mute audio</span>
+              <label class="switch"><input id="preset-mute-audio" type="checkbox"><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="preset-section">
+          <div class="preset-section-title" data-i18n="presetCreator.sections.videoAudio">Video & Audio</div>
+
+          <div class="preset-subsection" id="preset-video-section">
+            <div class="preset-subsection-title" data-i18n="presetCreator.sections.video">Video Options</div>
+            <div class="preset-form-grid">
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.videoQuality">Video quality</span>
+                <select id="preset-video-quality" class="custom-select">
+                  <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                  <option value="best">Best</option>
+                  <option value="2160p">2160p</option>
+                  <option value="1440p">1440p</option>
+                  <option value="1080p">1080p</option>
+                  <option value="720p">720p</option>
+                  <option value="480p">480p</option>
+                  <option value="360p">360p</option>
+                  <option value="240p">240p</option>
+                  <option value="144p">144p</option>
+                </select>
+              </label>
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.videoCodec">Video codec</span>
+                <select id="preset-video-codec" class="custom-select">
+                  <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                </select>
+              </label>
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.videoBitrate">Video bitrate</span>
+                <input id="preset-video-bitrate" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.bitrate" placeholder="8000kbps">
+              </label>
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.videoFps">FPS</span>
+                <select id="preset-video-fps" class="custom-select">
+                  <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                  <option value="60">60</option>
+                  <option value="30">30</option>
+                  <option value="24">24</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="preset-subsection" id="preset-audio-section">
+            <div class="preset-subsection-title" data-i18n="presetCreator.sections.audio">Audio Options</div>
+            <div class="preset-form-grid">
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.audioSampleRate">Audio sample rate</span>
+                <select id="preset-audio-sample" class="custom-select">
+                  <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                  <option value="32000">32000</option>
+                  <option value="44100">44100</option>
+                  <option value="48000">48000</option>
+                  <option value="96000">96000</option>
+                </select>
+              </label>
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.audioCodec">Audio codec</span>
+                <select id="preset-audio-codec" class="custom-select">
+                  <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                </select>
+              </label>
+              <label class="preset-field">
+                <span data-i18n="presetCreator.fields.audioBitrate">Audio bitrate</span>
+                <input id="preset-audio-bitrate" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.bitrate" placeholder="320kbps">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preset-modal-footer">
+      <button type="button" class="anim-btn preset-save-btn" id="preset-save-btn" data-i18n="presetCreator.actions.save">Save Preset</button>
+      <button type="button" class="anim-btn preset-export-btn" id="preset-export-btn" data-i18n="presetCreator.actions.export">Export Preset</button>
+    </div>
+  </div>
+</div>

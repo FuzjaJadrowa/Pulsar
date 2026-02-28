@@ -271,4 +271,75 @@
       "description": "Microsoft audio compression format."
     }
   }
+  ,
+  "presetCreator": {
+    "title": {
+      "new": "Create Preset",
+      "edit": "Edit Preset"
+    },
+    "sections": {
+      "basic": "Preset Details",
+      "type": "Preset Type",
+      "format": "Format",
+      "misc": "Misc",
+      "videoAudio": "Video & Audio",
+      "video": "Video Options",
+      "audio": "Audio Options"
+    },
+    "fields": {
+      "title": "Title",
+      "summary": "Summary",
+      "icon": "Icon",
+      "path": "Save path",
+      "videoQuality": "Video quality",
+      "videoCodec": "Video codec",
+      "videoBitrate": "Video bitrate",
+      "videoFps": "FPS",
+      "audioSampleRate": "Audio sample rate",
+      "audioCodec": "Audio codec",
+      "audioBitrate": "Audio bitrate"
+    },
+    "placeholders": {
+      "title": "Preset title",
+      "summary": "Short description",
+      "format": "Type format",
+      "path": "Optional",
+      "subtitlesCode": "en",
+      "bitrate": "1000kbps"
+    },
+    "types": {
+      "downloader": "Downloader"
+    },
+    "icon": {
+      "title": "Drop icon here",
+      "hint": "1:1 ratio, PNG/JPG/SVG",
+      "browse": "Browse"
+    },
+    "toggles": {
+      "downloadSubtitles": "Download subtitles",
+      "embedSubtitles": "Embed subtitles",
+      "subtitlesCode": "Code (optional)",
+      "embedMetadata": "Embed metadata",
+      "embedThumbnail": "Embed thumbnail",
+      "geoBypass": "Geo bypass",
+      "muteAudio": "Mute audio"
+    },
+    "actions": {
+      "browse": "Browse",
+      "save": "Save Preset",
+      "export": "Export Preset",
+      "close": "Close"
+    },
+    "select": {
+      "auto": "Auto"
+    },
+    "notifications": {
+      "invalidIcon": "Invalid icon file.",
+      "validation": "Title and format are required.",
+      "saved": "Preset saved.",
+      "saveFailed": "Failed to save preset.",
+      "exportFailed": "Failed to export preset.",
+      "loadFailed": "Failed to load preset."
+    }
+  }
 }

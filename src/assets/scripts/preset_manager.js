@@ -38,6 +38,20 @@
         }
     };
 
+    const openPresetCreator = (mode, id = null) => {
+        if (!window.presetCreator) {
+            showNotification(t('settings.presetsManager.notifications.unavailable', 'This action is not available yet.'), 'error');
+            return;
+        }
+        if (mode === 'edit' && id && typeof window.presetCreator.openEdit === 'function') {
+            window.presetCreator.openEdit(id);
+            return;
+        }
+        if (typeof window.presetCreator.openNew === 'function') {
+            window.presetCreator.openNew();
+        }
+    };
+
     const updateCountAndEmpty = (countOverride = null) => {
         const count = typeof countOverride === 'number'
             ? countOverride
@@ -110,7 +124,7 @@
             editBtn.className = 'preset-item-btn';
             editBtn.textContent = t('settings.presetsManager.actions.edit', 'Edit');
             editBtn.addEventListener('click', () => {
-                showNotification(t('settings.presetsManager.notifications.unavailable', 'Preset editor is not ready yet.'), 'info');
+                openPresetCreator('edit', preset.id);
             });
 
             const exportBtn = document.createElement('button');
@@ -221,9 +235,8 @@
     };
 
     if (addBtn) {
-        addBtn.disabled = true;
         addBtn.addEventListener('click', () => {
-            showNotification(t('settings.presetsManager.notifications.unavailable', 'This action is not available yet.'), 'info');
+            openPresetCreator('new');
         });
     }
 
