@@ -157,6 +157,31 @@
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
     "maximumSearchResults": "Maximum search results",
+    "presetsManager": {
+      "title": "Presets Manager",
+      "count": "{count} presets",
+      "countSingle": "1 preset",
+      "empty": "No presets yet.",
+      "untitled": "Untitled",
+      "noSummary": "No summary",
+      "types": {
+        "downloader": "Downloader"
+      },
+      "actions": {
+        "add": "New preset",
+        "import": "Import",
+        "edit": "Edit",
+        "export": "Export",
+        "delete": "Delete",
+        "hide": "Hidden"
+      },
+      "notifications": {
+        "unavailable": "This action is not available yet.",
+        "importFailed": "Failed to import preset.",
+        "exportFailed": "Failed to export preset.",
+        "deleteFailed": "Failed to delete preset."
+      }
+    },
     "titleConstructor": "Title Constructor",
     "titleConstructorNote": "Not every tag is available for all media.",
     "titleConstructorCategories": {

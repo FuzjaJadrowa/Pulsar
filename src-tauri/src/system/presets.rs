@@ -364,8 +364,13 @@ pub fn list_presets(app_handle: AppHandle) -> Result<Vec<PresetSummary>, String>
             Ok(v) => v,
             Err(_) => continue,
         };
+        let file_id = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or(&preset.id)
+            .to_string();
         result.push(PresetSummary {
-            id: preset.id,
+            id: file_id,
             title: preset.title,
             summary: preset.summary,
             preset_type: preset.preset_type,

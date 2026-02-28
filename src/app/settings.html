@@ -150,6 +150,21 @@
     </div>
   </section>
 
+  <section class="settings-section-card presets-manager-card">
+    <div class="settings-section-title" data-i18n="settings.presetsManager.title">Presets Manager</div>
+
+    <div class="presets-manager-toolbar">
+      <div class="presets-manager-actions">
+        <button id="preset-add-btn" class="anim-btn preset-action-btn preset-add-btn" data-i18n="settings.presetsManager.actions.add">New preset</button>
+        <button id="preset-import-btn" class="anim-btn preset-action-btn preset-secondary-btn" data-i18n="settings.presetsManager.actions.import">Import</button>
+      </div>
+      <div class="presets-manager-meta" id="preset-count" data-i18n="settings.presetsManager.count">0 presets</div>
+    </div>
+
+    <div class="presets-manager-list" id="preset-list"></div>
+    <div class="presets-manager-empty" id="preset-empty" data-i18n="settings.presetsManager.empty">No presets yet.</div>
+  </section>
+
   <section class="settings-section-card">
     <div class="settings-section-title" data-i18n="settings.support">Support</div>
 
@@ -163,3 +178,4 @@
 </div>
 
 <script src="assets/scripts/settings.js"></script>
+<script src="assets/scripts/preset_manager.js"></script>

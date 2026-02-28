@@ -512,3 +512,250 @@ body.theme-light .title-pill {
     border-color: rgba(76, 111, 255, 0.4);
     color: #1d2330;
 }
+
+.presets-manager-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+}
+.presets-manager-card .settings-section-title {
+    font-family: "Segoe UI", sans-serif;
+}
+.presets-manager-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.presets-manager-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.preset-action-btn {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f0f0f0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+}
+.preset-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+.preset-action-btn:active {
+    transform: scale(0.97);
+}
+.preset-action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
+}
+.preset-add-btn {
+    background: rgba(46, 204, 113, 0.18);
+    border-color: rgba(46, 204, 113, 0.45);
+    color: #eafff3;
+}
+.preset-add-btn:hover {
+    background: rgba(46, 204, 113, 0.3);
+    border-color: rgba(46, 204, 113, 0.6);
+    filter: brightness(1.05);
+}
+.preset-secondary-btn {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.72);
+}
+.presets-manager-meta {
+    font-size: 12px;
+    color: rgba(220, 220, 220, 0.6);
+    letter-spacing: 0.4px;
+}
+.presets-manager-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.presets-manager-empty {
+    font-size: 13px;
+    color: rgba(220, 220, 220, 0.55);
+    text-align: center;
+    padding: 20px 0 8px;
+    display: none;
+}
+.presets-manager-empty.visible {
+    display: block;
+}
+.preset-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+.preset-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+}
+.preset-item.is-hidden {
+    opacity: 0.6;
+}
+.preset-item-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    color: #fff;
+}
+.preset-item-icon img,
+.preset-item-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+.preset-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+.preset-item-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f5f5f5;
+    font-family: "Segoe UI", sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.preset-item-summary {
+    font-size: 13px;
+    color: rgba(220, 220, 220, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.preset-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(138, 43, 226, 0.25);
+    color: #e8d7ff;
+}
+.preset-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+.preset-item-action-row {
+    display: flex;
+    gap: 6px;
+}
+.preset-item-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f1f1f1;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.preset-item-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+.preset-item-btn.danger {
+    background: rgba(255, 50, 70, 0.18);
+    border-color: rgba(255, 50, 70, 0.3);
+}
+.preset-item-btn.danger:hover {
+    background: rgba(255, 50, 70, 0.3);
+}
+.preset-item-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(220, 220, 220, 0.7);
+}
+
+body.theme-light .preset-action-btn {
+    background: rgba(29, 35, 48, 0.06);
+    border-color: rgba(29, 35, 48, 0.12);
+    color: #1d2330;
+}
+body.theme-light .preset-action-btn:hover {
+    background: rgba(29, 35, 48, 0.12);
+}
+body.theme-light .preset-secondary-btn {
+    background: rgba(29, 35, 48, 0.04);
+    color: rgba(29, 35, 48, 0.7);
+}
+body.theme-light .preset-add-btn {
+    background: rgba(25, 168, 107, 0.18);
+    border-color: rgba(25, 168, 107, 0.4);
+    color: #0f2b1d;
+}
+body.theme-light .preset-add-btn:hover {
+    background: rgba(25, 168, 107, 0.28);
+    border-color: rgba(25, 168, 107, 0.55);
+}
+body.theme-light .presets-manager-meta {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .presets-manager-empty {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .preset-item {
+    background: rgba(29, 35, 48, 0.05);
+    border-color: rgba(29, 35, 48, 0.1);
+}
+body.theme-light .preset-item:hover {
+    background: rgba(29, 35, 48, 0.1);
+}
+body.theme-light .preset-item-title {
+    color: #1d2330;
+    font-family: "Segoe UI", sans-serif;
+}
+body.theme-light .preset-item-summary {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .preset-item-icon {
+    background: transparent;
+    color: #1d2330;
+}
+body.theme-light .preset-item-btn {
+    background: rgba(29, 35, 48, 0.08);
+    border-color: rgba(29, 35, 48, 0.14);
+    color: #1d2330;
+}
+body.theme-light .preset-item-btn:hover {
+    background: rgba(29, 35, 48, 0.14);
+}
+body.theme-light .preset-item-toggle {
+    color: rgba(29, 35, 48, 0.6);
+}
