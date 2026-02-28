@@ -26,7 +26,9 @@ pub struct AppConfig {
     #[serde(default)]
     pub maximum_search_results: u64,
     #[serde(default)]
-    pub title_template: String
+    pub title_template: String,
+    #[serde(default)]
+    pub default_presets_created: bool
 }
 
 impl Default for AppConfig {
@@ -45,7 +47,8 @@ impl Default for AppConfig {
             cookies_browser: "None".to_string(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
-            title_template: "%(title)s [%(id)s]".to_string()
+            title_template: "%(title)s [%(id)s]".to_string(),
+            default_presets_created: false
         }
     }
 }
@@ -136,6 +139,12 @@ impl ConfigManager {
                         .unwrap_or(10);
                     if let Some(v) = section.get("title_template") { config.title_template = v.to_string(); }
                 }
+                if let Some(section) = ini.section(Some("Presets")) {
+                    config.default_presets_created = section
+                        .get("default_presets_created")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
+                }
             }
         } else {
             Self::save_to_disk_internal(&path, &config);
@@ -174,6 +183,9 @@ impl ConfigManager {
             .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string())
             .set("maximum_search_results", config.maximum_search_results.to_string())
             .set("title_template", &config.title_template);
+
+        ini.with_section(Some("Presets"))
+            .set("default_presets_created", if config.default_presets_created { "true" } else { "false" });
 
         let _ = ini.write_to_file(path);
     }

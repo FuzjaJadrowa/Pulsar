@@ -28,6 +28,8 @@ pub fn run() {
         .setup(|app| {
             let queue_state = app.state::<QueueManager>().load();
             build_tray_icon(app.handle(), &queue_state)?;
+            let config_state = app.state::<ConfigManager>();
+            system::presets::ensure_default_presets(app.handle(), config_state.inner())?;
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -52,6 +54,12 @@ pub fn run() {
             system::metadata::fetch_metadata,
             system::metadata::search,
             system::notifications::send_system_notification,
+            system::presets::list_presets,
+            system::presets::load_preset,
+            system::presets::save_preset,
+            system::presets::delete_preset,
+            system::presets::import_preset,
+            system::presets::export_preset,
             core::splash::run_splash_checks,
             core::splash::cancel_splash_checks,
             core::downloader::start_download,
