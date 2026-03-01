@@ -15,6 +15,7 @@
 * Added a preset system that allows you to set many custom video and audio options and speed up the setup process.
 ## Changed
 * Changed the main program font to `Manrope`.
+* Changed macOS `.dmg` installer to `.pkg` installer.
 ## Fixed
 * Fixed `NoneType is not iterable` error. Now the popups tell you exactly what is wrong.
 * Patched default options from WebView.

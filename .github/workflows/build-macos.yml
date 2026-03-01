@@ -57,7 +57,7 @@ jobs:
           cp src/assets/icons/icon.icns "$res_dir/Icon.icns"
           textutil -convert rtf LICENSE -output "$res_dir/License.rtf"
 
-          productbuild --component "$app_path" /Applications --license "$res_dir/License.rtf" --resources "$res_dir" "$pkg_name"
+          productbuild --component "$app_path" /Applications --resources "$res_dir" "$pkg_name"
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz "Pulsar-$ver-$os.app.tar.gz"
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig "Pulsar-MacOS.sig"
 
