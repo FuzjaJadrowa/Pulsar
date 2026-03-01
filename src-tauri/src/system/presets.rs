@@ -245,6 +245,19 @@ pub fn save_preset(app_handle: AppHandle, preset: PresetPayload) -> Result<Strin
 }
 
 #[tauri::command]
+pub fn set_preset_hidden(app_handle: AppHandle, id: String, hidden: bool) -> Result<(), String> {
+    let dir = presets_dir(&app_handle)?;
+    let path = preset_path(&dir, id.trim());
+    if !path.exists() {
+        return Err("Preset not found.".to_string());
+    }
+    let mut preset = read_preset(&path)?;
+    preset.hidden = hidden;
+    write_preset(&path, &preset)?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn delete_preset(app_handle: AppHandle, id: String) -> Result<(), String> {
     let dir = presets_dir(&app_handle)?;
     let path = preset_path(&dir, id.trim());

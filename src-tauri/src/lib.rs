@@ -55,6 +55,7 @@ pub fn run() {
             system::presets::list_presets,
             system::presets::load_preset,
             system::presets::save_preset,
+            system::presets::set_preset_hidden,
             system::presets::delete_preset,
             system::presets::import_preset,
             system::presets::export_preset,

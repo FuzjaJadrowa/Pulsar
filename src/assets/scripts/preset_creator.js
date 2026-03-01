@@ -43,13 +43,18 @@
         }
     };
 
+    const emitPresetsUpdated = () => {
+        window.dispatchEvent(new CustomEvent('pulsar-presets-updated'));
+    };
+
     const state = {
         modalReady: false,
         modalPromise: null,
         presetId: null,
         iconDataUrl: DEFAULT_ICON_DATA_URL,
         formatData: [],
-        formatMap: new Map()
+        formatMap: new Map(),
+        hidden: false
     };
 
     const loadFormatData = async () => {
@@ -91,6 +96,31 @@
         const digits = raw.replace(/[^0-9]/g, '');
         if (!digits) return '';
         return `${digits}kbps`;
+    };
+
+    const parseKbpsValue = (value) => {
+        const raw = String(value || '');
+        const digits = raw.match(/\d+/g);
+        if (!digits) return null;
+        const parsed = parseInt(digits.join(''), 10);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const validateBitrateRange = (value, min, max, label) => {
+        const parsed = parseKbpsValue(value);
+        if (parsed === null) return true;
+        if (parsed < min || parsed > max) {
+            showNotification(
+                t(
+                    'presetCreator.notifications.bitrateRange',
+                    '{label} bitrate must be between {min}kbps and {max}kbps.',
+                    { label, min, max }
+                ),
+                'error'
+            );
+            return false;
+        }
+        return true;
     };
 
     const initModal = async () => {
@@ -315,6 +345,7 @@
 
         const resetForm = () => {
             state.presetId = null;
+            state.hidden = false;
             if (modalTitle) modalTitle.textContent = t('presetCreator.title.new', 'Create Preset');
             titleInput.value = '';
             summaryInput.value = '';
@@ -350,6 +381,7 @@
 
         const applyPreset = (preset) => {
             state.presetId = preset?.id || null;
+            state.hidden = !!preset?.hidden;
             if (modalTitle) modalTitle.textContent = t('presetCreator.title.edit', 'Edit Preset');
             titleInput.value = preset?.title || '';
             summaryInput.value = preset?.summary || '';
@@ -396,12 +428,26 @@
         const savePreset = async ({ closeOnSuccess = true } = {}) => {
             if (!window.__TAURI__?.core?.invoke) return null;
             const { formatValue, type, isGif } = resolveFormatMeta(formatInput.value);
+            const videoBitrateValue = videoSection?.classList.contains('collapsed')
+                ? ''
+                : normalizeKbps(videoBitrate.value);
+            const audioBitrateValue = audioSection?.classList.contains('collapsed')
+                ? ''
+                : normalizeKbps(audioBitrate.value);
+
+            if (videoBitrateValue && !validateBitrateRange(videoBitrateValue, 500, 100000, t('presetCreator.labels.video', 'Video'))) {
+                return null;
+            }
+            if (audioBitrateValue && !validateBitrateRange(audioBitrateValue, 8, 500, t('presetCreator.labels.audio', 'Audio'))) {
+                return null;
+            }
+
             const payload = {
                 id: state.presetId,
                 title: String(titleInput.value || '').trim(),
                 summary: String(summaryInput.value || '').trim(),
                 preset_type: 'downloader',
-                hidden: false,
+                hidden: state.hidden,
                 icon_data_url: state.iconDataUrl,
                 downloader: {
                     mode: type === 'audio' ? 'audio' : 'video',
@@ -418,8 +464,8 @@
                     mute_audio: isGif ? true : !!muteAudio.checked,
                     video_codec: videoSection?.classList.contains('collapsed') ? null : (videoCodec.value || null),
                     audio_codec: audioSection?.classList.contains('collapsed') ? null : (audioCodec.value || null),
-                    video_bitrate: videoSection?.classList.contains('collapsed') ? null : (normalizeKbps(videoBitrate.value) || null),
-                    audio_bitrate: audioSection?.classList.contains('collapsed') ? null : (normalizeKbps(audioBitrate.value) || null),
+                    video_bitrate: videoBitrateValue || null,
+                    audio_bitrate: audioBitrateValue || null,
                     video_fps: videoSection?.classList.contains('collapsed') ? null : (videoFps.value || null),
                     audio_sample_rate: audioSection?.classList.contains('collapsed') ? null : (audioSample.value || null)
                 }
@@ -434,6 +480,7 @@
                 const id = await window.__TAURI__.core.invoke('save_preset', { preset: payload });
                 state.presetId = id;
                 if (window.presetManager?.refresh) window.presetManager.refresh();
+                emitPresetsUpdated();
                 showNotification(t('presetCreator.notifications.saved', 'Preset saved.'), 'success');
                 if (closeOnSuccess) closeModal();
                 return id;

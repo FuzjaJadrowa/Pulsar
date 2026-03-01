@@ -38,6 +38,10 @@
         }
     };
 
+    const emitPresetsUpdated = () => {
+        window.dispatchEvent(new CustomEvent('pulsar-presets-updated'));
+    };
+
     const openPresetCreator = (mode, id = null) => {
         if (!window.presetCreator) {
             showNotification(t('settings.presetsManager.notifications.unavailable', 'This action is not available yet.'), 'error');
@@ -165,6 +169,7 @@
                         finalizeRemoval();
                     }, { once: true });
                     window.setTimeout(finalizeRemoval, 260);
+                    emitPresetsUpdated();
                 } catch (error) {
                     console.error('Preset delete failed:', error);
                     deleteBtn.disabled = false;
@@ -194,9 +199,23 @@
             toggle.appendChild(toggleSlider);
 
             toggleInput.addEventListener('change', () => {
-                preset.hidden = toggleInput.checked;
-                item.classList.toggle('is-hidden', preset.hidden);
-                showNotification(t('settings.presetsManager.notifications.unavailable', 'Preset visibility update is not ready yet.'), 'info');
+                if (!window.__TAURI__?.core?.invoke) return;
+                const nextHidden = toggleInput.checked;
+                toggleInput.disabled = true;
+                window.__TAURI__.core.invoke('set_preset_hidden', { id: preset.id, hidden: nextHidden })
+                    .then(() => {
+                        preset.hidden = nextHidden;
+                        item.classList.toggle('is-hidden', preset.hidden);
+                        emitPresetsUpdated();
+                    })
+                    .catch((error) => {
+                        console.error('Preset visibility update failed:', error);
+                        toggleInput.checked = !nextHidden;
+                        showNotification(t('settings.presetsManager.notifications.visibilityFailed', 'Failed to update preset visibility.'), 'error');
+                    })
+                    .finally(() => {
+                        toggleInput.disabled = false;
+                    });
             });
 
             toggleRow.appendChild(toggleLabel);
@@ -218,6 +237,7 @@
     const setPresets = (presets) => {
         state.presets = Array.isArray(presets) ? presets : [];
         renderPresets(state.presets);
+        emitPresetsUpdated();
     };
 
     const refreshFromBackend = async () => {
@@ -246,6 +266,7 @@
             try {
                 await window.__TAURI__.core.invoke('import_preset');
                 await refreshFromBackend();
+                emitPresetsUpdated();
             } catch (error) {
                 console.error('Preset import failed:', error);
                 showNotification(t('settings.presetsManager.notifications.importFailed', 'Failed to import preset.'), 'error');

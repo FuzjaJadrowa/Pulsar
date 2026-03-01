@@ -186,6 +186,18 @@ pub struct DownloadOptions {
     meta_sub_langs: Vec<String>,
     #[serde(default)]
     meta_auto_langs: Vec<String>,
+    #[serde(default)]
+    video_codec: Option<String>,
+    #[serde(default)]
+    audio_codec: Option<String>,
+    #[serde(default)]
+    video_bitrate: Option<String>,
+    #[serde(default)]
+    audio_bitrate: Option<String>,
+    #[serde(default)]
+    video_fps: Option<String>,
+    #[serde(default)]
+    audio_sample_rate: Option<String>,
     custom_args: Option<Vec<String>>,
     client_task_id: Option<String>,
 }
@@ -212,6 +224,89 @@ fn find_lang_match<'a>(langs: &'a [String], requested: &str) -> Option<&'a str> 
             None
         }
     })
+}
+
+fn parse_kbps_value(value: &Option<String>) -> Option<String> {
+    let raw = value.as_ref()?.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let digits: String = raw.chars().filter(|ch| ch.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        return None;
+    }
+    Some(digits)
+}
+
+fn parse_numeric_value(value: &Option<String>) -> Option<String> {
+    let raw = value.as_ref()?.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let mut out = String::new();
+    for ch in raw.chars() {
+        if ch.is_ascii_digit() || ch == '.' {
+            out.push(ch);
+        }
+    }
+    if out.is_empty() {
+        None
+    } else {
+        Some(out)
+    }
+}
+
+fn quote_filter_value(value: &str) -> String {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    if trimmed.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.' || c == '-') {
+        return trimmed.to_string();
+    }
+    let escaped = trimmed.replace('\'', "\\'");
+    format!("'{}'", escaped)
+}
+
+fn build_video_filters(options: &DownloadOptions) -> Vec<String> {
+    let mut filters = Vec::new();
+    if let Some(codec) = options.video_codec.as_ref().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        filters.push(format!("vcodec={}", quote_filter_value(codec)));
+    }
+    if let Some(vbr) = parse_kbps_value(&options.video_bitrate) {
+        filters.push(format!("vbr={}", vbr));
+    }
+    if let Some(fps) = parse_numeric_value(&options.video_fps) {
+        filters.push(format!("fps={}", fps));
+    }
+    filters
+}
+
+fn build_audio_filters(options: &DownloadOptions) -> Vec<String> {
+    let mut filters = Vec::new();
+    if let Some(codec) = options.audio_codec.as_ref().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        filters.push(format!("acodec={}", quote_filter_value(codec)));
+    }
+    if let Some(abr) = parse_kbps_value(&options.audio_bitrate) {
+        filters.push(format!("abr={}", abr));
+    }
+    if let Some(asr) = parse_numeric_value(&options.audio_sample_rate) {
+        filters.push(format!("asr={}", asr));
+    }
+    filters
+}
+
+fn apply_filters(base: &str, filters: &[String]) -> String {
+    let mut out = base.to_string();
+    for filter in filters {
+        if filter.trim().is_empty() {
+            continue;
+        }
+        out.push('[');
+        out.push_str(filter);
+        out.push(']');
+    }
+    out
 }
 
 fn build_subtitle_args(options: &DownloadOptions) -> Vec<String> {
@@ -391,12 +486,15 @@ pub fn start_download(
     }
 
     if options.mode == "audio" {
+        let audio_filters = build_audio_filters(&options);
+        let has_audio_filters = !audio_filters.is_empty();
         let selected_audio_format = options.audio_format.as_ref().map(|f| f.to_lowercase());
         let uses_audio_format = matches!(
             selected_audio_format.as_deref(),
             Some("aac" | "alac" | "flac" | "m4a" | "mp3" | "opus" | "vorbis" | "wav")
         );
 
+        let mut audio_selector: Option<String> = None;
         if uses_audio_format {
             args.push("-x".to_string());
             if let Some(fmt_lower) = selected_audio_format {
@@ -408,15 +506,26 @@ pub fn start_download(
                 args.push("--audio-quality".to_string());
                 args.push(q_arg);
             }
+            if has_audio_filters {
+                audio_selector = Some(apply_filters("ba", &audio_filters));
+            }
         } else if let Some(fmt_lower) = selected_audio_format {
-            args.push("-f".to_string());
-            args.push(format!("ba[ext={}] / ba", fmt_lower).replace(' ', ""));
+            let base = apply_filters(&format!("ba[ext={}]", fmt_lower), &audio_filters);
+            let fallback = apply_filters("ba", &audio_filters);
+            audio_selector = Some(format!("{}/{}", base, fallback));
             if matches!(fmt_lower.as_str(), "aiff" | "ogg") {
                 args.push("--remux-video".to_string());
                 args.push(fmt_lower);
             }
         }
+        if let Some(selector) = audio_selector {
+            args.push("-f".to_string());
+            args.push(selector);
+        }
     } else {
+        let video_filters = build_video_filters(&options);
+        let audio_filters = build_audio_filters(&options);
+        let has_filters = !video_filters.is_empty() || !audio_filters.is_empty();
         let mut format_selector: Option<String> = None;
         let mut remux_format: Option<String> = None;
         let mut merge_output: Option<String> = None;
@@ -427,31 +536,62 @@ pub fn start_download(
                 "gif" => {
                     args.push("--recode-video".to_string());
                     args.push("gif".to_string());
+                    if has_filters || options.mute_audio {
+                        format_selector = Some(apply_filters("bv", &video_filters));
+                    }
                 }
                 "ts" => {
+                    let video_ext = apply_filters("bv*[ext=ts]", &video_filters);
+                    let audio_ext = apply_filters("ba[ext=ts]", &audio_filters);
+                    let video_fallback = apply_filters("bv*", &video_filters);
+                    let audio_fallback = apply_filters("ba", &audio_filters);
                     if options.mute_audio {
-                        format_selector = Some("bv*[ext=ts]/bv".to_string());
+                        format_selector = Some(format!("{}/bv", video_ext));
                     } else {
-                        format_selector = Some("bv*[ext=ts]+ba[ext=ts]/bv*[ext=ts]/bv*+ba/b".to_string());
+                        format_selector = Some(format!(
+                            "{}+{}/{}/{}+{}/b",
+                            video_ext, audio_ext, video_ext, video_fallback, audio_fallback
+                        ));
                     }
                 }
                 "mp4" | "mkv" | "webm" | "mov" | "flv" | "avi" => {
                     merge_output = Some(fmt_lower);
                     if options.mute_audio {
-                        format_selector = Some("bv".to_string());
+                        format_selector = Some(apply_filters("bv", &video_filters));
+                    } else if has_filters {
+                        let video_sel = apply_filters("bv*", &video_filters);
+                        let audio_sel = apply_filters("ba", &audio_filters);
+                        format_selector = Some(format!(
+                            "{}+{}/{}/{}+{}/b",
+                            video_sel, audio_sel, video_sel, video_sel, audio_sel
+                        ));
                     }
                 }
                 _ => {
+                    let video_ext = apply_filters(&format!("bv*[ext={}]", fmt_lower), &video_filters);
+                    let audio_ext = apply_filters(&format!("ba[ext={}]", fmt_lower), &audio_filters);
+                    let video_fallback = apply_filters("bv*", &video_filters);
+                    let audio_fallback = apply_filters("ba", &audio_filters);
                     if options.mute_audio {
-                        format_selector = Some(format!("bv*[ext={}]/bv", fmt_lower));
+                        format_selector = Some(format!("{}/bv", video_ext));
                     } else {
-                        format_selector = Some(format!("bv*[ext={}]+ba[ext={}]/bv*[ext={}]/bv*+ba/b", fmt_lower, fmt_lower, fmt_lower));
+                        format_selector = Some(format!(
+                            "{}+{}/{}/{}+{}/b",
+                            video_ext, audio_ext, video_ext, video_fallback, audio_fallback
+                        ));
                     }
                     remux_format = Some(fmt_lower);
                 }
             }
         } else if options.mute_audio {
-            format_selector = Some("bv".to_string());
+            format_selector = Some(apply_filters("bv", &video_filters));
+        } else if has_filters {
+            let video_sel = apply_filters("bv*", &video_filters);
+            let audio_sel = apply_filters("ba", &audio_filters);
+            format_selector = Some(format!(
+                "{}+{}/{}/{}+{}/b",
+                video_sel, audio_sel, video_sel, video_sel, audio_sel
+            ));
         }
 
         if let Some(selector) = format_selector {

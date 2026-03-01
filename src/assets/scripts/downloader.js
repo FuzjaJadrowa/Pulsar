@@ -18,6 +18,7 @@
         }
         return fallback || key;
     };
+    const KEY_ICON_SVG = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>';
 
     const body = document.body;
     const searchSection = document.getElementById('search-section');
@@ -90,7 +91,8 @@
         audioOnlySource: false,
         presets: [],
         activePresetId: null,
-        applyingPreset: false
+        applyingPreset: false,
+        presetOverrides: null
     };
 
     const openExternalUrl = async (url) => {
@@ -352,9 +354,57 @@
         return `${text.slice(0, Math.max(0, maxLen - 1))}…`;
     }
 
+    function decodeSvgDataUrl(dataUrl) {
+        if (!dataUrl || !dataUrl.startsWith('data:image/svg+xml')) return null;
+        const parts = dataUrl.split(',');
+        if (parts.length < 2) return null;
+        const meta = parts[0];
+        const data = parts.slice(1).join(',');
+        try {
+            if (meta.includes(';base64')) {
+                return atob(data);
+            }
+            return decodeURIComponent(data);
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function applyPresetIcon(iconEl, iconSource) {
+        if (!iconEl) return;
+        iconEl.innerHTML = '';
+        const source = String(iconSource || '').trim();
+        if (!source) {
+            iconEl.innerHTML = KEY_ICON_SVG;
+            return;
+        }
+        if (source.startsWith('<svg')) {
+            iconEl.innerHTML = source;
+            return;
+        }
+        if (source.startsWith('data:image/svg+xml')) {
+            const decoded = decodeSvgDataUrl(source);
+            if (decoded) {
+                iconEl.innerHTML = decoded;
+                return;
+            }
+        }
+        const img = document.createElement('img');
+        img.src = source;
+        img.alt = 'Preset';
+        img.onerror = () => {
+            iconEl.innerHTML = KEY_ICON_SVG;
+        };
+        iconEl.appendChild(img);
+    }
+
     function clearActivePreset() {
-        if (!state.activePresetId) return;
+        if (!state.activePresetId) {
+            state.presetOverrides = null;
+            return;
+        }
         state.activePresetId = null;
+        state.presetOverrides = null;
         if (presetGrid) {
             presetGrid.querySelectorAll('.preset-card.active').forEach((el) => el.classList.remove('active'));
         }
@@ -394,6 +444,15 @@
         state.applyingPreset = true;
         try {
             const d = preset.downloader;
+            const override = {
+                video_codec: d.video_codec || null,
+                audio_codec: d.audio_codec || null,
+                video_bitrate: d.video_bitrate || null,
+                audio_bitrate: d.audio_bitrate || null,
+                video_fps: d.video_fps || null,
+                audio_sample_rate: d.audio_sample_rate || null
+            };
+            state.presetOverrides = Object.values(override).some((value) => value) ? override : null;
             if (d.path && pathInput) {
                 pathInput.value = d.path;
             }
@@ -459,8 +518,10 @@
         }
 
         presetGrid.innerHTML = '';
+        const activeId = state.activePresetId;
         if (!state.presets.length) {
             presetSection.classList.add('hidden');
+            clearActivePreset();
             return;
         }
         presetSection.classList.remove('hidden');
@@ -474,15 +535,7 @@
             const icon = document.createElement('div');
             icon.className = 'preset-card-icon';
             const iconSource = preset.icon_data_url || preset.icon;
-            if (iconSource) {
-                const img = document.createElement('img');
-                img.src = iconSource;
-                img.alt = preset.title || 'Preset';
-                img.onerror = () => {
-                    icon.innerHTML = '';
-                };
-                icon.appendChild(img);
-            }
+            applyPresetIcon(icon, iconSource);
 
             const info = document.createElement('div');
             info.className = 'preset-card-info';
@@ -500,6 +553,14 @@
             card.addEventListener('click', () => handlePresetClick(preset));
             presetGrid.appendChild(card);
         });
+        if (activeId) {
+            const exists = state.presets.some((preset) => preset.id === activeId);
+            if (exists) {
+                setActivePreset(activeId);
+            } else {
+                clearActivePreset();
+            }
+        }
     }
 
     function detectSourceFromUrl(rawUrl) {
@@ -576,6 +637,13 @@
             meta_sub_langs: state.metaSubLangs || [],
             meta_auto_langs: state.metaAutoLangs || []
         };
+        if (state.activePresetId && state.presetOverrides) {
+            Object.entries(state.presetOverrides).forEach(([key, value]) => {
+                if (value !== null && value !== '') {
+                    payload[key] = value;
+                }
+            });
+        }
         if (customArgs.length) payload.custom_args = customArgs;
         return payload;
     }
@@ -1268,6 +1336,9 @@
     updateSlider();
     setZenMode(true);
     loadAdvancedMode();
+    window.addEventListener('pulsar-presets-updated', () => {
+        loadPresets();
+    });
     loadPresets();
     window.downloaderUi = {
         startMetadataForUrl: async (url) => {
