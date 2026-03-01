@@ -33,7 +33,7 @@
 }
 
 .queue-title {
-    font-family: "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
     font-size: 1.08rem;
     font-weight: 800;
     letter-spacing: 0.4px;
@@ -53,7 +53,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: var(--queue-action-bg);
     color: #fff;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-weight: 700;
     cursor: pointer;
     transition: 0.2s;
@@ -96,7 +96,7 @@
     background: rgba(0, 0, 0, 0.24);
     color: var(--queue-text-dim);
     text-align: center;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-size: 0.95rem;
 }
 
@@ -194,14 +194,14 @@
 }
 
 .queue-item-title {
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-weight: 800;
     font-size: 0.98rem;
     line-height: 1.2;
 }
 
 .queue-item-details {
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-size: 0.8rem;
     color: var(--queue-text-dim);
 }
@@ -229,7 +229,7 @@
     margin-top: 6px;
     display: flex;
     justify-content: space-between;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-size: 0.77rem;
     color: var(--queue-text-dim);
 }
@@ -292,7 +292,7 @@
     justify-content: center;
     gap: 12px;
     color: var(--queue-text-dim);
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-size: 0.86rem;
     padding-top: 2px;
 }
@@ -376,7 +376,7 @@
 }
 
 .queue-console-title {
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-weight: 700;
     font-size: 0.95rem;
     color: #e5e7eb;
@@ -408,7 +408,7 @@
     padding: 14px 16px;
     overflow: auto;
     color: rgba(226, 232, 240, 0.9);
-    font-family: "Consolas", "Courier New", monospace;
+    font-family: "Roboto", "Manrope", "Montserrat", sans-serif;
     font-size: 0.82rem;
     white-space: pre-wrap;
 }

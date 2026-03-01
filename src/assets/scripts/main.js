@@ -465,12 +465,18 @@ window.initCustomSelects = function() {
             const wasOpen = head.classList.contains('open');
             window.closeAllSelects();
             if (!wasOpen) {
-                const headRect = head.getBoundingClientRect();
-                const optionsCount = origSelect.options.length;
-                const estimatedHeight = Math.min(optionsCount * 40, 240);
-                const spaceBelow = window.innerHeight - headRect.bottom;
-                const spaceAbove = headRect.top;
-                const openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+                const inPresetModal = !!wrapper.closest('.preset-modal');
+                let openUp = false;
+                if (inPresetModal) {
+                    openUp = true;
+                } else {
+                    const headRect = head.getBoundingClientRect();
+                    const optionsCount = origSelect.options.length;
+                    const estimatedHeight = Math.min(optionsCount * 40, 240);
+                    const spaceBelow = window.innerHeight - headRect.bottom;
+                    const spaceAbove = headRect.top;
+                    openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+                }
 
                 list.classList.toggle('open-up', openUp);
                 head.classList.toggle('open-up', openUp);

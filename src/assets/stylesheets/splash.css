@@ -10,7 +10,7 @@
     align-items: center;
     z-index: 9999;
     color: white;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
     transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
 }
 

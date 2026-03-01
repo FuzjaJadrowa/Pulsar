@@ -53,10 +53,10 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
 }
 .presets-manager-card .settings-section-title {
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
 }
 .settings-section-card .form-row {
     display: flex;
@@ -112,7 +112,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .custom-input, .custom-select {
     background: #252525; border: 1px solid #3d3d3d; color: #e0e0e0;
     padding: 10px; border-radius: 8px; font-size: 13px; outline: none;
-    transition: border-color 0.2s; font-family: 'Segoe UI', sans-serif;
+    transition: border-color 0.2s; font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
 }
 .custom-input[type="number"] {
     appearance: textfield;
@@ -150,7 +150,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 }
 
 select.custom-select { display: none; }
-.select-wrapper { position: relative; user-select: none; width: 100%; font-family: 'Segoe UI', sans-serif; font-size: 13px; }
+.select-wrapper { position: relative; user-select: none; width: 100%; font-family: "Manrope", "Roboto", "Montserrat", sans-serif; font-size: 13px; }
 .select-wrapper.select-open { z-index: 1200; }
 .settings-section-card.select-open-card { z-index: 30; }
 .select-head {
@@ -298,7 +298,7 @@ select.custom-select { display: none; }
     cursor: pointer;
     transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
     white-space: nowrap;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -366,7 +366,7 @@ select.custom-select { display: none; }
     cursor: pointer;
     transition: transform 0.15s ease, opacity 0.15s ease;
     white-space: nowrap;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     line-height: 1;
     user-select: none;
     -webkit-user-select: none;
@@ -528,7 +528,7 @@ body.theme-light .title-pill {
     gap: 12px;
     flex-wrap: wrap;
     margin-bottom: 6px;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
 }
 .presets-manager-actions {
     display: flex;
@@ -606,7 +606,7 @@ body.theme-light .title-pill {
         max-height 0.22s ease-out, margin 0.22s ease-out, padding 0.22s ease-out, border-width 0.22s ease-out;
     max-height: 140px;
     overflow: hidden;
-    font-family: "Manrope", "Montserrat", "Segoe UI", sans-serif;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
 }
 .preset-item:hover {
     transform: translateY(-1px);
@@ -655,7 +655,7 @@ body.theme-light .title-pill {
     font-size: 15px;
     font-weight: 700;
     color: #f5f5f5;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -755,7 +755,7 @@ body.theme-light .preset-item:hover {
 }
 body.theme-light .preset-item-title {
     color: #1d2330;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
 }
 body.theme-light .preset-item-summary {
     color: rgba(29, 35, 48, 0.6);

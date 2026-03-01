@@ -28,8 +28,6 @@ pub fn run() {
         .setup(|app| {
             let queue_state = app.state::<QueueManager>().load();
             build_tray_icon(app.handle(), &queue_state)?;
-            let config_state = app.state::<ConfigManager>();
-            system::presets::ensure_default_presets(app.handle(), config_state.inner())?;
             Ok(())
         })
         .on_window_event(|window, event| {

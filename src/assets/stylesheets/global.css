@@ -16,7 +16,7 @@ body {
     margin: 0;
     padding: 0;
     position: relative;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
     color: var(--text-color);
     overflow: hidden;
 

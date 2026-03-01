@@ -196,7 +196,7 @@
 
         const updateFormatUI = () => {
             const { formatValue, meta, isGif, type } = resolveFormatMeta(formatInput.value);
-            const hasFormat = formatValue.length > 0;
+            const hasFormat = state.formatMap.has(formatValue) || isGif;
             advancedPanel?.classList.toggle('expanded', hasFormat);
 
             const showVideo = type !== 'audio';
@@ -255,10 +255,13 @@
                 return;
             }
 
-            const matches = state.formatData.filter((item) => {
+            let matches = state.formatData.filter((item) => {
                 const id = String(item.id || '').toLowerCase();
                 return id.includes(term);
             });
+            if (state.formatMap.has(term)) {
+                matches = matches.filter((item) => String(item.id || '').toLowerCase() === term);
+            }
 
             matches.slice(0, 10).forEach((item) => {
                 const id = String(item.id || '').toLowerCase();
@@ -295,6 +298,8 @@
             titleInput.value = '';
             summaryInput.value = '';
             formatInput.value = '';
+            suggestionBox.innerHTML = '';
+            suggestionBox.classList.remove('visible');
             pathInput.value = '';
             downloadSubs.checked = false;
             embedSubs.checked = false;
@@ -311,7 +316,14 @@
             audioBitrate.value = '';
             resetIcon();
             updateSubtitlesExtras();
+            if (advancedPanel) {
+                advancedPanel.classList.add('no-anim');
+            }
             updateFormatUI();
+            if (advancedPanel) {
+                void advancedPanel.offsetHeight;
+                advancedPanel.classList.remove('no-anim');
+            }
             validate();
         };
 
@@ -351,14 +363,16 @@
         const openModal = () => {
             overlay.classList.add('visible');
             overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('preset-modal-open');
         };
 
         const closeModal = () => {
             overlay.classList.remove('visible');
             overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('preset-modal-open');
         };
 
-        const savePreset = async () => {
+        const savePreset = async ({ closeOnSuccess = true } = {}) => {
             if (!window.__TAURI__?.core?.invoke) return null;
             const { formatValue, type, isGif } = resolveFormatMeta(formatInput.value);
             const payload = {
@@ -400,6 +414,7 @@
                 state.presetId = id;
                 if (window.presetManager?.refresh) window.presetManager.refresh();
                 showNotification(t('presetCreator.notifications.saved', 'Preset saved.'), 'success');
+                if (closeOnSuccess) closeModal();
                 return id;
             } catch (error) {
                 console.error('Failed to save preset:', error);
@@ -409,10 +424,11 @@
         };
 
         const exportPreset = async () => {
-            const id = await savePreset();
+            const id = await savePreset({ closeOnSuccess: false });
             if (!id || !window.__TAURI__?.core?.invoke) return;
             try {
                 await window.__TAURI__.core.invoke('export_preset', { id });
+                closeModal();
             } catch (error) {
                 console.error('Failed to export preset:', error);
                 showNotification(t('presetCreator.notifications.exportFailed', 'Failed to export preset.'), 'error');
@@ -497,7 +513,7 @@
         });
 
         saveBtn.addEventListener('click', async () => {
-            await savePreset();
+            await savePreset({ closeOnSuccess: true });
         });
         exportBtn.addEventListener('click', async () => {
             await exportPreset();
@@ -551,6 +567,7 @@
         if (!overlay) return;
         overlay.classList.add('visible');
         overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('preset-modal-open');
     };
 
     window.presetCreator = {
