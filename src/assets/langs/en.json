@@ -315,7 +315,7 @@
       "format": "Type format",
       "path": "Optional",
       "subtitlesCode": "en",
-      "bitrate": "1000kbps"
+      "bitrate": "Auto"
     },
     "types": {
       "downloader": "Downloader"
