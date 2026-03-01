@@ -1,4 +1,4 @@
-﻿﻿(function initSearch() {
+﻿(function initSearch() {
     const tauriCore = window.__TAURI__.core;
     const tauriEvent = window.__TAURI__.event;
     if (!tauriCore || !tauriEvent) return;

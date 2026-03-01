@@ -50,9 +50,11 @@
       "quality": "QUALITY",
       "thumbnail": "THUMBNAIL",
       "preview": "PREVIEW",
+      "presets": "PRESETS",
       "other": "OTHER",
       "geoBypass": "Geo bypass",
       "embedMetadata": "Embed metadata",
+      "muteAudio": "Mute audio",
       "customArgs": "Custom args",
       "customArgsPlaceholder": "Optional",
       "subtitles": "SUBTITLES",
@@ -273,6 +275,10 @@
     "gif": {
       "label": "GIF",
       "description": "Just image that can be animated."
+    },
+    "webm": {
+      "label": "WEBM",
+      "description": "Open video format created by Google for the web."
     }
   }
   ,

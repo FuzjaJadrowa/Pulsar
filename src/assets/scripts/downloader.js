@@ -3,8 +3,8 @@
     const { listen } = window.__TAURI__.event;
 
     const videoQualities = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
-    const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI'];
-    const audioFormats = ['MP3', 'M4A', 'AAC', 'OPUS', 'WAV', 'FLAC'];
+    const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI', 'TS', 'GIF'];
+    const audioFormats = ['MP3', 'M4A', 'AAC', 'OPUS', 'WAV', 'FLAC', 'AIFF', 'OGG', 'WMA'];
     const audioQualities = ['320kbps', '256kbps', '192kbps', '128kbps', '96kbps'];
     const t = (key, fallback = '', params = null) => {
         if (window.i18n && typeof window.i18n.t === 'function') {
@@ -31,6 +31,8 @@
     const queueBtn = document.getElementById('queue-btn');
     const browseBtn = document.getElementById('browse-btn');
     const pathInput = document.getElementById('path-input');
+    const presetSection = document.getElementById('preset-section');
+    const presetGrid = document.getElementById('preset-grid');
 
     if (!searchSection || !urlInput) return;
 
@@ -47,6 +49,7 @@
     const liveChatToggle = document.getElementById('chat-toggle');
     const geoToggle = document.getElementById('geo-toggle');
     const metadataToggle = document.getElementById('metadata-toggle');
+    const muteAudioToggle = document.getElementById('mute-audio-toggle');
 
     const liveChatRow = document.getElementById('live-chat-row');
     const langWrapper = document.getElementById('lang-wrapper');
@@ -84,7 +87,10 @@
         currentThumbnail: null,
         currentUploaderUrl: null,
         advancedMode: false,
-        audioOnlySource: false
+        audioOnlySource: false,
+        presets: [],
+        activePresetId: null,
+        applyingPreset: false
     };
 
     const openExternalUrl = async (url) => {
@@ -261,6 +267,9 @@
     thumbBtns.forEach(btn => {
         btn.onclick = async () => {
             const action = btn.dataset.thumb;
+            if (!state.applyingPreset) {
+                clearActivePreset();
+            }
 
             if (action === 'download') {
                 const url = String(state.currentThumbnail || '').trim();
@@ -337,6 +346,162 @@
         return args;
     }
 
+    function trimSummary(value, maxLen = 50) {
+        const text = String(value || '').trim();
+        if (text.length <= maxLen) return text;
+        return `${text.slice(0, Math.max(0, maxLen - 1))}…`;
+    }
+
+    function clearActivePreset() {
+        if (!state.activePresetId) return;
+        state.activePresetId = null;
+        if (presetGrid) {
+            presetGrid.querySelectorAll('.preset-card.active').forEach((el) => el.classList.remove('active'));
+        }
+    }
+
+    function setActivePreset(id) {
+        state.activePresetId = id;
+        if (!presetGrid) return;
+        presetGrid.querySelectorAll('.preset-card').forEach((el) => {
+            el.classList.toggle('active', el.dataset.presetId === id);
+        });
+    }
+
+    function selectTileByText(container, value) {
+        if (!container || !value) return;
+        const target = String(value).trim().toUpperCase();
+        const tiles = Array.from(container.querySelectorAll('.tile'));
+        const match = tiles.find((tile) => {
+            const span = tile.querySelector('span');
+            const text = span ? span.textContent : tile.textContent;
+            return String(text || '').trim().toUpperCase() === target;
+        });
+        if (match) match.click();
+    }
+
+    function setThumbnailAction(action) {
+        const desired = action === 'embed' ? 'embed' : 'none';
+        thumbBtns.forEach((b) => {
+            if (b.dataset.thumb === 'download') return;
+            b.classList.toggle('active', b.dataset.thumb === desired);
+        });
+        state.thumbnailAction = desired;
+    }
+
+    async function applyPreset(preset) {
+        if (!preset || !preset.downloader) return;
+        state.applyingPreset = true;
+        try {
+            const d = preset.downloader;
+            if (d.path && pathInput) {
+                pathInput.value = d.path;
+            }
+            await setMode(d.mode || 'video');
+            if (state.mode === 'video') {
+                selectTileByText(formatList, d.format || '');
+                selectTileByText(qualityList, d.video_quality || '');
+            } else {
+                selectTileByText(formatList, d.format || '');
+                selectTileByText(qualityList, d.audio_quality || '');
+            }
+
+            if (geoToggle) geoToggle.checked = !!d.geo_bypass;
+            if (metadataToggle) metadataToggle.checked = !!d.embed_metadata;
+            if (muteAudioToggle && !muteAudioToggle.disabled) {
+                muteAudioToggle.checked = !!d.mute_audio;
+            }
+            updateMuteAudioState();
+
+            const subsAvailable = !(subsRow && subsRow.classList.contains('hidden')) && subsToggle && !subsToggle.disabled;
+            if (subsAvailable) {
+                subsToggle.checked = !!d.download_subtitles;
+                updateSubtitleInputVisibility();
+                if (embedSubsToggle && embedSubsRow && embedSubsRow.classList.contains('visible')) {
+                    embedSubsToggle.checked = !!d.embed_subtitles;
+                }
+                if (subsLangInput && d.subtitles_code) {
+                    subsLangInput.value = d.subtitles_code;
+                }
+            }
+
+            setThumbnailAction(d.embed_thumbnail ? 'embed' : 'none');
+            validateReadyState();
+        } finally {
+            state.applyingPreset = false;
+        }
+    }
+
+    async function handlePresetClick(preset) {
+        if (!preset || !preset.id) return;
+        if (state.activePresetId === preset.id) {
+            clearActivePreset();
+            return;
+        }
+        try {
+            const fullPreset = await invoke('load_preset', { id: preset.id });
+            await applyPreset(fullPreset);
+            setActivePreset(preset.id);
+        } catch (error) {
+            console.error('Failed to load preset:', error);
+        }
+    }
+
+    async function loadPresets() {
+        if (!presetGrid || !presetSection) return;
+        try {
+            const presets = await invoke('list_presets');
+            const safePresets = Array.isArray(presets) ? presets : [];
+            state.presets = safePresets.filter((preset) => !preset.hidden && preset.preset_type === 'downloader');
+        } catch (error) {
+            console.warn('Preset list not available:', error);
+            state.presets = [];
+        }
+
+        presetGrid.innerHTML = '';
+        if (!state.presets.length) {
+            presetSection.classList.add('hidden');
+            return;
+        }
+        presetSection.classList.remove('hidden');
+
+        state.presets.forEach((preset) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'preset-card';
+            card.dataset.presetId = preset.id;
+
+            const icon = document.createElement('div');
+            icon.className = 'preset-card-icon';
+            const iconSource = preset.icon_data_url || preset.icon;
+            if (iconSource) {
+                const img = document.createElement('img');
+                img.src = iconSource;
+                img.alt = preset.title || 'Preset';
+                img.onerror = () => {
+                    icon.innerHTML = '';
+                };
+                icon.appendChild(img);
+            }
+
+            const info = document.createElement('div');
+            info.className = 'preset-card-info';
+            const title = document.createElement('div');
+            title.className = 'preset-card-title';
+            title.textContent = preset.title || t('settings.presetsManager.untitled', 'Untitled');
+            const summary = document.createElement('div');
+            summary.className = 'preset-card-summary';
+            summary.textContent = trimSummary(preset.summary || t('settings.presetsManager.noSummary', 'No summary'));
+            info.appendChild(title);
+            info.appendChild(summary);
+
+            card.appendChild(icon);
+            card.appendChild(info);
+            card.addEventListener('click', () => handlePresetClick(preset));
+            presetGrid.appendChild(card);
+        });
+    }
+
     function detectSourceFromUrl(rawUrl) {
         const input = String(rawUrl || '').trim().toLowerCase();
         if (!input) return null;
@@ -382,6 +547,7 @@
     function buildDownloadPayload() {
         const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
         const customArgs = state.advancedMode && customArgsInput ? parseCustomArgs(customArgsInput.value) : [];
+        const muteAudio = state.mode === 'video' && muteAudioToggle ? muteAudioToggle.checked : false;
 
         const payload = {
             url: urlInput.value.trim(),
@@ -401,6 +567,7 @@
             geo_bypass: geoToggle ? geoToggle.checked : false,
             embed_tags: metadataToggle ? metadataToggle.checked : false,
             embed_thumbnail: state.thumbnailAction === 'embed',
+            mute_audio: muteAudio,
 
             download_subs: subsToggle ? subsToggle.checked : false,
             download_chat: liveChatToggle ? liveChatToggle.checked : false,
@@ -744,6 +911,7 @@
             state.currentTitle = null;
             state.currentThumbnail = null;
             state.currentUploaderUrl = null;
+            clearActivePreset();
             if (metaAuthor) {
                 metaAuthor.removeAttribute('data-i18n-lock');
                 metaAuthor.innerText = t('downloader.meta.defaultAuthor', 'Channel Name');
@@ -752,6 +920,10 @@
                 metaAuthor.removeAttribute('role');
                 metaAuthor.tabIndex = -1;
             }
+            if (muteAudioToggle) {
+                muteAudioToggle.checked = false;
+            }
+            updateMuteAudioState();
             if (customArgsInput) customArgsInput.value = '';
             setSubtitlesAvailability(true);
             setFetchLoading(false);
@@ -827,11 +999,13 @@
             modeVideoBtn.classList.add('active');
             modeAudioBtn.classList.remove('active');
             renderVideoOptions();
+            updateMuteAudioState();
         } else {
             body.classList.add('mode-audio');
             modeAudioBtn.classList.add('active');
             modeVideoBtn.classList.remove('active');
             renderAudioOptions();
+            updateMuteAudioState();
         }
 
         state.selectedFormat = null;
@@ -850,6 +1024,7 @@
             triggerShakeFeedback(modeVideoBtn);
             return;
         }
+        if (!state.applyingPreset) clearActivePreset();
         state.preferredMode = 'video';
         setMode('video');
     };
@@ -859,6 +1034,7 @@
             triggerShakeFeedback(modeAudioBtn);
             return;
         }
+        if (!state.applyingPreset) clearActivePreset();
         setMode('audio');
     };
 
@@ -871,9 +1047,13 @@
                 triggerShakeFeedback(div);
                 return;
             }
+            if (!state.applyingPreset) clearActivePreset();
             div.parentElement.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
             div.classList.add('active');
-            if (div.parentElement.id === 'format-list') state.selectedFormat = text;
+            if (div.parentElement.id === 'format-list') {
+                state.selectedFormat = text;
+                updateMuteAudioState();
+            }
             if (div.parentElement.id === 'quality-list') state.selectedQuality = text;
             validateReadyState();
         };
@@ -894,6 +1074,9 @@
     }
 
     pathInput.oninput = validateReadyState;
+    pathInput.addEventListener('input', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
 
     function updateSlider() {
         if (!rangeStart) return;
@@ -946,11 +1129,23 @@
     }
 
     if (rangeStart) {
-        rangeStart.oninput = updateSlider;
-        rangeEnd.oninput = updateSlider;
+        rangeStart.oninput = () => {
+            if (!state.applyingPreset) clearActivePreset();
+            updateSlider();
+        };
+        rangeEnd.oninput = () => {
+            if (!state.applyingPreset) clearActivePreset();
+            updateSlider();
+        };
 
-        timeStartDisplay.onchange = () => handleManualTimeInput(timeStartDisplay, true);
-        timeEndDisplay.onchange = () => handleManualTimeInput(timeEndDisplay, false);
+        timeStartDisplay.onchange = () => {
+            if (!state.applyingPreset) clearActivePreset();
+            handleManualTimeInput(timeStartDisplay, true);
+        };
+        timeEndDisplay.onchange = () => {
+            if (!state.applyingPreset) clearActivePreset();
+            handleManualTimeInput(timeEndDisplay, false);
+        };
     }
 
     function updateSubtitleInputVisibility() {
@@ -977,6 +1172,22 @@
         if (subsLangInput) subsLangInput.focus();
     }
 
+    function updateMuteAudioState() {
+        if (!muteAudioToggle) return;
+        if (state.mode !== 'video' || state.audioOnlySource) {
+            muteAudioToggle.checked = false;
+            muteAudioToggle.disabled = true;
+            return;
+        }
+        const isGif = String(state.selectedFormat || '').trim().toUpperCase() === 'GIF';
+        if (isGif) {
+            muteAudioToggle.checked = true;
+            muteAudioToggle.disabled = true;
+            return;
+        }
+        muteAudioToggle.disabled = false;
+    }
+
     function setSubtitlesAvailability(hasSubs) {
         if (subsRow) subsRow.classList.toggle('hidden', !hasSubs);
         if (subsLabel) subsLabel.classList.toggle('hidden', !hasSubs);
@@ -1000,9 +1211,33 @@
 
     if (subsToggle) subsToggle.onchange = updateSubtitleInputVisibility;
     if (embedSubsToggle) embedSubsToggle.onchange = updateSubtitleInputVisibility;
+    if (subsToggle) subsToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (embedSubsToggle) embedSubsToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (liveChatToggle) liveChatToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (geoToggle) geoToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (metadataToggle) metadataToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (muteAudioToggle) muteAudioToggle.addEventListener('change', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
+    if (customArgsInput) customArgsInput.addEventListener('input', () => {
+        if (!state.applyingPreset) clearActivePreset();
+    });
 
     if (subsLangInput) {
-        subsLangInput.addEventListener('input', updateLanguageSuggestions);
+        subsLangInput.addEventListener('input', () => {
+            if (!state.applyingPreset) clearActivePreset();
+            updateLanguageSuggestions();
+        });
         subsLangInput.addEventListener('focus', updateLanguageSuggestions);
     }
 
@@ -1033,13 +1268,13 @@
     updateSlider();
     setZenMode(true);
     loadAdvancedMode();
+    loadPresets();
     window.downloaderUi = {
         startMetadataForUrl: async (url) => {
             const trimmed = String(url || '').trim();
             if (!trimmed) return null;
             urlInput.value = trimmed;
-            if (!state.isAnalyzed) {
-                applySourceConstraints(trimmed);
+            if (!state.isAnalyzed) {applySourceConstraints(trimmed);
             }
             return activateDashboard();
         },

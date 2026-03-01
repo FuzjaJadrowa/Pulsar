@@ -175,6 +175,8 @@ pub struct DownloadOptions {
     geo_bypass: bool,
     embed_tags: bool,
     embed_thumbnail: bool,
+    #[serde(default)]
+    mute_audio: bool,
     download_subs: bool,
     download_chat: bool,
     subs_code: String,
@@ -389,20 +391,80 @@ pub fn start_download(
     }
 
     if options.mode == "audio" {
-        args.push("-x".to_string());
-        if let Some(ref fmt) = options.audio_format {
-            args.push("--audio-format".to_string());
-            args.push(fmt.to_lowercase());
-        }
-        if let Some(ref quality) = options.audio_quality {
-            let q_arg = quality.replace("kbps", "K");
-            args.push("--audio-quality".to_string());
-            args.push(q_arg);
+        let selected_audio_format = options.audio_format.as_ref().map(|f| f.to_lowercase());
+        let uses_audio_format = matches!(
+            selected_audio_format.as_deref(),
+            Some("aac" | "alac" | "flac" | "m4a" | "mp3" | "opus" | "vorbis" | "wav")
+        );
+
+        if uses_audio_format {
+            args.push("-x".to_string());
+            if let Some(fmt_lower) = selected_audio_format {
+                args.push("--audio-format".to_string());
+                args.push(fmt_lower);
+            }
+            if let Some(ref quality) = options.audio_quality {
+                let q_arg = quality.replace("kbps", "K");
+                args.push("--audio-quality".to_string());
+                args.push(q_arg);
+            }
+        } else if let Some(fmt_lower) = selected_audio_format {
+            args.push("-f".to_string());
+            args.push(format!("ba[ext={}] / ba", fmt_lower).replace(' ', ""));
+            if matches!(fmt_lower.as_str(), "aiff" | "ogg") {
+                args.push("--remux-video".to_string());
+                args.push(fmt_lower);
+            }
         }
     } else {
+        let mut format_selector: Option<String> = None;
+        let mut remux_format: Option<String> = None;
+        let mut merge_output: Option<String> = None;
+
         if let Some(ref fmt) = options.video_format {
+            let fmt_lower = fmt.to_lowercase();
+            match fmt_lower.as_str() {
+                "gif" => {
+                    args.push("--recode-video".to_string());
+                    args.push("gif".to_string());
+                }
+                "ts" => {
+                    if options.mute_audio {
+                        format_selector = Some("bv*[ext=ts]/bv".to_string());
+                    } else {
+                        format_selector = Some("bv*[ext=ts]+ba[ext=ts]/bv*[ext=ts]/bv*+ba/b".to_string());
+                    }
+                }
+                "mp4" | "mkv" | "webm" | "mov" | "flv" | "avi" => {
+                    merge_output = Some(fmt_lower);
+                    if options.mute_audio {
+                        format_selector = Some("bv".to_string());
+                    }
+                }
+                _ => {
+                    if options.mute_audio {
+                        format_selector = Some(format!("bv*[ext={}]/bv", fmt_lower));
+                    } else {
+                        format_selector = Some(format!("bv*[ext={}]+ba[ext={}]/bv*[ext={}]/bv*+ba/b", fmt_lower, fmt_lower, fmt_lower));
+                    }
+                    remux_format = Some(fmt_lower);
+                }
+            }
+        } else if options.mute_audio {
+            format_selector = Some("bv".to_string());
+        }
+
+        if let Some(selector) = format_selector {
+            args.push("-f".to_string());
+            args.push(selector);
+        }
+        if let Some(merge) = merge_output {
             args.push("--merge-output-format".to_string());
-            args.push(fmt.to_lowercase());
+            args.push(merge);
+        }
+        if let Some(remux) = remux_format {
+            args.push("--remux-video".to_string());
+            args.push(remux);
         }
         if let Some(ref quality) = options.video_quality {
             let res = quality.replace("p", "");

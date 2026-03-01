@@ -43,6 +43,12 @@
       "audio_codecs": []
     },
     {
+      "id": "webm",
+      "type": "video",
+      "video_codecs": ["VP8", "VP9", "AV1"],
+      "audio_codecs": ["Opus", "Vorbis"]
+    },
+    {
       "id": "wav",
       "type": "audio",
       "video_codecs": [],

@@ -66,6 +66,11 @@
         </button>
       </div>
 
+      <div class="preset-section fade-in" id="preset-section">
+        <span class="option-label" data-i18n="downloader.options.presets">PRESETS</span>
+        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+
       <div class="mode-switcher fade-in">
         <div class="switch-option active" data-mode="video" id="mode-video">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
@@ -132,6 +137,10 @@
           <div class="form-row">
             <input type="checkbox" id="metadata-toggle" class="toggle-switch">
             <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.embedMetadata">Embed metadata</span>
+          </div>
+          <div class="form-row video-only">
+            <input type="checkbox" id="mute-audio-toggle" class="toggle-switch">
+            <span style="font-size:0.85rem; color:#aaa;" data-i18n="downloader.options.muteAudio">Mute audio</span>
           </div>
           <div class="form-row advanced-only">
             <span class="toggle-text" data-i18n="downloader.options.customArgs">Custom args</span>
