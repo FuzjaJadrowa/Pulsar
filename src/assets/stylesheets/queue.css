@@ -193,6 +193,36 @@
     height: 19px;
 }
 
+.queue-source-icon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 16px;
+}
+
+.queue-source-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    stroke: none;
+}
+
+.queue-source-icon.youtube-icon path:first-child { opacity: 0.35; }
+.queue-source-icon.youtube-icon path:last-child { opacity: 1; }
+.queue-source-icon.ytmusic-icon circle { opacity: 0.25; }
+.queue-source-icon.ytmusic-icon path,
+.queue-source-icon.ytmusic-icon polygon { opacity: 1; }
+.queue-source-icon.soundcloud-icon { opacity: 0.9; }
+.queue-source-icon.spotify-icon path:first-child { opacity: 0.3; }
+.queue-source-icon.deezer-icon svg,
+.queue-source-icon.applemusic-icon svg {
+    filter: grayscale(1) brightness(0.85);
+    opacity: 0.85;
+}
+
 .queue-item-title {
     font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-weight: 800;
@@ -467,6 +497,9 @@ body.theme-light .queue-item.status-downloading::before {
 }
 body.theme-light .queue-mode-icon {
     color: rgba(29, 35, 48, 0.7);
+}
+body.theme-light .queue-source-icon {
+    color: rgba(29, 35, 48, 0.6);
 }
 body.theme-light .queue-item-title {
     color: #1d2330;

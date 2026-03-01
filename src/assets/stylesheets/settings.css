@@ -174,10 +174,6 @@ select.custom-select { display: none; }
     z-index: 999; max-height: 0; opacity: 0; overflow-y: auto; pointer-events: none;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateY(-10px);
 }
-.select-list.portal {
-    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
-    font-size: 13px;
-}
 .select-list.open { max-height: var(--select-max-height, 240px); opacity: 1; pointer-events: auto; transform: translateY(0); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 .select-list.open-up {
     top: auto;

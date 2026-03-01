@@ -68,6 +68,7 @@
     const rangeFill = document.getElementById('range-fill');
     const timeStartDisplay = document.getElementById('time-start');
     const timeEndDisplay = document.getElementById('time-end');
+    const timelineSection = document.querySelector('.timeline-section');
 
     let state = {
         mode: 'video',
@@ -89,6 +90,7 @@
         currentUploaderUrl: null,
         advancedMode: false,
         audioOnlySource: false,
+        isPlaylist: false,
         presets: [],
         activePresetId: null,
         applyingPreset: false,
@@ -189,6 +191,42 @@
             setMode('audio');
         }
         updateSubtitleInputVisibility();
+    }
+
+    function isPlaylistMetadata(data) {
+        if (!data || typeof data !== 'object') return false;
+        if (Array.isArray(data.entries)) return true;
+        if (Array.isArray(data.tracks)) return true;
+        const rawType = String(data._type || data.type || '').toLowerCase();
+        if (rawType === 'playlist' || rawType === 'multi_video' || rawType === 'album') return true;
+        const count = Number(
+            data.playlist_count ??
+            data.n_entries ??
+            data.entry_count ??
+            data.track_count ??
+            data.n_tracks
+        );
+        return Number.isFinite(count) && count > 1;
+    }
+
+    function isCollectionUrl(rawUrl) {
+        const input = String(rawUrl || '').trim().toLowerCase();
+        if (!input) return false;
+        return input.includes('/playlist') || input.includes('/album') || input.includes('list=');
+    }
+
+    function applyPlaylistState(isPlaylist) {
+        state.isPlaylist = !!isPlaylist;
+        if (timelineSection) {
+            timelineSection.classList.toggle('hidden', state.isPlaylist);
+        }
+        if (state.isPlaylist) {
+            if (rangeStart) rangeStart.value = 0;
+            if (rangeEnd) rangeEnd.value = 100;
+            if (timeStartDisplay) timeStartDisplay.value = '00:00:00';
+            if (timeEndDisplay) timeEndDisplay.value = formatTime(state.duration);
+            updateSlider();
+        }
     }
 
     function setZenMode(enabled) {
@@ -606,7 +644,7 @@
     }
 
     function buildDownloadPayload() {
-        const isTimeRangeActive = (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
+        const isTimeRangeActive = !state.isPlaylist && (parseInt(rangeStart.value) > 0 || parseInt(rangeEnd.value) < 100);
         const customArgs = state.advancedMode && customArgsInput ? parseCustomArgs(customArgsInput.value) : [];
         const muteAudio = state.mode === 'video' && muteAudioToggle ? muteAudioToggle.checked : false;
 
@@ -888,6 +926,7 @@
         const sourceUrl = isAudioOnlySourceUrl(inputUrl) ? inputUrl : (metaUrl || inputUrl);
         applySourceConstraints(sourceUrl);
         state.duration = Number(data.duration) || 0;
+        applyPlaylistState(isPlaylistMetadata(data) || isCollectionUrl(sourceUrl) || isCollectionUrl(metaUrl));
         state.videoQualityOptions = parseVideoQuality(data.formats || []);
         state.subtitleOptions = buildSubtitleOptions(data);
         state.metaSubLangs = Array.isArray(data.subtitles_langs)
@@ -979,7 +1018,9 @@
             state.currentTitle = null;
             state.currentThumbnail = null;
             state.currentUploaderUrl = null;
+            state.isPlaylist = false;
             clearActivePreset();
+            if (timelineSection) timelineSection.classList.remove('hidden');
             if (metaAuthor) {
                 metaAuthor.removeAttribute('data-i18n-lock');
                 metaAuthor.innerText = t('downloader.meta.defaultAuthor', 'Channel Name');

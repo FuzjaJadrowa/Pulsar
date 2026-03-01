@@ -5,6 +5,8 @@ on:
     workflows: ["Build Linux", "Build macOS", "Build Windows"]
     types:
       - completed
+    tags:
+      - 'v*'
 permissions:
   contents: write
 
