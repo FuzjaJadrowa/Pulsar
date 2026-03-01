@@ -1,6 +1,6 @@
 [package]
 name = "Pulsar"
-version = "2.2.0"
+version = "2.3.0"
 description = "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media."
 authors = ["Fuzja Jadrowa"]
 edition = "2021"

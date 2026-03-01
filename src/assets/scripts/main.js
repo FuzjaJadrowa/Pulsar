@@ -780,7 +780,7 @@ window.setQueuePanelVisible = async function(visible) {
     }
 };
 
-/** document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     });
@@ -828,4 +828,4 @@ window.setQueuePanelVisible = async function(visible) {
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
-}); **/
+});

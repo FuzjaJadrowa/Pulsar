@@ -80,10 +80,11 @@
         const markTokenUsed = (token, used) => {
             const btn = tags.find((item) => item.dataset.token === token);
             if (!btn) return;
+            const wasUsed = btn.classList.contains('used');
             btn.classList.toggle('used', used);
             btn.setAttribute('aria-disabled', used ? 'true' : 'false');
             btn.disabled = used;
-            if (!used) {
+            if (!used && wasUsed) {
                 btn.classList.remove('transfer-out');
                 btn.classList.remove('transfer-in');
                 void btn.offsetWidth;
@@ -94,6 +95,19 @@
         const syncTokenUsage = (token) => {
             const stillUsed = !!input.querySelector(`.title-pill[data-token="${token}"]`);
             markTokenUsed(token, stillUsed);
+        };
+
+        const syncAllTokenUsage = () => {
+            const usedTokens = new Set();
+            input.querySelectorAll('.title-pill').forEach((pill) => {
+                const token = String(pill.dataset.token || '').trim();
+                if (token) usedTokens.add(token);
+            });
+            tags.forEach((btn) => {
+                const token = String(btn.dataset.token || '').trim();
+                if (!token) return;
+                markTokenUsed(token, usedTokens.has(token));
+            });
         };
 
         const ZERO_WIDTH = '\u200b';
@@ -112,8 +126,6 @@
                 const cleaned = cleanText(node.nodeValue || '');
                 if (cleaned === '') {
                     node.remove();
-                } else {
-                    node.nodeValue = cleaned;
                 }
             });
         };
@@ -252,6 +264,7 @@
             const output = parts.join('');
             hidden.value = output;
             hidden.dispatchEvent(new Event('change'));
+            syncAllTokenUsage();
         };
 
         const replaceTypedTokens = () => {
@@ -351,6 +364,7 @@
             setEmptyState();
             updateHidden();
             scheduleTitleSave();
+            ensureSelectionOutsidePill();
         });
 
         input.addEventListener('mousedown', (event) => {
