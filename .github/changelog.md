@@ -1,6 +1,8 @@
 # <p align="center">2.3.1</p>
+## Added
+* Icons of platforms from which media are downloaded have been added to the queue panel.
 ## Changed
 * Changed placeholder in bitrate field in preset creator to `Auto`.
+* Separated the queue code from the console output code.
 ## Fixed
-* Fixed `NoneType is not iterable` error. Now the popups tell you exactly what is wrong.
-* Patched default options from WebView.
+* Fixed an issue with the expanded part of the dropdown menu not being attached in the preset creator.

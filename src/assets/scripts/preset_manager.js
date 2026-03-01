@@ -154,7 +154,6 @@
                     exportBtn.disabled = true;
                     await window.__TAURI__.core.invoke('delete_preset', { id: preset.id });
                     state.presets = state.presets.filter((item) => item.id !== preset.id);
-                    updateCountAndEmpty(Math.max(0, listEl.querySelectorAll('.preset-item').length - 1));
                     item.style.maxHeight = `${item.offsetHeight}px`;
                     item.getBoundingClientRect();
                     const finalizeRemoval = () => {

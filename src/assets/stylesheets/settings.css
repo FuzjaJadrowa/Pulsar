@@ -580,7 +580,7 @@ body.theme-light .title-pill {
 .presets-manager-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0;
     transition: min-height 0.2s ease;
 }
 .presets-manager-empty {
@@ -599,6 +599,7 @@ body.theme-light .title-pill {
     gap: 14px;
     align-items: center;
     padding: 14px 16px;
+    margin-bottom: 12px;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.05);
@@ -607,6 +608,9 @@ body.theme-light .title-pill {
     max-height: 140px;
     overflow: hidden;
     font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+}
+.preset-item:last-child {
+    margin-bottom: 0;
 }
 .preset-item:hover {
     transform: translateY(-1px);

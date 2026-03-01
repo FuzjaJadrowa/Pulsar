@@ -136,13 +136,6 @@
         return parsed;
     };
 
-    const consoleLogs = new Map();
-    let consoleOverlay = null;
-    let consoleTitle = null;
-    let consoleBody = null;
-    let consoleCloseBtn = null;
-    const consoleState = { openId: null };
-
     const addActive = (id) => {
         if (!state.activeItemIds.includes(id)) state.activeItemIds.push(id);
     };
@@ -153,79 +146,14 @@
 
     const isActive = (id) => state.activeItemIds.includes(id);
 
-    function ensureConsoleOverlay() {
-        if (consoleOverlay) return;
-        consoleOverlay = document.createElement('div');
-        consoleOverlay.className = 'queue-console-overlay';
-        consoleOverlay.innerHTML = `
-            <div class="queue-console-modal">
-                <div class="queue-console-header">
-                    <div class="queue-console-title"></div>
-                    <button class="queue-console-close" aria-label="Close">&times;</button>
-                </div>
-                <pre class="queue-console-body"></pre>
-            </div>
-        `;
-        document.body.appendChild(consoleOverlay);
-        consoleTitle = consoleOverlay.querySelector('.queue-console-title');
-        consoleBody = consoleOverlay.querySelector('.queue-console-body');
-        consoleCloseBtn = consoleOverlay.querySelector('.queue-console-close');
-        consoleOverlay.addEventListener('click', (event) => {
-            if (event.target === consoleOverlay) closeConsole();
-        });
-        if (consoleCloseBtn) {
-            consoleCloseBtn.addEventListener('click', closeConsole);
-        }
-    }
-
-    function updateConsoleContent() {
-        if (!consoleState.openId || !consoleTitle || !consoleBody) return;
-        const id = consoleState.openId;
-        const lines = consoleLogs.get(id) || [];
-        consoleTitle.textContent = t('queue.console.title', 'Console - {id}', { id });
-        consoleBody.textContent = lines.length
-            ? lines.join('\n')
-            : t('queue.console.empty', 'No console output yet.');
-        consoleBody.scrollTop = consoleBody.scrollHeight;
-    }
-
-    function openConsole(id) {
-        if (!state.advancedMode) return;
-        ensureConsoleOverlay();
-        consoleState.openId = id;
-        updateConsoleContent();
-        consoleOverlay.classList.add('open');
-    }
-
-    function closeConsole() {
-        if (!consoleOverlay) return;
-        consoleOverlay.classList.remove('open');
-        consoleState.openId = null;
-    }
-
-    function logConsole(item, payload) {
-        if (!item) return;
-        const id = item.id;
-        const lines = consoleLogs.get(id) || [];
-        const timestamp = new Date().toLocaleTimeString();
-        let text = '';
-        try {
-            text = JSON.stringify(payload);
-        } catch (_) {
-            text = String(payload);
-        }
-        lines.push(`[${timestamp}] ${text}`);
-        if (lines.length > 250) lines.splice(0, lines.length - 250);
-        consoleLogs.set(id, lines);
-        if (consoleState.openId === id) updateConsoleContent();
-    }
-
     function applyAdvancedMode(enabled) {
         state.advancedMode = !!enabled;
         if (document.body) {
             document.body.classList.toggle('advanced-mode', state.advancedMode);
         }
-        if (!state.advancedMode) closeConsole();
+        if (window.queueConsole && typeof window.queueConsole.setEnabled === 'function') {
+            window.queueConsole.setEnabled(state.advancedMode);
+        }
         if (state.itemsContainer) render();
     }
 
@@ -648,7 +576,9 @@
         if (!payload || payload.type === 'metadata' || !payload.id) return;
         const item = findItemByTaskId(String(payload.id));
         if (!item) return;
-        logConsole(item, payload);
+        if (window.queueConsole && typeof window.queueConsole.log === 'function') {
+            window.queueConsole.log(item.id, payload);
+        }
         if (payload.type === 'progress' || payload.type === 'progress_ffmpeg' || typeof payload.percent !== 'undefined' || typeof payload.progress !== 'undefined') {
             let p = payload.percent;
             if (typeof p === 'undefined') p = payload.progress;
@@ -795,7 +725,9 @@
         if (action === 'remove') removeItem(id);
         if (action === 'open') openLocation(id);
         if (action === 'retry') startItemById(id, 'queue-manual', true);
-        if (action === 'console') openConsole(id);
+        if (action === 'console' && window.queueConsole && typeof window.queueConsole.open === 'function') {
+            window.queueConsole.open(id);
+        }
     }
 
     const setPage = (p) => {
@@ -843,8 +775,9 @@
             requestAnimationFrame(() => { el.style.height = '0px'; });
             el.addEventListener('transitionend', () => {
                 state.items.splice(idx, 1);
-                consoleLogs.delete(id);
-                if (consoleState.openId === id) closeConsole();
+                if (window.queueConsole && typeof window.queueConsole.remove === 'function') {
+                    window.queueConsole.remove(id);
+                }
                 render();
                 persistSoon();
                 updateQueueBtn();
@@ -852,8 +785,9 @@
             return;
         }
         state.items.splice(idx, 1);
-        consoleLogs.delete(id);
-        if (consoleState.openId === id) closeConsole();
+        if (window.queueConsole && typeof window.queueConsole.remove === 'function') {
+            window.queueConsole.remove(id);
+        }
         render();
         persistSoon();
         updateQueueBtn();
@@ -921,9 +855,8 @@
         if (state.activeItemIds.length > 0) {
             state.items = state.items.filter((x) => x.status === 'downloading');
             state.activeItemIds = state.items.map((x) => x.id);
-            const keepIds = new Set(state.activeItemIds);
-            for (const key of consoleLogs.keys()) {
-                if (!keepIds.has(key)) consoleLogs.delete(key);
+            if (window.queueConsole && typeof window.queueConsole.retain === 'function') {
+                window.queueConsole.retain(state.activeItemIds);
             }
             state.clearAfterCurrent = true;
             state.startAllActive = false;
@@ -941,7 +874,9 @@
         state.items = [];
         state.priorityQueue = [];
         state.activeItemIds = [];
-        consoleLogs.clear();
+        if (window.queueConsole && typeof window.queueConsole.clear === 'function') {
+            window.queueConsole.clear();
+        }
         state.startAllActive = false;
         state.startAllSuccess = true;
         state.startAllStarted = 0;
