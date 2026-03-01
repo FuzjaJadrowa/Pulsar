@@ -269,6 +269,10 @@
     "wma": {
       "label": "WMA",
       "description": "Microsoft audio compression format."
+    },
+    "gif": {
+      "label": "GIF",
+      "description": "Just image that can be animated."
     }
   }
   ,

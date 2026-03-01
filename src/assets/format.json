@@ -37,6 +37,12 @@
       "audio_codecs": ["AAC", "MP3"]
     },
     {
+      "id": "gif",
+      "type": "video",
+      "video_codecs": ["GIF"],
+      "audio_codecs": []
+    },
+    {
       "id": "wav",
       "type": "audio",
       "video_codecs": [],

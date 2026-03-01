@@ -4,7 +4,7 @@
     --c-tile-hover: rgba(255, 255, 255, 0.15);
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
-    --browse-hover-bg: rgba(255, 255, 255, 0.14);
+    --browse-hover-bg: rgba(255, 255, 255, 0.2);
     --browse-hover-text: #ffffff;
     --c-zen-grad-start: #050a14;
     --c-zen-grad-end: #0f1c2e;
@@ -643,7 +643,7 @@ body.theme-light {
     --c-tile-hover: rgba(255, 255, 255, 0.95);
     --c-video-bg-gradient: linear-gradient(135deg, #f5f7ff, #eef3ff, #e9f0ff);
     --c-audio-bg-gradient: linear-gradient(135deg, #f1f8f3, #e7f5ed);
-    --browse-hover-bg: rgba(0, 0, 0, 0.04);
+    --browse-hover-bg: #e5e7eb;
     --browse-hover-text: #1d2330;
 }
 

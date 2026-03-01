@@ -30,7 +30,16 @@
 
     const showNotification = (message, type = 'info') => {
         if (window.notifier && typeof window.notifier.show === 'function') {
-            window.notifier.show(t('common.info', 'Info'), message, type, false);
+            let titleKey = 'common.info';
+            let fallback = 'Info';
+            if (type === 'success') {
+                titleKey = 'common.success';
+                fallback = 'Success';
+            } else if (type === 'error') {
+                titleKey = 'common.error';
+                fallback = 'Error';
+            }
+            window.notifier.show(t(titleKey, fallback), message, type, false);
         }
     };
 
@@ -128,6 +137,7 @@
         const pathInput = document.getElementById('preset-path');
         const browseBtn = document.getElementById('preset-path-browse');
         const iconDrop = document.getElementById('preset-icon-drop');
+        const iconDropTarget = document.getElementById('preset-icon-preview');
         const iconPreview = document.getElementById('preset-icon-preview');
         const iconFile = document.getElementById('preset-icon-file');
         const iconBrowseBtn = document.getElementById('preset-icon-browse');
@@ -145,6 +155,7 @@
         const muteAudio = document.getElementById('preset-mute-audio');
         const videoSection = document.getElementById('preset-video-section');
         const audioSection = document.getElementById('preset-audio-section');
+        const mediaSection = document.querySelector('.preset-media-section');
         const videoQuality = document.getElementById('preset-video-quality');
         const videoCodec = document.getElementById('preset-video-codec');
         const videoBitrate = document.getElementById('preset-video-bitrate');
@@ -202,8 +213,18 @@
             const showVideo = type !== 'audio';
             const showAudio = type === 'audio' || (!isGif && !muteAudio?.checked);
 
-            videoSection?.classList.toggle('hidden', !showVideo);
-            audioSection?.classList.toggle('hidden', !showAudio);
+            if (showVideo) {
+                videoSection?.classList.remove('hidden');
+                videoSection?.classList.remove('collapsed');
+            } else {
+                videoSection?.classList.add('hidden');
+                videoSection?.classList.add('collapsed');
+            }
+            audioSection?.classList.remove('hidden');
+            audioSection?.classList.toggle('collapsed', !showAudio);
+            const audioMuted = !!muteAudio?.checked && type === 'video' && !isGif;
+            mediaSection?.classList.toggle('audio-muted', audioMuted);
+            mediaSection?.classList.toggle('audio-only', showAudio && !showVideo);
 
             if (muteRow) {
                 if (type === 'audio' || isGif) {
@@ -386,7 +407,7 @@
                     mode: type === 'audio' ? 'audio' : 'video',
                     format: formatValue,
                     path: String(pathInput.value || '').trim() || null,
-                    video_quality: videoSection?.classList.contains('hidden') ? null : (videoQuality.value || null),
+                    video_quality: videoSection?.classList.contains('collapsed') ? null : (videoQuality.value || null),
                     audio_quality: null,
                     download_subtitles: !!downloadSubs.checked,
                     embed_subtitles: !!embedSubs.checked,
@@ -395,12 +416,12 @@
                     embed_thumbnail: !!embedThumb.checked,
                     geo_bypass: !!geoBypass.checked,
                     mute_audio: isGif ? true : !!muteAudio.checked,
-                    video_codec: videoSection?.classList.contains('hidden') ? null : (videoCodec.value || null),
-                    audio_codec: audioSection?.classList.contains('hidden') ? null : (audioCodec.value || null),
-                    video_bitrate: videoSection?.classList.contains('hidden') ? null : (normalizeKbps(videoBitrate.value) || null),
-                    audio_bitrate: audioSection?.classList.contains('hidden') ? null : (normalizeKbps(audioBitrate.value) || null),
-                    video_fps: videoSection?.classList.contains('hidden') ? null : (videoFps.value || null),
-                    audio_sample_rate: audioSection?.classList.contains('hidden') ? null : (audioSample.value || null)
+                    video_codec: videoSection?.classList.contains('collapsed') ? null : (videoCodec.value || null),
+                    audio_codec: audioSection?.classList.contains('collapsed') ? null : (audioCodec.value || null),
+                    video_bitrate: videoSection?.classList.contains('collapsed') ? null : (normalizeKbps(videoBitrate.value) || null),
+                    audio_bitrate: audioSection?.classList.contains('collapsed') ? null : (normalizeKbps(audioBitrate.value) || null),
+                    video_fps: videoSection?.classList.contains('collapsed') ? null : (videoFps.value || null),
+                    audio_sample_rate: audioSection?.classList.contains('collapsed') ? null : (audioSample.value || null)
                 }
             };
 
@@ -457,19 +478,272 @@
             reader.readAsDataURL(file);
         };
 
+        const extractDroppedFile = (dataTransfer) => {
+            if (!dataTransfer) return null;
+            if (dataTransfer.items && dataTransfer.items.length) {
+                for (const item of dataTransfer.items) {
+                    if (item.kind === 'file') {
+                        const file = item.getAsFile();
+                        if (file) return file;
+                    }
+                }
+            }
+            if (dataTransfer.files && dataTransfer.files.length) {
+                return dataTransfer.files[0] || null;
+            }
+            return null;
+        };
+
+        const setDropHover = (enabled) => {
+            if (!iconDropTarget) return;
+            iconDropTarget.classList.toggle('dragover', !!enabled);
+        };
+
+        let lastMousePoint = null;
+
+        const getPoint = (payload) => {
+            if (!payload) return null;
+            if (payload.position) return payload.position;
+            if (typeof payload.x === 'number' && typeof payload.y === 'number') return payload;
+            return null;
+        };
+
+        const normalizeDragKind = (value) => {
+            if (!value) return null;
+            const raw = String(value);
+            if (raw === 'tauri://drag-enter') return 'enter';
+            if (raw === 'tauri://drag-over') return 'over';
+            if (raw === 'tauri://drag-leave') return 'leave';
+            if (raw === 'tauri://drag-drop') return 'drop';
+            return raw;
+        };
+
+        const normalizeDroppedPath = (path) => {
+            if (typeof path !== 'string') return null;
+            if (path.startsWith('file://')) {
+                try {
+                    return decodeURIComponent(path.replace('file://', ''));
+                } catch (error) {
+                    return path.replace('file://', '');
+                }
+            }
+            return path;
+        };
+
+        const isPointInsideTarget = (point) => {
+            const dropZone = iconDrop || iconDropTarget;
+            if (!point || !dropZone) return false;
+            const rect = dropZone.getBoundingClientRect();
+            const rawX = point.x ?? point.clientX;
+            const rawY = point.y ?? point.clientY;
+            if (typeof rawX !== 'number' || typeof rawY !== 'number') return false;
+            const dpr = window.devicePixelRatio || 1;
+            const screenX = window.screenX ?? window.screenLeft ?? 0;
+            const screenY = window.screenY ?? window.screenTop ?? 0;
+            const chromeY = Math.max(0, (window.outerHeight || 0) - (window.innerHeight || 0));
+            const candidates = [
+                { x: rawX, y: rawY },
+                { x: rawX / dpr, y: rawY / dpr },
+                { x: rawX - screenX, y: rawY - screenY },
+                { x: rawX / dpr - screenX, y: rawY / dpr - screenY },
+                { x: rawX - screenX, y: rawY - screenY - chromeY },
+                { x: rawX / dpr - screenX, y: rawY / dpr - screenY - chromeY }
+            ];
+
+            const inRect = candidates.some((p) => p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
+            if (inRect) return true;
+
+            const isElementInDropZone = (el) => {
+                if (!el) return false;
+                return dropZone.contains(el) || el.closest?.('#preset-icon-drop') === dropZone;
+            };
+
+            for (const p of candidates) {
+                if (p.x < 0 || p.y < 0 || p.x > window.innerWidth || p.y > window.innerHeight) continue;
+                const el = document.elementFromPoint(p.x, p.y);
+                if (isElementInDropZone(el)) return true;
+            }
+            return false;
+        };
+
+        const guessMimeFromPath = (path) => {
+            const lower = String(path || '').toLowerCase();
+            if (lower.endsWith('.png')) return 'image/png';
+            if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+            if (lower.endsWith('.webp')) return 'image/webp';
+            if (lower.endsWith('.gif')) return 'image/gif';
+            if (lower.endsWith('.svg')) return 'image/svg+xml';
+            return 'application/octet-stream';
+        };
+
+        const readPathAsDataUrl = async (path) => {
+            if (window.__TAURI__?.fs?.readBinaryFile) {
+                try {
+                    const data = await window.__TAURI__.fs.readBinaryFile(path);
+                    const mime = guessMimeFromPath(path);
+                    const blob = new Blob([data], { type: mime });
+                    return await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(String(reader.result || ''));
+                        reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (error) {
+                    console.error('Failed to read dropped file:', error);
+                }
+            }
+            if (window.__TAURI__?.core?.invoke) {
+                try {
+                    const dataUrl = await window.__TAURI__.core.invoke('read_file_base64', { path });
+                    if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+                        return dataUrl;
+                    }
+                } catch (error) {
+                    console.error('Failed to read dropped file via backend:', error);
+                }
+            }
+            return null;
+        };
+
+        const isDragInsidePreview = (event) => {
+            const dropZone = iconDrop || iconDropTarget;
+            if (!event || !dropZone) return false;
+            const rect = dropZone.getBoundingClientRect();
+            const x = event.clientX ?? 0;
+            const y = event.clientY ?? 0;
+            return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+        };
+
+        iconDrop?.addEventListener('dragenter', (event) => {
+            event.preventDefault();
+            setDropHover(isDragInsidePreview(event));
+        });
         iconDrop?.addEventListener('dragover', (event) => {
             event.preventDefault();
-            iconDrop.classList.add('dragover');
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+            setDropHover(isDragInsidePreview(event));
         });
-        iconDrop?.addEventListener('dragleave', () => iconDrop.classList.remove('dragover'));
+        iconDrop?.addEventListener('dragleave', () => setDropHover(false));
         iconDrop?.addEventListener('drop', (event) => {
             event.preventDefault();
-            iconDrop.classList.remove('dragover');
-            const file = event.dataTransfer?.files?.[0];
+            const inside = isDragInsidePreview(event);
+            setDropHover(false);
+            if (!inside) return;
+            const file = extractDroppedFile(event.dataTransfer);
             handleIconFile(file);
+        });
+
+        iconDropTarget?.addEventListener('dragenter', (event) => {
+            event.preventDefault();
+            setDropHover(true);
+        });
+        iconDropTarget?.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+            setDropHover(true);
+        });
+        iconDropTarget?.addEventListener('dragleave', () => setDropHover(false));
+        iconDropTarget?.addEventListener('drop', (event) => {
+            event.preventDefault();
+            setDropHover(false);
+            const file = extractDroppedFile(event.dataTransfer);
+            handleIconFile(file);
+        });
+        iconDropTarget?.addEventListener('click', (event) => {
+            if (event.target.closest('#preset-icon-browse')) return;
+            if (event.target.closest('#preset-icon-file')) return;
+            iconFile?.click();
         });
         iconFile?.addEventListener('change', () => handleIconFile(iconFile.files?.[0]));
         iconBrowseBtn?.addEventListener('click', () => iconFile?.click());
+
+        document.addEventListener('mousemove', (event) => {
+            if (!overlay.classList.contains('visible')) return;
+            lastMousePoint = { x: event.clientX, y: event.clientY };
+        });
+        document.addEventListener('dragover', (event) => {
+            if (!overlay.classList.contains('visible')) return;
+            event.preventDefault();
+        });
+        document.addEventListener('drop', (event) => {
+            if (!overlay.classList.contains('visible')) return;
+            event.preventDefault();
+        });
+
+        if (window.__TAURI__?.event?.listen) {
+            let lastHoverPoint = null;
+            const attachLegacyListeners = () => {
+                window.__TAURI__.event.listen('tauri://file-drop-hover', (event) => {
+                if (!overlay.classList.contains('visible')) return;
+                const point = getPoint(event.payload);
+                lastHoverPoint = point;
+                setDropHover(isPointInsideTarget(point));
+            });
+                window.__TAURI__.event.listen('tauri://file-drop-cancelled', (event) => {
+                lastHoverPoint = null;
+                setDropHover(false);
+            });
+                window.__TAURI__.event.listen('tauri://file-drop', async (event) => {
+                if (!overlay.classList.contains('visible')) return;
+                const paths = event.payload?.paths || event.payload;
+                const point = lastHoverPoint || lastMousePoint;
+                const allowed = isPointInsideTarget(point) || iconDropTarget?.classList.contains('dragover');
+                setDropHover(false);
+                lastHoverPoint = null;
+                lastMousePoint = null;
+                if (!allowed) return;
+                const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === 'string' ? paths : null);
+                const path = normalizeDroppedPath(rawPath);
+                if (!path) return;
+                const mime = guessMimeFromPath(path);
+                if (!mime.startsWith('image/')) {
+                    showNotification(t('presetCreator.notifications.invalidIcon', 'Invalid icon file.'), 'error');
+                    return;
+                }
+                const dataUrl = await readPathAsDataUrl(path);
+                if (!dataUrl) return;
+                state.iconDataUrl = dataUrl;
+                setIconPreview(dataUrl);
+            });
+            };
+
+            const win = window.__TAURI__?.window?.getCurrentWindow?.();
+            if (win?.onDragDropEvent) {
+                win.onDragDropEvent(async (event) => {
+                    if (!overlay.classList.contains('visible')) return;
+                    const payload = event?.payload || {};
+                    const kind = normalizeDragKind(event?.type ?? payload?.type ?? event?.event);
+                    const point = getPoint(payload) || lastMousePoint;
+                    if (kind === 'enter' || kind === 'over') {
+                        setDropHover(isPointInsideTarget(point));
+                        return;
+                    }
+                    if (kind === 'leave') {
+                        setDropHover(false);
+                        return;
+                    }
+                    if (kind !== 'drop') return;
+                    const paths = payload.paths || payload.path || payload.files || event?.payload;
+                    const allowed = isPointInsideTarget(point) || iconDropTarget?.classList.contains('dragover');
+                    setDropHover(false);
+                    if (!allowed) return;
+                    const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === 'string' ? paths : null);
+                    const path = normalizeDroppedPath(rawPath);
+                    if (!path) return;
+                    const mime = guessMimeFromPath(path);
+                    if (!mime.startsWith('image/')) {
+                        showNotification(t('presetCreator.notifications.invalidIcon', 'Invalid icon file.'), 'error');
+                        return;
+                    }
+                    const dataUrl = await readPathAsDataUrl(path);
+                    if (!dataUrl) return;
+                    state.iconDataUrl = dataUrl;
+                    setIconPreview(dataUrl);
+                });
+            } else {
+                attachLegacyListeners();
+            }
+        }
 
         browseBtn?.addEventListener('click', async () => {
             if (!window.__TAURI__?.core?.invoke) return;

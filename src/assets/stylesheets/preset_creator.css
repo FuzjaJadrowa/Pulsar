@@ -29,7 +29,7 @@ body.preset-modal-open .page-scroll {
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     transform: translateY(12px) scale(0.98);
     transition: transform 0.3s ease;
 }
@@ -74,6 +74,8 @@ body.preset-modal-open .page-scroll {
     min-height: 0;
     scrollbar-width: none;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
 }
 .preset-modal-body::-webkit-scrollbar {
     display: none;
@@ -175,9 +177,10 @@ body.preset-modal-open .page-scroll {
     position: relative;
     transition: border-color 0.2s ease, background 0.2s ease;
 }
-.preset-icon-drop.dragover {
-    border-color: var(--accent-color);
-    background: rgba(138, 43, 226, 0.18);
+.preset-icon-preview.dragover {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    background: rgba(138, 43, 226, 0.16);
 }
 .preset-icon-preview {
     width: 72px;
@@ -211,11 +214,17 @@ body.preset-modal-open .page-scroll {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.6);
 }
-.preset-icon-browse {
-    padding: 8px 14px;
+.preset-icon-browse,
+.preset-browse-btn {
+    padding: 9px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #f1f1f1;
+    border-radius: 8px;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
-.preset-icon-browse:hover {
+.preset-icon-browse:hover,
+.preset-browse-btn:hover {
     background: var(--browse-hover-bg);
     color: var(--browse-hover-text);
     transform: translateY(-1px);
@@ -225,6 +234,7 @@ body.preset-modal-open .page-scroll {
     inset: 0;
     opacity: 0;
     cursor: pointer;
+    pointer-events: none;
 }
 .preset-type-switcher {
     display: flex;
@@ -345,6 +355,7 @@ body.preset-modal-open .page-scroll {
     max-height: 1200px;
     opacity: 1;
     transform: translateY(0);
+    overflow: visible;
 }
 .preset-advanced .preset-section {
     opacity: 0;
@@ -377,15 +388,6 @@ body.preset-modal-open .page-scroll {
 .preset-path-field {
     grid-column: 1 / -1;
 }
-.preset-browse-btn {
-    padding: 9px 14px;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.preset-browse-btn:hover {
-    background: var(--browse-hover-bg);
-    color: var(--browse-hover-text);
-    transform: translateY(-1px);
-}
 .preset-toggle-grid {
     display: flex;
     flex-direction: column;
@@ -412,18 +414,43 @@ body.preset-modal-open .page-scroll {
     width: 90px;
 }
 .preset-subs-extra {
-    display: none;
+    display: inline-flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
 }
 .preset-subs-extra.visible {
-    display: inline-flex;
+    opacity: 1;
+    pointer-events: auto;
 }
 .preset-subsection {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow: visible;
+    max-height: 420px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
+}
+.preset-subsection.collapsed {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    overflow: hidden;
 }
 .preset-media-section .preset-section-title {
     margin-bottom: 6px;
+}
+.preset-media-section {
+    transition: transform 0.25s ease;
+}
+.preset-media-section.audio-only {
+    gap: 8px;
+}
+.preset-media-section.audio-muted {
+    transform: scale(0.99);
 }
 .preset-subsection.hidden {
     display: none;
@@ -462,6 +489,17 @@ body.preset-modal-open .page-scroll {
 
 .preset-modal .select-wrapper.select-open {
     z-index: 2100;
+}
+.preset-modal .select-list {
+    z-index: 2101;
+}
+.preset-modal .select-wrapper {
+    position: relative;
+    z-index: 5;
+}
+.preset-modal .select-head {
+    position: relative;
+    z-index: 6;
 }
 
 @media (max-width: 900px) {
@@ -508,6 +546,16 @@ body.theme-light .preset-field {
 body.theme-light .preset-icon-drop {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.14);
+}
+body.theme-light .preset-icon-browse {
+    background: rgba(29, 35, 48, 0.08);
+    border-color: rgba(29, 35, 48, 0.16);
+    color: #1d2330;
+}
+body.theme-light .preset-browse-btn {
+    background: rgba(29, 35, 48, 0.08);
+    border-color: rgba(29, 35, 48, 0.16);
+    color: #1d2330;
 }
 body.theme-light .preset-format-suggestions {
     background: #ffffff;

@@ -4,6 +4,8 @@ pub mod notifications;
 pub mod presets;
 pub mod queue;
 
+use base64::{engine::general_purpose, Engine as _};
+use std::path::Path;
 use tauri::{AppHandle, State};
 use self::config::{ConfigManager, AppConfig};
 use self::queue::{QueueManager, QueueState};
@@ -33,4 +35,23 @@ pub fn save_queue_state(app_handle: AppHandle, state: State<QueueManager>, queue
     state.save(&queue_state)?;
     sync_tray_from_queue(&app_handle, &queue_state);
     Ok(())
+}
+
+#[tauri::command]
+pub fn read_file_base64(path: String) -> Result<String, String> {
+    let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+    let mime = Path::new(&path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| match ext.to_lowercase().as_str() {
+            "png" => "image/png",
+            "jpg" | "jpeg" => "image/jpeg",
+            "webp" => "image/webp",
+            "gif" => "image/gif",
+            "svg" => "image/svg+xml",
+            _ => "application/octet-stream"
+        })
+        .unwrap_or("application/octet-stream");
+    let encoded = general_purpose::STANDARD.encode(bytes);
+    Ok(format!("data:{};base64,{}", mime, encoded))
 }

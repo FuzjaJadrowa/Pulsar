@@ -58,6 +58,7 @@ pub fn run() {
             system::presets::delete_preset,
             system::presets::import_preset,
             system::presets::export_preset,
+            system::read_file_base64,
             core::splash::run_splash_checks,
             core::splash::cancel_splash_checks,
             core::downloader::start_download,

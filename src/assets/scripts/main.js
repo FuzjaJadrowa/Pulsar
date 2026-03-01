@@ -461,31 +461,75 @@ window.initCustomSelects = function() {
         });
 
         head.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             const wasOpen = head.classList.contains('open');
             window.closeAllSelects();
             if (!wasOpen) {
                 const inPresetModal = !!wrapper.closest('.preset-modal');
                 let openUp = false;
+                const headRect = head.getBoundingClientRect();
+                const optionsCount = origSelect.options.length;
+                const estimatedHeight = Math.min(optionsCount * 40, 240);
+                let spaceAbove = headRect.top;
+                let spaceBelow = window.innerHeight - headRect.bottom;
                 if (inPresetModal) {
-                    openUp = true;
-                } else {
-                    const headRect = head.getBoundingClientRect();
-                    const optionsCount = origSelect.options.length;
-                    const estimatedHeight = Math.min(optionsCount * 40, 240);
-                    const spaceBelow = window.innerHeight - headRect.bottom;
-                    const spaceAbove = headRect.top;
-                    openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+                    const modalBody = wrapper.closest('.preset-modal-body');
+                    if (modalBody) {
+                        const modalRect = modalBody.getBoundingClientRect();
+                        spaceAbove = headRect.top - modalRect.top;
+                        spaceBelow = modalRect.bottom - headRect.bottom;
+                    }
                 }
+                openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
 
                 list.classList.toggle('open-up', openUp);
                 head.classList.toggle('open-up', openUp);
                 head.classList.add('open');
-                list.classList.add('open');
+                list.classList.remove('open');
 
                 wrapper.classList.add('select-open');
                 const hostCard = wrapper.closest('.settings-section-card');
                 if (hostCard) hostCard.classList.add('select-open-card');
+
+                if (list.__closeTimer) {
+                    clearTimeout(list.__closeTimer);
+                    list.__closeTimer = null;
+                }
+                if (inPresetModal) {
+                    const maxHeight = Math.max(120, Math.min(estimatedHeight, openUp ? spaceAbove : spaceBelow));
+                    if (!list.dataset.portalActive) {
+                        list.__portalParent = wrapper;
+                        document.body.appendChild(list);
+                        list.dataset.portalActive = 'true';
+                        list.classList.add('portal');
+                    }
+                    list.style.position = 'fixed';
+                    list.style.minWidth = `${headRect.width}px`;
+                    list.style.left = `${Math.round(headRect.left)}px`;
+                    list.style.right = 'auto';
+                    list.style.setProperty('--select-max-height', `${Math.round(maxHeight)}px`);
+                    list.style.zIndex = '2200';
+                    if (openUp) {
+                        list.style.bottom = `${Math.round(window.innerHeight - headRect.top)}px`;
+                        list.style.top = 'auto';
+                    } else {
+                        list.style.top = `${Math.round(headRect.bottom)}px`;
+                        list.style.bottom = 'auto';
+                    }
+                    requestAnimationFrame(() => list.classList.add('open'));
+                } else {
+                    list.style.position = '';
+                    list.style.left = '';
+                    list.style.right = '';
+                    list.style.top = '';
+                    list.style.bottom = '';
+                    list.style.minWidth = '';
+                    list.style.removeProperty('--select-max-height');
+                    list.style.zIndex = '';
+                    list.classList.remove('portal');
+                    requestAnimationFrame(() => list.classList.add('open'));
+                }
             }
         });
 
@@ -508,8 +552,54 @@ window.initCustomSelects = function() {
 };
 
 window.closeAllSelects = function() {
-    document.querySelectorAll('.select-head').forEach(h => h.classList.remove('open'));
-    document.querySelectorAll('.select-list').forEach(l => l.classList.remove('open'));
+    document.querySelectorAll('.select-head').forEach(h => {
+        h.classList.remove('open');
+        h.classList.remove('open-up');
+    });
+    document.querySelectorAll('.select-list').forEach(l => {
+        const isPortal = l.dataset.portalActive === 'true' && l.__portalParent;
+        const wasOpenUp = l.classList.contains('open-up');
+        l.classList.remove('open');
+        if (isPortal) {
+            if (l.__closeTimer) clearTimeout(l.__closeTimer);
+            l.__closeTimer = setTimeout(() => {
+                if (l.__portalParent) {
+                    l.__portalParent.appendChild(l);
+                    delete l.dataset.portalActive;
+                }
+                l.classList.remove('portal');
+                l.classList.remove('open-up');
+                l.style.position = '';
+                l.style.left = '';
+                l.style.right = '';
+                l.style.top = '';
+                l.style.bottom = '';
+                l.style.minWidth = '';
+                l.style.removeProperty('--select-max-height');
+                l.style.zIndex = '';
+                l.__closeTimer = null;
+            }, 300);
+        } else {
+            if (wasOpenUp) {
+                if (l.__closeTimer) clearTimeout(l.__closeTimer);
+                l.__closeTimer = setTimeout(() => {
+                    l.classList.remove('open-up');
+                    l.__closeTimer = null;
+                }, 300);
+            } else {
+                l.classList.remove('open-up');
+            }
+            l.classList.remove('portal');
+            l.style.position = '';
+            l.style.left = '';
+            l.style.right = '';
+            l.style.top = '';
+            l.style.bottom = '';
+            l.style.minWidth = '';
+            l.style.removeProperty('--select-max-height');
+            l.style.zIndex = '';
+        }
+    });
     document.querySelectorAll('.select-wrapper').forEach(w => w.classList.remove('select-open'));
     document.querySelectorAll('.settings-section-card').forEach(c => c.classList.remove('select-open-card'));
 };
