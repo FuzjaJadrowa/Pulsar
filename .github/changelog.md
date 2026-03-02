@@ -1,6 +1,7 @@
 # <p align="center">2.3.1</p>
 ## Added
 * Icons of platforms from which media are downloaded have been added to the queue panel.
+* Added killing of ffmpeg process on application exit.
 ## Changed
 * Changed placeholder in bitrate field in preset creator to `Auto`.
 * Separated the queue code from the console output code.

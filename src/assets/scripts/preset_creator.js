@@ -90,14 +90,6 @@
         }
     };
 
-    const normalizeKbps = (value) => {
-        const raw = String(value || '').trim().toLowerCase();
-        if (!raw) return '';
-        const digits = raw.replace(/[^0-9]/g, '');
-        if (!digits) return '';
-        return `${digits}kbps`;
-    };
-
     const parseKbpsValue = (value) => {
         const raw = String(value || '');
         const digits = raw.match(/\d+/g);
@@ -106,21 +98,20 @@
         return Number.isFinite(parsed) ? parsed : null;
     };
 
-    const validateBitrateRange = (value, min, max, label) => {
-        const parsed = parseKbpsValue(value);
-        if (parsed === null) return true;
-        if (parsed < min || parsed > max) {
-            showNotification(
-                t(
-                    'presetCreator.notifications.bitrateRange',
-                    '{label} bitrate must be between {min}kbps and {max}kbps.',
-                    { label, min, max }
-                ),
-                'error'
-            );
-            return false;
-        }
-        return true;
+    const bitrateConstraints = {
+        video: { min: 500, max: 100000, fallback: 8000 },
+        audio: { min: 16, max: 500, fallback: 320 }
+    };
+
+    const clampBitrate = (value, constraints, allowEmpty = false) => {
+        const raw = String(value || '').trim();
+        if (!raw && allowEmpty) return '';
+        const parsed = parseKbpsValue(raw);
+        const withinRange = Number.isFinite(parsed)
+            && parsed >= constraints.min
+            && parsed <= constraints.max;
+        const finalValue = withinRange ? parsed : constraints.fallback;
+        return Number.isFinite(finalValue) ? `${finalValue}kbps` : '';
     };
 
     const initModal = async () => {
@@ -397,9 +388,13 @@
 
             videoQuality.value = preset?.downloader?.video_quality || '';
             videoFps.value = preset?.downloader?.video_fps || '';
-            videoBitrate.value = preset?.downloader?.video_bitrate || '';
+            videoBitrate.value = preset?.downloader?.video_bitrate
+                ? clampBitrate(preset.downloader.video_bitrate, bitrateConstraints.video, true)
+                : '';
             audioSample.value = preset?.downloader?.audio_sample_rate || '';
-            audioBitrate.value = preset?.downloader?.audio_bitrate || '';
+            audioBitrate.value = preset?.downloader?.audio_bitrate
+                ? clampBitrate(preset.downloader.audio_bitrate, bitrateConstraints.audio, true)
+                : '';
 
             state.iconDataUrl = preset?.icon_data_url || DEFAULT_ICON_DATA_URL;
             setIconPreview(state.iconDataUrl);
@@ -430,16 +425,15 @@
             const { formatValue, type, isGif } = resolveFormatMeta(formatInput.value);
             const videoBitrateValue = videoSection?.classList.contains('collapsed')
                 ? ''
-                : normalizeKbps(videoBitrate.value);
+                : clampBitrate(videoBitrate?.value, bitrateConstraints.video, true);
             const audioBitrateValue = audioSection?.classList.contains('collapsed')
                 ? ''
-                : normalizeKbps(audioBitrate.value);
-
-            if (videoBitrateValue && !validateBitrateRange(videoBitrateValue, 500, 100000, t('presetCreator.labels.video', 'Video'))) {
-                return null;
+                : clampBitrate(audioBitrate?.value, bitrateConstraints.audio, true);
+            if (videoBitrate && !videoSection?.classList.contains('collapsed')) {
+                videoBitrate.value = videoBitrateValue;
             }
-            if (audioBitrateValue && !validateBitrateRange(audioBitrateValue, 8, 500, t('presetCreator.labels.audio', 'Audio'))) {
-                return null;
+            if (audioBitrate && !audioSection?.classList.contains('collapsed')) {
+                audioBitrate.value = audioBitrateValue;
             }
 
             const payload = {
@@ -817,12 +811,16 @@
             }
         });
 
-        [videoBitrate, audioBitrate].forEach((input) => {
-            if (!input) return;
-            input.addEventListener('blur', () => {
-                input.value = normalizeKbps(input.value);
+        if (videoBitrate) {
+            videoBitrate.addEventListener('blur', () => {
+                videoBitrate.value = clampBitrate(videoBitrate.value, bitrateConstraints.video, true);
             });
-        });
+        }
+        if (audioBitrate) {
+            audioBitrate.addEventListener('blur', () => {
+                audioBitrate.value = clampBitrate(audioBitrate.value, bitrateConstraints.audio, true);
+            });
+        }
 
         downloadSubs?.addEventListener('change', () => {
             updateSubtitlesExtras();

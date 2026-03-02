@@ -35,10 +35,21 @@ impl BridgeState {
     }
 
     pub fn shutdown(&self) {
-        if let Some(mut child) = self.process.lock().unwrap().take() {
-            let _ = child.kill();
-            let _ = child.wait();
+        if let Some(stdin) = self.stdin.lock().unwrap().as_mut() {
+            let _ = stdin.write_all(b"{\"command\":\"exit\"}\n");
+            let _ = stdin.flush();
         }
+        if let Some(mut child) = self.process.lock().unwrap().take() {
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            match child.try_wait() {
+                Ok(Some(_)) => {}
+                _ => {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                }
+            }
+        }
+        *self.stdin.lock().unwrap() = None;
     }
 
     pub fn init(&self, app_handle: &AppHandle) -> Result<(), String> {

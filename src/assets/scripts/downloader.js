@@ -926,7 +926,12 @@
         const sourceUrl = isAudioOnlySourceUrl(inputUrl) ? inputUrl : (metaUrl || inputUrl);
         applySourceConstraints(sourceUrl);
         state.duration = Number(data.duration) || 0;
-        applyPlaylistState(isPlaylistMetadata(data) || isCollectionUrl(sourceUrl) || isCollectionUrl(metaUrl));
+        applyPlaylistState(
+            isPlaylistMetadata(data)
+            || isCollectionUrl(sourceUrl)
+            || isCollectionUrl(metaUrl)
+            || isCollectionUrl(inputUrl)
+        );
         state.videoQualityOptions = parseVideoQuality(data.formats || []);
         state.subtitleOptions = buildSubtitleOptions(data);
         state.metaSubLangs = Array.isArray(data.subtitles_langs)
