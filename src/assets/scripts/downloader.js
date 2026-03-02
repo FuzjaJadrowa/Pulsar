@@ -3,7 +3,7 @@
     const { listen } = window.__TAURI__.event;
 
     const videoQualities = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
-    const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI', 'TS', 'GIF'];
+    const videoFormats = ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'AVI', 'GIF'];
     const audioFormats = ['MP3', 'M4A', 'AAC', 'OPUS', 'WAV', 'FLAC', 'AIFF', 'OGG', 'WMA'];
     const audioQualities = ['320kbps', '256kbps', '192kbps', '128kbps', '96kbps'];
     const t = (key, fallback = '', params = null) => {

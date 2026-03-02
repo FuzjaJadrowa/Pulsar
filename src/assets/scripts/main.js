@@ -76,7 +76,6 @@ const dataSea = (() => {
     let lastTs = null;
     let waveOffsetBack = 0;
     let waveOffsetFront = 0;
-    let dataItems = [];
     let bound = false;
 
     const backSpeed = 0.55;
@@ -110,24 +109,6 @@ const dataSea = (() => {
         canvas.width = Math.round(width * dpr);
         canvas.height = Math.round(height * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        initDataItems();
-    };
-
-    const initDataItems = () => {
-        const count = Math.max(30, Math.floor(width / 18));
-        dataItems = [];
-        for (let i = 0; i < count; i += 1) {
-            const isBinary = Math.random() > 0.4;
-            dataItems.push({
-                x: Math.random() * width,
-                speed: 14 + Math.random() * 26,
-                depth: 10 + Math.random() * height * 0.5,
-                size: 6 + Math.random() * 6,
-                opacity: 0.18 + Math.random() * 0.25,
-                char: isBinary ? (Math.random() > 0.5 ? '1' : '0') : null,
-                phase: Math.random() * Math.PI * 2
-            });
-        }
     };
 
     const waveY = (x, base, amplitude, wavelength, offset) => {
@@ -145,30 +126,12 @@ const dataSea = (() => {
             const y = waveY(x, base, amplitude, wavelength, offset);
             ctx.lineTo(x, y);
         }
+        const edgeY = waveY(width, base, amplitude, wavelength, offset);
+        ctx.lineTo(width, edgeY);
         ctx.lineTo(width, height);
         ctx.closePath();
         ctx.fillStyle = color;
         ctx.fill();
-    };
-
-    const drawDataItems = (frontBase, frontAmplitude, frontWavelength, frontOffset) => {
-        if (!ctx) return;
-        ctx.textBaseline = 'middle';
-        dataItems.forEach((item) => {
-            const waveHeight = waveY(item.x, frontBase, frontAmplitude, frontWavelength, frontOffset);
-            const float = Math.sin(item.phase) * 2.2;
-            const y = Math.min(height - 6, waveHeight + item.depth + float);
-            ctx.globalAlpha = item.opacity;
-            if (item.char) {
-                ctx.fillStyle = 'rgba(180, 245, 255, 0.9)';
-                ctx.font = `${item.size + 2}px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace`;
-                ctx.fillText(item.char, item.x, y);
-            } else {
-                ctx.fillStyle = 'rgba(120, 220, 255, 0.7)';
-                ctx.fillRect(item.x, y, item.size, item.size);
-            }
-        });
-        ctx.globalAlpha = 1;
     };
 
     const tick = (ts) => {
@@ -195,19 +158,6 @@ const dataSea = (() => {
 
         drawWave('rgba(0, 150, 200, 0.4)', backBase, backAmp, backWavelength, waveOffsetBack);
 
-        dataItems.forEach((item) => {
-            item.x -= item.speed * dt;
-            item.phase += dt * 1.4;
-            if (item.x < -30) {
-                item.x = width + 30 + Math.random() * 60;
-                item.depth = 10 + Math.random() * height * 0.5;
-                item.opacity = 0.18 + Math.random() * 0.25;
-                item.char = Math.random() > 0.4 ? (Math.random() > 0.5 ? '1' : '0') : null;
-                item.size = 6 + Math.random() * 6;
-            }
-        });
-
-        drawDataItems(frontBase, frontAmp, frontWavelength, waveOffsetFront);
         drawWave('rgba(0, 120, 180, 1)', frontBase, frontAmp, frontWavelength, waveOffsetFront);
 
         rafId = window.requestAnimationFrame(tick);

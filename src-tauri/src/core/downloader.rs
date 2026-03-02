@@ -540,20 +540,6 @@ pub fn start_download(
                         format_selector = Some(apply_filters("bv", &video_filters));
                     }
                 }
-                "ts" => {
-                    let video_ext = apply_filters("bv*[ext=ts]", &video_filters);
-                    let audio_ext = apply_filters("ba[ext=ts]", &audio_filters);
-                    let video_fallback = apply_filters("bv*", &video_filters);
-                    let audio_fallback = apply_filters("ba", &audio_filters);
-                    if options.mute_audio {
-                        format_selector = Some(format!("{}/bv", video_ext));
-                    } else {
-                        format_selector = Some(format!(
-                            "{}+{}/{}/{}+{}/b",
-                            video_ext, audio_ext, video_ext, video_fallback, audio_fallback
-                        ));
-                    }
-                }
                 "mp4" | "mkv" | "webm" | "mov" | "flv" | "avi" => {
                     merge_output = Some(fmt_lower);
                     if options.mute_audio {

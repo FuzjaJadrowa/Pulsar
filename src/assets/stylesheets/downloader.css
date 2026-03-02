@@ -176,32 +176,45 @@ body.page-transition::after { opacity: 0; }
     pointer-events: none;
     z-index: 0;
     opacity: 0;
-    transition: opacity 0.35s ease-out;
+    transform: translateY(12vh);
+    transition: opacity 0.35s ease-out, transform 0.6s ease;
+    will-change: opacity, transform;
 }
 body.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 1;
-    transition: opacity 1.2s ease-in;
+    transform: translateY(0);
+    transition: opacity 1.2s ease-in, transform 0.8s ease;
 }
 body.search-mode .zen-data-sea {
     opacity: 0;
+    transform: translateY(12vh);
     transition: opacity 0.35s ease-out;
 }
 body.search-mode.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 0;
+    transform: translateY(12vh);
     transition: opacity 0.35s ease-out;
 }
 .search-section.sticky + .zen-data-sea {
     opacity: 0;
+    transform: translateY(12vh);
     transition: opacity 0.35s ease-out;
 }
 body.search-mode .search-section.sticky + .zen-data-sea {
     opacity: 0;
+    transform: translateY(12vh);
     transition: opacity 0.35s ease-out;
 }
 body:not(.zen-mode) .zen-data-sea,
 body:not(.idle-anim-enabled) .zen-data-sea {
     opacity: 0;
+    transform: translateY(12vh);
     transition: opacity 0.35s ease-out;
+}
+body.page-transition .zen-data-sea {
+    opacity: 0;
+    transform: translateY(12vh);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-in;
 }
 @keyframes fetchSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .dashboard-section.hidden { display: none; opacity: 0; }

@@ -236,10 +236,6 @@
       "label": "AVI",
       "description": "Legacy but still popular."
     },
-    "ts": {
-      "label": "TS",
-      "description": "Used mainly for streaming and TV."
-    },
     "wav": {
       "label": "WAV",
       "description": "Lossless Windows audio format."

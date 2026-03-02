@@ -31,12 +31,6 @@
       "audio_codecs": ["MP3", "AC3", "AAC"]
     },
     {
-      "id": "ts",
-      "type": "video",
-      "video_codecs": ["H264", "H265"],
-      "audio_codecs": ["AAC", "MP3"]
-    },
-    {
       "id": "gif",
       "type": "video",
       "video_codecs": ["GIF"],
