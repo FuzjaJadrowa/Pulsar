@@ -68,6 +68,43 @@
     margin-bottom: 0;
 }
 
+.update-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.update-check-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(230, 230, 230, 0.9);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.update-check-btn svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+.update-check-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.update-check-btn:active {
+    transform: scale(0.96);
+}
+.update-check-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .settings-inline-group {
     margin-top: 8px;
 }
@@ -442,6 +479,16 @@ body.theme-light .settings-note {
 
 body.theme-light .anim-btn {
     color: #1d2330;
+}
+
+body.theme-light .update-check-btn {
+    background: rgba(29, 35, 48, 0.08);
+    border-color: rgba(29, 35, 48, 0.18);
+    color: rgba(29, 35, 48, 0.85);
+}
+body.theme-light .update-check-btn:hover {
+    background: rgba(29, 35, 48, 0.14);
+    border-color: rgba(29, 35, 48, 0.26);
 }
 
 body.theme-light .slider {

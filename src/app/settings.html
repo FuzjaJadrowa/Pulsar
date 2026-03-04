@@ -57,17 +57,41 @@
 
     <div class="form-row">
       <span data-i18n="settings.autoUpdateApp">Auto-update Pulsar</span>
-      <label class="switch"><input id="update_app" type="checkbox"><span class="slider"></span></label>
+      <div class="update-actions">
+        <button class="update-check-btn" type="button" data-update-check="pulsar" aria-label="Check Pulsar update">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.5 15a9 9 0 1 0 .5-9.3L1 10"></path>
+          </svg>
+        </button>
+        <label class="switch"><input id="update_app" type="checkbox"><span class="slider"></span></label>
+      </div>
     </div>
     <div class="settings-note" id="update_app_note" data-i18n-lock="true">Current version: -</div>
     <div class="form-row">
       <span data-i18n="settings.autoUpdateBridge">Auto-update Bridge</span>
-      <label class="switch"><input id="update_ytdlp" type="checkbox"><span class="slider"></span></label>
+      <div class="update-actions">
+        <button class="update-check-btn" type="button" data-update-check="pulsar-bridge" aria-label="Check Bridge update">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.5 15a9 9 0 1 0 .5-9.3L1 10"></path>
+          </svg>
+        </button>
+        <label class="switch"><input id="update_ytdlp" type="checkbox"><span class="slider"></span></label>
+      </div>
     </div>
     <div class="settings-note" id="update_bridge_note" data-i18n-lock="true">Current version: -</div>
     <div class="form-row">
       <span data-i18n="settings.autoUpdateFfmpeg">Auto-update FFmpeg</span>
-      <label class="switch"><input id="update_ffmpeg" type="checkbox"><span class="slider"></span></label>
+      <div class="update-actions">
+        <button class="update-check-btn" type="button" data-update-check="ffmpeg" aria-label="Check FFmpeg update">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.5 15a9 9 0 1 0 .5-9.3L1 10"></path>
+          </svg>
+        </button>
+        <label class="switch"><input id="update_ffmpeg" type="checkbox"><span class="slider"></span></label>
+      </div>
     </div>
     <div class="settings-note" id="update_ffmpeg_note" data-i18n-lock="true">Current version: -</div>
     <div class="form-row">

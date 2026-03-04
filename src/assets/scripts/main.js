@@ -273,6 +273,7 @@ const appContent = document.getElementById('app-content');
 const statusLabel = document.getElementById('splash-status');
 const progressLabel = document.getElementById('splash-progress');
 const skipBtn = document.getElementById('splash-skip-btn');
+const splashExitDuration = 520;
 
 function finishSplash() {
     if (isAppLoaded) return;
@@ -283,7 +284,7 @@ function finishSplash() {
         setTimeout(() => {
             splashScreen.classList.add('hidden');
             splashScreen.style.display = 'none';
-        }, 520);
+        }, splashExitDuration);
     }
 
     if (appContent) {
@@ -293,12 +294,50 @@ function finishSplash() {
     loadPage('downloader', 0);
 }
 
+function showSplashOverlay() {
+    if (!splashScreen) return;
+    splashScreen.style.display = 'flex';
+    splashScreen.classList.remove('hidden', 'exiting');
+    splashScreen.classList.add('entering');
+    if (progressLabel) progressLabel.innerText = '';
+    if (statusLabel) statusLabel.innerText = 'Checking...';
+    if (skipBtn) skipBtn.style.display = 'none';
+    setTimeout(() => {
+        if (splashScreen) splashScreen.classList.remove('entering');
+    }, splashExitDuration);
+}
+
+function hideSplashOverlay() {
+    if (!splashScreen) return;
+    splashScreen.classList.remove('entering');
+    splashScreen.classList.add('exiting');
+    setTimeout(() => {
+        splashScreen.classList.add('hidden');
+        splashScreen.style.display = 'none';
+    }, splashExitDuration);
+}
+
+window.runRequirementCheck = async function(component) {
+    if (!component) return;
+    showSplashOverlay();
+    try {
+        await invoke('run_requirement_check', { component });
+    } catch (error) {
+        console.error('Failed to run requirement check:', error);
+        hideSplashOverlay();
+    }
+};
+
 if (skipBtn) {
     skipBtn.addEventListener('click', () => {
         invoke('cancel_splash_checks').catch(err => {
             console.error("Failed to cancel splash checks:", err);
         });
-        finishSplash();
+        if (isAppLoaded) {
+            hideSplashOverlay();
+        } else {
+            finishSplash();
+        }
     });
 }
 
@@ -358,11 +397,21 @@ async function setupSplashListeners() {
         });
 
         await listen('splash-finished', () => {
-            finishSplash();
+            if (isAppLoaded) {
+                hideSplashOverlay();
+            } else {
+                finishSplash();
+            }
         });
     } catch (error) {
         console.error("Splash events error:", error);
-        setTimeout(finishSplash, 2000);
+        setTimeout(() => {
+            if (isAppLoaded) {
+                hideSplashOverlay();
+            } else {
+                finishSplash();
+            }
+        }, 2000);
     }
 }
 

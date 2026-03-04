@@ -547,11 +547,30 @@
 
             initTitleConstructor(config?.title_template);
             setupListeners();
+            setupUpdateCheckButtons();
             await loadRequirementVersions();
 
         } catch (e) {
             console.error("Failed to load config:", e);
         }
+    }
+
+    function setupUpdateCheckButtons() {
+        const buttons = document.querySelectorAll('.update-check-btn');
+        buttons.forEach((btn) => {
+            btn.onclick = async () => {
+                const target = String(btn.dataset.updateCheck || '').trim();
+                if (!target || typeof window.runRequirementCheck !== 'function') return;
+                if (btn.disabled) return;
+                btn.disabled = true;
+                try {
+                    await window.runRequirementCheck(target);
+                    await loadRequirementVersions();
+                } finally {
+                    btn.disabled = false;
+                }
+            };
+        });
     }
 
     function updateVersionNote(noteId, version) {

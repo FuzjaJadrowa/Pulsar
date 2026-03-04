@@ -63,6 +63,7 @@ pub fn run() {
             core::splash::get_requirements_versions,
             core::splash::run_splash_checks,
             core::splash::cancel_splash_checks,
+            core::splash::run_requirement_check,
             core::downloader::start_download,
             core::downloader::cancel_download,
             core::downloader::pick_download_directory,

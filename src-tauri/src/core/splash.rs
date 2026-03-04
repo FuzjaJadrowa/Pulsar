@@ -214,6 +214,107 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     Ok(())
 }
 
+#[tauri::command]
+pub async fn run_requirement_check(app: AppHandle, window: Window, component: String, splash_state: State<'_, SplashState>) -> Result<(), String> {
+    splash_state.reset();
+
+    let client = Client::builder()
+        .user_agent("Pulsar-App")
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let app_config = {
+        let state = app.state::<ConfigManager>();
+        let locked = state
+            .config
+            .lock()
+            .map_err(|_| "Failed to lock config".to_string())?;
+        let config = locked.clone();
+        config
+    };
+
+    let req_path = get_requirements_path();
+    let mut versions = load_versions(&req_path);
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+
+    let app_tag = normalize_app_tag(&app.package_info().version.to_string());
+    versions.local_versions.insert("pulsar".to_string(), app_tag);
+
+    let component_key = match component.trim().to_lowercase().as_str() {
+        "pulsar" | "app" => "pulsar",
+        "pulsar-bridge" | "bridge" => "pulsar-bridge",
+        "ffmpeg" => "ffmpeg",
+        _ => return Err("Unknown requirement".to_string()),
+    };
+
+    if splash_state.is_cancelled() {
+        save_versions(&req_path, &versions);
+        return Ok(());
+    }
+
+    match component_key {
+        "pulsar" => {
+            emit_status(&window, "Checking Pulsar...", false, false);
+            match check_app_update(&app, &window, app_config.update_app, &splash_state).await {
+                Ok(AppUpdateResult::Updated) => {
+                    versions.app_last_check = now;
+                    save_versions(&req_path, &versions);
+                    return Ok(());
+                }
+                Ok(AppUpdateResult::NotUpdated) => {
+                    versions.app_last_check = now;
+                }
+                Ok(AppUpdateResult::Cancelled) => {
+                    save_versions(&req_path, &versions);
+                    return Ok(());
+                }
+                Err(e) => emit_status(&window, &format!("Update check failed: {}", e), false, false),
+            }
+        }
+        "pulsar-bridge" => {
+            match update_component(&client, &window, &req_path, "pulsar-bridge", &mut versions, &splash_state).await {
+                Ok(_) => {
+                    versions.bridge_last_check = now;
+                }
+                Err(e) => {
+                    if e == "Cancelled" {
+                        save_versions(&req_path, &versions);
+                        return Ok(());
+                    }
+                    emit_status(&window, &format!("Error: {}", e), false, false);
+                }
+            }
+        }
+        "ffmpeg" => {
+            match update_component(&client, &window, &req_path, "ffmpeg", &mut versions, &splash_state).await {
+                Ok(_) => {
+                    versions.ffmpeg_last_check = now;
+                }
+                Err(e) => {
+                    if e == "Cancelled" {
+                        save_versions(&req_path, &versions);
+                        return Ok(());
+                    }
+                    emit_status(&window, &format!("Error: {}", e), false, false);
+                }
+            }
+        }
+        _ => {}
+    }
+
+    save_versions(&req_path, &versions);
+
+    if splash_state.is_cancelled() {
+        return Ok(());
+    }
+
+    emit_status(&window, "Starting...", false, false);
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    let _ = window.emit("splash-finished", ());
+
+    Ok(())
+}
+
 async fn check_app_update(app: &AppHandle, window: &Window, auto_update_enabled: bool, splash_state: &SplashState) -> Result<AppUpdateResult, String> {
     if splash_state.is_cancelled() {
         return Ok(AppUpdateResult::Cancelled);
@@ -510,13 +611,7 @@ fn get_os_name() -> &'static str {
 fn build_release_version(tag: &str, name: &str) -> String {
     let tag_trimmed = tag.trim();
     let name_trimmed = name.trim();
-    if !tag_trimmed.is_empty() && !name_trimmed.is_empty() {
-        if tag_trimmed == name_trimmed {
-            tag_trimmed.to_string()
-        } else {
-            format!("{}|{}", tag_trimmed, name_trimmed)
-        }
-    } else if !tag_trimmed.is_empty() {
+    if !tag_trimmed.is_empty() {
         tag_trimmed.to_string()
     } else {
         name_trimmed.to_string()
@@ -535,7 +630,7 @@ fn normalize_app_tag(version: &str) -> String {
     }
 }
 
-fn ensure_ffmpeg_permissions(dest_dir: &Path) {
+fn ensure_ffmpeg_permissions(_dest_dir: &Path) {
     #[cfg(target_family = "unix")]
     {
         use std::os::unix::fs::PermissionsExt;
