@@ -151,7 +151,7 @@
     "idleAnimation": "Idle animation",
     "requirements": "Requirements",
     "autoUpdateApp": "Auto-update Pulsar",
-    "autoUpdateYtdlp": "Auto-update yt-dlp",
+    "autoUpdateBridge": "Auto-update Bridge",
     "autoUpdateFfmpeg": "Auto-update FFmpeg",
     "updateCooldown": "Update check cooldown (minutes)",
     "downloadSettings": "Download settings",

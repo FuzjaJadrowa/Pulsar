@@ -14,7 +14,7 @@
 ## Key Features
 * **Modern & Lightweight**: Built with **Tauri v2** and **Rust**, offering a lightning-fast, web-based UI with the memory efficiency of a native application.
 * **Smart Queue System**: Add multiple media to a queue, manage priorities, track progress in real-time, and process them efficiently in the background.
-* **Auto-Dependency Management**: Automatically downloads and configures the latest versions of **Pulsar Bridge** (custom yt-dlp wrapper) and **ffmpeg** upon first launch via a built-in splash screen. No manual setup required.
+* **Auto-Dependency Management**: Automatically downloads and configures the latest versions of **Pulsar Bridge** (custom JSON wrapper) and **ffmpeg** upon first launch via a built-in splash screen. No manual setup required.
 * **Cross-Platform**: Runs natively on **Windows**, **macOS** (Apple Silicon), and **Linux**.
 * **Flexible Format Control**: Seamlessly choose between video/audio containers and resolutions, embed metadata/thumbnails and many more features.
 * **Advanced Options**: Built-in support for Geo-Bypass, specific time-range downloads, and extracting authentication cookies directly from your browser.

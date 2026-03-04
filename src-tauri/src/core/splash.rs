@@ -13,7 +13,7 @@ use tauri_plugin_updater::UpdaterExt;
 use crate::system::config::ConfigManager;
 
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
-const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest";
+const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/FFbuilder/releases/latest";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
@@ -80,6 +80,13 @@ pub fn cancel_splash_checks(state: State<'_, SplashState>) {
 }
 
 #[tauri::command]
+pub fn get_requirements_versions() -> std::collections::HashMap<String, String> {
+    let req_path = get_requirements_path();
+    let versions = load_versions(&req_path);
+    versions.local_versions
+}
+
+#[tauri::command]
 pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: State<'_, SplashState>) -> Result<(), String> {
     splash_state.reset();
 
@@ -104,6 +111,8 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
 
     let req_path = get_requirements_path();
     let mut versions = load_versions(&req_path);
+    let app_tag = normalize_app_tag(&app.package_info().version.to_string());
+    versions.local_versions.insert("pulsar".to_string(), app_tag);
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
 
     emit_status(&window, "Checking for updates...", false, false);
@@ -296,11 +305,18 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
 
     let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
     let assets = json["assets"].as_array().ok_or("No assets")?;
+    let release_tag = json["tag_name"].as_str().unwrap_or("").trim();
+    let release_name = json["name"].as_str().unwrap_or("").trim();
 
     let mut download_url = String::new();
     let mut selected_asset_name = String::new();
     let os = get_os_name();
-    let arch = get_arch_name();
+    let ffmpeg_asset_target = match os {
+        "win" => "ffmpeg-windows.zip",
+        "mac" => "ffmpeg-macos.tar.xz",
+        "linux" => "ffmpeg-linux.tar.xz",
+        _ => "",
+    };
 
     for asset in assets {
         let name_raw = asset["name"].as_str().unwrap_or("");
@@ -322,48 +338,10 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
                 break;
             }
         } else if name == "ffmpeg" {
-            if os == "win" {
-                if arch == "aarch64" && asset_name == "ffmpeg-n8.0-latest-winarm64-gpl-shared-8.0.zip" {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "x86_64" && asset_name == "ffmpeg-n8.0-latest-win64-gpl-shared-8.0.zip" {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "aarch64" && asset_name.contains("winarm64-gpl-shared-8.0") && asset_name.ends_with(".zip") {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "x86_64" && asset_name.contains("win64-gpl-shared-8.0") && asset_name.ends_with(".zip") {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-            } else if os == "linux" {
-                if arch == "aarch64" && asset_name == "ffmpeg-n8.0-latest-linuxarm64-gpl-shared-8.0.tar.xz" {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "x86_64" && asset_name == "ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz" {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "aarch64" && asset_name.contains("linuxarm64-gpl-shared-8.0") && asset_name.ends_with(".tar.xz") {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
-                if arch == "x86_64" && asset_name.contains("linux64-gpl-shared-8.0") && asset_name.ends_with(".tar.xz") {
-                    download_url = dl_link;
-                    selected_asset_name = name_raw.to_string();
-                    break;
-                }
+            if !ffmpeg_asset_target.is_empty() && asset_name == ffmpeg_asset_target {
+                download_url = dl_link;
+                selected_asset_name = name_raw.to_string();
+                break;
             }
         }
     }
@@ -371,9 +349,14 @@ async fn update_component(client: &Client, window: &Window, req_path: &Path, nam
     if download_url.is_empty() { return Ok(()); }
 
     let mut remote_ver = json["published_at"].as_str().unwrap_or("").to_string();
-    if name == "ffmpeg" && !selected_asset_name.is_empty() {
-        if let Some(checksum) = fetch_ffmpeg_checksum(client, assets, &selected_asset_name, splash_state).await {
-            remote_ver = format!("sha256:{}", checksum);
+    if name == "ffmpeg" || name == "pulsar-bridge" {
+        let version_hint = build_release_version(release_tag, release_name);
+        if !version_hint.is_empty() {
+            remote_ver = version_hint;
+        } else if name == "ffmpeg" && !selected_asset_name.is_empty() {
+            if let Some(checksum) = fetch_ffmpeg_checksum(client, assets, &selected_asset_name, splash_state).await {
+                remote_ver = format!("sha256:{}", checksum);
+            }
         }
     }
 
@@ -479,22 +462,7 @@ fn extract_archive(archive_path: &Path, dest_dir: &Path, component: &str) -> Res
     }
 
     if component == "ffmpeg" {
-        for entry in fs::read_dir(dest_dir).map_err(|e| e.to_string())? {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let path = entry.path();
-            if path.is_dir() && entry.file_name().to_string_lossy().to_lowercase().contains("ffmpeg") {
-                let bin_dir = path.join("bin");
-                if bin_dir.exists() {
-                    for bin_file in fs::read_dir(bin_dir).map_err(|e| e.to_string())? {
-                        let bin_file = bin_file.map_err(|e| e.to_string())?;
-                        let dest_file = dest_dir.join(bin_file.file_name());
-                        if dest_file.exists() { let _ = fs::remove_file(&dest_file); }
-                        let _ = fs::rename(bin_file.path(), dest_file);
-                    }
-                }
-                let _ = fs::remove_dir_all(path);
-            }
-        }
+        ensure_ffmpeg_permissions(dest_dir);
     }
 
     Ok(())
@@ -539,10 +507,47 @@ fn get_os_name() -> &'static str {
     else { "linux" }
 }
 
-fn get_arch_name() -> &'static str {
-    if cfg!(target_arch = "x86_64") { "x86_64" }
-    else if cfg!(target_arch = "aarch64") { "aarch64" }
-    else { "unknown" }
+fn build_release_version(tag: &str, name: &str) -> String {
+    let tag_trimmed = tag.trim();
+    let name_trimmed = name.trim();
+    if !tag_trimmed.is_empty() && !name_trimmed.is_empty() {
+        if tag_trimmed == name_trimmed {
+            tag_trimmed.to_string()
+        } else {
+            format!("{}|{}", tag_trimmed, name_trimmed)
+        }
+    } else if !tag_trimmed.is_empty() {
+        tag_trimmed.to_string()
+    } else {
+        name_trimmed.to_string()
+    }
+}
+
+fn normalize_app_tag(version: &str) -> String {
+    let trimmed = version.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    if trimmed.starts_with('v') || trimmed.starts_with('V') {
+        trimmed.to_string()
+    } else {
+        format!("v{}", trimmed)
+    }
+}
+
+fn ensure_ffmpeg_permissions(dest_dir: &Path) {
+    #[cfg(target_family = "unix")]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        for name in ["ffmpeg", "ffprobe"] {
+            let path = dest_dir.join(name);
+            if let Ok(metadata) = fs::metadata(&path) {
+                let mut perms = metadata.permissions();
+                perms.set_mode(0o755);
+                let _ = fs::set_permissions(&path, perms);
+            }
+        }
+    }
 }
 
 async fn fetch_ffmpeg_checksum(client: &Client, assets: &[serde_json::Value], asset_name: &str, splash_state: &SplashState) -> Option<String> {

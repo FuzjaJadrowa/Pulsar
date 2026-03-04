@@ -17,6 +17,12 @@
         'title_template': 'title_template'
     };
 
+    const versionNoteIds = {
+        'pulsar': 'update_app_note',
+        'pulsar-bridge': 'update_bridge_note',
+        'ffmpeg': 'update_ffmpeg_note'
+    };
+
     const numberConstraints = {
         update_app_cooldown_minutes: { min: 10, max: 500, fallback: 30 },
         maximum_concurrent_processes: { min: 1, max: 10, fallback: 3 },
@@ -541,9 +547,29 @@
 
             initTitleConstructor(config?.title_template);
             setupListeners();
+            await loadRequirementVersions();
 
         } catch (e) {
             console.error("Failed to load config:", e);
+        }
+    }
+
+    function updateVersionNote(noteId, version) {
+        const el = document.getElementById(noteId);
+        if (!el) return;
+        const raw = String(version || '').trim();
+        const label = raw ? raw : 'unknown';
+        el.textContent = `Current version: ${label}`;
+    }
+
+    async function loadRequirementVersions() {
+        try {
+            const versions = await invoke('get_requirements_versions');
+            updateVersionNote(versionNoteIds['pulsar'], versions?.['pulsar']);
+            updateVersionNote(versionNoteIds['pulsar-bridge'], versions?.['pulsar-bridge']);
+            updateVersionNote(versionNoteIds['ffmpeg'], versions?.['ffmpeg']);
+        } catch (e) {
+            console.error('Failed to load requirement versions:', e);
         }
     }
 

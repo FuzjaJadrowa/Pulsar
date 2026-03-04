@@ -2,10 +2,12 @@
 ## Added
 * Icons of platforms from which media are downloaded have been added to the queue panel.
 * Added killing of ffmpeg process on application exit.
+* Added support for FFmpeg on macOS.
 ## Changed
 * Changed placeholder in bitrate field in preset creator to `Auto`.
 * Separated the queue code from the console output code.
 * TS format is no longer supported.
+* Changed FFmpeg build repository from BtbN to my build repository.
 ## Fixed
 * Fixed an issue with the expanded part of the dropdown menu not being attached in the preset creator.
 * Fixed section change not jumping smoothly when deleting presets.
