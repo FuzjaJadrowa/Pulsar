@@ -1,0 +1,343 @@
+{
+  "common": {
+    "error": "B\u0142\u0105d",
+    "success": "Sukces",
+    "info": "Informacja",
+    "unknownTitle": "Nieznany tytu\u0142",
+    "unknownChannel": "Nieznany kana\u0142",
+    "pageLabel": "Strona {current}/{total}",
+    "eta": "ETA"
+  },
+  "connection": {
+    "noInternet": "Brak po\u0142\u0105czenia z internetem. Niekt\u00f3re funkcje aplikacji mog\u0105 by\u0107 niedost\u0119pne.",
+    "lost": "Utracono po\u0142\u0105czenie z internetem.",
+    "restored": "Po\u0142\u0105czenie z internetem przywr\u00f3cone."
+  },
+  "index": {
+    "splash": {
+      "starting": "Uruchamianie...",
+      "skipUpdate": "Pomi\u0144 aktualizacj\u0119"
+    },
+    "nav": {
+      "download": "Pobieranie",
+      "settings": "Ustawienia",
+      "queue": "Kolejka"
+    }
+  },
+  "downloader": {
+    "search": {
+      "urlPlaceholder": "Wpisz co\u015b tutaj...",
+      "pasteTitle": "Wklej ze schowka",
+      "providerLabel": "Szukaj w",
+      "resultsTitle": "WYNIKI WYSZUKIWANIA",
+      "resultsCount": "{count} wynik\u00f3w",
+      "loading": "Wyszukiwanie...",
+      "empty": "Brak wynik\u00f3w."
+    },
+    "meta": {
+      "defaultAuthor": "Nazwa kana\u0142u"
+    },
+    "path": {
+      "placeholder": "Nie wybrano \u015bcie\u017cki zapisu...",
+      "browseTitle": "Wybierz folder"
+    },
+    "mode": {
+      "video": "WIDEO",
+      "audio": "AUDIO"
+    },
+    "options": {
+      "format": "FORMAT",
+      "quality": "JAKO\u015a\u0106",
+      "thumbnail": "MINIATURA",
+      "preview": "PODGL\u0104D",
+      "presets": "PRESETY",
+      "other": "INNE",
+      "geoBypass": "Obej\u015bcie geoblokady",
+      "embedMetadata": "Osad\u017a metadane",
+      "muteAudio": "Wycisz audio",
+      "customArgs": "W\u0142asne argumenty",
+      "customArgsPlaceholder": "Opcjonalne",
+      "subtitles": "NAPISY",
+      "downloadSubtitles": "Pobierz napisy",
+      "embedSubtitles": "Osad\u017a napisy",
+      "downloadLiveChat": "Pobierz czat na \u017cywo",
+      "codeOptional": "Kod (opcjonalnie)"
+    },
+    "thumbnail": {
+      "none": "Brak",
+      "saveToFile": "Zapisz do pliku",
+      "embedInVideo": "Osad\u017a w wideo",
+      "alt": "Miniatura",
+      "noPreview": "BRAK PODGL\u0104DU",
+      "saveFailed": "Nie uda\u0142o si\u0119 zapisa\u0107 miniatury. Sprawd\u017a konsol\u0119, aby pozna\u0107 szczeg\u00f3\u0142y."
+    },
+    "actions": {
+      "download": "POBIERZ",
+      "addToQueue": "DODAJ DO KOLEJKI"
+    },
+    "errors": {
+      "invalidLink": "Nieprawid\u0142owy link.",
+      "startPrefix": "B\u0142\u0105d: {error}",
+      "searchFailed": "Wyszukiwanie nie powiod\u0142o si\u0119."
+    },
+    "languages": {
+      "global": "Globalny"
+    }
+  },
+  "queue": {
+    "title": "Kolejka",
+    "actions": {
+      "startAll": "Uruchom wszystkie",
+      "stopAll": "Zatrzymaj wszystkie",
+      "clearQueue": "Wyczy\u015b\u0107 kolejk\u0119"
+    },
+    "pagination": {
+      "previous": "Poprzednia strona",
+      "next": "Nast\u0119pna strona",
+      "label": "Strona 1/1"
+    },
+    "empty": "Kolejka jest pusta.",
+    "itemActions": {
+      "start": "Start",
+      "stop": "Stop",
+      "remove": "Usu\u0144",
+      "retry": "Pon\u00f3w",
+      "openLocation": "Otw\u00f3rz lokalizacj\u0119",
+      "console": "Konsola"
+    },
+    "console": {
+      "title": "Konsola - {id}",
+      "empty": "Brak wyj\u015bcia z konsoli."
+    },
+    "subtitles": {
+      "label": "Napisy",
+      "on": "W\u0141\u0104CZONE",
+      "off": "WY\u0141\u0104CZONE"
+    },
+    "notifications": {
+      "systemTitle": "Pulsar",
+      "downloadCompleted": "Pobieranie zako\u0144czone pomy\u015blnie.",
+      "downloadCompletedSystem": "Pobieranie zako\u0144czone.",
+      "queueCompleted": "Pobieranie z kolejki zako\u0144czone pomy\u015blnie.",
+      "queueCompletedSystem": "Pobieranie z kolejki zako\u0144czone.",
+      "downloadFailed": "Pobieranie nie powiod\u0142o si\u0119.{suffix}",
+      "downloadFailedSystem": "Pobieranie nie powiod\u0142o si\u0119.{suffix}",
+      "errorSuffix": " Kod b\u0142\u0119du: {code}",
+      "downloadStopped": "Pobieranie zatrzymane przez u\u017cytkownika."
+    }
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "general": "Og\u00f3lne",
+    "appearance": "Wygl\u0105d",
+    "theme": "Motyw",
+    "themeOptions": {
+      "system": "Systemowy",
+      "dark": "Ciemny",
+      "light": "Jasny"
+    },
+    "language": "J\u0119zyk",
+    "closeBehavior": "Po zamkni\u0119ciu Pulsara:",
+    "closeBehaviorOptions": {
+      "hide": "Ukryj",
+      "exit": "Zamknij"
+    },
+    "systemNotifications": "Powiadomienia systemowe",
+    "advancedMode": "Tryb zaawansowany",
+    "advancedModeNote": "Pokazuje opcje zaawansowane i dost\u0119p do konsoli.",
+    "idleAnimation": "Animacja bezczynno\u015bci",
+    "requirements": "Wymagania",
+    "autoUpdateApp": "Automatyczne aktualizacje Pulsara",
+    "autoUpdateBridge": "Automatyczne aktualizacje Bridge",
+    "autoUpdateFfmpeg": "Automatyczne aktualizacje FFmpeg",
+    "updateCooldown": "Odst\u0119p mi\u0119dzy sprawdzaniem aktualizacji (minuty)",
+    "downloadSettings": "Ustawienia pobierania",
+    "cookiesFromBrowser": "Ciasteczka z przegl\u0105darki",
+    "cookiesFromBrowserNote": "Pozwala u\u017cywa\u0107 ciasteczek z przegl\u0105darki do pobierania ograniczonych film\u00f3w, do kt\u00f3rych masz dost\u0119p.",
+    "maximumConcurrentProcesses": "Maksymalna liczba r\u00f3wnoczesnych proces\u00f3w",
+    "maximumSearchResults": "Maksymalna liczba wynik\u00f3w wyszukiwania",
+    "presetsManager": {
+      "title": "Mened\u017cer preset\u00f3w",
+      "count": "{count} preset\u00f3w",
+      "countSingle": "1 preset",
+      "empty": "Brak preset\u00f3w.",
+      "untitled": "Bez tytu\u0142u",
+      "noSummary": "Brak opisu",
+      "types": {
+        "downloader": "Pobieranie"
+      },
+      "actions": {
+        "add": "Nowy preset",
+        "import": "Importuj",
+        "edit": "Edytuj",
+        "export": "Eksportuj",
+        "delete": "Usu\u0144",
+        "hide": "Ukryte"
+      },
+      "notifications": {
+        "unavailable": "Ta akcja nie jest jeszcze dost\u0119pna.",
+        "importFailed": "Nie uda\u0142o si\u0119 zaimportowa\u0107 presetu.",
+        "exportFailed": "Nie uda\u0142o si\u0119 wyeksportowa\u0107 presetu.",
+        "deleteFailed": "Nie uda\u0142o si\u0119 usun\u0105\u0107 presetu."
+      }
+    },
+    "titleConstructor": "Konstruktor tytu\u0142u",
+    "titleConstructorNote": "Nie ka\u017cdy tag jest dost\u0119pny dla wszystkich medi\u00f3w.",
+    "titleConstructorCategories": {
+      "video": "Wideo",
+      "statsDates": "Statystyki i daty",
+      "playlist": "Lista odtwarzania",
+      "music": "Muzyka"
+    },
+    "titleConstructorTags": {
+      "title": "Tytu\u0142",
+      "id": "ID wideo",
+      "resolution": "Rozdzielczo\u015b\u0107",
+      "durationString": "Czas trwania",
+      "fps": "FPS",
+      "uploadDate": "Data publikacji",
+      "viewCount": "Liczba wy\u015bwietle\u0144",
+      "likeCount": "Liczba polubie\u0144",
+      "dislikeCount": "Liczba niepolubie\u0144",
+      "uploader": "Autor",
+      "playlist": "Nazwa playlisty",
+      "playlistIndex": "Numer w playli\u015bcie",
+      "videoAutonumber": "Numer w kolejce",
+      "track": "Nazwa utworu",
+      "artist": "Wykonawca",
+      "album": "Album",
+      "releaseYear": "Rok wydania"
+    },
+    "support": "Wsparcie",
+    "supportText": "Oka\u017c wsparcie!",
+    "supportButton": "Wesprzyj projekt"
+  },
+  "formats": {
+    "flv": {
+      "label": "FLV",
+      "description": "Stary format Flash."
+    },
+    "mkv": {
+      "label": "MKV",
+      "description": "Uniwersalny kontener, kt\u00f3ry mie\u015bci wszystko."
+    },
+    "mp4": {
+      "label": "MP4",
+      "description": "Najpopularniejszy format wideo."
+    },
+    "mov": {
+      "label": "MOV",
+      "description": "Format Apple z obs\u0142ug\u0105 RGBA."
+    },
+    "avi": {
+      "label": "AVI",
+      "description": "Stary, ale wci\u0105\u017c popularny."
+    },
+    "wav": {
+      "label": "WAV",
+      "description": "Bezstratny format audio Windows."
+    },
+    "aiff": {
+      "label": "AIFF",
+      "description": "Bezstratny format audio Apple."
+    },
+    "m4a": {
+      "label": "M4A",
+      "description": "Lepsza jako\u015b\u0107 i kompresja ni\u017c MP3."
+    },
+    "flac": {
+      "label": "FLAC",
+      "description": "Bezstratna kompresja audio."
+    },
+    "mp3": {
+      "label": "MP3",
+      "description": "Najpopularniejszy format audio."
+    },
+    "ogg": {
+      "label": "OGG",
+      "description": "Otwarty kontener audio."
+    },
+    "opus": {
+      "label": "OPUS",
+      "description": "Otwarty, wydajny, stratny format audio."
+    },
+    "gif": {
+      "label": "GIF",
+      "description": "Po prostu obraz, kt\u00f3ry mo\u017ce by\u0107 animowany."
+    },
+    "webm": {
+      "label": "WEBM",
+      "description": "Otwarty format wideo stworzony przez Google dla sieci."
+    }
+  },
+  "presetCreator": {
+    "title": {
+      "new": "Utw\u00f3rz preset",
+      "edit": "Edytuj preset"
+    },
+    "sections": {
+      "basic": "Szczeg\u00f3\u0142y presetu",
+      "type": "Typ presetu",
+      "format": "Format",
+      "misc": "R\u00f3\u017cne",
+      "videoAudio": "Wideo i audio",
+      "video": "Opcje wideo",
+      "audio": "Opcje audio"
+    },
+    "fields": {
+      "title": "Tytu\u0142",
+      "summary": "Opis",
+      "icon": "Ikona",
+      "path": "\u015acie\u017cka zapisu",
+      "videoQuality": "Jako\u015b\u0107 wideo",
+      "videoCodec": "Kodek wideo",
+      "videoBitrate": "Bitrate wideo",
+      "videoFps": "FPS",
+      "audioSampleRate": "Cz\u0119stotliwo\u015b\u0107 pr\u00f3bkowania audio",
+      "audioCodec": "Kodek audio",
+      "audioBitrate": "Bitrate audio"
+    },
+    "placeholders": {
+      "title": "Tytu\u0142 presetu",
+      "summary": "Kr\u00f3tki opis",
+      "format": "Typ formatu",
+      "path": "Opcjonalnie",
+      "subtitlesCode": "en",
+      "bitrate": "Auto"
+    },
+    "types": {
+      "downloader": "Pobieranie"
+    },
+    "icon": {
+      "title": "Upu\u015b\u0107 ikon\u0119 tutaj",
+      "hint": "Proporcje 1:1, PNG/JPG/SVG",
+      "browse": "Przegl\u0105daj"
+    },
+    "toggles": {
+      "downloadSubtitles": "Pobierz napisy",
+      "embedSubtitles": "Osad\u017a napisy",
+      "subtitlesCode": "Kod (opcjonalnie)",
+      "embedMetadata": "Osad\u017a metadane",
+      "embedThumbnail": "Osad\u017a miniatur\u0119",
+      "geoBypass": "Obej\u015bcie geoblokady",
+      "muteAudio": "Wycisz audio"
+    },
+    "actions": {
+      "browse": "Przegl\u0105daj",
+      "save": "Zapisz preset",
+      "export": "Eksportuj preset",
+      "close": "Zamknij"
+    },
+    "select": {
+      "auto": "Auto"
+    },
+    "notifications": {
+      "invalidIcon": "Nieprawid\u0142owy plik ikony.",
+      "validation": "Tytu\u0142 i format s\u0105 wymagane.",
+      "saved": "Preset zapisany.",
+      "saveFailed": "Nie uda\u0142o si\u0119 zapisa\u0107 presetu.",
+      "exportFailed": "Nie uda\u0142o si\u0119 wyeksportowa\u0107 presetu.",
+      "loadFailed": "Nie uda\u0142o si\u0119 wczyta\u0107 presetu."
+    }
+  }
+}

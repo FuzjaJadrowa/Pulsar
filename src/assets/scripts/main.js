@@ -13,6 +13,43 @@ let idleWavesEnterTimer = null;
 const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
 let currentThemeSetting = 'System';
 let themeTransitionTimer = null;
+let currentLocale = null;
+
+const resolveLocale = (value) => {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return 'en';
+    if (raw === 'en' || raw === 'english' || raw === 'angielski') return 'en';
+    if (raw === 'pl' || raw === 'polish' || raw === 'polski') return 'pl';
+    return raw;
+};
+
+async function applyLocale(locale) {
+    if (!window.i18n || typeof window.i18n.init !== 'function') return;
+    const normalized = resolveLocale(locale);
+    if (currentLocale === normalized) return;
+    try {
+        await window.i18n.init(normalized);
+        currentLocale = normalized;
+        window.i18n.apply(document);
+        if (typeof window.initCustomSelects === 'function') {
+            window.initCustomSelects();
+        }
+    } catch (error) {
+        console.error('Failed to initialize i18n:', error);
+        if (normalized !== 'en') {
+            try {
+                await window.i18n.init('en');
+                currentLocale = 'en';
+                window.i18n.apply(document);
+                if (typeof window.initCustomSelects === 'function') {
+                    window.initCustomSelects();
+                }
+            } catch (fallbackError) {
+                console.error('Failed to initialize fallback i18n:', fallbackError);
+            }
+        }
+    }
+}
 const t = (key, fallback = '', params = null) => {
     if (window.i18n && typeof window.i18n.t === 'function') {
         return window.i18n.t(key, fallback, params);
@@ -235,9 +272,10 @@ function setIdleAnimation(enabled) {
     dataSea.sync();
 }
 
-async function initThemeFromConfig() {
+async function initThemeFromConfig(configOverride = null) {
     try {
-        const config = await invoke('get_config');
+        const config = configOverride || await invoke('get_config');
+        if (!config) return;
         if (config && config.theme) {
             window.applyTheme(config.theme, { animate: false });
         }
@@ -256,19 +294,24 @@ window.addEventListener('pulsar-config-updated', (event) => {
     if (typeof event.detail.idle_animation !== 'undefined') {
         setIdleAnimation(event.detail.idle_animation);
     }
+    if (typeof event.detail.language !== 'undefined') {
+        applyLocale(event.detail.language);
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (window.i18n && typeof window.i18n.init === 'function') {
-        try {
-            await window.i18n.init('en');
-            window.i18n.apply(document);
-        } catch (error) {
-            console.error('Failed to initialize i18n:', error);
-        }
+    let config = null;
+    try {
+        config = await invoke('get_config');
+    } catch (error) {
+        console.error('Failed to load config:', error);
     }
 
-    initThemeFromConfig();
+    if (window.i18n && typeof window.i18n.init === 'function') {
+        await applyLocale(config?.language);
+    }
+
+    initThemeFromConfig(config);
     dataSea.bind();
 
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
@@ -445,10 +488,49 @@ async function setupBridgeListeners() {
     }
 }
 
+function refreshCustomSelectWrapper(origSelect, wrapper) {
+    const head = wrapper.querySelector('.select-head');
+    const list = wrapper.querySelector('.select-list');
+    if (!head || !list) return;
+
+    const options = Array.from(origSelect.options);
+    const selectedIndex = origSelect.selectedIndex >= 0 ? origSelect.selectedIndex : 0;
+    head.innerText = options[selectedIndex]?.text || '';
+
+    list.innerHTML = '';
+    options.forEach((opt, index) => {
+        const item = document.createElement('div');
+        item.className = 'select-item';
+        if (index === selectedIndex) item.classList.add('selected');
+        item.innerText = opt.text;
+        item.addEventListener('click', () => {
+            head.innerText = opt.text;
+            list.querySelectorAll('.select-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            origSelect.value = opt.value;
+            origSelect.dispatchEvent(new Event('change'));
+            window.closeAllSelects();
+        });
+        list.appendChild(item);
+    });
+
+    if (origSelect.disabled) {
+        head.style.opacity = '0.5';
+        head.style.pointerEvents = 'none';
+    } else {
+        head.style.opacity = '1';
+        head.style.pointerEvents = 'auto';
+    }
+}
+
 window.initCustomSelects = function() {
     const selects = document.querySelectorAll('select.custom-select');
     selects.forEach(origSelect => {
-        if (origSelect.nextElementSibling && origSelect.nextElementSibling.classList.contains('select-wrapper')) return;
+        const existingWrapper = origSelect.nextElementSibling;
+        if (existingWrapper && existingWrapper.classList.contains('select-wrapper')) {
+            refreshCustomSelectWrapper(origSelect, existingWrapper);
+            return;
+        }
 
         const wrapper = document.createElement('div');
         wrapper.className = 'select-wrapper';
