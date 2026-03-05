@@ -137,9 +137,6 @@
       "light": "Light"
     },
     "language": "Language",
-    "languageOptions": {
-      "english": "English"
-    },
     "closeBehavior": "When I close Pulsar:",
     "closeBehaviorOptions": {
       "hide": "Hide",
