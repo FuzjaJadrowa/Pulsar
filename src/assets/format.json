@@ -83,12 +83,6 @@
       "type": "audio",
       "video_codecs": [],
       "audio_codecs": ["Opus"]
-    },
-    {
-      "id": "wma",
-      "type": "audio",
-      "video_codecs": [],
-      "audio_codecs": ["WMA Standard", "WMA Pro", "WMA Voice", "WMA Lossless"]
     }
   ]
 }

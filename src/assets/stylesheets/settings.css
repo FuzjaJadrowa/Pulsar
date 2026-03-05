@@ -328,7 +328,7 @@ select.custom-select { display: none; }
 .title-tag {
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.06);
-    color: #dadada;
+    color: #ffffff;
     padding: 9px 14px;
     border-radius: 999px;
     font-size: 13px;
@@ -364,7 +364,7 @@ select.custom-select { display: none; }
 .title-tag-icon .tag-outline {
     fill: none;
     stroke: currentColor;
-    stroke-width: 24;
+    stroke-width: 2;
     stroke-linejoin: round;
     stroke-linecap: round;
 }
@@ -395,9 +395,9 @@ select.custom-select { display: none; }
     align-items: center;
     padding: 7px 14px;
     border-radius: 999px;
-    background: rgba(138, 43, 226, 0.2);
-    border: 1px solid rgba(138, 43, 226, 0.4);
-    color: #f3e9ff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -434,7 +434,7 @@ select.custom-select { display: none; }
 .title-pill-icon .tag-outline {
     fill: none;
     stroke: currentColor;
-    stroke-width: 24;
+    stroke-width: 2;
     stroke-linejoin: round;
     stroke-linecap: round;
 }

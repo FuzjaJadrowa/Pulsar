@@ -9,6 +9,7 @@ let currentPageName = null;
 let queueVisible = false;
 const loadedPages = {};
 let queueOutsideBound = false;
+let idleWavesEnterTimer = null;
 const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
 let currentThemeSetting = 'System';
 let themeTransitionTimer = null;
@@ -24,6 +25,25 @@ const t = (key, fallback = '', params = null) => {
     }
     return fallback || key;
 };
+
+function triggerIdleWavesEnter() {
+    const body = document.body;
+    if (!body) return;
+    if (!body.classList.contains('zen-mode')) return;
+    if (!body.classList.contains('idle-anim-enabled')) return;
+    if (body.classList.contains('search-mode')) return;
+
+    if (idleWavesEnterTimer) clearTimeout(idleWavesEnterTimer);
+    body.classList.remove('idle-waves-enter');
+    void body.offsetWidth;
+    body.classList.add('idle-waves-enter');
+    idleWavesEnterTimer = setTimeout(() => {
+        document.body?.classList.remove('idle-waves-enter');
+        idleWavesEnterTimer = null;
+    }, 360);
+}
+
+window.triggerIdleWavesEnter = triggerIdleWavesEnter;
 
 function resolveTheme(setting) {
     const normalized = String(setting || 'System').toLowerCase();
@@ -634,6 +654,19 @@ async function loadPage(pageName, pageIndex) {
     }
 
     const body = document.body;
+    const shouldAnimateIdleWaves = pageName === 'downloader'
+        && ((currentPageName && currentPageName !== 'downloader') || !currentPageName);
+    if (body) {
+        if (shouldAnimateIdleWaves) {
+            triggerIdleWavesEnter();
+        } else {
+            body.classList.remove('idle-waves-enter');
+            if (idleWavesEnterTimer) {
+                clearTimeout(idleWavesEnterTimer);
+                idleWavesEnterTimer = null;
+            }
+        }
+    }
     const applyPageClass = (name) => {
         if (!body) return;
         body.classList.toggle('page-downloader', name === 'downloader');
@@ -749,7 +782,7 @@ window.setQueuePanelVisible = async function(visible) {
     }
 };
 
-/** document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     });
@@ -797,4 +830,4 @@ window.setQueuePanelVisible = async function(visible) {
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
-}); **/
+});
