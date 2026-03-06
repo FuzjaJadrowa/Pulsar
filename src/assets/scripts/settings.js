@@ -75,11 +75,36 @@
             icon.className = 'title-tag-icon';
             icon.innerHTML = getTagIconMarkup();
             const text = document.createElement('span');
+            text.className = 'title-tag-label';
             text.textContent = label;
             btn.appendChild(icon);
             btn.appendChild(text);
             btn.setAttribute('data-i18n-lock', 'true');
         });
+
+        const refreshTitleConstructorI18n = () => {
+            if (!window.i18n || typeof window.i18n.t !== 'function') return;
+            tags.forEach((btn) => {
+                const token = String(btn.dataset.token || '').trim();
+                if (!token) return;
+                const labelEl = btn.querySelector('.title-tag-label');
+                const fallback = labelEl ? String(labelEl.textContent || '').trim() : token;
+                const key = btn.getAttribute('data-i18n');
+                const label = key ? window.i18n.t(key, fallback) : fallback;
+                tokenMap.set(token, label);
+                if (labelEl) labelEl.textContent = label;
+            });
+
+            input.querySelectorAll('.title-pill').forEach((pill) => {
+                const token = String(pill.dataset.token || '').trim();
+                if (!token) return;
+                const label = tokenMap.get(token) || token;
+                const labelEl = pill.querySelector('.title-pill-label');
+                if (labelEl) labelEl.textContent = label;
+            });
+        };
+
+        window.refreshTitleConstructorI18n = refreshTitleConstructorI18n;
 
         const markTokenUsed = (token, used) => {
             const btn = tags.find((item) => item.dataset.token === token);
@@ -184,6 +209,7 @@
             icon.className = 'title-pill-icon';
             icon.innerHTML = getTagIconMarkup();
             const text = document.createElement('span');
+            text.className = 'title-pill-label';
             text.textContent = tokenMap.get(token) || token;
             pill.appendChild(icon);
             pill.appendChild(text);

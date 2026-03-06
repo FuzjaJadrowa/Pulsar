@@ -31,6 +31,9 @@ async function applyLocale(locale) {
         await window.i18n.init(normalized);
         currentLocale = normalized;
         window.i18n.apply(document);
+        if (typeof window.refreshTitleConstructorI18n === 'function') {
+            window.refreshTitleConstructorI18n();
+        }
         if (typeof window.initCustomSelects === 'function') {
             window.initCustomSelects();
         }
@@ -41,6 +44,9 @@ async function applyLocale(locale) {
                 await window.i18n.init('en');
                 currentLocale = 'en';
                 window.i18n.apply(document);
+                if (typeof window.refreshTitleConstructorI18n === 'function') {
+                    window.refreshTitleConstructorI18n();
+                }
                 if (typeof window.initCustomSelects === 'function') {
                     window.initCustomSelects();
                 }
@@ -338,6 +344,64 @@ const progressLabel = document.getElementById('splash-progress');
 const skipBtn = document.getElementById('splash-skip-btn');
 const splashExitDuration = 520;
 
+function translateSplashStatus(value) {
+    if (value === null || typeof value === 'undefined') return value;
+    const raw = String(value);
+    const trimmed = raw.trim();
+    if (trimmed === '') return raw;
+
+    if (trimmed === 'Starting...') {
+        return t('index.splash.starting', 'Starting...');
+    }
+    if (trimmed === 'Checking...') {
+        return t('index.splash.checking', 'Checking...');
+    }
+    if (trimmed === 'Checking for updates...') {
+        return t('index.splash.checkingForUpdates', 'Checking for updates...');
+    }
+    if (trimmed === 'Extracting...') {
+        return t('index.splash.extracting', 'Extracting...');
+    }
+    if (trimmed === 'Update installed. Restarting...') {
+        return t('index.splash.updateInstalledRestarting', 'Update installed. Restarting...');
+    }
+    if (trimmed === 'Update available (auto-update disabled)') {
+        return t('index.splash.updateAvailableAutoDisabled', 'Update available (auto-update disabled)');
+    }
+
+    const updateCheckFailedPrefix = 'Update check failed: ';
+    if (trimmed.startsWith(updateCheckFailedPrefix)) {
+        const error = trimmed.slice(updateCheckFailedPrefix.length);
+        return t('index.splash.updateCheckFailed', 'Update check failed: {error}', { error });
+    }
+
+    const errorPrefix = 'Error: ';
+    if (trimmed.startsWith(errorPrefix)) {
+        const error = trimmed.slice(errorPrefix.length);
+        return t('index.splash.errorPrefix', 'Error: {error}', { error });
+    }
+
+    const checkingPrefix = 'Checking ';
+    if (trimmed.startsWith(checkingPrefix) && trimmed.endsWith('...')) {
+        const component = trimmed.slice(checkingPrefix.length, -3);
+        return t('index.splash.checkingComponent', 'Checking {component}...', { component });
+    }
+
+    const downloadingPrefix = 'Downloading ';
+    if (trimmed.startsWith(downloadingPrefix) && trimmed.endsWith('...')) {
+        const component = trimmed.slice(downloadingPrefix.length, -3);
+        return t('index.splash.downloadingComponent', 'Downloading {component}...', { component });
+    }
+
+    const updatingToPrefix = 'Updating to ';
+    if (trimmed.startsWith(updatingToPrefix)) {
+        const version = trimmed.slice(updatingToPrefix.length);
+        return t('index.splash.updatingTo', 'Updating to {version}', { version });
+    }
+
+    return raw;
+}
+
 function finishSplash() {
     if (isAppLoaded) return;
     isAppLoaded = true;
@@ -363,7 +427,7 @@ function showSplashOverlay() {
     splashScreen.classList.remove('hidden', 'exiting');
     splashScreen.classList.add('entering');
     if (progressLabel) progressLabel.innerText = '';
-    if (statusLabel) statusLabel.innerText = 'Checking...';
+    if (statusLabel) statusLabel.innerText = t('index.splash.checking', 'Checking...');
     if (skipBtn) skipBtn.style.display = 'none';
     setTimeout(() => {
         if (splashScreen) splashScreen.classList.remove('entering');
@@ -437,7 +501,7 @@ async function setupSplashListeners() {
     try {
         await listen('splash-status', (event) => {
             const payload = event.payload;
-            if (statusLabel) statusLabel.innerText = payload.status;
+            if (statusLabel) statusLabel.innerText = translateSplashStatus(payload.status);
 
             if (skipBtn) {
                 if (payload.can_skip) {
@@ -455,7 +519,7 @@ async function setupSplashListeners() {
         await listen('splash-progress', (event) => {
             const payload = event.payload;
             if (payload.progress && progressLabel) {
-                progressLabel.innerText = payload.progress;
+                progressLabel.innerText = translateSplashStatus(payload.progress);
             }
         });
 

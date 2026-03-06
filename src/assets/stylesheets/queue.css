@@ -445,7 +445,7 @@
 
 .nav-btn.expandable.queue-pulse,
 .nav-btn.expandable.force-open {
-    width: 94px !important;
+    max-width: 320px !important;
     border-color: var(--c-queue-primary);
     box-shadow: 0 0 18px rgba(0, 210, 255, 0.46);
 }

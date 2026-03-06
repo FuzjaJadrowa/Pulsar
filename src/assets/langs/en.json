@@ -16,7 +16,17 @@
   "index": {
     "splash": {
       "starting": "Starting...",
-      "skipUpdate": "Skip Update"
+      "skipUpdate": "Skip Update",
+      "checking": "Checking...",
+      "checkingForUpdates": "Checking for updates...",
+      "checkingComponent": "Checking {component}...",
+      "updatingTo": "Updating to {version}",
+      "updateCheckFailed": "Update check failed: {error}",
+      "errorPrefix": "Error: {error}",
+      "updateAvailableAutoDisabled": "Update available (auto-update disabled)",
+      "updateInstalledRestarting": "Update installed. Restarting...",
+      "downloadingComponent": "Downloading {component}...",
+      "extracting": "Extracting..."
     },
     "nav": {
       "download": "Download",

@@ -16,7 +16,17 @@
   "index": {
     "splash": {
       "starting": "Uruchamianie...",
-      "skipUpdate": "Pomi\u0144 aktualizacj\u0119"
+      "skipUpdate": "Pomi\u0144 aktualizacj\u0119",
+      "checking": "Sprawdzanie...",
+      "checkingForUpdates": "Sprawdzanie aktualizacji...",
+      "checkingComponent": "Sprawdzanie {component}...",
+      "updatingTo": "Aktualizowanie do {version}",
+      "updateCheckFailed": "Nie uda\u0142o si\u0119 sprawdzi\u0107 aktualizacji: {error}",
+      "errorPrefix": "B\u0142\u0105d: {error}",
+      "updateAvailableAutoDisabled": "Dost\u0119pna aktualizacja (autoaktualizacja wy\u0142\u0105czona)",
+      "updateInstalledRestarting": "Aktualizacja zainstalowana. Ponowne uruchamianie...",
+      "downloadingComponent": "Pobieranie {component}...",
+      "extracting": "Rozpakowywanie..."
     },
     "nav": {
       "download": "Pobieranie",
