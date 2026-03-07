@@ -1,19 +1,19 @@
 {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "notes": "Latest stable build.",
-  "pub_date": "2026-03-01T17:44:19.236Z",
+  "pub_date": "2026-03-07T20:30:20.880Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDVWMXJqKy9kbkY4REd1b3c5NmhGS2pnK2diK2JDaGpvYlFobkFjejVIZTd4UlBpcnNkdncxNDhtbGs5cmI0cVRkcTNyMFFWY3NDeHYxc05lSlZMV1FnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcyMzg3MDIzCWZpbGU6UHVsc2FyXzIuMy4wX3g2NC1zZXR1cC5leGUKUm1TTlVHZzhvd3pCS2VDRWNPMWtJRjlabjdTQWhEcDRabHBBaVUrVE9OZ0hMbThha3lrcTR5UDRUbUN4cysrYVVLOVl4NWZLZkhFTCt3SHhtbUtCQWc9PQo=",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.0/Pulsar-2.3.0-win64.exe"
+      "signature": "",
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.1/Pulsar-2.3.1-win64.exe"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDVrTEZ5Wm1HNnFpSURlZUszUlZ2TlJuZFo4cGxnUndha01DZHQ5NGxaZjZpL1BNMkpCTE9yVUx3ZklETjdmZHhVeDliTmgxR0hESkFuNGQrYWtnQ2dJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcyMzg2OTQwCWZpbGU6UHVsc2FyXzIuMy4wX2FtZDY0LkFwcEltYWdlClhudjUxUU42V0cwUVNGU0dsQmZGY2FNZFZ3cGRSRG82TDI3N3JFaW9pQmJ3OHJZbGM1MmxuZjgrSGtudEpEOUJoMmJzeG1uWlFGenpzRkpURnNIekJBPT0K",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.0/Pulsar-2.3.0-Linux.AppImage"
+      "signature": "",
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.1/Pulsar-2.3.1-Linux.AppImage"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDd0UnExcXNZVFgwckVRZGtPc0ZLOXE0alFhMUF4aXJQTi83aFkzeERnVTl0elpjWjdvK2YxbHJxdHlQM2tLS2VZZkM4blNtYzNKaE9LS3ZWNjJnMWdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcyMzg2NzQ2CWZpbGU6UHVsc2FyLmFwcC50YXIuZ3oKVWI3aEREdGRydittT2Myd0I1dUtKZ3NoK29ZNEVNejNyWm5CWENiaGI4UXArbEZodU5yYlY2R0dIcnBRb0JJQXM1ZmowcnVHZ2l0b24xUXFMdTd3QVE9PQo=",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.0/Pulsar-2.3.0-MacOS.app.tar.gz"
+      "signature": "",
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.1/Pulsar-2.3.1-MacOS.app.tar.gz"
     }
   }
 }
