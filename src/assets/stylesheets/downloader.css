@@ -431,14 +431,13 @@ body.page-transition::after { opacity: 0; }
     color: #ffffff;
 }
 .preset-card.active .preset-card-icon {
-    background: rgba(0,0,0,0.15);
     color: #ffffff;
 }
 .preset-card-icon {
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.08);
+    background: transparent;
     color: rgba(255,255,255,0.85);
     display: inline-flex;
     align-items: center;
@@ -566,6 +565,10 @@ body.mode-audio .tile.active { color: #a9f5c6; }
 .icon-btn-small svg { width: 18px; height: 18px; }
 .option-group { display: flex; flex-direction: column; gap: 10px; }
 .option-label { font-size: 0.75rem; color: var(--c-text-dim); font-weight: bold; letter-spacing: 0.5px; }
+.preset-section > .option-label {
+    width: 100%;
+    text-align: center;
+}
 .extras-section .form-row { display: flex; align-items: center; gap: 15px; height: 40px; }
 .extras-section .form-row.advanced-only { display: none; }
 body.advanced-mode .extras-section .form-row.advanced-only { display: flex; }
