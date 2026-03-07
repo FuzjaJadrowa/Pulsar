@@ -16,3 +16,4 @@
 * Fixed a memory leak related to idle wave animations where invisible objects were added.
 * Improved idle wave fade animations.
 * Improved the preset view on the download page.
+* Fixed the appearance of some objects in light mode.

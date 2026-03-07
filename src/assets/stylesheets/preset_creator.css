@@ -547,6 +547,16 @@ body.theme-light .preset-icon-drop {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.14);
 }
+body.theme-light .preset-icon-preview {
+    background: rgba(0, 0, 0, 0.04);
+    color: #1d2330;
+}
+body.theme-light .preset-icon-title {
+    color: #1d2330;
+}
+body.theme-light .preset-icon-hint {
+    color: rgba(29, 35, 48, 0.7);
+}
 body.theme-light .preset-icon-browse {
     background: rgba(29, 35, 48, 0.08);
     border-color: rgba(29, 35, 48, 0.16);

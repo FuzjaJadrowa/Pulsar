@@ -752,8 +752,16 @@ body.theme-light .preset-card {
     background: rgba(255, 255, 255, 0.85);
     border-color: rgba(0, 0, 0, 0.08);
 }
+body.theme-light .preset-card.active {
+    background: var(--active-color);
+    border-color: var(--active-color);
+}
 body.theme-light .preset-card:hover {
     background: rgba(255, 255, 255, 0.95);
+}
+body.theme-light .preset-card.active:hover {
+    background: var(--active-color);
+    border-color: var(--active-color);
 }
 body.theme-light .preset-card-title {
     color: #1d2330;
@@ -810,7 +818,11 @@ body.theme-light .icon-btn-small:hover {
     background: rgba(0, 0, 0, 0.06);
     color: #1d2330;
 }
-body.theme-light .icon-btn-small.active { color: #ffffff; }
+body.theme-light .icon-btn-small.active {
+    background: var(--active-color);
+    border-color: var(--active-color);
+    color: #ffffff;
+}
 
 body.theme-light .toggle-switch {
     background: #cfd6e0;
@@ -821,7 +833,7 @@ body.theme-light .toggle-switch:checked {
     background: var(--active-color);
     border-color: var(--active-color);
 }
-body.theme-light .toggle-switch:checked::after { background: #1d2330; }
+body.theme-light .toggle-switch:checked::after { background: #ffffff; }
 body.theme-light .toggle-text { color: rgba(29, 35, 48, 0.7); }
 body.theme-light .custom-args-input {
     background: rgba(255, 255, 255, 0.9);

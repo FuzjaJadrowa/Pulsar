@@ -179,6 +179,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .custom-radio input {
     appearance: none; width: 16px; height: 16px; border: 1px solid #3d3d3d;
     border-radius: 50%; margin-right: 8px; position: relative; background-color: #252525;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .custom-radio input:checked { border-color: var(--accent-color); }
 .custom-radio input:checked::after {
@@ -509,6 +510,12 @@ body.theme-light .custom-radio input {
     background-color: #f3f5f8;
     border-color: #cfd6e0;
 }
+body.theme-light .custom-radio input:checked {
+    border-color: var(--accent-color);
+}
+body.theme-light .custom-radio input:checked::after {
+    background-color: var(--accent-color);
+}
 
 body.theme-light .select-head {
     background: #f4f6fa;
@@ -729,6 +736,11 @@ body.theme-light .title-pill {
     border-radius: 999px;
     background: rgba(138, 43, 226, 0.25);
     color: #e8d7ff;
+}
+body.theme-light .preset-badge {
+    background: rgba(76, 111, 255, 0.22);
+    border: 1px solid rgba(76, 111, 255, 0.4);
+    color: #1d2330;
 }
 .preset-item-actions {
     display: flex;
