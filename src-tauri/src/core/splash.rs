@@ -630,7 +630,7 @@ fn normalize_app_tag(version: &str) -> String {
     }
 }
 
-fn ensure_ffmpeg_permissions(_dest_dir: &Path) {
+fn ensure_ffmpeg_permissions(dest_dir: &Path) {
     #[cfg(target_family = "unix")]
     {
         use std::os::unix::fs::PermissionsExt;
