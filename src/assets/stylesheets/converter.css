@@ -1,8 +1,10 @@
-.converter-page {
+.converter-page,
+.compressor-page {
     position: relative;
 }
 
-.converter-scroll {
+.converter-scroll,
+.compressor-scroll {
     position: relative;
     width: 100%;
     height: 100%;
@@ -14,12 +16,15 @@
     z-index: 1;
 }
 
-.converter-scroll::-webkit-scrollbar { display: none; }
+.converter-scroll::-webkit-scrollbar,
+.compressor-scroll::-webkit-scrollbar { display: none; }
 
-.converter-bar {
+.converter-bar,
+.compressor-bar {
     width: 100%;
 }
 
-.converter-bar .bar-action {
+.converter-bar .bar-action,
+.compressor-bar .bar-action {
     width: 64px;
 }

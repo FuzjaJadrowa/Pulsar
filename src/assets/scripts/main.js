@@ -158,7 +158,8 @@ const dataSea = (() => {
         if (!body) return false;
         const isDownloader = body.classList.contains('page-downloader');
         const isConverter = body.classList.contains('page-converter');
-        if (!isDownloader && !isConverter) return false;
+        const isCompressor = body.classList.contains('page-compressor');
+        if (!isDownloader && !isConverter && !isCompressor) return false;
         if (!body.classList.contains('zen-mode')) return false;
         if (!body.classList.contains('idle-anim-enabled')) return false;
         if (body.classList.contains('search-mode')) return false;
@@ -802,7 +803,7 @@ async function loadPage(pageName, pageIndex) {
     }
 
     const body = document.body;
-    const isWavePage = (name) => name === 'downloader' || name === 'converter';
+    const isWavePage = (name) => name === 'downloader' || name === 'converter' || name === 'compressor';
     const isWaveVisible = () => {
         if (!body) return false;
         if (!body.classList.contains('wave-page')) return false;
@@ -824,8 +825,9 @@ async function loadPage(pageName, pageIndex) {
         body.classList.toggle('page-downloader', name === 'downloader');
         body.classList.toggle('page-settings', name === 'settings');
         body.classList.toggle('page-converter', name === 'converter');
+        body.classList.toggle('page-compressor', name === 'compressor');
         body.classList.toggle('wave-page', isWavePage(name));
-        if (name === 'converter') {
+        if (name === 'converter' || name === 'compressor') {
             body.classList.add('zen-mode');
             body.classList.remove('search-mode');
         }

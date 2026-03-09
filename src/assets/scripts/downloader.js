@@ -753,6 +753,7 @@
                 }
                 if (text) {
                     urlInput.value = text.trim();
+                    urlInput.dispatchEvent(new Event('input', { bubbles: true }));
                     validateReadyState();
                 }
             } catch (error) {

@@ -31,13 +31,14 @@
     "nav": {
       "download": "Download",
       "convert": "Convert",
+      "compress": "Compress",
       "settings": "Settings",
       "queue": "Queue"
     }
   },
   "downloader": {
     "search": {
-      "urlPlaceholder": "Type something here...",
+      "urlPlaceholder": "Type something to download...",
       "pasteTitle": "Paste from clipboard",
       "providerLabel": "Search on",
       "resultsTitle": "SEARCH RESULTS",
@@ -50,7 +51,7 @@
     },
     "path": {
       "placeholder": "No save path selected...",
-      "browseTitle": "Browse folder"
+      "browseTitle": "Browse"
     },
     "mode": {
       "video": "VIDEO",
@@ -98,6 +99,14 @@
   "converter": {
     "path": {
       "placeholder": "Select a file to convert..."
+    },
+    "actions": {
+      "browse": "Browse"
+    }
+  },
+  "compressor": {
+    "path": {
+      "placeholder": "Select file to compress..."
     },
     "actions": {
       "browse": "Browse"
