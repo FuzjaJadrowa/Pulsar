@@ -100,8 +100,7 @@
       "placeholder": "Select a file to convert..."
     },
     "actions": {
-      "browse": "Browse folder",
-      "confirm": "Confirm"
+      "browse": "Browse"
     }
   },
   "queue": {

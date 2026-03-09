@@ -239,17 +239,17 @@ body.theme-light .search-box-row .bar-action:hover {
 body.wave-page.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 1.2s ease-in, transform 0.8s ease;
+    transition: opacity 0.55s ease, transform 0.6s ease;
 }
 body.wave-page.search-mode .zen-data-sea {
     opacity: 0;
-    transform: translateY(0);
-    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(12vh);
+    transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1), transform 0.28s ease;
 }
 body.wave-page.search-mode.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 0;
-    transform: translateY(0);
-    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(12vh);
+    transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1), transform 0.28s ease;
 }
 body.wave-page.zen-mode.idle-anim-enabled .search-section.sticky + .zen-data-sea {
     opacity: 0;
@@ -264,12 +264,12 @@ body.wave-page.search-mode .search-section.sticky + .zen-data-sea {
 body:not(.zen-mode) .zen-data-sea,
 body:not(.idle-anim-enabled) .zen-data-sea {
     opacity: 0;
-    transform: translateY(0);
-    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(12vh);
+    transition: opacity 0.28s ease, transform 0.32s ease;
 }
 body.wave-transition.zen-mode.idle-anim-enabled .zen-data-sea,
 body.wave-transition:not(.zen-mode) .zen-data-sea {
-    transition: opacity 0.45s ease, transform 0.5s ease;
+    transition: opacity 0.25s ease, transform 0.32s ease;
 }
 body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea {
     opacity: 0;

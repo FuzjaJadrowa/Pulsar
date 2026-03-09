@@ -174,10 +174,10 @@
         searchSection.classList.add('sticky');
         if (dashboard) dashboard.classList.add('hidden');
         if (body) body.classList.remove('mode-video', 'mode-audio');
+        if (body) body.classList.add('search-mode');
     }
 
     function revealResultsSection() {
-        if (body) body.classList.add('search-mode');
         resultsSection.classList.remove('hidden');
         resultsSection.classList.remove('exiting');
     }

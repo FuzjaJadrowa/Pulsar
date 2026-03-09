@@ -67,6 +67,7 @@ pub fn run() {
             core::downloader::start_download,
             core::downloader::cancel_download,
             core::downloader::pick_download_directory,
+            core::converter::pick_convert_file,
             core::downloader::save_thumbnail_to_disk,
             core::downloader::read_clipboard_text,
             core::downloader::open_in_file_manager

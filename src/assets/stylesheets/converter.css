@@ -10,7 +10,7 @@
     flex-direction: column;
     overflow-y: auto;
     scrollbar-width: none;
-    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
+    padding: calc(var(--titlebar-height) + var(--page-top-gap) - 6px) 0 40px;
     z-index: 1;
 }
 
@@ -22,8 +22,4 @@
 
 .converter-bar .bar-action {
     width: 64px;
-}
-
-.converter-file-input {
-    display: none;
 }

@@ -24,6 +24,7 @@
     const searchSection = document.getElementById('search-section');
     const dashboard = document.getElementById('dashboard-section');
     const urlInput = document.getElementById('url-input');
+    const resultsSection = document.getElementById('search-results-section');
     const fetchBtn = document.getElementById('fetch-btn');
     const pasteIcon = document.getElementById('paste-icon');
     const metaAuthor = document.getElementById('meta-author');
@@ -1394,6 +1395,23 @@
         loadPresets();
     });
     loadPresets();
+    const syncZenState = () => {
+        if (!body || !searchSection || !urlInput) return;
+        if (body.classList.contains('search-mode')) {
+            setZenMode(false);
+            return;
+        }
+        const centered = searchSection.classList.contains('centered');
+        const dashboardHidden = !dashboard || dashboard.classList.contains('hidden');
+        const resultsHidden = !resultsSection || resultsSection.classList.contains('hidden');
+        const hasUrl = urlInput.value.trim().length > 0;
+        if (centered && dashboardHidden && resultsHidden && !hasUrl) {
+            setZenMode(true);
+        } else {
+            setZenMode(false);
+        }
+    };
+
     window.downloaderUi = {
         startMetadataForUrl: async (url) => {
             const trimmed = String(url || '').trim();
@@ -1411,6 +1429,7 @@
             if (body) body.classList.remove('mode-video', 'mode-audio');
         },
         triggerShake: (element) => triggerShakeFeedback(element || urlInput),
-        syncIdleAnimation: () => {}
+        syncIdleAnimation: () => {},
+        syncZenState
     };
 })();

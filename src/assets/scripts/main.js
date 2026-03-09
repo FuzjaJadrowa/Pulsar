@@ -803,6 +803,15 @@ async function loadPage(pageName, pageIndex) {
 
     const body = document.body;
     const isWavePage = (name) => name === 'downloader' || name === 'converter';
+    const isWaveVisible = () => {
+        if (!body) return false;
+        if (!body.classList.contains('wave-page')) return false;
+        if (!body.classList.contains('zen-mode')) return false;
+        if (!body.classList.contains('idle-anim-enabled')) return false;
+        if (body.classList.contains('search-mode')) return false;
+        return true;
+    };
+    const currentWaveVisible = isWaveVisible();
     if (body) {
         body.classList.remove('idle-waves-enter');
         if (idleWavesEnterTimer) {
@@ -822,14 +831,18 @@ async function loadPage(pageName, pageIndex) {
         }
     };
 
-    const prevWave = isWavePage(currentPageName);
-    const nextWave = isWavePage(pageName);
-    if (body) {
-        body.classList.toggle('wave-transition', hasPrevious && prevWave !== nextWave);
-    }
+    const updateWaveTransition = () => {
+        if (!body) return;
+        const nextWaveVisible = isWaveVisible();
+        body.classList.toggle('wave-transition', hasPrevious && currentWaveVisible !== nextWaveVisible);
+    };
 
     if (!hasPrevious || previousView === targetView) {
         applyPageClass(pageName);
+        if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
+            window.downloaderUi.syncZenState();
+        }
+        updateWaveTransition();
         if (previousView && previousView !== targetView) {
             previousView.classList.remove('active-view');
         }
@@ -839,12 +852,19 @@ async function loadPage(pageName, pageIndex) {
         setTimeout(() => {
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
+            if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
+                window.downloaderUi.syncZenState();
+            }
         }, 50);
     } else {
         if (body) {
             body.classList.add('page-transition');
         }
         applyPageClass(pageName);
+        if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
+            window.downloaderUi.syncZenState();
+        }
+        updateWaveTransition();
         const incomingFrom = direction === 'right' ? '100%' : '-100%';
         const outgoingTo = direction === 'right' ? '-100%' : '100%';
 
@@ -881,6 +901,9 @@ async function loadPage(pageName, pageIndex) {
             }
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
+            if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
+                window.downloaderUi.syncZenState();
+            }
         }, 50);
     }
 
