@@ -132,6 +132,89 @@ body.theme-light .notif-close {
 }
 .page-scroll::-webkit-scrollbar { display: none; }
 
+.search-box-row {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 500px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.search-box-row:focus-within {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(138, 43, 226, 0.2);
+}
+
+.search-box-row input[type="text"] {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 0 20px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-box-row .bar-icon {
+    width: 44px;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.15s;
+    background: transparent;
+    border: none;
+}
+
+.search-box-row .bar-icon:hover { color: white; }
+.search-box-row .bar-icon.paste-pop { transform: scale(1.08); }
+
+.search-box-row .bar-action {
+    width: 60px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.search-box-row .bar-action:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+body.theme-light .search-box-row {
+    background: rgba(255, 255, 255, 0.74);
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 22px rgba(31, 44, 77, 0.12);
+}
+
+body.theme-light .search-box-row input[type="text"] { color: #1d2330; }
+body.theme-light .search-box-row .bar-icon { color: rgba(29, 35, 48, 0.6); }
+body.theme-light .search-box-row .bar-action {
+    background: rgba(0, 0, 0, 0.04);
+    border-left-color: rgba(0, 0, 0, 0.08);
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .search-box-row .bar-action:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #1d2330;
+}
+
 .form-row {
     display: flex;
     align-items: center;
@@ -153,27 +236,27 @@ body.theme-light .notif-close {
     transition: opacity 0.35s ease-out, transform 0.6s ease;
     will-change: opacity, transform;
 }
-body.zen-mode.idle-anim-enabled .zen-data-sea {
+body.wave-page.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 1;
     transform: translateY(0);
     transition: opacity 1.2s ease-in, transform 0.8s ease;
 }
-body.search-mode .zen-data-sea {
+body.wave-page.search-mode .zen-data-sea {
     opacity: 0;
     transform: translateY(0);
     transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-body.search-mode.zen-mode.idle-anim-enabled .zen-data-sea {
+body.wave-page.search-mode.zen-mode.idle-anim-enabled .zen-data-sea {
     opacity: 0;
     transform: translateY(0);
     transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-body.zen-mode.idle-anim-enabled .search-section.sticky + .zen-data-sea {
+body.wave-page.zen-mode.idle-anim-enabled .search-section.sticky + .zen-data-sea {
     opacity: 0;
     transform: translateY(0);
     transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-body.search-mode .search-section.sticky + .zen-data-sea {
+body.wave-page.search-mode .search-section.sticky + .zen-data-sea {
     opacity: 0;
     transform: translateY(0);
     transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -184,12 +267,11 @@ body:not(.idle-anim-enabled) .zen-data-sea {
     transform: translateY(0);
     transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-body.page-transition .zen-data-sea {
-    opacity: 0;
-    transform: translateY(12vh);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-in;
+body.wave-transition.zen-mode.idle-anim-enabled .zen-data-sea,
+body.wave-transition:not(.zen-mode) .zen-data-sea {
+    transition: opacity 0.45s ease, transform 0.5s ease;
 }
-body.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea {
+body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea {
     opacity: 0;
     transform: translateY(0);
     transition: none;
@@ -319,6 +401,8 @@ body.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea
 .nav-btn.expandable.active span {
     opacity: 1;
 }
+
+.nav-gap { margin-left: 10px; }
 
 #btn-queue {
     display: none;

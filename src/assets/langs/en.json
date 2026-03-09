@@ -30,6 +30,7 @@
     },
     "nav": {
       "download": "Download",
+      "convert": "Convert",
       "settings": "Settings",
       "queue": "Queue"
     }
@@ -92,6 +93,15 @@
     },
     "languages": {
       "global": "Global"
+    }
+  },
+  "converter": {
+    "path": {
+      "placeholder": "Select a file to convert..."
+    },
+    "actions": {
+      "browse": "Browse folder",
+      "confirm": "Confirm"
     }
   },
   "queue": {

@@ -1,0 +1,29 @@
+.converter-page {
+    position: relative;
+}
+
+.converter-scroll {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
+    z-index: 1;
+}
+
+.converter-scroll::-webkit-scrollbar { display: none; }
+
+.converter-bar {
+    width: 100%;
+}
+
+.converter-bar .bar-action {
+    width: 64px;
+}
+
+.converter-file-input {
+    display: none;
+}

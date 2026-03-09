@@ -5,13 +5,13 @@
     <div id="search-section" class="search-section centered">
       <div class="search-box-row">
         <input type="text" id="url-input" placeholder="Type something here..." data-i18n-placeholder="downloader.search.urlPlaceholder" autocomplete="off">
-        <span id="paste-icon" class="paste-icon" title="Paste from clipboard" data-i18n-title="downloader.search.pasteTitle" role="button" tabindex="0">
+        <span id="paste-icon" class="paste-icon bar-icon" title="Paste from clipboard" data-i18n-title="downloader.search.pasteTitle" role="button" tabindex="0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="3" width="6" height="4" rx="1"></rect>
             <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
           </svg>
         </span>
-        <button id="fetch-btn">
+        <button id="fetch-btn" class="bar-action">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
@@ -45,8 +45,6 @@
         </div>
       </div>
     </div>
-
-    <canvas id="data-sea-canvas" class="zen-data-sea" aria-hidden="true"></canvas>
 
     <div id="dashboard-section" class="dashboard-section hidden">
 

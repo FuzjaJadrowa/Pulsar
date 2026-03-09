@@ -156,7 +156,9 @@ const dataSea = (() => {
     const isActive = () => {
         const body = document.body;
         if (!body) return false;
-        if (!body.classList.contains('page-downloader')) return false;
+        const isDownloader = body.classList.contains('page-downloader');
+        const isConverter = body.classList.contains('page-converter');
+        if (!isDownloader && !isConverter) return false;
         if (!body.classList.contains('zen-mode')) return false;
         if (!body.classList.contains('idle-anim-enabled')) return false;
         if (body.classList.contains('search-mode')) return false;
@@ -800,24 +802,31 @@ async function loadPage(pageName, pageIndex) {
     }
 
     const body = document.body;
-    const shouldAnimateIdleWaves = pageName === 'downloader'
-        && ((currentPageName && currentPageName !== 'downloader') || !currentPageName);
+    const isWavePage = (name) => name === 'downloader' || name === 'converter';
     if (body) {
-        if (shouldAnimateIdleWaves) {
-            triggerIdleWavesEnter();
-        } else {
-            body.classList.remove('idle-waves-enter');
-            if (idleWavesEnterTimer) {
-                clearTimeout(idleWavesEnterTimer);
-                idleWavesEnterTimer = null;
-            }
+        body.classList.remove('idle-waves-enter');
+        if (idleWavesEnterTimer) {
+            clearTimeout(idleWavesEnterTimer);
+            idleWavesEnterTimer = null;
         }
     }
     const applyPageClass = (name) => {
         if (!body) return;
         body.classList.toggle('page-downloader', name === 'downloader');
         body.classList.toggle('page-settings', name === 'settings');
+        body.classList.toggle('page-converter', name === 'converter');
+        body.classList.toggle('wave-page', isWavePage(name));
+        if (name === 'converter') {
+            body.classList.add('zen-mode');
+            body.classList.remove('search-mode');
+        }
     };
+
+    const prevWave = isWavePage(currentPageName);
+    const nextWave = isWavePage(pageName);
+    if (body) {
+        body.classList.toggle('wave-transition', hasPrevious && prevWave !== nextWave);
+    }
 
     if (!hasPrevious || previousView === targetView) {
         applyPageClass(pageName);
@@ -866,7 +875,10 @@ async function loadPage(pageName, pageIndex) {
         targetView.style.transform = '';
         targetView.style.opacity = '';
         setTimeout(() => {
-            if (body) body.classList.remove('page-transition');
+            if (body) {
+                body.classList.remove('page-transition');
+                body.classList.remove('wave-transition');
+            }
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
         }, 50);
@@ -928,7 +940,7 @@ window.setQueuePanelVisible = async function(visible) {
     }
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+/**document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     });
@@ -976,4 +988,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
-});
+});**/

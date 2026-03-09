@@ -1,0 +1,25 @@
+<div class="page-root converter-page">
+  <div class="converter-scroll">
+    <div class="search-section centered converter-zen">
+      <div class="search-box-row converter-bar" id="converter-bar">
+        <input type="text" id="convert-path-input" placeholder="Select a file to convert..." data-i18n-placeholder="converter.path.placeholder" autocomplete="off">
+        <span id="convert-browse-btn" class="bar-icon" title="Browse" data-i18n-title="converter.actions.browse" role="button" tabindex="0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+        <button id="convert-confirm-btn" class="bar-action" title="Confirm" data-i18n-title="converter.actions.confirm">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <input type="file" id="convert-file-input" class="converter-file-input" />
+</div>
+
+<script src="assets/scripts/converter.js"></script>

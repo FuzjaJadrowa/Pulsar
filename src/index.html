@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="assets/stylesheets/notifications.css" />
     <link rel="stylesheet" href="assets/stylesheets/queue.css" />
     <link rel="stylesheet" href="assets/stylesheets/downloader.css" />
+    <link rel="stylesheet" href="assets/stylesheets/converter.css" />
     <link rel="stylesheet" href="assets/stylesheets/preset_creator.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Montserrat:wght@400;600;800&family=Roboto:wght@400;500&display=swap" />
 </head>
@@ -44,9 +45,19 @@
         <span data-i18n="index.nav.download">Download</span>
     </button>
 
+    <button class="nav-btn expandable nav-gap" onclick="loadPage('converter', 1)" id="nav-converter">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <polyline points="8 21 3 21 3 16"></polyline>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+        </svg>
+        <span data-i18n="index.nav.convert">Convert</span>
+    </button>
+
     <div style="flex-grow: 1;"></div>
 
-    <button class="nav-btn" onclick="loadPage('settings', 1)" id="nav-settings">
+    <button class="nav-btn" onclick="loadPage('settings', 2)" id="nav-settings">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3" fill="none"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 9.93 3.1V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -74,6 +85,8 @@
 </div>
 
 <div id="content-area"></div>
+
+<canvas id="data-sea-canvas" class="zen-data-sea" aria-hidden="true"></canvas>
 
 <div id="queue-panel" style="display: none;"></div>
 
