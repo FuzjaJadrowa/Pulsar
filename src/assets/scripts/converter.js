@@ -38,6 +38,7 @@
     const renameBtn = root.querySelector('#convert-rename-btn');
     const categoryIcon = root.querySelector('#convert-category-icon');
     const categoryLabel = root.querySelector('#convert-category-label');
+    const locationValue = root.querySelector('#convert-file-location');
     const sizeValue = root.querySelector('#convert-file-size');
     const durationValue = root.querySelector('#convert-file-duration');
     const dropOverlay = root.querySelector('#convert-drop-overlay');
@@ -50,6 +51,7 @@
     let isLoading = false;
     let currentName = '';
     let isEditingName = false;
+    let lastMetadata = null;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -103,7 +105,19 @@
         return `${hrs}:${mins}:${secs}`;
     };
 
-    const updateDashboard = (data) => {
+    const extractFolderPath = (rawPath) => {
+        if (typeof rawPath !== 'string') return '';
+        const trimmed = rawPath.trim();
+        if (!trimmed) return '';
+        const lastSlash = trimmed.lastIndexOf('/');
+        const lastBackslash = trimmed.lastIndexOf('\\');
+        const lastSep = Math.max(lastSlash, lastBackslash);
+        if (lastSep <= 0) return trimmed;
+        return trimmed.slice(0, lastSep);
+    };
+
+    const updateDashboard = (data, options = {}) => {
+        const applyName = options.applyName !== false;
         const category = String(data.category || '').toLowerCase();
         const extension = String(data.extension || '').trim();
         const categoryLabelText = t(
@@ -127,7 +141,19 @@
             }
         }
 
-        currentName = data.name || '';
+        if (locationValue) {
+            const folderPath = extractFolderPath(data.path);
+            locationValue.textContent = folderPath || '-';
+            if (folderPath) {
+                locationValue.setAttribute('title', folderPath);
+            } else {
+                locationValue.removeAttribute('title');
+            }
+        }
+
+        if (applyName) {
+            currentName = data.name || '';
+        }
         if (outputNameText) {
             outputNameText.textContent = currentName || t('converter.output.placeholder', 'Output name');
         }
@@ -164,11 +190,12 @@
         }
         if (document.body) {
             document.body.classList.add('converter-active');
-            document.body.classList.add('search-mode');
+            setZenMode(false);
         }
     };
 
     const resetView = () => {
+        lastMetadata = null;
         if (dashboard) {
             dashboard.classList.add('hidden');
         }
@@ -178,10 +205,14 @@
         }
         if (document.body) {
             document.body.classList.remove('converter-active');
-            document.body.classList.remove('search-mode');
+            setZenMode(true);
         }
         if (categoryLabel) categoryLabel.textContent = '';
         if (categoryIcon) categoryIcon.innerHTML = '';
+        if (locationValue) {
+            locationValue.textContent = '-';
+            locationValue.removeAttribute('title');
+        }
         if (sizeValue) sizeValue.textContent = '-';
         if (durationValue) durationValue.textContent = '-';
         currentName = '';
@@ -189,6 +220,16 @@
         if (outputNameInput) outputNameInput.value = '';
         if (infoCard) infoCard.classList.remove('name-editing');
         isEditingName = false;
+    };
+
+    const setZenMode = (enabled) => {
+        const body = document.body;
+        if (!body) return;
+        const wasZen = body.classList.contains('zen-mode');
+        body.classList.toggle('zen-mode', !!enabled);
+        if (!wasZen && enabled && typeof window.triggerIdleWavesEnter === 'function') {
+            window.triggerIdleWavesEnter();
+        }
     };
 
     const resolveErrorMessage = (raw) => {
@@ -225,9 +266,16 @@
         const value = pathInput.value.trim();
         if (!value) return;
         setConfirmLoading(true);
+        const clientTaskId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+        metadataTaskId = clientTaskId;
         try {
-            metadataTaskId = await invoke('fetch_metadata_converter', { path: value });
+            await invoke('fetch_metadata_converter', {
+                path: value,
+                client_task_id: clientTaskId,
+                clientTaskId
+            });
         } catch (error) {
+            metadataTaskId = null;
             setConfirmLoading(false);
             showError(resolveErrorMessage(error && error.message ? error.message : error));
         }
@@ -485,10 +533,39 @@
                 return;
             }
 
+            lastMetadata = payload.data;
             updateDashboard(payload.data);
             showDashboard();
         });
     }
+
+    window.converterUi = {
+        syncState: () => {
+            if (!document.body?.classList.contains('page-converter')) return;
+            if (metadataTaskId) {
+                setConfirmLoading(true);
+                return;
+            }
+            const hasInput = !!pathInput && pathInput.value.trim().length > 0;
+            if (lastMetadata) {
+                updateDashboard(lastMetadata, { applyName: false });
+                showDashboard();
+            } else if (!hasInput) {
+                resetView();
+            } else {
+                if (searchSection) {
+                    searchSection.classList.remove('centered');
+                    searchSection.classList.add('sticky');
+                }
+                if (dashboard) dashboard.classList.add('hidden');
+                if (document.body) {
+                    document.body.classList.add('converter-active');
+                    setZenMode(false);
+                }
+            }
+            setConfirmLoading(false);
+        }
+    };
 
     resetView();
     setConfirmLoading(false);

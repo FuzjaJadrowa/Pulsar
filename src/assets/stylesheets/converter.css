@@ -1,10 +1,8 @@
-.converter-page,
-.compressor-page {
+.converter-page {
     position: relative;
 }
 
-.converter-scroll,
-.compressor-scroll {
+.converter-scroll {
     position: relative;
     width: 100%;
     height: 100%;
@@ -12,20 +10,17 @@
     flex-direction: column;
     overflow-y: auto;
     scrollbar-width: none;
-    padding: calc(var(--titlebar-height) + var(--page-top-gap) - 6px) 0 40px;
+    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
     z-index: 1;
 }
 
-.converter-scroll::-webkit-scrollbar,
-.compressor-scroll::-webkit-scrollbar { display: none; }
+.converter-scroll::-webkit-scrollbar { display: none; }
 
-.converter-bar,
-.compressor-bar {
+.converter-bar {
     width: 100%;
 }
 
-.converter-bar .bar-action,
-.compressor-bar .bar-action {
+.converter-bar .bar-action {
     width: 64px;
 }
 
@@ -43,9 +38,12 @@ body.page-converter.converter-active::before {
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
-    padding: 20px 40px 80px 40px;
+    padding: 20px 40px 60px 40px;
     opacity: 1;
     transition: opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .converter-dashboard.hidden {
@@ -54,8 +52,9 @@ body.page-converter.converter-active::before {
 }
 
 .converter-info-card {
-    width: min(320px, 86vw);
-    margin: 12px auto 0;
+    width: min(500px, 90vw);
+    box-sizing: border-box;
+    margin: 12px 0 0;
     padding: 22px;
     display: flex;
     flex-direction: column;
@@ -148,8 +147,8 @@ body.page-converter.converter-active::before {
 }
 
 .converter-category-icon {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     color: rgba(255, 255, 255, 0.9);
     display: inline-flex;
     align-items: center;
@@ -193,6 +192,14 @@ body.page-converter.converter-active::before {
 .converter-meta-value {
     color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
+}
+
+.converter-meta-location-value {
+    max-width: 65%;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .converter-info-card.no-duration .converter-meta-duration {

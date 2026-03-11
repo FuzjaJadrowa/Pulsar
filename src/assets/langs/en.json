@@ -108,6 +108,7 @@
       "editTitle": "Edit output name"
     },
     "meta": {
+      "locationLabel": "Location",
       "sizeLabel": "Size",
       "durationLabel": "Duration",
       "category": {

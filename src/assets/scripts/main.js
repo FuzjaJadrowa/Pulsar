@@ -844,6 +844,9 @@ async function loadPage(pageName, pageIndex) {
         if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
             window.downloaderUi.syncZenState();
         }
+        if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
+            window.converterUi.syncState();
+        }
         updateWaveTransition();
         if (previousView && previousView !== targetView) {
             previousView.classList.remove('active-view');
@@ -857,6 +860,9 @@ async function loadPage(pageName, pageIndex) {
             if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
                 window.downloaderUi.syncZenState();
             }
+            if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
+                window.converterUi.syncState();
+            }
         }, 50);
     } else {
         if (body) {
@@ -865,6 +871,9 @@ async function loadPage(pageName, pageIndex) {
         applyPageClass(pageName);
         if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
             window.downloaderUi.syncZenState();
+        }
+        if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
+            window.converterUi.syncState();
         }
         updateWaveTransition();
         const incomingFrom = direction === 'right' ? '100%' : '-100%';
@@ -905,6 +914,9 @@ async function loadPage(pageName, pageIndex) {
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
             if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
                 window.downloaderUi.syncZenState();
+            }
+            if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
+                window.converterUi.syncState();
             }
         }, 50);
     }

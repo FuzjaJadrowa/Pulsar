@@ -94,6 +94,11 @@
       "global": "Globalny"
     }
   },
+  "converter": {
+    "meta": {
+      "locationLabel": "Lokalizacja"
+    }
+  },
   "queue": {
     "title": "Kolejka",
     "actions": {

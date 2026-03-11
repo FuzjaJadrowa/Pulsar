@@ -643,6 +643,10 @@ fn ensure_ffmpeg_permissions(dest_dir: &Path) {
             }
         }
     }
+    #[cfg(not(target_family = "unix"))] // to prevent warning
+    {
+        let _ = dest_dir;
+    }
 }
 
 async fn fetch_ffmpeg_checksum(client: &Client, assets: &[serde_json::Value], asset_name: &str, splash_state: &SplashState) -> Option<String> {
