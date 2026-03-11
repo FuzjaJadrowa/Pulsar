@@ -102,6 +102,30 @@
     },
     "actions": {
       "browse": "Browse"
+    },
+    "output": {
+      "placeholder": "Output name",
+      "editTitle": "Edit output name"
+    },
+    "meta": {
+      "sizeLabel": "Size",
+      "durationLabel": "Duration",
+      "category": {
+        "video": "Video",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Font"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Unsupported format.",
+      "metadataFailed": "Failed to read file.",
+      "fileNotFound": "File not found.",
+      "noPath": "No file selected."
+    },
+    "drop": {
+      "text": "Drop file to convert"
     }
   },
   "compressor": {

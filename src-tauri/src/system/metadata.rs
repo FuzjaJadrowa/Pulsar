@@ -11,8 +11,18 @@ struct BridgeCommand {
     args: Vec<String>,
 }
 
+fn build_task_id() -> Result<String, String> {
+    Ok(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| e.to_string())?
+            .as_millis()
+            .to_string()
+    )
+}
+
 #[tauri::command]
-pub fn fetch_metadata(
+pub fn fetch_metadata_downloader(
     app_handle: AppHandle,
     state: State<BridgeState>,
     config_mgr: State<ConfigManager>,
@@ -23,11 +33,7 @@ pub fn fetch_metadata(
         return Err("URL cannot be empty".to_string());
     }
 
-    let task_id = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|e| e.to_string())?
-        .as_millis()
-        .to_string();
+    let task_id = build_task_id()?;
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
@@ -40,9 +46,33 @@ pub fn fetch_metadata(
     args.push(trimmed_url.to_string());
 
     let cmd = BridgeCommand {
-        command: "metadata".to_string(),
+        command: "metadata_d".to_string(),
         id: task_id.clone(),
         args,
+    };
+
+    state.send_raw_command(&app_handle, &cmd)?;
+
+    Ok(task_id)
+}
+
+#[tauri::command]
+pub fn fetch_metadata_converter(
+    app_handle: AppHandle,
+    state: State<BridgeState>,
+    path: String,
+) -> Result<String, String> {
+    let trimmed_path = path.trim();
+    if trimmed_path.is_empty() {
+        return Err("Path cannot be empty".to_string());
+    }
+
+    let task_id = build_task_id()?;
+
+    let cmd = BridgeCommand {
+        command: "metadata_c".to_string(),
+        id: task_id.clone(),
+        args: vec![trimmed_path.to_string()],
     };
 
     state.send_raw_command(&app_handle, &cmd)?;

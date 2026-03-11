@@ -1,6 +1,6 @@
 <div class="page-root converter-page">
   <div class="converter-scroll">
-    <div class="search-section centered converter-zen">
+    <div id="convert-search-section" class="search-section centered converter-zen">
       <div class="search-box-row converter-bar" id="converter-bar">
         <input type="text" id="convert-path-input" placeholder="Select a file to convert..." data-i18n-placeholder="converter.path.placeholder" autocomplete="off">
         <span id="convert-browse-btn" class="bar-icon" title="Browse" data-i18n-title="converter.actions.browse" role="button" tabindex="0">
@@ -14,6 +14,44 @@
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
         </button>
+      </div>
+    </div>
+
+    <div id="convert-dashboard" class="converter-dashboard hidden">
+      <div class="converter-info-card fade-in">
+        <div class="converter-name-row">
+          <span id="convert-output-name-text" class="converter-name-text" data-i18n="converter.output.placeholder">Output name</span>
+          <input id="convert-output-name-input" class="converter-name-input" type="text" placeholder="Output name" data-i18n-placeholder="converter.output.placeholder" autocomplete="off">
+          <button type="button" id="convert-rename-btn" class="converter-rename-btn" title="Edit name" data-i18n-title="converter.output.editTitle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="converter-category-row">
+          <span id="convert-category-icon" class="converter-category-icon"></span>
+          <span id="convert-category-label" class="converter-category-label">File</span>
+        </div>
+        <div class="converter-meta-row">
+          <div class="converter-meta-item">
+            <span class="converter-meta-label" data-i18n="converter.meta.sizeLabel">Size</span>
+            <span id="convert-file-size" class="converter-meta-value">-</span>
+          </div>
+          <div class="converter-meta-item converter-meta-duration">
+            <span class="converter-meta-label" data-i18n="converter.meta.durationLabel">Duration</span>
+            <span id="convert-file-duration" class="converter-meta-value">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="convert-drop-overlay" class="convert-drop-overlay" aria-hidden="true">
+      <div class="convert-drop-content">
+        <div class="convert-drop-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style="fill-rule:evenodd"/></svg>
+        </div>
+        <div class="convert-drop-text" data-i18n="converter.drop.text">Drop file to convert</div>
       </div>
     </div>
 

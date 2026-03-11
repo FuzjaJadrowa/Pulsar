@@ -905,7 +905,7 @@
         setFetchLoading(true);
 
         try {
-            const taskId = await invoke('fetch_metadata', { url });
+            const taskId = await invoke('fetch_metadata_downloader', { url });
             state.metadataTaskId = taskId;
             return taskId;
         } catch (error) {
