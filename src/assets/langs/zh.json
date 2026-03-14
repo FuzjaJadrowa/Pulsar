@@ -1,0 +1,353 @@
+{
+  "common": {
+    "error": "Error",
+    "success": "Success",
+    "info": "Info",
+    "unknownTitle": "Unknown title",
+    "unknownChannel": "Unknown channel",
+    "pageLabel": "Page {current}/{total}",
+    "eta": "ETA"
+  },
+  "connection": {
+    "noInternet": "No internet connection. Some app features may be unavailable.",
+    "lost": "Internet connection lost.",
+    "restored": "Internet connection restored."
+  },
+  "index": {
+    "splash": {
+      "starting": "Starting...",
+      "skipUpdate": "Skip Update",
+      "checking": "Checking...",
+      "checkingForUpdates": "Checking for updates...",
+      "checkingComponent": "Checking {component}...",
+      "updatingTo": "Updating to {version}",
+      "updateCheckFailed": "Update check failed: {error}",
+      "errorPrefix": "Error: {error}",
+      "updateAvailableAutoDisabled": "Update available (auto-update disabled)",
+      "updateInstalledRestarting": "Update installed. Restarting...",
+      "downloadingComponent": "Downloading {component}...",
+      "extracting": "Extracting..."
+    },
+    "nav": {
+      "download": "Download",
+      "settings": "Settings",
+      "queue": "Queue"
+    }
+  },
+  "downloader": {
+    "search": {
+      "urlPlaceholder": "Type something here...",
+      "pasteTitle": "Paste from clipboard",
+      "providerLabel": "Search on",
+      "resultsTitle": "SEARCH RESULTS",
+      "resultsCount": "{count} results",
+      "loading": "Searching...",
+      "empty": "No results."
+    },
+    "meta": {
+      "defaultAuthor": "Channel Name"
+    },
+    "path": {
+      "placeholder": "No save path selected...",
+      "browseTitle": "Browse folder"
+    },
+    "mode": {
+      "video": "VIDEO",
+      "audio": "AUDIO"
+    },
+    "options": {
+      "format": "FORMAT",
+      "quality": "QUALITY",
+      "thumbnail": "THUMBNAIL",
+      "preview": "PREVIEW",
+      "presets": "PRESETS",
+      "other": "OTHER",
+      "geoBypass": "Geo bypass",
+      "embedMetadata": "Embed metadata",
+      "muteAudio": "Mute audio",
+      "customArgs": "Custom args",
+      "customArgsPlaceholder": "Optional",
+      "subtitles": "SUBTITLES",
+      "downloadSubtitles": "Download subtitles",
+      "embedSubtitles": "Embed subtitles",
+      "downloadLiveChat": "Download live chat",
+      "codeOptional": "Code (optional)"
+    },
+    "thumbnail": {
+      "none": "None",
+      "saveToFile": "Save to file",
+      "embedInVideo": "Embed in video",
+      "alt": "Thumbnail",
+      "noPreview": "NO PREVIEW",
+      "saveFailed": "Failed to save thumbnail. Check console for details."
+    },
+    "actions": {
+      "download": "DOWNLOAD",
+      "addToQueue": "ADD TO QUEUE"
+    },
+    "errors": {
+      "invalidLink": "Invalid link.",
+      "startPrefix": "Error: {error}",
+      "searchFailed": "Search failed."
+    },
+    "languages": {
+      "global": "Global"
+    }
+  },
+  "queue": {
+    "title": "Queue",
+    "actions": {
+      "startAll": "Start all",
+      "stopAll": "Stop all",
+      "clearQueue": "Clear queue"
+    },
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page",
+      "label": "Page 1/1"
+    },
+    "empty": "Queue is empty.",
+    "itemActions": {
+      "start": "Start",
+      "stop": "Stop",
+      "remove": "Remove",
+      "retry": "Retry",
+      "openLocation": "Open location",
+      "console": "Console"
+    },
+    "console": {
+      "title": "Console - {id}",
+      "empty": "No console output yet."
+    },
+    "subtitles": {
+      "label": "Subtitles",
+      "on": "ON",
+      "off": "OFF"
+    },
+    "notifications": {
+      "systemTitle": "Pulsar",
+      "downloadCompleted": "Download completed successfully.",
+      "downloadCompletedSystem": "Download completed.",
+      "queueCompleted": "Queue downloads completed successfully.",
+      "queueCompletedSystem": "Queue downloads completed.",
+      "downloadFailed": "Download failed.{suffix}",
+      "downloadFailedSystem": "Download failed.{suffix}",
+      "errorSuffix": " Error code: {code}",
+      "downloadStopped": "Download stopped by user."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "themeOptions": {
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "language": "Language",
+    "closeBehavior": "When I close Pulsar:",
+    "closeBehaviorOptions": {
+      "hide": "Hide",
+      "exit": "Exit"
+    },
+    "systemNotifications": "System notifications",
+    "advancedMode": "Advanced mode",
+    "advancedModeNote": "Shows advanced options and console access.",
+    "idleAnimation": "Idle animation",
+    "requirements": "Requirements",
+    "autoUpdateApp": "Auto-update Pulsar",
+    "autoUpdateBridge": "Auto-update Bridge",
+    "autoUpdateFfmpeg": "Auto-update FFmpeg",
+    "updateCooldown": "Update check cooldown (minutes)",
+    "downloadSettings": "Download settings",
+    "cookiesFromBrowser": "Cookies from browser",
+    "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
+    "maximumConcurrentProcesses": "Maximum concurrent processes",
+    "maximumSearchResults": "Maximum search results",
+    "presetsManager": {
+      "title": "Presets Manager",
+      "count": "{count} presets",
+      "countSingle": "1 preset",
+      "empty": "No presets yet.",
+      "untitled": "Untitled",
+      "noSummary": "No summary",
+      "types": {
+        "downloader": "Downloader"
+      },
+      "actions": {
+        "add": "New preset",
+        "import": "Import",
+        "edit": "Edit",
+        "export": "Export",
+        "delete": "Delete",
+        "hide": "Hidden"
+      },
+      "notifications": {
+        "unavailable": "This action is not available yet.",
+        "importFailed": "Failed to import preset.",
+        "exportFailed": "Failed to export preset.",
+        "deleteFailed": "Failed to delete preset."
+      }
+    },
+    "titleConstructor": "Title Constructor",
+    "titleConstructorNote": "Not every tag is available for all media.",
+    "titleConstructorCategories": {
+      "video": "Video",
+      "statsDates": "Stats & Dates",
+      "playlist": "Playlist",
+      "music": "Music"
+    },
+    "titleConstructorTags": {
+      "title": "Title",
+      "id": "Video ID",
+      "resolution": "Resolution",
+      "durationString": "Duration",
+      "fps": "FPS",
+      "uploadDate": "Upload Date",
+      "viewCount": "View Count",
+      "likeCount": "Like Count",
+      "dislikeCount": "Dislike Count",
+      "uploader": "Uploader",
+      "playlist": "Playlist Name",
+      "playlistIndex": "Playlist Index",
+      "videoAutonumber": "Queue Number",
+      "track": "Track Name",
+      "artist": "Artist",
+      "album": "Album",
+      "releaseYear": "Release Year"
+    },
+    "support": "Support",
+    "supportText": "Show your support!",
+    "supportButton": "Support Project"
+  },
+  "formats": {
+    "flv": {
+      "label": "FLV",
+      "description": "Legacy Flash format."
+    },
+    "mkv": {
+      "label": "MKV",
+      "description": "Universal container that fits everything."
+    },
+    "mp4": {
+      "label": "MP4",
+      "description": "Most popular video format."
+    },
+    "mov": {
+      "label": "MOV",
+      "description": "Apple format with RGBA support."
+    },
+    "avi": {
+      "label": "AVI",
+      "description": "Legacy but still popular."
+    },
+    "wav": {
+      "label": "WAV",
+      "description": "Lossless Windows audio format."
+    },
+    "aiff": {
+      "label": "AIFF",
+      "description": "Lossless Apple audio format."
+    },
+    "m4a": {
+      "label": "M4A",
+      "description": "Better quality and compression than MP3."
+    },
+    "flac": {
+      "label": "FLAC",
+      "description": "Lossless audio compression."
+    },
+    "mp3": {
+      "label": "MP3",
+      "description": "Most popular audio format."
+    },
+    "ogg": {
+      "label": "OGG",
+      "description": "Open audio container."
+    },
+    "opus": {
+      "label": "OPUS",
+      "description": "Open, efficient, lossy audio format."
+    },
+    "gif": {
+      "label": "GIF",
+      "description": "Just image that can be animated."
+    },
+    "webm": {
+      "label": "WEBM",
+      "description": "Open video format created by Google for the web."
+    }
+  },
+  "presetCreator": {
+    "title": {
+      "new": "Create Preset",
+      "edit": "Edit Preset"
+    },
+    "sections": {
+      "basic": "Preset Details",
+      "type": "Preset Type",
+      "format": "Format",
+      "misc": "Misc",
+      "videoAudio": "Video & Audio",
+      "video": "Video Options",
+      "audio": "Audio Options"
+    },
+    "fields": {
+      "title": "Title",
+      "summary": "Summary",
+      "icon": "Icon",
+      "path": "Save path",
+      "videoQuality": "Video quality",
+      "videoCodec": "Video codec",
+      "videoBitrate": "Video bitrate",
+      "videoFps": "FPS",
+      "audioSampleRate": "Audio sample rate",
+      "audioCodec": "Audio codec",
+      "audioBitrate": "Audio bitrate"
+    },
+    "placeholders": {
+      "title": "Preset title",
+      "summary": "Short description",
+      "format": "Type format",
+      "path": "Optional",
+      "subtitlesCode": "en",
+      "bitrate": "Auto"
+    },
+    "types": {
+      "downloader": "Downloader"
+    },
+    "icon": {
+      "title": "Drop icon here",
+      "hint": "1:1 ratio, PNG/JPG/SVG",
+      "browse": "Browse"
+    },
+    "toggles": {
+      "downloadSubtitles": "Download subtitles",
+      "embedSubtitles": "Embed subtitles",
+      "subtitlesCode": "Code (optional)",
+      "embedMetadata": "Embed metadata",
+      "embedThumbnail": "Embed thumbnail",
+      "geoBypass": "Geo bypass",
+      "muteAudio": "Mute audio"
+    },
+    "actions": {
+      "browse": "Browse",
+      "save": "Save Preset",
+      "export": "Export Preset",
+      "close": "Close"
+    },
+    "select": {
+      "auto": "Auto"
+    },
+    "notifications": {
+      "invalidIcon": "Invalid icon file.",
+      "validation": "Title and format are required.",
+      "saved": "Preset saved.",
+      "saveFailed": "Failed to save preset.",
+      "exportFailed": "Failed to export preset.",
+      "loadFailed": "Failed to load preset."
+    }
+  }
+}
