@@ -1,25 +1,3 @@
 .compressor-page {
     position: relative;
 }
-
-.compressor-scroll {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    scrollbar-width: none;
-    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
-    z-index: 1;
-}
-
-.compressor-scroll::-webkit-scrollbar { display: none; }
-
-.compressor-bar {
-    width: 100%;
-}
-
-.compressor-bar .bar-action {
-    width: 64px;
-}

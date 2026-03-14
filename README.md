@@ -1,11 +1,12 @@
 <p align="center">
-  <img src=".github/assets/icon_full.png" alt="Pulsar Logo" width="300"/>
+  <img src=".github/assets/logo.svg" alt="Pulsar Logo" width="300"/>
 </p>
 
 <p align="center">
   <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-windows.yml/badge.svg" alt="Build Windows">
   <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-macos.yml/badge.svg" alt="Build macOS">
   <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-linux.yml/badge.svg" alt="Build Linux">
+</p>
 
 ---
 <p align="center">High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.</p>

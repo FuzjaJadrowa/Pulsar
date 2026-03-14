@@ -455,10 +455,6 @@
     opacity: 1;
 }
 
-.hidden {
-    display: none !important;
-}
-
 body.theme-light {
     --queue-panel-bg: rgba(255, 255, 255, 0.78);
     --queue-panel-border: rgba(0, 0, 0, 0.1);
