@@ -48,6 +48,36 @@
           </div>
         </div>
       </div>
+
+      <div class="converter-options-panel fade-in">
+        <div class="converter-options-block">
+          <span class="option-label converter-options-title" data-i18n="converter.options.convertTo">CONVERT TO</span>
+          <div id="convert-media-toggle" class="converter-media-toggle hidden" data-mode="video" role="group" aria-label="Convert mode">
+            <button type="button" class="converter-toggle-option active" data-mode="video" aria-pressed="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>
+              <span data-i18n="converter.mode.video">VIDEO</span>
+            </button>
+            <button type="button" class="converter-toggle-option" data-mode="audio" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <span data-i18n="converter.mode.audio">AUDIO</span>
+            </button>
+          </div>
+          <div id="convert-format-grid" class="converter-format-grid content-transition"></div>
+        </div>
+
+        <div class="action-footer converter-action-footer">
+          <button id="convert-action-btn" class="big-action-btn" disabled>
+            <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M7.288 48.34c.061.04.129.068.193.105.18.105.363.201.559.277.093.036.19.06.286.089.175.053.351.098.535.127.049.008.094.028.144.034q.238.027.476.028h.001q.401-.001.79-.08c.154-.031.297-.086.443-.134.101-.033.206-.054.304-.094.162-.067.31-.158.46-.245.075-.043.156-.075.228-.124a4 4 0 0 0 .604-.495l7.492-7.492a3.995 3.995 0 0 0-4.249-6.56c4.535-11.868 16.033-20.322 29.475-20.322 12.266 0 23.516 7.2 28.658 18.342a4 4 0 1 0 7.264-3.352C74.503 14.478 60.403 5.455 45.027 5.455c-17.837 0-32.947 11.873-37.859 28.129-1.224-1.611-3.48-2.084-5.247-1.008a4 4 0 0 0-1.338 5.496l5.481 9.007c.014.023.035.041.049.063q.189.291.424.545c.036.039.064.085.101.122q.297.3.65.531m82.128 3.589-5.48-9.008c-.014-.023-.035-.04-.049-.063a4 4 0 0 0-.424-.546c-.035-.039-.063-.084-.1-.121a4 4 0 0 0-.65-.531c-.061-.04-.129-.067-.192-.104a4 4 0 0 0-.56-.277c-.093-.036-.19-.06-.287-.089a4 4 0 0 0-.534-.127c-.049-.008-.095-.028-.144-.034-.07-.008-.138.003-.208-.001-.091-.007-.177-.028-.269-.028-.082 0-.159.019-.239.024q-.18.01-.36.036a4 4 0 0 0-.503.113c-.105.03-.209.058-.312.097a4 4 0 0 0-.509.243c-.082.045-.166.082-.245.133-.237.153-.46.326-.659.524l-.001.001-7.492 7.492a4 4 0 0 0 0 5.656 3.99 3.99 0 0 0 4.249.904c-4.535 11.868-16.033 20.321-29.475 20.321a31.505 31.505 0 0 1-29.068-19.268 4 4 0 0 0-7.368 3.117 39.49 39.49 0 0 0 36.436 24.151c17.831 0 32.937-11.864 37.854-28.111a4 4 0 0 0 3.176 1.574c.708 0 1.426-.188 2.075-.584a3.996 3.996 0 0 0 1.338-5.494" transform="translate(1.407 1.407)scale(2.81)"/>
+            </svg>
+            <span data-i18n="converter.actions.convert">CONVERT</span>
+          </button>
+          <button id="convert-queue-btn" class="big-action-btn" disabled>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span data-i18n="converter.actions.addToQueue">ADD TO QUEUE</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="convert-drop-overlay" class="convert-drop-overlay" aria-hidden="true">

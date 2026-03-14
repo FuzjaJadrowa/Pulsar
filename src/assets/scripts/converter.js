@@ -30,6 +30,7 @@
     const searchSection = root.querySelector('#convert-search-section');
     const dashboard = root.querySelector('#convert-dashboard');
     const infoCard = root.querySelector('.converter-info-card');
+    const optionsPanel = root.querySelector('.converter-options-panel');
     const pathInput = root.querySelector('#convert-path-input');
     const browseBtn = root.querySelector('#convert-browse-btn');
     const confirmBtn = root.querySelector('#convert-confirm-btn');
@@ -41,6 +42,12 @@
     const locationValue = root.querySelector('#convert-file-location');
     const sizeValue = root.querySelector('#convert-file-size');
     const durationValue = root.querySelector('#convert-file-duration');
+    const formatGrid = root.querySelector('#convert-format-grid');
+    const formatToggle = root.querySelector('#convert-media-toggle');
+    const convertActionBtn = root.querySelector('#convert-action-btn');
+    const queueActionBtn = root.querySelector('#convert-queue-btn');
+    const actionFooter = root.querySelector('.converter-action-footer');
+    const toggleOptions = formatToggle ? Array.from(formatToggle.querySelectorAll('.converter-toggle-option')) : [];
     const dropOverlay = root.querySelector('#convert-drop-overlay');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
@@ -52,6 +59,14 @@
     let currentName = '';
     let isEditingName = false;
     let lastMetadata = null;
+    let formatDataLoaded = false;
+    let formatDataPromise = null;
+    let formatData = [];
+    let selectedFormat = '';
+    let currentCategory = '';
+    let selectedMode = 'video';
+    let dashboardRevealTimer = null;
+    let dashboardRevealed = false;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -103,6 +118,223 @@
         const mins = Math.floor((safe % 3600) / 60).toString().padStart(2, '0');
         const secs = Math.floor(safe % 60).toString().padStart(2, '0');
         return `${hrs}:${mins}:${secs}`;
+    };
+
+    const supportedCategories = new Set(['video', 'audio', 'image', 'archive', 'font']);
+
+    const loadFormatData = () => {
+        if (formatDataLoaded) return Promise.resolve();
+        if (formatDataPromise) return formatDataPromise;
+        formatDataPromise = fetch('assets/format.json', { cache: 'no-store' })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((json) => {
+                const formats = Array.isArray(json?.cformats) ? json.cformats : [];
+                formatData = formats;
+            })
+            .catch((error) => {
+                console.error('Failed to load format.json:', error);
+                formatData = [];
+            })
+            .finally(() => {
+                formatDataLoaded = true;
+                formatDataPromise = null;
+            });
+        return formatDataPromise;
+    };
+
+    const setActionButtonsEnabled = (enabled) => {
+        [convertActionBtn, queueActionBtn].forEach((btn) => {
+            if (!btn) return;
+            if (enabled) {
+                btn.removeAttribute('disabled');
+                btn.classList.add('ready');
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.classList.remove('ready');
+            }
+        });
+    };
+
+    const updateTileSelection = () => {
+        if (!formatGrid) return;
+        formatGrid.querySelectorAll('.converter-format-tile').forEach((tile) => {
+            const value = tile.getAttribute('data-format');
+            const active = value === selectedFormat;
+            tile.classList.toggle('active', active);
+            tile.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    };
+
+    const updateToggleButtons = () => {
+        if (!formatToggle) return;
+        toggleOptions.forEach((btn) => {
+            const mode = btn.getAttribute('data-mode');
+            const active = mode === selectedMode;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        formatToggle.setAttribute('data-mode', selectedMode);
+        if (root) root.dataset.convertMode = selectedMode;
+    };
+
+    const clearFormatSelection = () => {
+        selectedFormat = '';
+        updateTileSelection();
+        setActionButtonsEnabled(false);
+    };
+
+    const animateShift = (element, prevRect) => {
+        if (!element || !prevRect) return;
+        const nextRect = element.getBoundingClientRect();
+        const dx = prevRect.left - nextRect.left;
+        const dy = prevRect.top - nextRect.top;
+        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+        element.animate(
+            [
+                { transform: `translate(${dx}px, ${dy}px)` },
+                { transform: 'translate(0, 0)' }
+            ],
+            { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+        );
+    };
+
+    const animatePanelResize = (prevRect) => {
+        if (!optionsPanel || !prevRect) return;
+        if (optionsPanel.classList.contains('hidden')) return;
+        const nextRect = optionsPanel.getBoundingClientRect();
+        const delta = Math.abs(nextRect.height - prevRect.height);
+        if (!nextRect.height || delta < 2) return;
+        optionsPanel.style.height = `${prevRect.height}px`;
+        optionsPanel.style.overflow = 'hidden';
+        optionsPanel.offsetHeight;
+        optionsPanel.style.transition = 'height 0.35s cubic-bezier(0.22, 1, 0.36, 1)';
+        optionsPanel.style.height = `${nextRect.height}px`;
+        const cleanup = () => {
+            optionsPanel.style.height = '';
+            optionsPanel.style.transition = '';
+            optionsPanel.style.overflow = '';
+        };
+        optionsPanel.addEventListener('transitionend', cleanup, { once: true });
+    };
+
+    const triggerShake = (element) => {
+        if (!element) return;
+        element.classList.remove('shake-feedback');
+        void element.offsetWidth;
+        element.classList.add('shake-feedback');
+        element.addEventListener('animationend', () => {
+            element.classList.remove('shake-feedback');
+        }, { once: true });
+    };
+
+    const getTargetCategory = () => {
+        if (currentCategory === 'video') return selectedMode;
+        return currentCategory;
+    };
+
+    const renderFormats = () => {
+        if (!formatGrid) return;
+        formatGrid.classList.remove('fading-out');
+        formatGrid.innerHTML = '';
+        const targetCategory = getTargetCategory();
+        if (!targetCategory) return;
+        const formats = formatData.filter((item) => String(item?.type || '').toLowerCase() === targetCategory);
+        formats.forEach((item) => {
+            const id = String(item?.id || '').trim();
+            if (!id) return;
+            const tile = document.createElement('button');
+            tile.type = 'button';
+            tile.className = 'tile converter-format-tile';
+            tile.textContent = id.toUpperCase();
+            tile.setAttribute('title', id);
+            tile.setAttribute('data-format', id);
+            tile.setAttribute('aria-pressed', 'false');
+            tile.addEventListener('click', () => {
+                if (selectedFormat === id) {
+                    triggerShake(tile);
+                    return;
+                }
+                selectedFormat = id;
+                updateTileSelection();
+                setActionButtonsEnabled(true);
+            });
+            formatGrid.appendChild(tile);
+        });
+        updateTileSelection();
+        setActionButtonsEnabled(!!selectedFormat);
+    };
+
+    const setConvertMode = (mode, afterRender = null) => {
+        const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
+        selectedMode = mode === 'audio' ? 'audio' : 'video';
+        updateToggleButtons();
+        clearFormatSelection();
+        const finalize = () => {
+            renderFormats();
+            requestAnimationFrame(() => {
+                if (prevActionRect) {
+                    animateShift(actionFooter, prevActionRect);
+                }
+                if (typeof afterRender === 'function') {
+                    afterRender();
+                }
+            });
+        };
+        if (formatGrid && formatGrid.children.length) {
+            formatGrid.classList.add('fading-out');
+            window.setTimeout(() => {
+                finalize();
+                requestAnimationFrame(() => {
+                    formatGrid.classList.remove('fading-out');
+                });
+            }, 180);
+            return;
+        }
+        finalize();
+    };
+
+    const refreshFormatSection = (category) => {
+        const normalized = String(category || '').toLowerCase();
+        const nextCategory = supportedCategories.has(normalized) ? normalized : '';
+        const prevCategory = currentCategory;
+        const shouldAnimatePanel = !!prevCategory && !!nextCategory && prevCategory !== nextCategory;
+        const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
+        const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
+        currentCategory = nextCategory;
+
+        loadFormatData().then(() => {
+            if (!formatGrid) return;
+            const isVideo = currentCategory === 'video';
+            if (formatToggle) {
+                formatToggle.classList.toggle('hidden', !isVideo);
+            }
+            if (!currentCategory) {
+                formatGrid.innerHTML = '';
+                clearFormatSelection();
+                return;
+            }
+
+            if (isVideo) {
+                setConvertMode(selectedMode || 'video', () => {
+                    if (shouldAnimatePanel) {
+                        animatePanelResize(prevPanelRect);
+                    }
+                });
+            } else {
+                selectedMode = currentCategory === 'audio' ? 'audio' : 'video';
+                updateToggleButtons();
+                clearFormatSelection();
+                renderFormats();
+                requestAnimationFrame(() => {
+                    if (prevActionRect) {
+                        animateShift(actionFooter, prevActionRect);
+                    }
+                    if (shouldAnimatePanel) {
+                        animatePanelResize(prevPanelRect);
+                    }
+                });
+            }
+        });
     };
 
     const extractFolderPath = (rawPath) => {
@@ -178,6 +410,21 @@
                 durationValue.textContent = '-';
             }
         }
+
+        refreshFormatSection(category);
+    };
+
+    const revealDashboard = () => {
+        if (dashboard) {
+            dashboard.classList.remove('hidden');
+        }
+        [infoCard, optionsPanel].forEach((element) => {
+            if (!element) return;
+            element.classList.remove('fade-in');
+            void element.offsetWidth;
+            element.classList.add('fade-in');
+        });
+        dashboardRevealed = true;
     };
 
     const showDashboard = () => {
@@ -185,17 +432,31 @@
             searchSection.classList.remove('centered');
             searchSection.classList.add('sticky');
         }
-        if (dashboard) {
-            dashboard.classList.remove('hidden');
-        }
         if (document.body) {
             document.body.classList.add('converter-active');
             setZenMode(false);
+        }
+        if (dashboardRevealTimer) {
+            clearTimeout(dashboardRevealTimer);
+            dashboardRevealTimer = null;
+        }
+        if (dashboard && dashboard.classList.contains('hidden')) {
+            dashboardRevealTimer = window.setTimeout(() => {
+                revealDashboard();
+                dashboardRevealTimer = null;
+            }, 500);
+        } else if (!dashboardRevealed) {
+            revealDashboard();
         }
     };
 
     const resetView = () => {
         lastMetadata = null;
+        if (dashboardRevealTimer) {
+            clearTimeout(dashboardRevealTimer);
+            dashboardRevealTimer = null;
+        }
+        dashboardRevealed = false;
         if (dashboard) {
             dashboard.classList.add('hidden');
         }
@@ -220,6 +481,13 @@
         if (outputNameInput) outputNameInput.value = '';
         if (infoCard) infoCard.classList.remove('name-editing');
         isEditingName = false;
+        if (root) root.dataset.convertMode = 'video';
+        if (formatToggle) formatToggle.classList.add('hidden');
+        if (formatGrid) formatGrid.innerHTML = '';
+        selectedFormat = '';
+        currentCategory = '';
+        selectedMode = 'video';
+        setActionButtonsEnabled(false);
     };
 
     const setZenMode = (enabled) => {
@@ -371,6 +639,16 @@
                     outputNameText.textContent = currentName || t('converter.output.placeholder', 'Output name');
                 }
             }
+        });
+    }
+
+    if (formatToggle) {
+        toggleOptions.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mode = btn.getAttribute('data-mode') || 'video';
+                if (mode === selectedMode) return;
+                setConvertMode(mode);
+            });
         });
     }
 
@@ -568,5 +846,6 @@
     };
 
     resetView();
+    updateToggleButtons();
     setConfirmLoading(false);
 })();

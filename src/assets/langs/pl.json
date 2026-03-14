@@ -95,6 +95,17 @@
     }
   },
   "converter": {
+    "actions": {
+      "convert": "KONWERTUJ",
+      "addToQueue": "DODAJ DO KOLEJKI"
+    },
+    "options": {
+      "convertTo": "KONWERTUJ DO"
+    },
+    "mode": {
+      "video": "WIDEO",
+      "audio": "AUDIO"
+    },
     "meta": {
       "locationLabel": "Lokalizacja"
     }

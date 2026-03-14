@@ -63,7 +63,7 @@
             const response = await fetch('assets/format.json', { cache: 'no-store' });
             if (!response.ok) return;
             const json = await response.json();
-            const formats = Array.isArray(json?.formats) ? json.formats : [];
+            const formats = Array.isArray(json?.dformats) ? json.dformats : [];
             state.formatData = formats;
             state.formatMap = new Map(formats.map((item) => [String(item.id || '').toLowerCase(), item]));
         } catch (error) {

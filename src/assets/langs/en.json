@@ -101,7 +101,16 @@
       "placeholder": "Select a file to convert..."
     },
     "actions": {
-      "browse": "Browse"
+      "browse": "Browse",
+      "convert": "CONVERT",
+      "addToQueue": "ADD TO QUEUE"
+    },
+    "options": {
+      "convertTo": "CONVERT TO"
+    },
+    "mode": {
+      "video": "VIDEO",
+      "audio": "AUDIO"
     },
     "output": {
       "placeholder": "Output name",
