@@ -29,6 +29,7 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     text-align: center;
+    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
 }
 .settings-section-card {
     position: relative;

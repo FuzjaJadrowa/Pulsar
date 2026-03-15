@@ -65,6 +65,136 @@
           <div id="convert-format-grid" class="converter-format-grid content-transition"></div>
         </div>
 
+        <div id="convert-details-panel" class="converter-details-panel hidden">
+          <div id="convert-save-path-panel" class="converter-path-selector fade-in">
+            <input type="text" id="convert-save-path-input" placeholder="Save path..." data-i18n-placeholder="converter.path.placeholder" autocomplete="off">
+            <button id="convert-save-path-browse" class="converter-small-btn" title="Browse" data-i18n-title="converter.actions.browse">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+          </div>
+
+          <div id="convert-specs-panel" class="converter-specs-card fade-in">
+            <div class="converter-specs-grid">
+              <div class="converter-specs-column" data-side="output">
+                <div class="converter-specs-column-title">Options</div>
+
+                <div class="converter-specs-section" data-section="video">
+                  <div class="converter-specs-row">
+                    <span class="converter-specs-label">Estimated size</span>
+                    <span id="convert-output-video-size" class="converter-specs-value">-</span>
+                  </div>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Video quality</span>
+                    <div class="converter-specs-control">
+                      <select id="convert-output-video-quality" class="custom-select">
+                        <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                        <option value="best">Best</option>
+                        <option value="2160p">2160p</option>
+                        <option value="1440p">1440p</option>
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                        <option value="360p">360p</option>
+                        <option value="240p">240p</option>
+                        <option value="144p">144p</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Video codec</span>
+                    <div class="converter-specs-control">
+                      <select id="convert-output-video-codec" class="custom-select">
+                        <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Video bitrate</span>
+                    <div class="converter-specs-control">
+                      <input id="convert-output-video-bitrate" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.bitrate" placeholder="Auto" autocomplete="off">
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">FPS</span>
+                    <div class="converter-specs-control">
+                      <select id="convert-output-video-fps" class="custom-select">
+                        <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                        <option value="60">60</option>
+                        <option value="30">30</option>
+                        <option value="24">24</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Audio codec</span>
+                    <div class="converter-specs-control">
+                      <select id="convert-output-video-audio-codec" class="custom-select">
+                        <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Audio bitrate</span>
+                    <div class="converter-specs-control">
+                      <input id="convert-output-video-audio-bitrate" class="custom-input" type="text" placeholder="320kbps" autocomplete="off">
+                    </div>
+                  </label>
+                </div>
+
+                <div class="converter-specs-section" data-section="audio">
+                  <div class="converter-specs-row">
+                    <span class="converter-specs-label">Estimated size</span>
+                    <span id="convert-output-audio-size" class="converter-specs-value">-</span>
+                  </div>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Audio codec</span>
+                    <div class="converter-specs-control">
+                      <select id="convert-output-audio-codec" class="custom-select">
+                        <option value="" data-i18n="presetCreator.select.auto">Auto</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Audio bitrate</span>
+                    <div class="converter-specs-control">
+                      <input id="convert-output-audio-bitrate" class="custom-input" type="text" placeholder="320kbps" autocomplete="off">
+                    </div>
+                  </label>
+                </div>
+
+                <div class="converter-specs-section" data-section="image">
+                  <div class="converter-specs-row">
+                    <span class="converter-specs-label">Estimated size</span>
+                    <span id="convert-output-image-size" class="converter-specs-value">-</span>
+                  </div>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Resolution</span>
+                    <div class="converter-specs-control converter-resolution-inputs">
+                      <input id="convert-output-image-width" class="custom-input" type="number" min="1" max="5000" placeholder="Width" autocomplete="off">
+                      <span class="converter-resolution-sep">x</span>
+                      <input id="convert-output-image-height" class="custom-input" type="number" min="1" max="5000" placeholder="Height" autocomplete="off">
+                    </div>
+                  </label>
+                  <label class="converter-specs-row">
+                    <span class="converter-specs-label">Quality</span>
+                    <div class="converter-specs-control converter-percent-input">
+                      <input id="convert-output-image-quality" class="custom-input" type="number" min="1" max="100" placeholder="100" autocomplete="off">
+                      <span class="converter-percent-suffix">%</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="converter-specs-section" data-section="other">
+                  <div class="converter-specs-row">
+                    <span class="converter-specs-label">Estimated size</span>
+                    <span id="convert-output-other-size" class="converter-specs-value">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="action-footer converter-action-footer">
           <button id="convert-action-btn" class="big-action-btn" disabled>
             <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">

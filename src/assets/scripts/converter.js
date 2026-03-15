@@ -49,6 +49,22 @@
     const actionFooter = root.querySelector('.converter-action-footer');
     const toggleOptions = formatToggle ? Array.from(formatToggle.querySelectorAll('.converter-toggle-option')) : [];
     const dropOverlay = root.querySelector('#convert-drop-overlay');
+    const detailsPanel = root.querySelector('#convert-details-panel');
+    const savePathPanel = root.querySelector('#convert-save-path-panel');
+    const savePathInput = root.querySelector('#convert-save-path-input');
+    const savePathBrowse = root.querySelector('#convert-save-path-browse');
+    const specsPanel = root.querySelector('#convert-specs-panel');
+    const outputSpecsSections = Array.from(
+        root.querySelectorAll('.converter-specs-column[data-side="output"] .converter-specs-section')
+    );
+    const outputVideoQuality = root.querySelector('#convert-output-video-quality');
+    const outputVideoCodec = root.querySelector('#convert-output-video-codec');
+    const outputVideoBitrate = root.querySelector('#convert-output-video-bitrate');
+    const outputVideoFps = root.querySelector('#convert-output-video-fps');
+    const outputVideoAudioCodec = root.querySelector('#convert-output-video-audio-codec');
+    const outputVideoAudioBitrate = root.querySelector('#convert-output-video-audio-bitrate');
+    const outputAudioCodec = root.querySelector('#convert-output-audio-codec');
+    const outputAudioBitrate = root.querySelector('#convert-output-audio-bitrate');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
         document.body.appendChild(dropOverlay);
@@ -62,6 +78,8 @@
     let formatDataLoaded = false;
     let formatDataPromise = null;
     let formatData = [];
+    let formatMetaMap = new Map();
+    let outputSelectsInitialized = false;
     let selectedFormat = '';
     let currentCategory = '';
     let selectedMode = 'video';
@@ -122,6 +140,68 @@
 
     const supportedCategories = new Set(['video', 'audio', 'image', 'archive', 'font']);
 
+    const videoQualityOptions = [
+        { value: '', label: t('presetCreator.select.auto', 'Auto'), i18n: 'presetCreator.select.auto' },
+        { value: 'best', label: 'Best' },
+        { value: '2160p', label: '2160p' },
+        { value: '1440p', label: '1440p' },
+        { value: '1080p', label: '1080p' },
+        { value: '720p', label: '720p' },
+        { value: '480p', label: '480p' },
+        { value: '360p', label: '360p' },
+        { value: '240p', label: '240p' },
+        { value: '144p', label: '144p' }
+    ];
+
+    const bitrateConstraints = {
+        video: { min: 500, max: 100000, fallback: 8000 },
+        audio: { min: 16, max: 500, fallback: 320 }
+    };
+
+    const rebuildSelect = (selectEl, options) => {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        options.forEach((opt) => {
+            const optionEl = document.createElement('option');
+            optionEl.value = opt.value;
+            optionEl.textContent = opt.label;
+            if (opt.i18n) optionEl.setAttribute('data-i18n', opt.i18n);
+            selectEl.appendChild(optionEl);
+        });
+        const wrapper = selectEl.nextElementSibling;
+        if (wrapper && wrapper.classList.contains('select-wrapper')) {
+            wrapper.remove();
+        }
+        if (window.initCustomSelects) {
+            window.initCustomSelects();
+        }
+    };
+
+    const parseKbpsValue = (value) => {
+        const raw = String(value || '');
+        const digits = raw.match(/\d+/g);
+        if (!digits) return null;
+        const parsed = parseInt(digits.join(''), 10);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const clampBitrate = (value, constraints, allowEmpty = false) => {
+        const raw = String(value || '').trim();
+        if (!raw && allowEmpty) return '';
+        const parsed = parseKbpsValue(raw);
+        const withinRange = Number.isFinite(parsed)
+            && parsed >= constraints.min
+            && parsed <= constraints.max;
+        const finalValue = withinRange ? parsed : constraints.fallback;
+        return Number.isFinite(finalValue) ? `${finalValue}kbps` : '';
+    };
+
+    const initOutputSelects = () => {
+        if (outputSelectsInitialized) return;
+        outputSelectsInitialized = true;
+        rebuildSelect(outputVideoQuality, videoQualityOptions);
+    };
+
     const loadFormatData = () => {
         if (formatDataLoaded) return Promise.resolve();
         if (formatDataPromise) return formatDataPromise;
@@ -130,10 +210,14 @@
             .then((json) => {
                 const formats = Array.isArray(json?.cformats) ? json.cformats : [];
                 formatData = formats;
+                formatMetaMap = new Map(
+                    formats.map((item) => [String(item?.id || '').toLowerCase(), item])
+                );
             })
             .catch((error) => {
                 console.error('Failed to load format.json:', error);
                 formatData = [];
+                formatMetaMap = new Map();
             })
             .finally(() => {
                 formatDataLoaded = true;
@@ -177,10 +261,93 @@
         if (root) root.dataset.convertMode = selectedMode;
     };
 
+    const resolveSpecsCategory = (value) => {
+        const normalized = String(value || '').toLowerCase();
+        if (normalized === 'video' || normalized === 'audio' || normalized === 'image') {
+            return normalized;
+        }
+        return 'other';
+    };
+
+    const setSpecsSectionVisibility = (sections, activeKey) => {
+        if (!sections || !sections.length) return;
+        sections.forEach((section) => {
+            const key = section?.dataset?.section;
+            section.classList.toggle('hidden', key !== activeKey);
+        });
+    };
+
+    const updateSpecsVisibility = () => {
+        const targetKey = resolveSpecsCategory(getTargetCategory());
+        setSpecsSectionVisibility(outputSpecsSections, targetKey);
+    };
+
+    const animateReveal = (element) => {
+        if (!element) return;
+        element.classList.remove('fade-in');
+        void element.offsetWidth;
+        element.classList.add('fade-in');
+    };
+
+    const showDetailsPanel = () => {
+        if (!detailsPanel) return;
+        detailsPanel.classList.remove('hidden');
+        animateReveal(savePathPanel);
+        animateReveal(specsPanel);
+    };
+
+    const hideDetailsPanel = () => {
+        if (!detailsPanel) return;
+        detailsPanel.classList.add('hidden');
+    };
+
+    const buildCodecOptions = (codecs) => {
+        const options = [
+            { value: '', label: t('presetCreator.select.auto', 'Auto'), i18n: 'presetCreator.select.auto' }
+        ];
+        if (Array.isArray(codecs)) {
+            codecs.forEach((codec) => {
+                const label = String(codec || '').trim();
+                if (!label) return;
+                options.push({ value: label, label });
+            });
+        }
+        return options;
+    };
+
+    const updateOutputControls = () => {
+        if (!selectedFormat) return;
+        const meta = formatMetaMap.get(String(selectedFormat).toLowerCase());
+        rebuildSelect(outputVideoCodec, buildCodecOptions(meta?.video_codecs));
+        rebuildSelect(outputVideoAudioCodec, buildCodecOptions(meta?.audio_codecs));
+        rebuildSelect(outputAudioCodec, buildCodecOptions(meta?.audio_codecs));
+    };
+
+    const updateDetailsPanel = () => {
+        if (!detailsPanel) return;
+        if (!selectedFormat) {
+            hideDetailsPanel();
+            return;
+        }
+        showDetailsPanel();
+        updateSpecsVisibility();
+        loadFormatData().then(() => {
+            updateOutputControls();
+        });
+    };
+
+    const bindBitrateClamp = (input, constraints) => {
+        if (!input) return;
+        input.addEventListener('blur', () => {
+            input.value = clampBitrate(input.value, constraints, true);
+        });
+    };
+
     const clearFormatSelection = () => {
         selectedFormat = '';
         updateTileSelection();
         setActionButtonsEnabled(false);
+        hideDetailsPanel();
     };
 
     const animateShift = (element, prevRect) => {
@@ -257,6 +424,7 @@
                 selectedFormat = id;
                 updateTileSelection();
                 setActionButtonsEnabled(true);
+                updateDetailsPanel();
             });
             formatGrid.appendChild(tile);
         });
@@ -487,6 +655,8 @@
         selectedFormat = '';
         currentCategory = '';
         selectedMode = 'video';
+        hideDetailsPanel();
+        if (savePathInput) savePathInput.value = '';
         setActionButtonsEnabled(false);
     };
 
@@ -571,6 +741,20 @@
         });
     }
 
+    if (savePathBrowse) {
+        savePathBrowse.addEventListener('click', async () => {
+            if (!invoke || !savePathInput) return;
+            try {
+                const selectedPath = await invoke('pick_download_directory');
+                if (selectedPath) {
+                    savePathInput.value = selectedPath;
+                }
+            } catch (error) {
+                console.error('Failed to pick directory:', error);
+            }
+        });
+    }
+
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmPath);
     }
@@ -641,6 +825,11 @@
             }
         });
     }
+
+    initOutputSelects();
+    bindBitrateClamp(outputVideoBitrate, bitrateConstraints.video);
+    bindBitrateClamp(outputVideoAudioBitrate, bitrateConstraints.audio);
+    bindBitrateClamp(outputAudioBitrate, bitrateConstraints.audio);
 
     if (formatToggle) {
         toggleOptions.forEach((btn) => {
