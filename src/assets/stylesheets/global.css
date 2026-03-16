@@ -305,14 +305,14 @@ body.wave-transition:not(.zen-mode) .zen-data-sea {
 }
 body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea {
     opacity: 0;
-    transform: translateY(0);
+    transform: translateY(12vh);
     transition: none;
     animation: idle-wave-fade-in 0.35s ease-out both;
 }
 
 @keyframes idle-wave-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(12vh); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes gradientBG {

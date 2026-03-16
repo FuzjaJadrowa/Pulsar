@@ -23,6 +23,24 @@ const resolveLocale = (value) => {
     return raw;
 };
 
+const requestConverterSync = (options = {}) => {
+    const opts = { animate: true, ...options };
+    let attempts = 0;
+    const maxAttempts = 60;
+    const trySync = () => {
+        const api = window.converterUi;
+        if (api && typeof api.syncState === 'function') {
+            api.syncState(opts);
+            return;
+        }
+        attempts += 1;
+        if (attempts < maxAttempts) {
+            setTimeout(trySync, 50);
+        }
+    };
+    trySync();
+};
+
 async function applyLocale(locale) {
     if (!window.i18n || typeof window.i18n.init !== 'function') return;
     const normalized = resolveLocale(locale);
@@ -749,6 +767,11 @@ async function loadPage(pageName, pageIndex) {
     const navBtn = document.getElementById(`nav-${pageName}`);
     if (navBtn) navBtn.classList.add('active');
 
+    if (currentPageName === 'converter' && pageName !== 'converter'
+        && window.converterUi && typeof window.converterUi.onDeactivate === 'function') {
+        window.converterUi.onDeactivate();
+    }
+
     const contentArea = document.getElementById('content-area');
     const previousView = contentArea ? contentArea.querySelector('.view-container.active-view') : null;
     const previousIndex = currentPageIndex;
@@ -827,7 +850,11 @@ async function loadPage(pageName, pageIndex) {
         body.classList.toggle('page-converter', name === 'converter');
         body.classList.toggle('page-compressor', name === 'compressor');
         body.classList.toggle('wave-page', isWavePage(name));
-        if (name === 'converter' || name === 'compressor') {
+        if (name === 'converter') {
+            const keepZen = !body.classList.contains('converter-active');
+            body.classList.toggle('zen-mode', keepZen);
+            body.classList.remove('search-mode');
+        } else if (name === 'compressor') {
             body.classList.add('zen-mode');
             body.classList.remove('search-mode');
         }
@@ -844,9 +871,6 @@ async function loadPage(pageName, pageIndex) {
         if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
             window.downloaderUi.syncZenState();
         }
-        if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
-            window.converterUi.syncState();
-        }
         updateWaveTransition();
         if (previousView && previousView !== targetView) {
             previousView.classList.remove('active-view');
@@ -854,14 +878,14 @@ async function loadPage(pageName, pageIndex) {
         targetView.classList.add('active-view');
         targetView.style.transform = '';
         targetView.style.opacity = '';
+        if (pageName === 'converter') {
+            requestConverterSync({ animate: true });
+        }
         setTimeout(() => {
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
             if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
                 window.downloaderUi.syncZenState();
-            }
-            if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
-                window.converterUi.syncState();
             }
         }, 50);
     } else {
@@ -872,9 +896,6 @@ async function loadPage(pageName, pageIndex) {
         if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
             window.downloaderUi.syncZenState();
         }
-        if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
-            window.converterUi.syncState();
-        }
         updateWaveTransition();
         const incomingFrom = direction === 'right' ? '100%' : '-100%';
         const outgoingTo = direction === 'right' ? '-100%' : '100%';
@@ -882,6 +903,9 @@ async function loadPage(pageName, pageIndex) {
         targetView.classList.add('active-view');
         targetView.style.transform = `translateX(${incomingFrom})`;
         targetView.style.opacity = '0';
+        if (pageName === 'converter') {
+            requestConverterSync({ animate: true });
+        }
 
         const transitionEasing = 'cubic-bezier(0.35, 0.0, 0.15, 1)';
 
@@ -914,9 +938,6 @@ async function loadPage(pageName, pageIndex) {
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
             if (pageName === 'downloader' && window.downloaderUi && typeof window.downloaderUi.syncZenState === 'function') {
                 window.downloaderUi.syncZenState();
-            }
-            if (pageName === 'converter' && window.converterUi && typeof window.converterUi.syncState === 'function') {
-                window.converterUi.syncState();
             }
         }, 50);
     }

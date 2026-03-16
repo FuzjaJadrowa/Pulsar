@@ -289,11 +289,14 @@
         element.classList.add('fade-in');
     };
 
-    const showDetailsPanel = () => {
+    const showDetailsPanel = (options = {}) => {
         if (!detailsPanel) return;
+        const wasHidden = detailsPanel.classList.contains('hidden');
         detailsPanel.classList.remove('hidden');
-        animateReveal(savePathPanel);
-        animateReveal(specsPanel);
+        if (options.animate !== false && wasHidden) {
+            animateReveal(savePathPanel);
+            animateReveal(specsPanel);
+        }
     };
 
     const hideDetailsPanel = () => {
@@ -325,15 +328,40 @@
 
     const updateDetailsPanel = () => {
         if (!detailsPanel) return;
+        const wasHidden = detailsPanel.classList.contains('hidden');
+        const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
+        const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
         if (!selectedFormat) {
+            if (!wasHidden && prevPanelRect) {
+                freezePanelHeight(prevPanelRect);
+            }
             hideDetailsPanel();
+            if (!wasHidden) {
+                requestAnimationFrame(() => {
+                    animatePanelResize(prevPanelRect, { freeze: false });
+                    if (prevActionRect) {
+                        animateShift(actionFooter, prevActionRect);
+                    }
+                });
+            }
             return;
         }
-        showDetailsPanel();
+        if (wasHidden && prevPanelRect) {
+            freezePanelHeight(prevPanelRect);
+        }
+        showDetailsPanel({ animate: wasHidden });
         updateSpecsVisibility();
         loadFormatData().then(() => {
             updateOutputControls();
         });
+        if (wasHidden) {
+            requestAnimationFrame(() => {
+                animatePanelResize(prevPanelRect, { freeze: false });
+                if (prevActionRect) {
+                    animateShift(actionFooter, prevActionRect);
+                }
+            });
+        }
     };
 
     const bindBitrateClamp = (input, constraints) => {
@@ -365,15 +393,31 @@
         );
     };
 
-    const animatePanelResize = (prevRect) => {
+    const freezePanelHeight = (prevRect) => {
+        if (!optionsPanel || !prevRect) return;
+        optionsPanel.style.height = `${prevRect.height}px`;
+        optionsPanel.style.overflow = 'hidden';
+        optionsPanel.offsetHeight;
+    };
+
+    const animatePanelResize = (prevRect, options = {}) => {
         if (!optionsPanel || !prevRect) return;
         if (optionsPanel.classList.contains('hidden')) return;
         const nextRect = optionsPanel.getBoundingClientRect();
         const delta = Math.abs(nextRect.height - prevRect.height);
-        if (!nextRect.height || delta < 2) return;
-        optionsPanel.style.height = `${prevRect.height}px`;
-        optionsPanel.style.overflow = 'hidden';
-        optionsPanel.offsetHeight;
+        if (!nextRect.height || delta < 2) {
+            optionsPanel.style.height = '';
+            optionsPanel.style.transition = '';
+            optionsPanel.style.overflow = '';
+            return;
+        }
+        if (options.freeze !== false) {
+            optionsPanel.style.height = `${prevRect.height}px`;
+            optionsPanel.style.overflow = 'hidden';
+            optionsPanel.offsetHeight;
+        } else {
+            optionsPanel.style.overflow = 'hidden';
+        }
         optionsPanel.style.transition = 'height 0.35s cubic-bezier(0.22, 1, 0.36, 1)';
         optionsPanel.style.height = `${nextRect.height}px`;
         const cleanup = () => {
@@ -406,9 +450,14 @@
         const targetCategory = getTargetCategory();
         if (!targetCategory) return;
         const formats = formatData.filter((item) => String(item?.type || '').toLowerCase() === targetCategory);
+        const normalizedSelection = String(selectedFormat || '').toLowerCase();
+        let selectionExists = false;
         formats.forEach((item) => {
             const id = String(item?.id || '').trim();
             if (!id) return;
+            if (normalizedSelection && id.toLowerCase() === normalizedSelection) {
+                selectionExists = true;
+            }
             const tile = document.createElement('button');
             tile.type = 'button';
             tile.className = 'tile converter-format-tile';
@@ -428,23 +477,40 @@
             });
             formatGrid.appendChild(tile);
         });
+        if (selectedFormat && !selectionExists) {
+            clearFormatSelection();
+            return;
+        }
         updateTileSelection();
         setActionButtonsEnabled(!!selectedFormat);
     };
 
-    const setConvertMode = (mode, afterRender = null) => {
+    const setConvertMode = (mode, options = {}) => {
         const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
+        const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
+        const hadDetails = !!selectedFormat && detailsPanel && !detailsPanel.classList.contains('hidden');
         selectedMode = mode === 'audio' ? 'audio' : 'video';
         updateToggleButtons();
-        clearFormatSelection();
+        if (!options.preserveSelection) {
+            if (hadDetails && prevPanelRect) {
+                freezePanelHeight(prevPanelRect);
+            }
+            clearFormatSelection();
+        }
         const finalize = () => {
             renderFormats();
             requestAnimationFrame(() => {
-                if (prevActionRect) {
+                const shouldShift = prevActionRect
+                    && !options.suppressShift
+                    && !(hadDetails && prevPanelRect);
+                if (shouldShift) {
                     animateShift(actionFooter, prevActionRect);
                 }
-                if (typeof afterRender === 'function') {
-                    afterRender();
+                if (hadDetails && prevPanelRect) {
+                    animatePanelResize(prevPanelRect, { freeze: false });
+                }
+                if (typeof options.afterRender === 'function') {
+                    options.afterRender();
                 }
             });
         };
@@ -461,13 +527,19 @@
         finalize();
     };
 
-    const refreshFormatSection = (category) => {
+    const refreshFormatSection = (category, options = {}) => {
         const normalized = String(category || '').toLowerCase();
         const nextCategory = supportedCategories.has(normalized) ? normalized : '';
         const prevCategory = currentCategory;
         const shouldAnimatePanel = !!prevCategory && !!nextCategory && prevCategory !== nextCategory;
+        const shouldPreserveSelection = !!options.preserveSelection
+            && prevCategory === nextCategory
+            && !!selectedFormat;
         const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
         const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
+        if (shouldAnimatePanel && prevPanelRect) {
+            freezePanelHeight(prevPanelRect);
+        }
         currentCategory = nextCategory;
 
         loadFormatData().then(() => {
@@ -483,24 +555,43 @@
             }
 
             if (isVideo) {
-                setConvertMode(selectedMode || 'video', () => {
-                    if (shouldAnimatePanel) {
-                        animatePanelResize(prevPanelRect);
+                setConvertMode(selectedMode || 'video', {
+                    preserveSelection: shouldPreserveSelection,
+                    suppressShift: shouldAnimatePanel,
+                    afterRender: () => {
+                        if (shouldAnimatePanel) {
+                            animatePanelResize(prevPanelRect, { freeze: false });
+                        }
                     }
                 });
             } else {
                 selectedMode = currentCategory === 'audio' ? 'audio' : 'video';
                 updateToggleButtons();
-                clearFormatSelection();
-                renderFormats();
-                requestAnimationFrame(() => {
-                    if (prevActionRect) {
-                        animateShift(actionFooter, prevActionRect);
-                    }
-                    if (shouldAnimatePanel) {
-                        animatePanelResize(prevPanelRect);
-                    }
-                });
+                if (!shouldPreserveSelection) {
+                    clearFormatSelection();
+                }
+                const finalize = () => {
+                    renderFormats();
+                    requestAnimationFrame(() => {
+                        if (prevActionRect && !shouldAnimatePanel) {
+                            animateShift(actionFooter, prevActionRect);
+                        }
+                        if (shouldAnimatePanel) {
+                            animatePanelResize(prevPanelRect, { freeze: false });
+                        }
+                    });
+                };
+                if (formatGrid.children.length) {
+                    formatGrid.classList.add('fading-out');
+                    window.setTimeout(() => {
+                        finalize();
+                        requestAnimationFrame(() => {
+                            formatGrid.classList.remove('fading-out');
+                        });
+                    }, 180);
+                } else {
+                    finalize();
+                }
             }
         });
     };
@@ -551,11 +642,19 @@
             }
         }
 
+        const nextName = String(data.name || '').trim();
         if (applyName) {
-            currentName = data.name || '';
+            currentName = nextName;
+        } else if (!currentName && nextName) {
+            currentName = nextName;
         }
         if (outputNameText) {
             outputNameText.textContent = currentName || t('converter.output.placeholder', 'Output name');
+            if (currentName) {
+                outputNameText.setAttribute('data-i18n-lock', 'true');
+            } else {
+                outputNameText.removeAttribute('data-i18n-lock');
+            }
         }
         if (outputNameInput) {
             outputNameInput.value = currentName;
@@ -579,23 +678,23 @@
             }
         }
 
-        refreshFormatSection(category);
+        refreshFormatSection(category, { preserveSelection: !!options.preserveSelection });
     };
 
     const revealDashboard = () => {
         if (dashboard) {
             dashboard.classList.remove('hidden');
         }
-        [infoCard, optionsPanel].forEach((element) => {
-            if (!element) return;
-            element.classList.remove('fade-in');
-            void element.offsetWidth;
-            element.classList.add('fade-in');
-        });
+        if (dashboard) {
+            const fadeTargets = Array.from(dashboard.querySelectorAll('.fade-in'));
+            fadeTargets.forEach((element) => {
+                animateReveal(element);
+            });
+        }
         dashboardRevealed = true;
     };
 
-    const showDashboard = () => {
+    const showDashboard = (options = {}) => {
         if (searchSection) {
             searchSection.classList.remove('centered');
             searchSection.classList.add('sticky');
@@ -609,10 +708,13 @@
             dashboardRevealTimer = null;
         }
         if (dashboard && dashboard.classList.contains('hidden')) {
+            const delay = Number.isFinite(options.delay) ? options.delay : 500;
             dashboardRevealTimer = window.setTimeout(() => {
                 revealDashboard();
                 dashboardRevealTimer = null;
-            }, 500);
+            }, Math.max(0, delay));
+        } else if (options.forceReveal) {
+            revealDashboard();
         } else if (!dashboardRevealed) {
             revealDashboard();
         }
@@ -645,7 +747,10 @@
         if (sizeValue) sizeValue.textContent = '-';
         if (durationValue) durationValue.textContent = '-';
         currentName = '';
-        if (outputNameText) outputNameText.textContent = t('converter.output.placeholder', 'Output name');
+        if (outputNameText) {
+            outputNameText.textContent = t('converter.output.placeholder', 'Output name');
+            outputNameText.removeAttribute('data-i18n-lock');
+        }
         if (outputNameInput) outputNameInput.value = '';
         if (infoCard) infoCard.classList.remove('name-editing');
         isEditingName = false;
@@ -791,6 +896,11 @@
         }
         if (outputNameText) {
             outputNameText.textContent = currentName || t('converter.output.placeholder', 'Output name');
+            if (currentName) {
+                outputNameText.setAttribute('data-i18n-lock', 'true');
+            } else {
+                outputNameText.removeAttribute('data-i18n-lock');
+            }
         }
         applyNameEditState(false);
     };
@@ -1007,7 +1117,7 @@
     }
 
     window.converterUi = {
-        syncState: () => {
+        syncState: (options = {}) => {
             if (!document.body?.classList.contains('page-converter')) return;
             if (metadataTaskId) {
                 setConfirmLoading(true);
@@ -1015,8 +1125,8 @@
             }
             const hasInput = !!pathInput && pathInput.value.trim().length > 0;
             if (lastMetadata) {
-                updateDashboard(lastMetadata, { applyName: false });
-                showDashboard();
+                updateDashboard(lastMetadata, { applyName: false, preserveSelection: true });
+                showDashboard({ forceReveal: !!options.animate, delay: options.animate ? 100 : 500 });
             } else if (!hasInput) {
                 resetView();
             } else {
@@ -1031,6 +1141,16 @@
                 }
             }
             setConfirmLoading(false);
+        },
+        onDeactivate: () => {
+            if (dashboardRevealTimer) {
+                clearTimeout(dashboardRevealTimer);
+                dashboardRevealTimer = null;
+            }
+            dashboardRevealed = false;
+            if (dashboard) {
+                dashboard.classList.add('hidden');
+            }
         }
     };
 

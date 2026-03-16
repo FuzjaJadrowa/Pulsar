@@ -31,6 +31,18 @@ body.page-converter.converter-active::before {
 }
 
 .converter-info-card {
+    animation-delay: 0.1s;
+}
+
+.converter-options-panel {
+    animation-delay: 0.2s;
+}
+
+.converter-action-footer {
+    animation-delay: 0.3s;
+}
+
+.converter-info-card {
     width: min(500px, 90vw);
     box-sizing: border-box;
     margin: 12px 0 0;
