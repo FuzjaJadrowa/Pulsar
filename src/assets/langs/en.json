@@ -144,6 +144,29 @@
     },
     "actions": {
       "browse": "Browse"
+    },
+    "output": {
+      "placeholder": "Output name",
+      "editTitle": "Edit output name"
+    },
+    "meta": {
+      "locationLabel": "Location",
+      "sizeLabel": "Size",
+      "durationLabel": "Duration",
+      "category": {
+        "video": "Video",
+        "audio": "Audio",
+        "image": "Image"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Unsupported format.",
+      "metadataFailed": "Failed to read file.",
+      "fileNotFound": "File not found.",
+      "noPath": "No file selected."
+    },
+    "drop": {
+      "text": "Drop file to compress"
     }
   },
   "queue": {

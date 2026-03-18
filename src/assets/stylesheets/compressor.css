@@ -1,3 +1,298 @@
 .compressor-page {
     position: relative;
 }
+
+body.page-compressor.compressor-active::after {
+    opacity: 1;
+}
+
+#compress-confirm-btn.loading svg {
+    animation: compressSpin 0.7s linear infinite;
+}
+
+@keyframes compressSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.compressor-dashboard {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 40px 120px 40px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.compressor-dashboard.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.compressor-info-card {
+    width: min(500px, 90vw);
+    box-sizing: border-box;
+    margin: 12px 0 0;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    animation-delay: 0.1s;
+}
+
+.compressor-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.compressor-name-text {
+    flex: 1;
+    min-width: 0;
+    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #f5f5f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compressor-name-input {
+    display: none;
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    color: #f5f5f5;
+    font-size: 1rem;
+    font-weight: 800;
+    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
+    outline: none;
+    padding: 6px 8px;
+}
+
+.compressor-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 500;
+}
+
+.compressor-info-card.name-editing .compressor-name-text {
+    display: none;
+}
+
+.compressor-info-card.name-editing .compressor-name-input {
+    display: block;
+}
+
+.compressor-rename-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.compressor-rename-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.compressor-rename-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.compressor-category-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.compressor-category-icon {
+    width: 22px;
+    height: 22px;
+    color: rgba(255, 255, 255, 0.9);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compressor-category-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.compressor-category-icon svg * {
+    stroke: currentColor;
+}
+
+.compressor-category-icon svg [fill]:not([fill="none"]) {
+    fill: currentColor;
+}
+
+.compressor-meta-row {
+    display: grid;
+    gap: 8px;
+}
+
+.compressor-meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.compressor-meta-label {
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.compressor-meta-value {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+.compressor-meta-location-value {
+    max-width: 65%;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compressor-info-card.no-duration .compressor-meta-duration {
+    display: none;
+}
+
+.compress-drop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 5000;
+    backdrop-filter: blur(2px);
+}
+
+.compress-drop-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.compress-drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+    text-align: center;
+    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
+}
+
+.compress-drop-icon {
+    width: 90px;
+    height: 90px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.compress-drop-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+.compress-drop-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+@media (max-width: 560px) {
+    .compressor-info-card {
+        padding: 18px;
+    }
+}
+
+body.theme-light .compressor-info-card {
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 22px rgba(31, 44, 77, 0.16);
+}
+
+body.theme-light .compressor-name-text {
+    color: #1d2330;
+}
+
+body.theme-light .compressor-name-input {
+    color: #1d2330;
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.theme-light .compressor-name-input::placeholder {
+    color: rgba(29, 35, 48, 0.45);
+}
+
+body.theme-light .compressor-rename-btn {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: rgba(29, 35, 48, 0.7);
+}
+
+body.theme-light .compressor-rename-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #1d2330;
+}
+
+body.theme-light .compressor-category-row {
+    color: rgba(29, 35, 48, 0.8);
+}
+
+body.theme-light .compressor-category-icon {
+    color: rgba(29, 35, 48, 0.8);
+}
+
+body.theme-light .compressor-meta-label {
+    color: rgba(29, 35, 48, 0.55);
+}
+
+body.theme-light .compressor-meta-value {
+    color: rgba(29, 35, 48, 0.9);
+}
+
+body.theme-light .compress-drop-overlay {
+    background: rgba(230, 234, 243, 0.9);
+}
+
+body.theme-light .compress-drop-content,
+body.theme-light .compress-drop-icon {
+    color: #1d2330;
+}

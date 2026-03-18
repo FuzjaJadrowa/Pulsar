@@ -41,6 +41,24 @@ const requestConverterSync = (options = {}) => {
     trySync();
 };
 
+const requestCompressorSync = (options = {}) => {
+    const opts = { animate: true, ...options };
+    let attempts = 0;
+    const maxAttempts = 60;
+    const trySync = () => {
+        const api = window.compressorUi;
+        if (api && typeof api.syncState === 'function') {
+            api.syncState(opts);
+            return;
+        }
+        attempts += 1;
+        if (attempts < maxAttempts) {
+            setTimeout(trySync, 50);
+        }
+    };
+    trySync();
+};
+
 async function applyLocale(locale) {
     if (!window.i18n || typeof window.i18n.init !== 'function') return;
     const normalized = resolveLocale(locale);
@@ -771,6 +789,10 @@ async function loadPage(pageName, pageIndex) {
         && window.converterUi && typeof window.converterUi.onDeactivate === 'function') {
         window.converterUi.onDeactivate();
     }
+    if (currentPageName === 'compressor' && pageName !== 'compressor'
+        && window.compressorUi && typeof window.compressorUi.onDeactivate === 'function') {
+        window.compressorUi.onDeactivate();
+    }
 
     const contentArea = document.getElementById('content-area');
     const previousView = contentArea ? contentArea.querySelector('.view-container.active-view') : null;
@@ -881,6 +903,9 @@ async function loadPage(pageName, pageIndex) {
         if (pageName === 'converter') {
             requestConverterSync({ animate: true });
         }
+        if (pageName === 'compressor') {
+            requestCompressorSync({ animate: true });
+        }
         setTimeout(() => {
             window.initCustomSelects();
             if (window.i18n && typeof window.i18n.apply === 'function') window.i18n.apply(targetView);
@@ -905,6 +930,9 @@ async function loadPage(pageName, pageIndex) {
         targetView.style.opacity = '0';
         if (pageName === 'converter') {
             requestConverterSync({ animate: true });
+        }
+        if (pageName === 'compressor') {
+            requestCompressorSync({ animate: true });
         }
 
         const transitionEasing = 'cubic-bezier(0.35, 0.0, 0.15, 1)';

@@ -110,6 +110,37 @@
       "locationLabel": "Lokalizacja"
     }
   },
+  "compressor": {
+    "path": {
+      "placeholder": "Wybierz plik do kompresji..."
+    },
+    "actions": {
+      "browse": "Przeglądaj"
+    },
+    "output": {
+      "placeholder": "Nazwa pliku",
+      "editTitle": "Edytuj nazwę pliku"
+    },
+    "meta": {
+      "locationLabel": "Lokalizacja",
+      "sizeLabel": "Rozmiar",
+      "durationLabel": "Czas trwania",
+      "category": {
+        "video": "Wideo",
+        "audio": "Audio",
+        "image": "Obraz"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Nieobsługiwany format.",
+      "metadataFailed": "Nie udało się odczytać pliku.",
+      "fileNotFound": "Nie znaleziono pliku.",
+      "noPath": "Nie wybrano pliku."
+    },
+    "drop": {
+      "text": "Upuść plik do kompresji"
+    }
+  },
   "queue": {
     "title": "Kolejka",
     "actions": {
