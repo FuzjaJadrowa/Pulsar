@@ -8,6 +8,7 @@ let currentPageIndex = 0;
 let currentPageName = null;
 let queueVisible = false;
 const loadedPages = {};
+const pageScrollMemory = {};
 let queueOutsideBound = false;
 let idleWavesEnterTimer = null;
 const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
@@ -103,6 +104,23 @@ const t = (key, fallback = '', params = null) => {
         });
     }
     return fallback || key;
+};
+
+const savePageScroll = (name, view) => {
+    if (!name || !view) return;
+    const scrollEl = view.querySelector('.page-scroll');
+    if (!scrollEl) return;
+    pageScrollMemory[name] = scrollEl.scrollTop;
+};
+
+const restorePageScroll = (name, view) => {
+    if (!name || !view) return;
+    const scrollEl = view.querySelector('.page-scroll');
+    if (!scrollEl) return;
+    const saved = pageScrollMemory[name];
+    if (Number.isFinite(saved)) {
+        scrollEl.scrollTop = saved;
+    }
 };
 
 function triggerIdleWavesEnter() {
@@ -802,6 +820,8 @@ async function loadPage(pageName, pageIndex) {
         ? (pageIndex > previousIndex ? 'right' : 'left')
         : 'right';
 
+    savePageScroll(currentPageName, previousView);
+
     let targetView = document.getElementById(`view-${pageName}`);
 
     if (loadedPages[pageName]) {
@@ -898,6 +918,7 @@ async function loadPage(pageName, pageIndex) {
             previousView.classList.remove('active-view');
         }
         targetView.classList.add('active-view');
+        restorePageScroll(pageName, targetView);
         targetView.style.transform = '';
         targetView.style.opacity = '';
         if (pageName === 'converter') {
@@ -926,6 +947,7 @@ async function loadPage(pageName, pageIndex) {
         const outgoingTo = direction === 'right' ? '-100%' : '100%';
 
         targetView.classList.add('active-view');
+        restorePageScroll(pageName, targetView);
         targetView.style.transform = `translateX(${incomingFrom})`;
         targetView.style.opacity = '0';
         if (pageName === 'converter') {

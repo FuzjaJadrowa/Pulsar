@@ -65,6 +65,11 @@
     const outputVideoAudioBitrate = root.querySelector('#convert-output-video-audio-bitrate');
     const outputAudioCodec = root.querySelector('#convert-output-audio-codec');
     const outputAudioBitrate = root.querySelector('#convert-output-audio-bitrate');
+    const outputImageWidth = root.querySelector('#convert-output-image-width');
+    const outputImageHeight = root.querySelector('#convert-output-image-height');
+    const outputImageQuality = root.querySelector('#convert-output-image-quality');
+    const outputImageQualityRange = root.querySelector('#convert-output-image-quality-range');
+    const scrollContainer = root.querySelector('.page-scroll');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
         document.body.appendChild(dropOverlay);
@@ -85,6 +90,8 @@
     let selectedMode = 'video';
     let dashboardRevealTimer = null;
     let dashboardRevealed = false;
+    let lastScrollTop = 0;
+    let pendingScrollRestore = false;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,6 +119,61 @@
         confirmBtn.removeAttribute('disabled');
         confirmBtn.classList.remove('loading');
         confirmBtn.innerHTML = arrowSvg;
+    };
+
+    const parseInteger = (value) => {
+        const parsed = parseInt(String(value || '').trim(), 10);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const clampNumber = (value, min, max) => {
+        if (!Number.isFinite(value)) return null;
+        return Math.min(max, Math.max(min, value));
+    };
+
+    const clampInputValue = (input, min, max, options = {}) => {
+        if (!input) return;
+        const raw = String(input.value || '').trim();
+        const allowEmpty = options.allowEmpty !== false;
+        const fallback = Number.isFinite(options.fallback) ? options.fallback : min;
+        if (!raw) {
+            if (!allowEmpty) input.value = String(fallback);
+            return;
+        }
+        const parsed = parseInteger(raw);
+        if (!Number.isFinite(parsed)) {
+            input.value = allowEmpty ? '' : String(fallback);
+            return;
+        }
+        const clamped = clampNumber(parsed, min, max);
+        input.value = Number.isFinite(clamped) ? String(clamped) : String(fallback);
+    };
+
+    const normalizeQualityValue = (raw) => {
+        const parsed = parseInteger(raw);
+        if (!Number.isFinite(parsed)) return null;
+        return clampNumber(parsed, 1, 100);
+    };
+
+    const commitQualityValue = (raw) => {
+        const fallback = 100;
+        const clamped = normalizeQualityValue(raw);
+        const value = Number.isFinite(clamped) ? clamped : fallback;
+        if (outputImageQuality) outputImageQuality.value = String(value);
+        if (outputImageQualityRange) outputImageQualityRange.value = String(value);
+    };
+
+    const saveScrollPosition = () => {
+        if (!scrollContainer) return;
+        lastScrollTop = scrollContainer.scrollTop || 0;
+    };
+
+    const scheduleScrollRestore = () => {
+        if (!scrollContainer) return;
+        const target = Number.isFinite(lastScrollTop) ? lastScrollTop : 0;
+        requestAnimationFrame(() => {
+            scrollContainer.scrollTop = target;
+        });
     };
 
     const formatBytes = (bytes) => {
@@ -371,6 +433,13 @@
         });
     };
 
+    const bindResolutionClamp = (input) => {
+        if (!input) return;
+        input.addEventListener('blur', () => {
+            clampInputValue(input, 1, 5000, { allowEmpty: true });
+        });
+    };
+
     const clearFormatSelection = () => {
         selectedFormat = '';
         updateTileSelection();
@@ -462,7 +531,6 @@
             tile.type = 'button';
             tile.className = 'tile converter-format-tile';
             tile.textContent = id.toUpperCase();
-            tile.setAttribute('title', id);
             tile.setAttribute('data-format', id);
             tile.setAttribute('aria-pressed', 'false');
             tile.addEventListener('click', () => {
@@ -535,6 +603,7 @@
         const shouldPreserveSelection = !!options.preserveSelection
             && prevCategory === nextCategory
             && !!selectedFormat;
+        const suppressShift = !!options.suppressShift;
         const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
         const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
         if (shouldAnimatePanel && prevPanelRect) {
@@ -557,7 +626,7 @@
             if (isVideo) {
                 setConvertMode(selectedMode || 'video', {
                     preserveSelection: shouldPreserveSelection,
-                    suppressShift: shouldAnimatePanel,
+                    suppressShift: shouldAnimatePanel || suppressShift,
                     afterRender: () => {
                         if (shouldAnimatePanel) {
                             animatePanelResize(prevPanelRect, { freeze: false });
@@ -573,7 +642,7 @@
                 const finalize = () => {
                     renderFormats();
                     requestAnimationFrame(() => {
-                        if (prevActionRect && !shouldAnimatePanel) {
+                        if (prevActionRect && !shouldAnimatePanel && !suppressShift) {
                             animateShift(actionFooter, prevActionRect);
                         }
                         if (shouldAnimatePanel) {
@@ -678,7 +747,10 @@
             }
         }
 
-        refreshFormatSection(category, { preserveSelection: !!options.preserveSelection });
+        refreshFormatSection(category, {
+            preserveSelection: !!options.preserveSelection,
+            suppressShift: !!options.suppressShift
+        });
     };
 
     const revealDashboard = () => {
@@ -940,6 +1012,30 @@
     bindBitrateClamp(outputVideoBitrate, bitrateConstraints.video);
     bindBitrateClamp(outputVideoAudioBitrate, bitrateConstraints.audio);
     bindBitrateClamp(outputAudioBitrate, bitrateConstraints.audio);
+    bindResolutionClamp(outputImageWidth);
+    bindResolutionClamp(outputImageHeight);
+
+    if (outputImageQuality) {
+        outputImageQuality.addEventListener('input', () => {
+            const value = normalizeQualityValue(outputImageQuality.value);
+            if (Number.isFinite(value) && outputImageQualityRange) {
+                outputImageQualityRange.value = String(value);
+            }
+        });
+        outputImageQuality.addEventListener('blur', () => {
+            commitQualityValue(outputImageQuality.value);
+        });
+    }
+
+    if (outputImageQualityRange) {
+        outputImageQualityRange.addEventListener('input', () => {
+            commitQualityValue(outputImageQualityRange.value);
+        });
+    }
+
+    if (outputImageQuality || outputImageQualityRange) {
+        commitQualityValue(outputImageQuality?.value ?? outputImageQualityRange?.value);
+    }
 
     if (formatToggle) {
         toggleOptions.forEach((btn) => {
@@ -1125,10 +1221,21 @@
             }
             const hasInput = !!pathInput && pathInput.value.trim().length > 0;
             if (lastMetadata) {
-                updateDashboard(lastMetadata, { applyName: false, preserveSelection: true });
-                showDashboard({ forceReveal: !!options.animate, delay: options.animate ? 100 : 500 });
+                updateDashboard(lastMetadata, {
+                    applyName: false,
+                    preserveSelection: true,
+                    suppressShift: true
+                });
+                const instantReveal = pendingScrollRestore;
+                const revealDelay = instantReveal ? 0 : (options.animate ? 100 : 500);
+                showDashboard({ forceReveal: instantReveal || !!options.animate, delay: revealDelay });
+                if (pendingScrollRestore) {
+                    scheduleScrollRestore();
+                    pendingScrollRestore = false;
+                }
             } else if (!hasInput) {
                 resetView();
+                pendingScrollRestore = false;
             } else {
                 if (searchSection) {
                     searchSection.classList.remove('centered');
@@ -1139,18 +1246,18 @@
                     document.body.classList.add('converter-active');
                     setZenMode(false);
                 }
+                pendingScrollRestore = false;
             }
             setConfirmLoading(false);
         },
         onDeactivate: () => {
+            saveScrollPosition();
+            pendingScrollRestore = true;
             if (dashboardRevealTimer) {
                 clearTimeout(dashboardRevealTimer);
                 dashboardRevealTimer = null;
             }
             dashboardRevealed = false;
-            if (dashboard) {
-                dashboard.classList.add('hidden');
-            }
         }
     };
 
