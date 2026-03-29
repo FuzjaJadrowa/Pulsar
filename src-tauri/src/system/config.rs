@@ -19,6 +19,12 @@ pub struct AppConfig {
     pub update_app_cooldown_minutes: u64,
     pub update_ytdlp: bool,
     pub update_ffmpeg: bool,
+    #[serde(default)]
+    pub ffmpeg_hwaccel: bool,
+    #[serde(default)]
+    pub ffmpeg_hwaccels: Vec<String>,
+    #[serde(default)]
+    pub ffmpeg_hwaccel_preferred: String,
 
     pub cookies_browser: String,
     #[serde(default)]
@@ -42,6 +48,9 @@ impl Default for AppConfig {
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
+            ffmpeg_hwaccel: false,
+            ffmpeg_hwaccels: Vec::new(),
+            ffmpeg_hwaccel_preferred: "auto".to_string(),
             cookies_browser: "None".to_string(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
@@ -57,6 +66,13 @@ impl AppConfig {
         self.maximum_search_results = clamp_range(self.maximum_search_results, 1, 50, 10);
         if self.title_template.trim().is_empty() {
             self.title_template = "%(title)s [%(id)s]".to_string();
+        }
+        if self.ffmpeg_hwaccel_preferred.trim().is_empty() {
+            self.ffmpeg_hwaccel_preferred = "auto".to_string();
+        }
+        if self.ffmpeg_hwaccel_preferred != "auto"
+            && !self.ffmpeg_hwaccels.iter().any(|accel| accel == &self.ffmpeg_hwaccel_preferred) {
+            self.ffmpeg_hwaccel_preferred = "auto".to_string();
         }
     }
 }
@@ -124,6 +140,19 @@ impl ConfigManager {
                     config.update_ytdlp = section.get("update_ytdlp").map(|v| v == "true").unwrap_or(true);
                     config.update_ffmpeg = section.get("update_ffmpeg").map(|v| v == "true").unwrap_or(true);
                 }
+                if let Some(section) = ini.section(Some("Acceleration")) {
+                    config.ffmpeg_hwaccel = section.get("ffmpeg_hwaccel").map(|v| v == "true").unwrap_or(false);
+                    if let Some(v) = section.get("ffmpeg_hwaccels") {
+                        let parsed = v.split(',')
+                            .map(|item| item.trim().to_string())
+                            .filter(|item| !item.is_empty())
+                            .collect::<Vec<_>>();
+                        config.ffmpeg_hwaccels = parsed;
+                    }
+                    if let Some(v) = section.get("ffmpeg_hwaccel_preferred") {
+                        config.ffmpeg_hwaccel_preferred = v.to_string();
+                    }
+                }
                 if let Some(section) = ini.section(Some("Download")) {
                     if let Some(v) = section.get("cookies_browser") { config.cookies_browser = v.to_string(); }
                     config.maximum_concurrent_processes = section
@@ -168,6 +197,18 @@ impl ConfigManager {
             .set("update_app_cooldown_minutes", config.update_app_cooldown_minutes.to_string())
             .set("update_ytdlp", if config.update_ytdlp { "true" } else { "false" })
             .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
+
+        ini.with_section(Some("Acceleration"))
+            .set("ffmpeg_hwaccel", if config.ffmpeg_hwaccel { "true" } else { "false" });
+        if !config.ffmpeg_hwaccels.is_empty() {
+            ini.with_section(Some("Acceleration"))
+                .set("ffmpeg_hwaccels", config.ffmpeg_hwaccels.join(","));
+        } else {
+            ini.with_section(Some("Acceleration"))
+                .set("ffmpeg_hwaccels", "");
+        }
+        ini.with_section(Some("Acceleration"))
+            .set("ffmpeg_hwaccel_preferred", &config.ffmpeg_hwaccel_preferred);
 
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)

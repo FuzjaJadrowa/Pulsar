@@ -631,9 +631,8 @@
             let p = payload.percent;
             if (typeof p === 'undefined') p = payload.progress;
             if (typeof p === 'undefined') p = payload.percentage;
-            let n = Number(p);
-            if (Number.isFinite(n) && n <= 1) n *= 100;
-            item.progress = clamp(n);
+            const n = parseProgressValue(p, payload);
+            if (Number.isFinite(n)) item.progress = clamp(n);
             if (typeof payload.eta_seconds !== 'undefined') item.eta = eta(payload.eta_seconds);
             else if (typeof payload.eta !== 'undefined') item.eta = typeof payload.eta === 'number' ? eta(payload.eta) : String(payload.eta);
             const index = Number(payload.item_index);
@@ -713,6 +712,22 @@
     }
 
     const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    function parseProgressValue(value, payload) {
+        if (typeof value === 'undefined' || value === null) return null;
+        let raw = value;
+        if (typeof raw === 'string') {
+            raw = raw.trim();
+            if (!raw) return null;
+            if (raw.endsWith('%')) raw = raw.slice(0, -1);
+            raw = raw.replace(',', '.');
+        }
+        let n = Number(raw);
+        if (!Number.isFinite(n)) return null;
+        const isRatio = payload && (payload.percent_is_ratio === true || payload.progress_is_ratio === true);
+        if (isRatio) n *= 100;
+        return n;
+    }
 
     function render() {
         if (!state.itemsContainer) return;

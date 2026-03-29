@@ -11,6 +11,7 @@
         'update_app_cooldown_minutes': 'update_app_cooldown_minutes',
         'update_ytdlp': 'update_ytdlp',
         'update_ffmpeg': 'update_ffmpeg',
+        'ffmpeg_hwaccel': 'ffmpeg_hwaccel',
         'cookies_browser': 'cookies_browser',
         'maximum_concurrent_processes': 'maximum_concurrent_processes',
         'maximum_search_results': 'maximum_search_results',
@@ -573,6 +574,11 @@
             setupListeners();
             setupUpdateCheckButtons();
             await loadRequirementVersions();
+            try {
+                await invoke('refresh_acceleration_info');
+            } catch (e) {
+                console.warn('Acceleration refresh failed:', e);
+            }
 
         } catch (e) {
             console.error("Failed to load config:", e);

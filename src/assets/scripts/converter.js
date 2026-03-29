@@ -318,6 +318,19 @@
             image_width: targetCategory === 'image' ? parseInteger(outputImageWidth?.value) : null,
             image_height: targetCategory === 'image' ? parseInteger(outputImageHeight?.value) : null,
             image_quality: targetCategory === 'image' ? parseInteger(outputImageQuality?.value) : null,
+            video_quality: targetCategory === 'video' ? (outputVideoQuality?.value || '') : '',
+            video_codec: targetCategory === 'video' ? (outputVideoCodec?.value || '') : '',
+            video_bitrate: targetCategory === 'video' ? (outputVideoBitrate?.value || '') : '',
+            video_fps: targetCategory === 'video' ? (outputVideoFps?.value || '') : '',
+            audio_codec: targetCategory === 'audio'
+                ? (outputAudioCodec?.value || '')
+                : (targetCategory === 'video' ? (outputVideoAudioCodec?.value || '') : ''),
+            audio_bitrate: targetCategory === 'audio'
+                ? (outputAudioBitrate?.value || '')
+                : (targetCategory === 'video' ? (outputVideoAudioBitrate?.value || '') : ''),
+            source_duration_seconds: Number.isFinite(Number(lastMetadata.duration_seconds))
+                ? Number(lastMetadata.duration_seconds)
+                : null,
             source_size_bytes: Number.isFinite(Number(lastMetadata.size_bytes)) ? Number(lastMetadata.size_bytes) : null,
             source_format: String(lastMetadata.extension || ''),
             path: outputPath

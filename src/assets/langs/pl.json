@@ -207,6 +207,7 @@
     "autoUpdateApp": "Automatyczne aktualizacje Pulsara",
     "autoUpdateBridge": "Automatyczne aktualizacje Bridge",
     "autoUpdateFfmpeg": "Automatyczne aktualizacje FFmpeg",
+    "ffmpegHwAccel": "Akceleracja sprzętowa FFmpeg",
     "updateCooldown": "Odst\u0119p mi\u0119dzy sprawdzaniem aktualizacji (minuty)",
     "downloadSettings": "Ustawienia pobierania",
     "cookiesFromBrowser": "Ciasteczka z przegl\u0105darki",

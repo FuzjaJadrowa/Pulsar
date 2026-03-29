@@ -1,10 +1,13 @@
 use serde::{Deserialize, Serialize};
+use directories::BaseDirs;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
 use crate::core::downloader::BridgeState;
+use crate::core::acceleration;
+use crate::system::config::ConfigManager;
 
 #[derive(Deserialize, Default)]
 pub struct EstimatePayload {
@@ -352,9 +355,16 @@ pub struct ConvertOptions {
     output_name: Option<String>,
     output_format: String,
     category: Option<String>,
+    video_quality: Option<String>,
+    video_codec: Option<String>,
+    video_bitrate: Option<String>,
+    video_fps: Option<String>,
+    audio_codec: Option<String>,
+    audio_bitrate: Option<String>,
     image_width: Option<u32>,
     image_height: Option<u32>,
     image_quality: Option<u32>,
+    source_duration_seconds: Option<f64>,
     client_task_id: Option<String>,
 }
 
@@ -367,6 +377,9 @@ struct ConvertBridgePayload {
     image_width: Option<u32>,
     image_height: Option<u32>,
     image_quality: Option<u32>,
+    source_duration_seconds: Option<f64>,
+    ffmpeg_path: Option<String>,
+    ffmpeg_args: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -434,6 +447,149 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     Ok(output_dir.join(file_name).to_string_lossy().to_string())
 }
 
+fn get_requirements_path() -> PathBuf {
+    if let Some(base_dirs) = BaseDirs::new() {
+        return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
+    }
+    PathBuf::from("Requirements")
+}
+
+fn get_ffmpeg_path() -> PathBuf {
+    let req_path = get_requirements_path();
+    let ffmpeg_name = if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" };
+    req_path.join(ffmpeg_name)
+}
+
+fn parse_kbps_string(raw: Option<&str>) -> Option<String> {
+    let raw = raw?.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let digits: String = raw.chars().filter(|ch| ch.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        return None;
+    }
+    Some(digits)
+}
+
+fn parse_numeric_string(raw: Option<&str>) -> Option<String> {
+    let raw = raw?.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let mut out = String::new();
+    for ch in raw.chars() {
+        if ch.is_ascii_digit() || ch == '.' {
+            out.push(ch);
+        }
+    }
+    if out.is_empty() { None } else { Some(out) }
+}
+
+fn map_video_codec(value: &str) -> String {
+    match value.to_lowercase().as_str() {
+        "h264" => "libx264",
+        "h265" | "hevc" => "libx265",
+        "av1" => "libaom-av1",
+        "vp9" => "libvpx-vp9",
+        "vp8" => "libvpx",
+        "mpeg2" => "mpeg2video",
+        "mpeg4" => "mpeg4",
+        "h263" => "h263",
+        "theora" => "libtheora",
+        "wmv" => "wmv2",
+        "prores" => "prores_ks",
+        "gif" => "gif",
+        other => other
+    }.to_string()
+}
+
+fn map_audio_codec(value: &str) -> String {
+    match value.to_lowercase().as_str() {
+        "aac" => "aac",
+        "mp3" => "libmp3lame",
+        "opus" => "libopus",
+        "vorbis" => "libvorbis",
+        "flac" => "flac",
+        "alac" => "alac",
+        "wav" => "pcm_s16le",
+        "aiff" => "pcm_s16be",
+        "ac3" => "ac3",
+        "wma" => "wmav2",
+        "dts" => "dca",
+        "lpcm" => "pcm_s16le",
+        "midi" => "copy",
+        "amr" => "libopencore_amrnb",
+        "amr-wb" => "libopencore_amrwb",
+        "he-aac" => "aac",
+        other => other
+    }.to_string()
+}
+
+fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
+    let mut args = vec![
+        "-hide_banner".to_string(),
+        "-y".to_string()
+    ];
+
+    if let Some(accel) = hwaccel {
+        args.push("-hwaccel".to_string());
+        args.push(accel);
+    }
+
+    args.push("-i".to_string());
+    args.push(options.input_path.clone());
+
+    let category = options.category.as_deref().unwrap_or("video");
+    if category == "audio" {
+        args.push("-map".to_string());
+        args.push("0:a?".to_string());
+        args.push("-vn".to_string());
+    } else {
+        args.push("-map".to_string());
+        args.push("0:v?".to_string());
+        args.push("-map".to_string());
+        args.push("0:a?".to_string());
+    }
+
+    if category == "video" {
+        if let Some(codec) = options.video_codec.as_deref().filter(|v| !v.trim().is_empty()) {
+            args.push("-c:v".to_string());
+            args.push(map_video_codec(codec));
+        }
+        if let Some(br) = parse_kbps_string(options.video_bitrate.as_deref()) {
+            args.push("-b:v".to_string());
+            args.push(format!("{}k", br));
+        }
+        if let Some(fps) = parse_numeric_string(options.video_fps.as_deref()) {
+            args.push("-r".to_string());
+            args.push(fps);
+        }
+        if let Some(quality) = options.video_quality.as_deref() {
+            let lowered = quality.to_lowercase();
+            if lowered.ends_with('p') {
+                let height = lowered.trim_end_matches('p');
+                if let Ok(_) = height.parse::<u32>() {
+                    args.push("-vf".to_string());
+                    args.push(format!("scale=-2:{}", height));
+                }
+            }
+        }
+    }
+
+    if let Some(codec) = options.audio_codec.as_deref().filter(|v| !v.trim().is_empty()) {
+        args.push("-c:a".to_string());
+        args.push(map_audio_codec(codec));
+    }
+    if let Some(br) = parse_kbps_string(options.audio_bitrate.as_deref()) {
+        args.push("-b:a".to_string());
+        args.push(format!("{}k", br));
+    }
+
+    args.push(output_path.to_string());
+    args
+}
+
 fn generate_task_id() -> String {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -446,6 +602,7 @@ fn generate_task_id() -> String {
 pub fn start_convert(
     app_handle: AppHandle,
     state: State<BridgeState>,
+    config_mgr: State<ConfigManager>,
     options: ConvertOptions
 ) -> Result<String, String> {
     let input_path = options.input_path.trim();
@@ -464,6 +621,21 @@ pub fn start_convert(
         .filter(|c| !c.is_empty())
         .unwrap_or_else(|| "image".to_string());
 
+    let ffmpeg_path = get_ffmpeg_path();
+    {
+        let config = config_mgr.config.lock().unwrap();
+        if config.ffmpeg_hwaccel && config.ffmpeg_hwaccels.is_empty() {
+            drop(config);
+            let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
+        }
+    }
+    let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
+    let ffmpeg_args = if category == "video" || category == "audio" {
+        Some(build_ffmpeg_args(&options, &output_path, hwaccel))
+    } else {
+        None
+    };
+
     let task_id = options
         .client_task_id
         .as_ref()
@@ -479,6 +651,9 @@ pub fn start_convert(
         image_width: options.image_width,
         image_height: options.image_height,
         image_quality: options.image_quality,
+        source_duration_seconds: options.source_duration_seconds,
+        ffmpeg_path: if ffmpeg_args.is_some() { Some(ffmpeg_path.to_string_lossy().to_string()) } else { None },
+        ffmpeg_args,
     };
 
     let cmd = ConvertBridgeCommand {

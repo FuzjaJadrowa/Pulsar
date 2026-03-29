@@ -235,6 +235,7 @@
     "autoUpdateApp": "Auto-update Pulsar",
     "autoUpdateBridge": "Auto-update Bridge",
     "autoUpdateFfmpeg": "Auto-update FFmpeg",
+    "ffmpegHwAccel": "FFmpeg hardware acceleration",
     "updateCooldown": "Update check cooldown (minutes)",
     "downloadSettings": "Download settings",
     "cookiesFromBrowser": "Cookies from browser",
