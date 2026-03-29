@@ -69,6 +69,10 @@
     const outputImageHeight = root.querySelector('#convert-output-image-height');
     const outputImageQuality = root.querySelector('#convert-output-image-quality');
     const outputImageQualityRange = root.querySelector('#convert-output-image-quality-range');
+    const outputVideoSize = root.querySelector('#convert-output-video-size');
+    const outputAudioSize = root.querySelector('#convert-output-audio-size');
+    const outputImageSize = root.querySelector('#convert-output-image-size');
+    const outputOtherSize = root.querySelector('#convert-output-other-size');
     const scrollContainer = root.querySelector('.page-scroll');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
@@ -92,6 +96,8 @@
     let dashboardRevealed = false;
     let lastScrollTop = 0;
     let pendingScrollRestore = false;
+    let estimateTimer = null;
+    let estimateRequestId = 0;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -198,6 +204,101 @@
         const mins = Math.floor((safe % 3600) / 60).toString().padStart(2, '0');
         const secs = Math.floor(safe % 60).toString().padStart(2, '0');
         return `${hrs}:${mins}:${secs}`;
+    };
+
+    const clearEstimatedSizes = () => {
+        if (outputVideoSize) outputVideoSize.textContent = '-';
+        if (outputAudioSize) outputAudioSize.textContent = '-';
+        if (outputImageSize) outputImageSize.textContent = '-';
+        if (outputOtherSize) outputOtherSize.textContent = '-';
+    };
+
+    const setEstimatedSize = (category, bytes) => {
+        clearEstimatedSizes();
+        if (!Number.isFinite(bytes)) return;
+        const value = formatBytes(bytes);
+        if (category === 'video' && outputVideoSize) {
+            outputVideoSize.textContent = value;
+            return;
+        }
+        if (category === 'audio' && outputAudioSize) {
+            outputAudioSize.textContent = value;
+            return;
+        }
+        if (category === 'image' && outputImageSize) {
+            outputImageSize.textContent = value;
+            return;
+        }
+        if (outputOtherSize) {
+            outputOtherSize.textContent = value;
+        }
+    };
+
+    const buildEstimatePayload = () => {
+        if (!selectedFormat || !lastMetadata) return null;
+        const meta = formatMetaMap.get(String(selectedFormat || '').toLowerCase());
+        const metaType = String(meta?.type || '').toLowerCase();
+        const fallbackCategory = currentCategory === 'video' ? selectedMode : currentCategory;
+        const targetCategory = metaType || fallbackCategory;
+        if (!targetCategory) return null;
+        const sourceCategory = String(lastMetadata?.category || '').toLowerCase();
+        const payload = {
+            source_size_bytes: Number.isFinite(Number(lastMetadata?.size_bytes)) ? Number(lastMetadata.size_bytes) : null,
+            source_duration_seconds: Number.isFinite(Number(lastMetadata?.duration_seconds))
+                ? Number(lastMetadata.duration_seconds)
+                : null,
+            source_width: Number.isFinite(Number(lastMetadata?.width)) ? Number(lastMetadata.width) : null,
+            source_height: Number.isFinite(Number(lastMetadata?.height)) ? Number(lastMetadata.height) : null,
+            source_category: sourceCategory,
+            category: targetCategory,
+            format: String(selectedFormat || '').trim(),
+            video_quality: outputVideoQuality?.value || '',
+            video_codec: outputVideoCodec?.value || '',
+            video_bitrate: outputVideoBitrate?.value || '',
+            video_fps: outputVideoFps?.value || '',
+            audio_codec: targetCategory === 'audio'
+                ? (outputAudioCodec?.value || '')
+                : (outputVideoAudioCodec?.value || ''),
+            audio_bitrate: targetCategory === 'audio'
+                ? (outputAudioBitrate?.value || '')
+                : (outputVideoAudioBitrate?.value || ''),
+            image_width: parseInteger(outputImageWidth?.value),
+            image_height: parseInteger(outputImageHeight?.value),
+            image_quality: parseInteger(outputImageQuality?.value)
+        };
+        return payload;
+    };
+
+    const runEstimate = async () => {
+        if (!invoke) return;
+        estimateTimer = null;
+        const payload = buildEstimatePayload();
+        if (!payload) {
+            clearEstimatedSizes();
+            return;
+        }
+        const requestId = ++estimateRequestId;
+        try {
+            const result = await invoke('estimate_convert_size', { payload });
+            if (requestId !== estimateRequestId) return;
+            if (!Number.isFinite(result)) {
+                clearEstimatedSizes();
+                return;
+            }
+            setEstimatedSize(payload.category, result);
+        } catch (error) {
+            if (requestId !== estimateRequestId) return;
+            clearEstimatedSizes();
+        }
+    };
+
+    const requestEstimateUpdate = (options = {}) => {
+        if (!invoke) return;
+        if (estimateTimer) {
+            clearTimeout(estimateTimer);
+        }
+        const delay = options.immediate ? 0 : 180;
+        estimateTimer = window.setTimeout(runEstimate, delay);
     };
 
     const supportedCategories = new Set(['video', 'audio', 'image', 'archive', 'font']);
@@ -398,6 +499,7 @@
                 freezePanelHeight(prevPanelRect);
             }
             hideDetailsPanel();
+            clearEstimatedSizes();
             if (!wasHidden) {
                 requestAnimationFrame(() => {
                     animatePanelResize(prevPanelRect, { freeze: false });
@@ -415,6 +517,7 @@
         updateSpecsVisibility();
         loadFormatData().then(() => {
             updateOutputControls();
+            requestEstimateUpdate({ immediate: true });
         });
         if (wasHidden) {
             requestAnimationFrame(() => {
@@ -428,15 +531,30 @@
 
     const bindBitrateClamp = (input, constraints) => {
         if (!input) return;
+        input.addEventListener('input', () => {
+            requestEstimateUpdate();
+        });
         input.addEventListener('blur', () => {
             input.value = clampBitrate(input.value, constraints, true);
+            requestEstimateUpdate({ immediate: true });
         });
     };
 
     const bindResolutionClamp = (input) => {
         if (!input) return;
+        input.addEventListener('input', () => {
+            requestEstimateUpdate();
+        });
         input.addEventListener('blur', () => {
             clampInputValue(input, 1, 5000, { allowEmpty: true });
+            requestEstimateUpdate({ immediate: true });
+        });
+    };
+
+    const bindEstimateSelect = (selectEl) => {
+        if (!selectEl) return;
+        selectEl.addEventListener('change', () => {
+            requestEstimateUpdate({ immediate: true });
         });
     };
 
@@ -445,6 +563,7 @@
         updateTileSelection();
         setActionButtonsEnabled(false);
         hideDetailsPanel();
+        clearEstimatedSizes();
     };
 
     const animateShift = (element, prevRect) => {
@@ -751,6 +870,7 @@
             preserveSelection: !!options.preserveSelection,
             suppressShift: !!options.suppressShift
         });
+        requestEstimateUpdate({ immediate: true });
     };
 
     const revealDashboard = () => {
@@ -835,6 +955,8 @@
         hideDetailsPanel();
         if (savePathInput) savePathInput.value = '';
         setActionButtonsEnabled(false);
+        estimateRequestId += 1;
+        clearEstimatedSizes();
     };
 
     const setZenMode = (enabled) => {
@@ -1009,6 +1131,11 @@
     }
 
     initOutputSelects();
+    bindEstimateSelect(outputVideoQuality);
+    bindEstimateSelect(outputVideoCodec);
+    bindEstimateSelect(outputVideoFps);
+    bindEstimateSelect(outputVideoAudioCodec);
+    bindEstimateSelect(outputAudioCodec);
     bindBitrateClamp(outputVideoBitrate, bitrateConstraints.video);
     bindBitrateClamp(outputVideoAudioBitrate, bitrateConstraints.audio);
     bindBitrateClamp(outputAudioBitrate, bitrateConstraints.audio);
@@ -1021,15 +1148,18 @@
             if (Number.isFinite(value) && outputImageQualityRange) {
                 outputImageQualityRange.value = String(value);
             }
+            requestEstimateUpdate();
         });
         outputImageQuality.addEventListener('blur', () => {
             commitQualityValue(outputImageQuality.value);
+            requestEstimateUpdate({ immediate: true });
         });
     }
 
     if (outputImageQualityRange) {
         outputImageQualityRange.addEventListener('input', () => {
             commitQualityValue(outputImageQualityRange.value);
+            requestEstimateUpdate();
         });
     }
 
