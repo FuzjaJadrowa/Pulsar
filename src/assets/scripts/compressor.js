@@ -45,6 +45,7 @@
     const modeToggle = root.querySelector('#compress-mode-toggle');
     const modeButtons = modeToggle ? Array.from(modeToggle.querySelectorAll('.switch-option')) : [];
     const modePanels = Array.from(root.querySelectorAll('.compressor-mode-panel'));
+    const modePanelsWrap = root.querySelector('.compressor-mode-panels');
     const percentRange = root.querySelector('#compress-percent-range');
     const percentInput = root.querySelector('#compress-percent-input');
     const percentFill = root.querySelector('#compress-percent-fill');
@@ -324,6 +325,65 @@
         clearEstimatedSizes();
     };
 
+    const normalizeOutputFormat = (value) => {
+        if (!value) return '';
+        let raw = String(value || '').trim().toLowerCase();
+        while (raw.startsWith('.')) raw = raw.slice(1);
+        return raw;
+    };
+
+    const buildCompressPayload = () => {
+        if (!lastMetadata) return null;
+        const category = String(currentCategory || lastMetadata.category || '').toLowerCase();
+        if (category !== 'video' && category !== 'audio' && category !== 'image') return null;
+        const outputDir = (savePathInput?.value || '').trim() || extractFolderPath(lastMetadata.path);
+        const rawName = sanitizeOutputName(currentName || lastMetadata.name || 'output');
+        const inputFormat = normalizeOutputFormat(lastMetadata.extension || lastMetadata.format || '');
+        let baseName = rawName;
+        if (inputFormat) {
+            const suffix = `.${inputFormat}`;
+            if (baseName.toLowerCase().endsWith(suffix)) {
+                baseName = baseName.slice(0, -suffix.length);
+            }
+        }
+        if (!baseName) baseName = 'output';
+        let outputName = baseName;
+        let outputPath = inputFormat ? joinPath(outputDir, `${outputName}.${inputFormat}`) : joinPath(outputDir, outputName);
+        if (outputPath && lastMetadata?.path && String(outputPath).toLowerCase() === String(lastMetadata.path).toLowerCase()) {
+            outputName = `${baseName}_compressed`;
+            outputPath = inputFormat
+                ? joinPath(outputDir, `${outputName}.${inputFormat}`)
+                : joinPath(outputDir, outputName);
+        }
+        const percentValue = selectedMode === 'percent' ? commitPercentValue(percentInput?.value ?? percentRange?.value) : null;
+        const targetSize = selectedMode === 'size' ? parseSizeInput(sizeInput?.value || '') : null;
+        if (selectedMode === 'size' && !Number.isFinite(targetSize)) {
+            return null;
+        }
+        const crfValue = selectedMode === 'quality' ? parseInteger(crfSelect?.value) : null;
+        return {
+            input_path: lastMetadata.path,
+            output_dir: outputDir,
+            output_name: outputName,
+            output_format: inputFormat,
+            category,
+            compress_mode: selectedMode,
+            target_percent: Number.isFinite(percentValue) ? percentValue : null,
+            target_size_bytes: Number.isFinite(targetSize) ? targetSize : null,
+            crf: Number.isFinite(crfValue) ? crfValue : null,
+            video_codec: category === 'video' ? (videoCodecSelect?.value || '') : '',
+            audio_codec: category === 'audio'
+                ? (audioCodecSelect?.value || '')
+                : (category === 'video' ? (videoAudioCodecSelect?.value || '') : ''),
+            source_duration_seconds: Number.isFinite(Number(lastMetadata.duration_seconds))
+                ? Number(lastMetadata.duration_seconds)
+                : null,
+            source_size_bytes: Number.isFinite(Number(lastMetadata.size_bytes)) ? Number(lastMetadata.size_bytes) : null,
+            source_format: String(lastMetadata.extension || ''),
+            path: outputPath
+        };
+    };
+
     const setActionButtonsEnabled = (enabled) => {
         [compressActionBtn, queueActionBtn].forEach((btn) => {
             if (!btn) return;
@@ -355,12 +415,9 @@
             btn.classList.toggle('active', active);
             btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
+        resetModeTransition();
         const nextPanel = modePanels.find((panel) => panel.getAttribute('data-mode') === selectedMode) || null;
         const prevPanel = modePanels.find((panel) => !panel.classList.contains('hidden')) || null;
-        if (modeSwitchTimer) {
-            clearTimeout(modeSwitchTimer);
-            modeSwitchTimer = null;
-        }
         if (options.animate === false || !nextPanel) {
             modePanels.forEach((panel) => {
                 const visible = panel === nextPanel;
@@ -371,17 +428,31 @@
             modePanels.forEach((panel) => {
                 if (panel !== prevPanel && panel !== nextPanel) {
                     panel.classList.add('hidden');
-                    panel.classList.remove('depth-enter', 'depth-exit');
                 }
+                panel.classList.remove('depth-enter', 'depth-exit');
             });
-            nextPanel.classList.remove('hidden');
-            animatePanelDepthIn(nextPanel);
+            nextPanel.classList.add('hidden');
+            if (modePanelsWrap) {
+                const prevRect = prevPanel.getBoundingClientRect();
+                modePanelsWrap.style.height = `${prevRect.height}px`;
+                modePanelsWrap.classList.add('mode-switching');
+            }
             animatePanelDepthOut(prevPanel);
             modeSwitchTimer = window.setTimeout(() => {
                 prevPanel.classList.add('hidden');
                 prevPanel.classList.remove('depth-exit');
-                nextPanel.classList.remove('depth-enter');
-                modeSwitchTimer = null;
+                requestAnimationFrame(() => {
+                    nextPanel.classList.remove('hidden');
+                    animatePanelDepthIn(nextPanel);
+                    modeSwitchTimer = window.setTimeout(() => {
+                        nextPanel.classList.remove('depth-enter');
+                        if (modePanelsWrap) {
+                            modePanelsWrap.style.height = '';
+                            modePanelsWrap.classList.remove('mode-switching');
+                        }
+                        modeSwitchTimer = null;
+                    }, PANEL_IN_MS);
+                });
             }, PANEL_OUT_MS);
         } else {
             modePanels.forEach((panel) => {
@@ -522,6 +593,23 @@
         return normalized.slice(idx + 1);
     };
 
+    const sanitizeOutputName = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        return raw.replace(/[\\/]+/g, ' ').trim();
+    };
+
+    const detectPathSeparator = (value) => (String(value || '').includes('\\') ? '\\' : '/');
+
+    const joinPath = (base, name) => {
+        if (!base) return name;
+        const sep = detectPathSeparator(base);
+        if (base.endsWith('/') || base.endsWith('\\')) {
+            return `${base}${name}`;
+        }
+        return `${base}${sep}${name}`;
+    };
+
     const animateReveal = (element) => {
         if (!element) return;
         element.classList.remove('fade-in');
@@ -541,6 +629,20 @@
         panel.classList.remove('depth-exit');
         void panel.offsetWidth;
         panel.classList.add('depth-exit');
+    };
+
+    const resetModeTransition = () => {
+        if (modeSwitchTimer) {
+            clearTimeout(modeSwitchTimer);
+            modeSwitchTimer = null;
+        }
+        if (modePanelsWrap) {
+            modePanelsWrap.style.height = '';
+            modePanelsWrap.classList.remove('mode-switching');
+        }
+        modePanels.forEach((panel) => {
+            panel.classList.remove('depth-enter', 'depth-exit');
+        });
     };
 
     const setZenMode = (enabled) => {
@@ -930,6 +1032,68 @@
                     }
                 }
             }
+        });
+    }
+
+    const currentMetaSnapshot = () => ({
+        title: currentName || lastMetadata?.name || t('common.unknownTitle', 'Unknown title'),
+        thumbnail: ''
+    });
+
+    const animateQueueOrbFrom = (element) => {
+        if (window.queueManager && window.queueManager.animateQueueOrb) {
+            window.queueManager.animateQueueOrb(element);
+        }
+    };
+
+    const returnToZenAfterQueueAction = () => {
+        window.setTimeout(() => {
+            if (pathInput) pathInput.value = '';
+            resetView();
+        }, 40);
+    };
+
+    const startCompressAction = async (autoStart, sourceButton) => {
+        if (!lastMetadata) return;
+        const payload = buildCompressPayload();
+        if (!payload) {
+            showError(t('compressor.errors.unsupportedFormat', 'Unsupported format.'));
+            return;
+        }
+        const meta = currentMetaSnapshot();
+        try {
+            if (window.queueManager && window.queueManager.enqueue) {
+                window.queueManager.enqueue(payload, meta, {
+                    autoStart: !!autoStart,
+                    startReason: autoStart ? 'compress' : null,
+                    source: autoStart ? 'compress' : 'queue',
+                    itemType: 'compress'
+                });
+            } else if (autoStart && invoke) {
+                await invoke('start_compress', { options: payload });
+            } else {
+                showError(t('queue.errors.queueUnavailable', 'Queue is unavailable.'));
+                return;
+            }
+            if (sourceButton) animateQueueOrbFrom(sourceButton);
+            returnToZenAfterQueueAction();
+        } catch (error) {
+            console.error('Error starting compress:', error);
+            showError(t('compressor.errors.startPrefix', 'Error: {error}', { error: String(error) }));
+        }
+    };
+
+    if (compressActionBtn) {
+        compressActionBtn.addEventListener('click', () => {
+            if (compressActionBtn.getAttribute('disabled') === 'true') return;
+            startCompressAction(true, compressActionBtn);
+        });
+    }
+
+    if (queueActionBtn) {
+        queueActionBtn.addEventListener('click', () => {
+            if (queueActionBtn.getAttribute('disabled') === 'true') return;
+            startCompressAction(false, queueActionBtn);
         });
     }
 

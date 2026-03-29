@@ -713,6 +713,8 @@ window.initCustomSelects = function() {
                 wrapper.classList.add('select-open');
                 const hostCard = wrapper.closest('.settings-section-card');
                 if (hostCard) hostCard.classList.add('select-open-card');
+                const compressorPanel = wrapper.closest('.compressor-controls-panel, .compressor-options-panel');
+                if (compressorPanel) compressorPanel.classList.add('select-open-panel');
 
                 if (list.__closeTimer) {
                     clearTimeout(list.__closeTimer);
@@ -794,6 +796,8 @@ window.closeAllSelects = function() {
     });
     document.querySelectorAll('.select-wrapper').forEach(w => w.classList.remove('select-open'));
     document.querySelectorAll('.settings-section-card').forEach(c => c.classList.remove('select-open-card'));
+    document.querySelectorAll('.compressor-controls-panel, .compressor-options-panel')
+        .forEach(p => p.classList.remove('select-open-panel'));
 };
 
 async function loadPage(pageName, pageIndex) {

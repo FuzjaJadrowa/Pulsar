@@ -132,6 +132,7 @@
     },
     "errors": {
       "unsupportedFormat": "Unsupported format.",
+      "startPrefix": "Error: {error}",
       "metadataFailed": "Failed to read file.",
       "fileNotFound": "File not found.",
       "noPath": "No file selected."
@@ -155,7 +156,7 @@
       "quality": "QUALITY"
     },
     "size": {
-      "placeholder": "Target size (e.g. 120 MB)"
+      "placeholder": "Target size"
     },
     "options": {
       "title": "OPTIONS",
@@ -227,8 +228,8 @@
       "systemTitle": "Pulsar",
       "downloadCompleted": "Download completed successfully.",
       "downloadCompletedSystem": "Download completed.",
-      "queueCompleted": "Queue downloads completed successfully.",
-      "queueCompletedSystem": "Queue downloads completed.",
+      "queueCompleted": "Queue elements completed successfully.",
+      "queueCompletedSystem": "Queue elements completed.",
       "downloadFailed": "Download failed.{suffix}",
       "downloadFailedSystem": "Download failed.{suffix}",
       "errorSuffix": " Error code: {code}",
@@ -399,7 +400,7 @@
       "title": "Title",
       "summary": "Summary",
       "icon": "Icon",
-      "path": "Save path...",
+      "path": "Save path",
       "videoQuality": "Video quality",
       "videoCodec": "Video codec",
       "videoBitrate": "Video bitrate",

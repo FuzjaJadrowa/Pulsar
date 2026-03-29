@@ -72,6 +72,7 @@ pub fn run() {
             core::converter::pick_convert_file,
             core::converter::estimate_convert_size,
             core::converter::start_convert,
+            core::compressor::start_compress,
             core::downloader::save_thumbnail_to_disk,
             core::downloader::read_clipboard_text,
             core::downloader::open_in_file_manager

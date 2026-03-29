@@ -61,6 +61,8 @@ body.page-compressor.compressor-active::after {
     gap: 14px;
     margin: 18px 0 0;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
 .compressor-controls-panel {
@@ -70,6 +72,11 @@ body.page-compressor.compressor-active::after {
 
 .compressor-options-panel {
     animation-delay: 0.3s;
+}
+
+.compressor-controls-panel.select-open-panel,
+.compressor-options-panel.select-open-panel {
+    z-index: 6;
 }
 
 .compressor-mode-toggle.mode-switcher {
@@ -105,6 +112,10 @@ body.page-compressor.compressor-active::after {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.compressor-mode-panels.mode-switching {
+    overflow: hidden;
 }
 
 .compressor-mode-panel {

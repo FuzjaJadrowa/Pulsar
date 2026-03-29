@@ -498,7 +498,7 @@
             if (type === 'convert') {
                 taskId = await invoke('start_convert', { options: { ...item.payload, client_task_id: String(item.id) } });
             } else if (type === 'compress') {
-                throw new Error('UNSUPPORTED_TYPE');
+                taskId = await invoke('start_compress', { options: { ...item.payload, client_task_id: String(item.id) } });
             } else {
                 taskId = await invoke('start_download', { options: { ...item.payload, client_task_id: String(item.id) } });
             }
@@ -581,7 +581,7 @@
         item.taskId = null;
         removeActive(item.id);
         const itemType = normalizeItemType(item.itemType);
-        if (item.startReason === 'download' || item.startReason === 'queue-manual' || item.startReason === 'convert') {
+        if (item.startReason === 'download' || item.startReason === 'queue-manual' || item.startReason === 'convert' || item.startReason === 'compress') {
             if (itemType === 'download') {
                 notifySuccessDownload();
             } else if (itemType === 'convert') {
@@ -680,7 +680,15 @@
         const payload = item?.payload || {};
         const itemType = normalizeItemType(item?.itemType);
         const typeIcon = createTypeIconMarkup(itemType);
-        if (itemType === 'convert' || itemType === 'compress') {
+        if (itemType === 'compress') {
+            const outputFormat = String(payload.output_format || payload.format || payload.source_format || '--').toUpperCase();
+            const sourceSize = formatBytes(payload.source_size_bytes);
+            return {
+                icon: typeIcon,
+                text: `${outputFormat} | ${sourceSize}`
+            };
+        }
+        if (itemType === 'convert') {
             const outputFormat = String(payload.output_format || payload.format || '--').toUpperCase();
             const sourceSize = formatBytes(payload.source_size_bytes);
             return {
@@ -1060,7 +1068,7 @@
         if (window.notifier) {
             window.notifier.show(
                 t('common.success', 'Success'),
-                t('queue.notifications.queueCompleted', 'Queue downloads completed successfully.'),
+                t('queue.notifications.queueCompleted', 'Queue elements completed successfully.'),
                 'success',
                 false
             );
@@ -1068,7 +1076,7 @@
         playSuccessSound();
         sendSystemNotification(
             t('queue.notifications.systemTitle', 'Pulsar'),
-            t('queue.notifications.queueCompletedSystem', 'Queue downloads completed.'),
+            t('queue.notifications.queueCompletedSystem', 'Queue elements completed.'),
             'success'
         );
     }

@@ -54,23 +54,23 @@
         <div id="compress-mode-toggle" class="compressor-mode-toggle mode-switcher" role="group" aria-label="Compression mode">
           <button type="button" class="switch-option active" data-mode="percent" aria-pressed="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <line x1="19" y1="5" x2="5" y2="19"></line>
-              <circle cx="7" cy="7" r="3"></circle>
-              <circle cx="17" cy="17" r="3"></circle>
+              <path d="M19 5 5 19"/>
+              <circle cx="7" cy="7" r="3"/>
+              <circle cx="17" cy="17" r="3"/>
             </svg>
             <span data-i18n="compressor.mode.percent">PERCENT</span>
           </button>
           <button type="button" class="switch-option" data-mode="size" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-              <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
-              <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <ellipse cx="12" cy="6" rx="9" ry="3"/>
+              <path d="M3 6v6c0 1.66 4.03 3 9 3s9-1.34 9-3V6"/>
+              <path d="M3 12v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
             </svg>
             <span data-i18n="compressor.mode.size">SIZE</span>
           </button>
           <button type="button" class="switch-option" data-mode="quality" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M12 3l2.3 4.66L19.5 8l-3.75 3.65.89 5.19L12 14.7 7.36 16.84l.9-5.19L4.5 8l5.2-.34L12 3z"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="m12 3.76 2.74 5.55 6.19.41-4.47 4.35 1.06 6.18L12 17.7l-5.52 2.55 1.07-6.18-4.48-4.35 6.19-.41z"/>
             </svg>
             <span data-i18n="compressor.mode.quality">QUALITY</span>
           </button>
@@ -91,7 +91,7 @@
 
           <div class="compressor-mode-panel hidden" data-mode="size">
             <div class="compressor-size-control">
-              <input id="compress-size-input" class="custom-input" type="text" placeholder="Target size (e.g. 120 MB)" data-i18n-placeholder="compressor.size.placeholder" autocomplete="off">
+              <input id="compress-size-input" class="custom-input" type="text" placeholder="Target size" data-i18n-placeholder="compressor.size.placeholder" autocomplete="off">
             </div>
           </div>
 
