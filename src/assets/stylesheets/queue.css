@@ -234,6 +234,26 @@
     font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     font-size: 0.8rem;
     color: var(--queue-text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.queue-type-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--queue-text-dim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 16px;
+}
+
+.queue-type-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    stroke: currentColor;
 }
 
 .queue-item-progress-wrap {

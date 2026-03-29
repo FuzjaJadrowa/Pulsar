@@ -269,6 +269,61 @@
         return payload;
     };
 
+    const normalizeOutputFormat = (value) => {
+        if (!value) return '';
+        let raw = String(value || '').trim().toLowerCase();
+        while (raw.startsWith('.')) raw = raw.slice(1);
+        return raw;
+    };
+
+    const sanitizeOutputName = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        return raw.replace(/[\\/]+/g, ' ').trim();
+    };
+
+    const detectPathSeparator = (value) => (String(value || '').includes('\\') ? '\\' : '/');
+
+    const joinPath = (base, name) => {
+        if (!base) return name;
+        const sep = detectPathSeparator(base);
+        if (base.endsWith('/') || base.endsWith('\\')) {
+            return `${base}${name}`;
+        }
+        return `${base}${sep}${name}`;
+    };
+
+    const buildConvertPayload = () => {
+        if (!selectedFormat || !lastMetadata) return null;
+        const targetCategory = getTargetCategory();
+        if (!targetCategory) return null;
+        const outputFormat = normalizeOutputFormat(selectedFormat);
+        if (!outputFormat) return null;
+        const outputDir = (savePathInput?.value || '').trim() || extractFolderPath(lastMetadata.path);
+        const rawName = sanitizeOutputName(currentName || lastMetadata.name || 'output');
+        let baseName = rawName;
+        const lowerName = rawName.toLowerCase();
+        const suffix = `.${outputFormat}`;
+        if (lowerName.endsWith(suffix)) {
+            baseName = rawName.slice(0, -suffix.length);
+        }
+        if (!baseName) baseName = 'output';
+        const outputPath = joinPath(outputDir, `${baseName}.${outputFormat}`);
+        return {
+            input_path: lastMetadata.path,
+            output_dir: outputDir,
+            output_name: baseName,
+            output_format: outputFormat,
+            category: targetCategory,
+            image_width: targetCategory === 'image' ? parseInteger(outputImageWidth?.value) : null,
+            image_height: targetCategory === 'image' ? parseInteger(outputImageHeight?.value) : null,
+            image_quality: targetCategory === 'image' ? parseInteger(outputImageQuality?.value) : null,
+            source_size_bytes: Number.isFinite(Number(lastMetadata.size_bytes)) ? Number(lastMetadata.size_bytes) : null,
+            source_format: String(lastMetadata.extension || ''),
+            path: outputPath
+        };
+    };
+
     const runEstimate = async () => {
         if (!invoke) return;
         estimateTimer = null;
@@ -1312,6 +1367,68 @@
                 applyDroppedPath(rawPath);
             });
         }
+    }
+
+    const currentMetaSnapshot = () => ({
+        title: currentName || lastMetadata?.name || t('common.unknownTitle', 'Unknown title'),
+        thumbnail: ''
+    });
+
+    const animateQueueOrbFrom = (element) => {
+        if (window.queueManager && window.queueManager.animateQueueOrb) {
+            window.queueManager.animateQueueOrb(element);
+        }
+    };
+
+    const returnToZenAfterQueueAction = () => {
+        window.setTimeout(() => {
+            if (pathInput) pathInput.value = '';
+            resetView();
+        }, 40);
+    };
+
+    const startConvertAction = async (autoStart, sourceButton) => {
+        if (!selectedFormat || !lastMetadata) return;
+        const payload = buildConvertPayload();
+        if (!payload) {
+            showError(t('converter.errors.unsupportedFormat', 'Unsupported format.'));
+            return;
+        }
+        const meta = currentMetaSnapshot();
+        try {
+            if (window.queueManager && window.queueManager.enqueue) {
+                window.queueManager.enqueue(payload, meta, {
+                    autoStart: !!autoStart,
+                    startReason: autoStart ? 'convert' : null,
+                    source: autoStart ? 'convert' : 'queue',
+                    itemType: 'convert'
+                });
+            } else if (autoStart && invoke) {
+                await invoke('start_convert', { options: payload });
+            } else {
+                showError(t('queue.errors.queueUnavailable', 'Queue is unavailable.'));
+                return;
+            }
+            if (sourceButton) animateQueueOrbFrom(sourceButton);
+            returnToZenAfterQueueAction();
+        } catch (error) {
+            console.error('Error starting convert:', error);
+            showError(t('converter.errors.startPrefix', 'Error: {error}', { error: String(error) }));
+        }
+    };
+
+    if (convertActionBtn) {
+        convertActionBtn.addEventListener('click', () => {
+            if (convertActionBtn.getAttribute('disabled') === 'true') return;
+            startConvertAction(true, convertActionBtn);
+        });
+    }
+
+    if (queueActionBtn) {
+        queueActionBtn.addEventListener('click', () => {
+            if (queueActionBtn.getAttribute('disabled') === 'true') return;
+            startConvertAction(false, queueActionBtn);
+        });
     }
 
     if (listen) {

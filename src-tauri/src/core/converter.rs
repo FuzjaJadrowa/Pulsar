@@ -1,8 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::OnceLock;
-use tauri::AppHandle;
+use std::path::{Path, PathBuf};
+use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
+use crate::core::downloader::BridgeState;
 
 #[derive(Deserialize, Default)]
 pub struct EstimatePayload {
@@ -341,4 +343,151 @@ pub fn estimate_convert_size(payload: EstimatePayload) -> Result<Option<u64>, St
         _ => estimate_other(&payload, esize),
     };
     Ok(estimate)
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ConvertOptions {
+    input_path: String,
+    output_dir: Option<String>,
+    output_name: Option<String>,
+    output_format: String,
+    category: Option<String>,
+    image_width: Option<u32>,
+    image_height: Option<u32>,
+    image_quality: Option<u32>,
+    client_task_id: Option<String>,
+}
+
+#[derive(Serialize)]
+struct ConvertBridgePayload {
+    input_path: String,
+    output_path: String,
+    output_format: String,
+    category: String,
+    image_width: Option<u32>,
+    image_height: Option<u32>,
+    image_quality: Option<u32>,
+}
+
+#[derive(Serialize)]
+struct ConvertBridgeCommand {
+    command: String,
+    id: String,
+    payload: ConvertBridgePayload,
+}
+
+fn normalize_output_format(value: &str) -> String {
+    let mut normalized = value.trim().to_lowercase();
+    while normalized.starts_with('.') {
+        normalized.remove(0);
+    }
+    normalized
+}
+
+fn sanitize_output_name(value: &str) -> String {
+    value.replace('\\', " ").replace('/', " ").trim().to_string()
+}
+
+fn resolve_output_dir(input_path: &Path, output_dir: Option<&str>) -> Result<PathBuf, String> {
+    if let Some(raw) = output_dir {
+        let trimmed = raw.trim();
+        if !trimmed.is_empty() {
+            return Ok(PathBuf::from(trimmed));
+        }
+    }
+    input_path
+        .parent()
+        .map(|p| p.to_path_buf())
+        .ok_or_else(|| "Unable to resolve output directory.".to_string())
+}
+
+fn resolve_output_name(input_path: &Path, output_name: Option<&str>) -> String {
+    let base = output_name
+        .and_then(|name| {
+            let trimmed = name.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(sanitize_output_name(trimmed))
+            }
+        })
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| {
+            input_path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "output".to_string())
+        });
+    Path::new(&base)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .map(|s| s.to_string())
+        .unwrap_or(base)
+}
+
+fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<String, String> {
+    let input_path = Path::new(options.input_path.trim());
+    let output_dir = resolve_output_dir(input_path, options.output_dir.as_deref())?;
+    let name = resolve_output_name(input_path, options.output_name.as_deref());
+    let file_name = format!("{}.{}", if name.is_empty() { "output" } else { name.as_str() }, output_format);
+    Ok(output_dir.join(file_name).to_string_lossy().to_string())
+}
+
+fn generate_task_id() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    now.to_string()
+}
+
+#[tauri::command]
+pub fn start_convert(
+    app_handle: AppHandle,
+    state: State<BridgeState>,
+    options: ConvertOptions
+) -> Result<String, String> {
+    let input_path = options.input_path.trim();
+    if input_path.is_empty() {
+        return Err("Input path cannot be empty.".to_string());
+    }
+    let output_format = normalize_output_format(&options.output_format);
+    if output_format.is_empty() {
+        return Err("Output format cannot be empty.".to_string());
+    }
+    let output_path = build_output_path(&options, &output_format)?;
+    let category = options
+        .category
+        .as_deref()
+        .map(|c| c.trim().to_lowercase())
+        .filter(|c| !c.is_empty())
+        .unwrap_or_else(|| "image".to_string());
+
+    let task_id = options
+        .client_task_id
+        .as_ref()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(generate_task_id);
+
+    let payload = ConvertBridgePayload {
+        input_path: input_path.to_string(),
+        output_path,
+        output_format,
+        category,
+        image_width: options.image_width,
+        image_height: options.image_height,
+        image_quality: options.image_quality,
+    };
+
+    let cmd = ConvertBridgeCommand {
+        command: "convert".to_string(),
+        id: task_id.clone(),
+        payload,
+    };
+
+    state.send_raw_command(&app_handle, &cmd)?;
+
+    Ok(task_id)
 }

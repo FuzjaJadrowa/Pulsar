@@ -8,6 +8,8 @@ use std::sync::Mutex;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueueItemState {
     pub id: String,
+    #[serde(default = "default_item_type")]
+    pub item_type: String,
     pub title: String,
     pub thumbnail: String,
     pub status: String,
@@ -21,6 +23,10 @@ pub struct QueueItemState {
     pub start_reason: Option<String>,
     pub pending_start_reason: Option<String>,
     pub source: String,
+}
+
+fn default_item_type() -> String {
+    "download".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
