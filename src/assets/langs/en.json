@@ -106,7 +106,9 @@
       "addToQueue": "ADD TO QUEUE"
     },
     "options": {
-      "convertTo": "CONVERT TO"
+      "compressBy": "COMPRESS BY",
+      "title": "OPTIONS",
+      "pathPlaceholder": "Save path..."
     },
     "mode": {
       "video": "VIDEO",
@@ -143,7 +145,29 @@
       "placeholder": "Select file to compress..."
     },
     "actions": {
-      "browse": "Browse"
+      "browse": "Browse",
+      "compress": "COMPRESS",
+      "addToQueue": "ADD TO QUEUE"
+    },
+    "mode": {
+      "percent": "PERCENT",
+      "size": "SIZE",
+      "quality": "QUALITY"
+    },
+    "size": {
+      "placeholder": "Target size (e.g. 120 MB)"
+    },
+    "options": {
+      "title": "OPTIONS",
+      "pathPlaceholder": "Save path...",
+      "estimatedSize": "Estimated size",
+      "videoCodec": "Video codec",
+      "audioCodec": "Audio codec"
+    },
+    "crf": {
+      "bestQuality": "0 - Best quality",
+      "balance": "26 - Balance",
+      "bestCompression": "51 - Best compression"
     },
     "output": {
       "placeholder": "Output name",
@@ -375,7 +399,7 @@
       "title": "Title",
       "summary": "Summary",
       "icon": "Icon",
-      "path": "Save path",
+      "path": "Save path...",
       "videoQuality": "Video quality",
       "videoCodec": "Video codec",
       "videoBitrate": "Video bitrate",

@@ -42,6 +42,30 @@
     const sizeValue = root.querySelector('#compress-file-size');
     const durationValue = root.querySelector('#compress-file-duration');
     const dropOverlay = root.querySelector('#compress-drop-overlay');
+    const modeToggle = root.querySelector('#compress-mode-toggle');
+    const modeButtons = modeToggle ? Array.from(modeToggle.querySelectorAll('.switch-option')) : [];
+    const modePanels = Array.from(root.querySelectorAll('.compressor-mode-panel'));
+    const percentRange = root.querySelector('#compress-percent-range');
+    const percentInput = root.querySelector('#compress-percent-input');
+    const percentFill = root.querySelector('#compress-percent-fill');
+    const sizeInput = root.querySelector('#compress-size-input');
+    const crfSelect = root.querySelector('#compress-crf-select');
+    const optionsPanel = root.querySelector('.compressor-options-panel');
+    const savePathPanel = root.querySelector('#compress-save-path-panel');
+    const savePathInput = root.querySelector('#compress-save-path-input');
+    const savePathBrowse = root.querySelector('#compress-save-path-browse');
+    const specsPanel = root.querySelector('#compress-specs-panel');
+    const specsSections = Array.from(root.querySelectorAll('.compressor-specs-section'));
+    const estimatedVideoSize = root.querySelector('#compress-estimated-video-size');
+    const estimatedAudioSize = root.querySelector('#compress-estimated-audio-size');
+    const estimatedImageSize = root.querySelector('#compress-estimated-image-size');
+    const estimatedOtherSize = root.querySelector('#compress-estimated-other-size');
+    const videoCodecSelect = root.querySelector('#compress-video-codec');
+    const videoAudioCodecSelect = root.querySelector('#compress-video-audio-codec');
+    const audioCodecSelect = root.querySelector('#compress-audio-codec');
+    const compressActionBtn = root.querySelector('#compress-action-btn');
+    const queueActionBtn = root.querySelector('#compress-queue-btn');
+    const scrollContainer = root.querySelector('.page-scroll');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
         document.body.appendChild(dropOverlay);
@@ -52,6 +76,19 @@
     let lastMetadata = null;
     let currentName = '';
     let isEditingName = false;
+    let selectedMode = 'percent';
+    let currentCategory = '';
+    let formatDataLoaded = false;
+    let formatDataPromise = null;
+    let formatMetaMap = new Map();
+    let lastScrollTop = 0;
+    let pendingScrollRestore = false;
+    let dashboardRevealTimer = null;
+    let dashboardRevealed = false;
+    let modeSwitchTimer = null;
+
+    const PANEL_IN_MS = 220;
+    const PANEL_OUT_MS = 180;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -81,6 +118,103 @@
         confirmBtn.innerHTML = arrowSvg;
     };
 
+    const parseInteger = (value) => {
+        const parsed = parseInt(String(value || '').trim(), 10);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const clampNumber = (value, min, max) => {
+        if (!Number.isFinite(value)) return null;
+        return Math.min(max, Math.max(min, value));
+    };
+
+    const clampInputValue = (input, min, max, options = {}) => {
+        if (!input) return;
+        const raw = String(input.value || '').trim();
+        const allowEmpty = options.allowEmpty !== false;
+        const fallback = Number.isFinite(options.fallback) ? options.fallback : min;
+        if (!raw) {
+            if (!allowEmpty) input.value = String(fallback);
+            return;
+        }
+        const parsed = parseInteger(raw);
+        if (!Number.isFinite(parsed)) {
+            input.value = allowEmpty ? '' : String(fallback);
+            return;
+        }
+        const clamped = clampNumber(parsed, min, max);
+        input.value = Number.isFinite(clamped) ? String(clamped) : String(fallback);
+    };
+
+    const normalizePercentValue = (raw) => {
+        const parsed = parseInteger(raw);
+        if (!Number.isFinite(parsed)) return null;
+        return clampNumber(parsed, 1, 100);
+    };
+
+    const updatePercentFill = () => {
+        if (!percentRange || !percentFill) return;
+        const min = Number(percentRange.min || 1);
+        const max = Number(percentRange.max || 100);
+        const value = Number(percentRange.value || 0);
+        const ratio = max > min ? (value - min) / (max - min) : 0;
+        percentFill.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+    };
+
+    const commitPercentValue = (raw) => {
+        const fallback = 60;
+        const clamped = normalizePercentValue(raw);
+        const value = Number.isFinite(clamped) ? clamped : fallback;
+        if (percentInput) percentInput.value = String(value);
+        if (percentRange) percentRange.value = String(value);
+        updatePercentFill();
+        return value;
+    };
+
+    const parseSizeInput = (value) => {
+        const raw = String(value || '').trim().toLowerCase();
+        if (!raw) return null;
+        const match = raw.match(/^(\d+(?:[.,]\d+)?)\s*([a-z]*)$/i);
+        if (!match) return null;
+        const amount = parseFloat(match[1].replace(',', '.'));
+        if (!Number.isFinite(amount)) return null;
+        if (!match[2]) return null;
+        let unit = match[2].toLowerCase();
+        if (unit === 'bytes') unit = 'b';
+        if (unit === 'k') unit = 'kb';
+        if (unit === 'm') unit = 'mb';
+        if (unit === 'g') unit = 'gb';
+        if (unit === 't') unit = 'tb';
+        const multipliers = {
+            b: 1,
+            kb: 1024,
+            kib: 1024,
+            mb: 1024 ** 2,
+            mib: 1024 ** 2,
+            gb: 1024 ** 3,
+            gib: 1024 ** 3,
+            tb: 1024 ** 4,
+            tib: 1024 ** 4
+        };
+        const mult = multipliers[unit];
+        if (!mult) return null;
+        const bytes = amount * mult;
+        return Number.isFinite(bytes) ? Math.round(bytes) : null;
+    };
+
+    const saveScrollPosition = () => {
+        if (!scrollContainer) return;
+        lastScrollTop = scrollContainer.scrollTop || 0;
+    };
+
+    const scheduleScrollRestore = () => {
+        if (!scrollContainer) return;
+        const target = Number.isFinite(lastScrollTop) ? lastScrollTop : 0;
+        requestAnimationFrame(() => {
+            scrollContainer.scrollTop = target;
+        });
+    };
+
     const formatBytes = (bytes) => {
         const value = Number(bytes);
         if (!Number.isFinite(value)) return '-';
@@ -103,6 +237,269 @@
         const mins = Math.floor((safe % 3600) / 60).toString().padStart(2, '0');
         const secs = Math.floor(safe % 60).toString().padStart(2, '0');
         return `${hrs}:${mins}:${secs}`;
+    };
+
+    const clearEstimatedSizes = () => {
+        if (estimatedVideoSize) estimatedVideoSize.textContent = '-';
+        if (estimatedAudioSize) estimatedAudioSize.textContent = '-';
+        if (estimatedImageSize) estimatedImageSize.textContent = '-';
+        if (estimatedOtherSize) estimatedOtherSize.textContent = '-';
+    };
+
+    const setEstimatedSize = (category, bytes) => {
+        clearEstimatedSizes();
+        if (!Number.isFinite(bytes)) return;
+        const value = formatBytes(bytes);
+        if (category === 'video' && estimatedVideoSize) {
+            estimatedVideoSize.textContent = value;
+            return;
+        }
+        if (category === 'audio' && estimatedAudioSize) {
+            estimatedAudioSize.textContent = value;
+            return;
+        }
+        if (category === 'image' && estimatedImageSize) {
+            estimatedImageSize.textContent = value;
+            return;
+        }
+        if (estimatedOtherSize) {
+            estimatedOtherSize.textContent = value;
+        }
+    };
+
+    const resolveSpecsCategory = (value) => {
+        const normalized = String(value || '').toLowerCase();
+        if (normalized === 'video' || normalized === 'audio' || normalized === 'image') {
+            return normalized;
+        }
+        return 'other';
+    };
+
+    const setSpecsSectionVisibility = (sections, activeKey) => {
+        if (!sections || !sections.length) return;
+        sections.forEach((section) => {
+            const key = section?.dataset?.section;
+            section.classList.toggle('hidden', key !== activeKey);
+        });
+    };
+
+    const updateSpecsVisibility = () => {
+        const targetKey = resolveSpecsCategory(currentCategory);
+        setSpecsSectionVisibility(specsSections, targetKey);
+    };
+
+    const estimateFromCrf = (sizeBytes, crf) => {
+        const numeric = Number.isFinite(crf) ? crf : null;
+        if (!Number.isFinite(sizeBytes) || !Number.isFinite(numeric)) return null;
+        const ratio = 1 - (numeric / 51) * 0.75;
+        const safeRatio = Math.max(0.18, Math.min(1, ratio));
+        return Math.round(sizeBytes * safeRatio);
+    };
+
+    const updateEstimatedSize = () => {
+        if (!lastMetadata || !Number.isFinite(Number(lastMetadata.size_bytes))) {
+            clearEstimatedSizes();
+            return;
+        }
+        const baseSize = Number(lastMetadata.size_bytes);
+        const category = resolveSpecsCategory(currentCategory);
+        if (selectedMode === 'percent') {
+            const percentValue = commitPercentValue(percentInput?.value ?? percentRange?.value);
+            const estimated = Number.isFinite(percentValue)
+                ? Math.round(baseSize * (percentValue / 100))
+                : null;
+            setEstimatedSize(category, estimated);
+            return;
+        }
+        if (selectedMode === 'size') {
+            const targetBytes = parseSizeInput(sizeInput?.value || '');
+            setEstimatedSize(category, targetBytes);
+            return;
+        }
+        if (selectedMode === 'quality') {
+            const crfValue = parseInteger(crfSelect?.value);
+            setEstimatedSize(category, estimateFromCrf(baseSize, crfValue));
+            return;
+        }
+        clearEstimatedSizes();
+    };
+
+    const setActionButtonsEnabled = (enabled) => {
+        [compressActionBtn, queueActionBtn].forEach((btn) => {
+            if (!btn) return;
+            if (enabled) {
+                btn.removeAttribute('disabled');
+                btn.classList.add('ready');
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.classList.remove('ready');
+            }
+        });
+    };
+
+    const updateActionButtonsState = () => {
+        const needsSize = selectedMode === 'size';
+        const hasValidSize = !!(sizeInput && Number.isFinite(parseSizeInput(sizeInput.value)));
+        const enable = !needsSize || hasValidSize;
+        setActionButtonsEnabled(enable);
+    };
+
+    const setMode = (mode, options = {}) => {
+        const next = mode === 'size' || mode === 'quality' ? mode : 'percent';
+        if (next === selectedMode && !options.force) return;
+        selectedMode = next;
+        if (root) root.dataset.compressMode = selectedMode;
+        modeButtons.forEach((btn) => {
+            const btnMode = btn.getAttribute('data-mode');
+            const active = btnMode === selectedMode;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        const nextPanel = modePanels.find((panel) => panel.getAttribute('data-mode') === selectedMode) || null;
+        const prevPanel = modePanels.find((panel) => !panel.classList.contains('hidden')) || null;
+        if (modeSwitchTimer) {
+            clearTimeout(modeSwitchTimer);
+            modeSwitchTimer = null;
+        }
+        if (options.animate === false || !nextPanel) {
+            modePanels.forEach((panel) => {
+                const visible = panel === nextPanel;
+                panel.classList.toggle('hidden', !visible);
+                panel.classList.remove('depth-enter', 'depth-exit');
+            });
+        } else if (prevPanel && prevPanel !== nextPanel) {
+            modePanels.forEach((panel) => {
+                if (panel !== prevPanel && panel !== nextPanel) {
+                    panel.classList.add('hidden');
+                    panel.classList.remove('depth-enter', 'depth-exit');
+                }
+            });
+            nextPanel.classList.remove('hidden');
+            animatePanelDepthIn(nextPanel);
+            animatePanelDepthOut(prevPanel);
+            modeSwitchTimer = window.setTimeout(() => {
+                prevPanel.classList.add('hidden');
+                prevPanel.classList.remove('depth-exit');
+                nextPanel.classList.remove('depth-enter');
+                modeSwitchTimer = null;
+            }, PANEL_OUT_MS);
+        } else {
+            modePanels.forEach((panel) => {
+                const visible = panel === nextPanel;
+                panel.classList.toggle('hidden', !visible);
+                if (!visible) {
+                    panel.classList.remove('depth-enter', 'depth-exit');
+                }
+            });
+            animatePanelDepthIn(nextPanel);
+            modeSwitchTimer = window.setTimeout(() => {
+                if (nextPanel) nextPanel.classList.remove('depth-enter');
+                modeSwitchTimer = null;
+            }, PANEL_IN_MS);
+        }
+        updateActionButtonsState();
+        updateEstimatedSize();
+    };
+
+    const triggerShake = (element) => {
+        if (!element) return;
+        element.classList.remove('shake-feedback');
+        void element.offsetWidth;
+        element.classList.add('shake-feedback');
+    };
+
+    const rebuildSelect = (selectEl, options) => {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        options.forEach((opt) => {
+            const optionEl = document.createElement('option');
+            optionEl.value = opt.value;
+            optionEl.textContent = opt.label;
+            if (opt.i18n) optionEl.setAttribute('data-i18n', opt.i18n);
+            selectEl.appendChild(optionEl);
+        });
+        const wrapper = selectEl.nextElementSibling;
+        if (wrapper && wrapper.classList.contains('select-wrapper')) {
+            wrapper.remove();
+        }
+        if (window.initCustomSelects) {
+            window.initCustomSelects();
+        }
+    };
+
+    const buildCodecOptions = (codecs) => {
+        const options = [
+            { value: '', label: t('presetCreator.select.auto', 'Auto'), i18n: 'presetCreator.select.auto' }
+        ];
+        if (Array.isArray(codecs)) {
+            codecs.forEach((codec) => {
+                const label = String(codec || '').trim();
+                if (!label) return;
+                options.push({ value: label, label });
+            });
+        }
+        return options;
+    };
+
+    const loadFormatData = () => {
+        if (formatDataLoaded) return Promise.resolve();
+        if (formatDataPromise) return formatDataPromise;
+        formatDataPromise = fetch('assets/format.json', { cache: 'no-store' })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((json) => {
+                const formats = Array.isArray(json?.cformats) ? json.cformats : [];
+                formatMetaMap = new Map(
+                    formats.map((item) => [String(item?.id || '').toLowerCase(), item])
+                );
+            })
+            .catch((error) => {
+                console.error('Failed to load format.json:', error);
+                formatMetaMap = new Map();
+            })
+            .finally(() => {
+                formatDataLoaded = true;
+                formatDataPromise = null;
+            });
+        return formatDataPromise;
+    };
+
+    const normalizeFormatKey = (value) => {
+        if (!value) return '';
+        let raw = String(value || '').trim().toLowerCase();
+        while (raw.startsWith('.')) raw = raw.slice(1);
+        return raw;
+    };
+
+    const updateCodecOptions = () => {
+        const key = normalizeFormatKey(lastMetadata?.extension || '');
+        const meta = formatMetaMap.get(key);
+        rebuildSelect(videoCodecSelect, buildCodecOptions(meta?.video_codecs));
+        rebuildSelect(videoAudioCodecSelect, buildCodecOptions(meta?.audio_codecs));
+        rebuildSelect(audioCodecSelect, buildCodecOptions(meta?.audio_codecs));
+    };
+
+    const buildCrfOptions = () => {
+        if (!crfSelect) return;
+        const labeled = {
+            0: { key: 'compressor.crf.bestQuality', fallback: '0 - Best quality' },
+            26: { key: 'compressor.crf.balance', fallback: '26 - Balance' },
+            51: { key: 'compressor.crf.bestCompression', fallback: '51 - Best compression' }
+        };
+        const options = [];
+        for (let i = 0; i <= 51; i += 1) {
+            const labelInfo = labeled[i];
+            if (labelInfo) {
+                options.push({
+                    value: String(i),
+                    label: t(labelInfo.key, labelInfo.fallback),
+                    i18n: labelInfo.key
+                });
+            } else {
+                options.push({ value: String(i), label: String(i) });
+            }
+        }
+        rebuildSelect(crfSelect, options);
+        crfSelect.value = '26';
     };
 
     const extractFolderPath = (value) => {
@@ -132,6 +529,20 @@
         element.classList.add('fade-in');
     };
 
+    const animatePanelDepthIn = (panel) => {
+        if (!panel) return;
+        panel.classList.remove('depth-enter');
+        void panel.offsetWidth;
+        panel.classList.add('depth-enter');
+    };
+
+    const animatePanelDepthOut = (panel) => {
+        if (!panel) return;
+        panel.classList.remove('depth-exit');
+        void panel.offsetWidth;
+        panel.classList.add('depth-exit');
+    };
+
     const setZenMode = (enabled) => {
         const body = document.body;
         if (!body) return;
@@ -140,6 +551,17 @@
         if (!wasZen && enabled && typeof window.triggerIdleWavesEnter === 'function') {
             window.triggerIdleWavesEnter();
         }
+    };
+
+    const revealDashboard = () => {
+        if (dashboard) {
+            dashboard.classList.remove('hidden');
+            const fadeTargets = Array.from(dashboard.querySelectorAll('.fade-in'));
+            fadeTargets.forEach((element) => {
+                animateReveal(element);
+            });
+        }
+        dashboardRevealed = true;
     };
 
     const showDashboard = () => {
@@ -151,17 +573,27 @@
             document.body.classList.add('compressor-active');
             setZenMode(false);
         }
-        if (dashboard) {
-            dashboard.classList.remove('hidden');
-            const fadeTargets = Array.from(dashboard.querySelectorAll('.fade-in'));
-            fadeTargets.forEach((element) => {
-                animateReveal(element);
-            });
+        if (dashboardRevealTimer) {
+            clearTimeout(dashboardRevealTimer);
+            dashboardRevealTimer = null;
+        }
+        if (dashboard && dashboard.classList.contains('hidden')) {
+            dashboardRevealTimer = window.setTimeout(() => {
+                revealDashboard();
+                dashboardRevealTimer = null;
+            }, 500);
+        } else if (!dashboardRevealed) {
+            revealDashboard();
         }
     };
 
     const resetView = () => {
         lastMetadata = null;
+        if (dashboardRevealTimer) {
+            clearTimeout(dashboardRevealTimer);
+            dashboardRevealTimer = null;
+        }
+        dashboardRevealed = false;
         if (dashboard) {
             dashboard.classList.add('hidden');
         }
@@ -189,6 +621,23 @@
         if (durationValue) durationValue.textContent = '-';
         if (infoCard) infoCard.classList.remove('no-duration', 'name-editing');
         isEditingName = false;
+        currentCategory = '';
+        commitPercentValue(60);
+        if (sizeInput) sizeInput.value = '';
+        if (crfSelect) {
+            if (!crfSelect.options.length) {
+                buildCrfOptions();
+            }
+            crfSelect.value = '26';
+            if (window.initCustomSelects) {
+                window.initCustomSelects();
+            }
+        }
+        clearEstimatedSizes();
+        setMode('percent', { force: true, animate: false });
+        updateSpecsVisibility();
+        updateCodecOptions();
+        updateActionButtonsState();
     };
 
     const resolveErrorMessage = (raw) => {
@@ -223,6 +672,7 @@
     const updateDashboard = (data) => {
         const category = String(data.category || '').toLowerCase();
         const extension = String(data.extension || '').trim();
+        currentCategory = category;
         const categoryLabelText = t(
             `compressor.meta.category.${category}`,
             category ? category.toUpperCase() : 'FILE'
@@ -286,6 +736,12 @@
                 durationValue.textContent = '-';
             }
         }
+        updateSpecsVisibility();
+        updateEstimatedSize();
+        updateActionButtonsState();
+        loadFormatData().then(() => {
+            updateCodecOptions();
+        });
     };
 
     const confirmPath = async () => {
@@ -345,6 +801,72 @@
             if (pathInput.value.trim() === '') {
                 resetView();
             }
+        });
+    }
+
+    if (savePathBrowse) {
+        savePathBrowse.addEventListener('click', async () => {
+            if (!invoke || !savePathInput) return;
+            try {
+                const selectedPath = await invoke('pick_download_directory');
+                if (selectedPath) {
+                    savePathInput.value = selectedPath;
+                }
+            } catch (error) {
+                console.error('Failed to pick directory:', error);
+            }
+        });
+    }
+
+    if (modeToggle) {
+        modeButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mode = btn.getAttribute('data-mode') || 'percent';
+                if (mode === selectedMode) {
+                    triggerShake(btn);
+                    return;
+                }
+                setMode(mode);
+            });
+        });
+    }
+
+    if (percentRange) {
+        percentRange.addEventListener('input', () => {
+            commitPercentValue(percentRange.value);
+            updateEstimatedSize();
+        });
+    }
+
+    if (percentInput) {
+        percentInput.addEventListener('input', () => {
+            const value = normalizePercentValue(percentInput.value);
+            if (Number.isFinite(value) && percentRange) {
+                percentRange.value = String(value);
+                updatePercentFill();
+            }
+            updateEstimatedSize();
+        });
+        percentInput.addEventListener('blur', () => {
+            commitPercentValue(percentInput.value);
+            updateEstimatedSize();
+        });
+    }
+
+    if (sizeInput) {
+        sizeInput.addEventListener('input', () => {
+            updateActionButtonsState();
+            updateEstimatedSize();
+        });
+        sizeInput.addEventListener('blur', () => {
+            updateActionButtonsState();
+            updateEstimatedSize();
+        });
+    }
+
+    if (crfSelect) {
+        crfSelect.addEventListener('change', () => {
+            updateEstimatedSize();
         });
     }
 
@@ -598,8 +1120,13 @@
             if (lastMetadata) {
                 updateDashboard(lastMetadata);
                 showDashboard();
+                if (pendingScrollRestore) {
+                    scheduleScrollRestore();
+                    pendingScrollRestore = false;
+                }
             } else if (!hasInput) {
                 resetView();
+                pendingScrollRestore = false;
             } else {
                 if (searchSection) {
                     searchSection.classList.remove('centered');
@@ -610,11 +1137,19 @@
                     document.body.classList.add('compressor-active');
                     setZenMode(false);
                 }
+                pendingScrollRestore = false;
             }
             setConfirmLoading(false);
         },
         onDeactivate: () => {
+            saveScrollPosition();
+            pendingScrollRestore = true;
             hideDropOverlay();
+            if (dashboardRevealTimer) {
+                clearTimeout(dashboardRevealTimer);
+                dashboardRevealTimer = null;
+            }
+            dashboardRevealed = false;
         }
     };
 

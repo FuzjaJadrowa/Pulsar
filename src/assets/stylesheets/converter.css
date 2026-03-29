@@ -308,6 +308,14 @@ body.page-converter.converter-active::before {
     color: #fff;
 }
 
+.converter-page[data-convert-mode="video"] .converter-format-tile.active {
+    color: #d0a9f5;
+}
+
+.converter-page[data-convert-mode="audio"] .converter-format-tile.active {
+    color: #a9f5c6;
+}
+
 .converter-page[data-convert-mode="video"] {
     --converter-accent: var(--c-video-primary);
 }
