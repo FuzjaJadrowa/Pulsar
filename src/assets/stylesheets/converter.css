@@ -2,6 +2,10 @@
     position: relative;
 }
 
+body.page-converter {
+    --active-color: var(--c-video-primary);
+}
+
 
 body.page-converter.converter-active::before {
     opacity: 1;
@@ -28,6 +32,98 @@ body.page-converter.converter-active::before {
 .converter-dashboard.hidden {
     display: none;
     opacity: 0;
+}
+
+.preset-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 2rem;
+    animation-delay: 0.05s;
+}
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    max-width: 1320px;
+    margin: 0 auto;
+}
+.preset-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--c-tile-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    min-height: 76px;
+    text-align: left;
+    color: inherit;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.preset-card:hover {
+    background: var(--c-tile-hover);
+    transform: translateY(-2px);
+}
+.preset-card.active {
+    background: var(--active-color);
+    border-color: var(--active-color);
+    transform: scale(1.03);
+}
+.preset-card.active .preset-card-title,
+.preset-card.active .preset-card-summary {
+    color: #ffffff;
+}
+.preset-card.active .preset-card-icon {
+    color: #ffffff;
+}
+.preset-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.preset-card-icon img,
+.preset-card-icon svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.preset-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.preset-card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #f1f1f1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.preset-card-summary {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.preset-section.hidden {
+    display: none;
+}
+.preset-section > .option-label {
+    width: 100%;
+    text-align: center;
 }
 
 .converter-info-card {
@@ -748,6 +844,35 @@ body.theme-light .converter-toggle-option.active {
 
 body.theme-light .converter-format-tile.active {
     box-shadow: 0 6px 16px rgba(31, 44, 77, 0.18);
+}
+
+body.theme-light .preset-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+body.theme-light .preset-card.active {
+    background: var(--active-color);
+    border-color: var(--active-color);
+}
+body.theme-light .preset-card:hover {
+    background: rgba(255, 255, 255, 0.95);
+}
+body.theme-light .preset-card.active:hover {
+    background: var(--active-color);
+    border-color: var(--active-color);
+}
+body.theme-light .preset-card-title {
+    color: #1d2330;
+}
+body.theme-light .preset-card-summary {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .preset-card-icon {
+    color: #1d2330;
+}
+body.theme-light .preset-card.active .preset-card-title,
+body.theme-light .preset-card.active .preset-card-summary {
+    color: #ffffff;
 }
 
 .convert-drop-overlay {

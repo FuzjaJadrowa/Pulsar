@@ -108,7 +108,11 @@
 
             const badge = document.createElement('span');
             badge.className = 'preset-badge';
-            badge.textContent = t('settings.presetsManager.types.downloader', 'Downloader');
+            const presetType = String(preset.preset_type || 'downloader').toLowerCase();
+            let typeFallback = 'Downloader';
+            if (presetType === 'converter') typeFallback = 'Converter';
+            if (presetType === 'compressor') typeFallback = 'Compressor';
+            badge.textContent = t(`settings.presetsManager.types.${presetType}`, typeFallback);
             title.appendChild(badge);
 
             const summary = document.createElement('div');

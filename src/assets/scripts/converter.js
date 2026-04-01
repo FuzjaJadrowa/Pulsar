@@ -26,6 +26,7 @@
         archive: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21.706 5.292-2.999-2.999A1 1 0 0 0 18 2H6a1 1 0 0 0-.707.293L2.294 5.292A1 1 0 0 0 2 6v13c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6a1 1 0 0 0-.294-.708M6.414 4h11.172l1 1H5.414zM4 19V7h16l.002 12z"/><path d="M14 9h-4v3H7l5 5 5-5h-3z"/></svg>`,
         font: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.226 2 .115 14h2.066l.778-3H6.04l.778 3h2.066L5.774 2zm2.296 7L4.5 5.056 3.477 9zM14 7.337a3.5 3.5 0 1 0 0 6.326V14h2V7h-2zM11 10.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0" fill="#000"/></svg>`
     };
+    const KEY_ICON_SVG = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>';
 
     const searchSection = root.querySelector('#convert-search-section');
     const dashboard = root.querySelector('#convert-dashboard');
@@ -74,6 +75,8 @@
     const outputImageSize = root.querySelector('#convert-output-image-size');
     const outputOtherSize = root.querySelector('#convert-output-other-size');
     const scrollContainer = root.querySelector('.page-scroll');
+    const presetSection = root.querySelector('#convert-preset-section');
+    const presetGrid = root.querySelector('#convert-preset-grid');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
         document.body.appendChild(dropOverlay);
@@ -98,6 +101,9 @@
     let pendingScrollRestore = false;
     let estimateTimer = null;
     let estimateRequestId = 0;
+    let presets = [];
+    let activePresetId = null;
+    let applyingPreset = false;
 
     const spinnerSvg = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -204,6 +210,77 @@
         const mins = Math.floor((safe % 3600) / 60).toString().padStart(2, '0');
         const secs = Math.floor(safe % 60).toString().padStart(2, '0');
         return `${hrs}:${mins}:${secs}`;
+    };
+
+    const trimSummary = (value, maxLen = 48) => {
+        const text = String(value || '').trim();
+        if (text.length <= maxLen) return text;
+        return `${text.slice(0, Math.max(0, maxLen - 3))}...`;
+    };
+
+    const decodeSvgDataUrl = (dataUrl) => {
+        if (!dataUrl || !dataUrl.startsWith('data:image/svg+xml')) return null;
+        const parts = dataUrl.split(',');
+        if (parts.length < 2) return null;
+        const meta = parts[0];
+        const data = parts.slice(1).join(',');
+        try {
+            if (meta.includes(';base64')) {
+                return atob(data);
+            }
+            return decodeURIComponent(data);
+        } catch (_) {
+            return null;
+        }
+    };
+
+    const applyPresetIcon = (iconEl, iconSource) => {
+        if (!iconEl) return;
+        iconEl.innerHTML = '';
+        const source = String(iconSource || '').trim();
+        if (!source) {
+            iconEl.innerHTML = KEY_ICON_SVG;
+            return;
+        }
+        if (source.startsWith('<svg')) {
+            iconEl.innerHTML = source;
+            return;
+        }
+        if (source.startsWith('data:image/svg+xml')) {
+            const decoded = decodeSvgDataUrl(source);
+            if (decoded) {
+                iconEl.innerHTML = decoded;
+                return;
+            }
+        }
+        const img = document.createElement('img');
+        img.src = source;
+        img.alt = 'Preset';
+        img.onerror = () => {
+            iconEl.innerHTML = KEY_ICON_SVG;
+        };
+        iconEl.appendChild(img);
+    };
+
+    const clearActivePreset = () => {
+        if (!activePresetId) return;
+        activePresetId = null;
+        if (presetGrid) {
+            presetGrid.querySelectorAll('.preset-card.active').forEach((el) => el.classList.remove('active'));
+        }
+    };
+
+    const setActivePreset = (id) => {
+        activePresetId = id;
+        if (!presetGrid) return;
+        presetGrid.querySelectorAll('.preset-card').forEach((el) => {
+            el.classList.toggle('active', el.dataset.presetId === id);
+        });
+    };
+
+    const clearActivePresetIfNeeded = () => {
+        if (applyingPreset) return;
+        clearActivePreset();
     };
 
     const clearEstimatedSizes = () => {
@@ -600,10 +677,12 @@
     const bindBitrateClamp = (input, constraints) => {
         if (!input) return;
         input.addEventListener('input', () => {
+            clearActivePresetIfNeeded();
             requestEstimateUpdate();
         });
         input.addEventListener('blur', () => {
             input.value = clampBitrate(input.value, constraints, true);
+            clearActivePresetIfNeeded();
             requestEstimateUpdate({ immediate: true });
         });
     };
@@ -611,10 +690,12 @@
     const bindResolutionClamp = (input) => {
         if (!input) return;
         input.addEventListener('input', () => {
+            clearActivePresetIfNeeded();
             requestEstimateUpdate();
         });
         input.addEventListener('blur', () => {
             clampInputValue(input, 1, 5000, { allowEmpty: true });
+            clearActivePresetIfNeeded();
             requestEstimateUpdate({ immediate: true });
         });
     };
@@ -622,6 +703,7 @@
     const bindEstimateSelect = (selectEl) => {
         if (!selectEl) return;
         selectEl.addEventListener('change', () => {
+            clearActivePresetIfNeeded();
             requestEstimateUpdate({ immediate: true });
         });
     };
@@ -726,6 +808,7 @@
                     return;
                 }
                 selectedFormat = id;
+                clearActivePresetIfNeeded();
                 updateTileSelection();
                 setActionButtonsEnabled(true);
                 updateDetailsPanel();
@@ -738,6 +821,142 @@
         }
         updateTileSelection();
         setActionButtonsEnabled(!!selectedFormat);
+    };
+
+    const selectFormatByValue = async (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return;
+        await loadFormatData();
+        const meta = formatMetaMap.get(raw.toLowerCase());
+        if (!meta) return;
+        const targetType = String(meta.type || '').toLowerCase();
+        if (currentCategory === 'audio' && targetType !== 'audio') return;
+        if (currentCategory === 'image' && targetType !== 'image') return;
+        if (currentCategory === 'video' && targetType !== 'audio' && targetType !== 'video') return;
+        if (currentCategory === 'video') {
+            selectedFormat = String(meta.id || raw);
+            const nextMode = targetType === 'audio' ? 'audio' : 'video';
+            setConvertMode(nextMode, {
+                preserveSelection: true,
+                suppressShift: true,
+                afterRender: () => {
+                    updateDetailsPanel();
+                }
+            });
+            return;
+        }
+        selectedFormat = String(meta.id || raw);
+        renderFormats();
+        updateDetailsPanel();
+    };
+
+    const applyPreset = async (preset) => {
+        if (!preset || !preset.converter) return;
+        applyingPreset = true;
+        try {
+            const c = preset.converter;
+            if (savePathInput && c.path) {
+                savePathInput.value = c.path;
+            }
+            await selectFormatByValue(c.format);
+            await loadFormatData();
+            updateOutputControls();
+            const targetType = formatMetaMap.get(String(c.format || '').toLowerCase())?.type || '';
+            const isAudioTarget = String(targetType).toLowerCase() === 'audio';
+            if (isAudioTarget) {
+                if (outputAudioCodec) outputAudioCodec.value = c.audio_codec || '';
+                if (outputAudioBitrate) outputAudioBitrate.value = c.audio_bitrate || '';
+            } else {
+                if (outputVideoQuality) outputVideoQuality.value = c.video_quality || '';
+                if (outputVideoCodec) outputVideoCodec.value = c.video_codec || '';
+                if (outputVideoBitrate) outputVideoBitrate.value = c.video_bitrate || '';
+                if (outputVideoFps) outputVideoFps.value = c.video_fps || '';
+                if (outputVideoAudioCodec) outputVideoAudioCodec.value = c.audio_codec || '';
+                if (outputVideoAudioBitrate) outputVideoAudioBitrate.value = c.audio_bitrate || '';
+            }
+            if (window.initCustomSelects) window.initCustomSelects();
+            requestEstimateUpdate({ immediate: true });
+        } finally {
+            applyingPreset = false;
+        }
+    };
+
+    const handlePresetClick = async (preset) => {
+        if (!preset?.id || !invoke) return;
+        if (activePresetId === preset.id) {
+            clearActivePreset();
+            return;
+        }
+        try {
+            const fullPreset = await invoke('load_preset', { id: preset.id });
+            await applyPreset(fullPreset);
+            setActivePreset(preset.id);
+        } catch (error) {
+            console.error('Failed to load preset:', error);
+        }
+    };
+
+    const loadPresets = async () => {
+        if (!presetGrid || !presetSection || !invoke) return;
+        try {
+            const list = await invoke('list_presets');
+            const safePresets = Array.isArray(list) ? list : [];
+            presets = safePresets.filter((preset) => {
+                const type = String(preset.preset_type || '').toLowerCase();
+                return !preset.hidden && type === 'converter';
+            });
+        } catch (error) {
+            console.warn('Preset list not available:', error);
+            presets = [];
+        }
+
+        presetGrid.innerHTML = '';
+        const activeId = activePresetId;
+        if (!presets.length) {
+            presetSection.classList.add('hidden');
+            clearActivePreset();
+            return;
+        }
+
+        presetSection.classList.remove('hidden');
+        presets.forEach((preset) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'preset-card';
+            card.dataset.presetId = preset.id;
+
+            const icon = document.createElement('div');
+            icon.className = 'preset-card-icon';
+            const iconSource = preset.icon_data_url || preset.icon;
+            applyPresetIcon(icon, iconSource);
+
+            const info = document.createElement('div');
+            info.className = 'preset-card-info';
+
+            const title = document.createElement('div');
+            title.className = 'preset-card-title';
+            title.textContent = preset.title || t('settings.presetsManager.untitled', 'Untitled');
+
+            const summary = document.createElement('div');
+            summary.className = 'preset-card-summary';
+            summary.textContent = trimSummary(preset.summary || t('settings.presetsManager.noSummary', 'No summary'));
+
+            info.appendChild(title);
+            info.appendChild(summary);
+
+            card.appendChild(icon);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => handlePresetClick(preset));
+            presetGrid.appendChild(card);
+        });
+
+        const exists = presets.some((preset) => preset.id === activeId);
+        if (exists) {
+            setActivePreset(activeId);
+        } else {
+            clearActivePreset();
+        }
     };
 
     const setConvertMode = (mode, options = {}) => {
@@ -1025,6 +1244,7 @@
         setActionButtonsEnabled(false);
         estimateRequestId += 1;
         clearEstimatedSizes();
+        clearActivePreset();
     };
 
     const setZenMode = (enabled) => {
@@ -1115,10 +1335,16 @@
                 const selectedPath = await invoke('pick_download_directory');
                 if (selectedPath) {
                     savePathInput.value = selectedPath;
+                    clearActivePresetIfNeeded();
                 }
             } catch (error) {
                 console.error('Failed to pick directory:', error);
             }
+        });
+    }
+    if (savePathInput) {
+        savePathInput.addEventListener('input', () => {
+            clearActivePresetIfNeeded();
         });
     }
 
@@ -1216,10 +1442,12 @@
             if (Number.isFinite(value) && outputImageQualityRange) {
                 outputImageQualityRange.value = String(value);
             }
+            clearActivePresetIfNeeded();
             requestEstimateUpdate();
         });
         outputImageQuality.addEventListener('blur', () => {
             commitQualityValue(outputImageQuality.value);
+            clearActivePresetIfNeeded();
             requestEstimateUpdate({ immediate: true });
         });
     }
@@ -1227,6 +1455,7 @@
     if (outputImageQualityRange) {
         outputImageQualityRange.addEventListener('input', () => {
             commitQualityValue(outputImageQualityRange.value);
+            clearActivePresetIfNeeded();
             requestEstimateUpdate();
         });
     }
@@ -1240,6 +1469,7 @@
             btn.addEventListener('click', () => {
                 const mode = btn.getAttribute('data-mode') || 'video';
                 if (mode === selectedMode) return;
+                clearActivePresetIfNeeded();
                 setConvertMode(mode);
             });
         });
@@ -1471,6 +1701,11 @@
             showDashboard();
         });
     }
+
+    window.addEventListener('pulsar-presets-updated', () => {
+        loadPresets();
+    });
+    loadPresets();
 
     window.converterUi = {
         syncState: (options = {}) => {

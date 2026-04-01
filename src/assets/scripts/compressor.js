@@ -24,6 +24,7 @@
         audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
         image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M15.2 4H8.8c-1.69 0-2.52 0-3.16.33a3.07 3.07 0 0 0-1.31 1.31C4 6.28 4 7.12 4 8.8v6.4c0 1.68 0 2.52.33 3.16a3.07 3.07 0 0 0 1.31 1.31c.64.33 1.48.33 3.16.33h6.4c1.68 0 2.52 0 3.16-.33a3.07 3.07 0 0 0 1.31-1.31c.33-.64.33-1.48.33-3.16V8.8"/><path d="m4 16 4.29-4.29a.996.996 0 0 1 1.41 0L12.99 15m.01 0 2.79-2.79a.996.996 0 0 1 1.41 0L19.99 15M13 15l2.25 2.25M20 8.8c0-1.68 0-2.52-.33-3.16a3.07 3.07 0 0 0-1.31-1.31C17.72 4 16.88 4 15.2 4"/></svg>`
     };
+    const KEY_ICON_SVG = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>';
 
     const supportedCategories = new Set(['video', 'audio', 'image']);
 
@@ -67,6 +68,8 @@
     const compressActionBtn = root.querySelector('#compress-action-btn');
     const queueActionBtn = root.querySelector('#compress-queue-btn');
     const scrollContainer = root.querySelector('.page-scroll');
+    const presetSection = root.querySelector('#compress-preset-section');
+    const presetGrid = root.querySelector('#compress-preset-grid');
 
     if (dropOverlay && dropOverlay.parentElement !== document.body) {
         document.body.appendChild(dropOverlay);
@@ -87,6 +90,9 @@
     let dashboardRevealTimer = null;
     let dashboardRevealed = false;
     let modeSwitchTimer = null;
+    let presets = [];
+    let activePresetId = null;
+    let applyingPreset = false;
 
     const PANEL_IN_MS = 220;
     const PANEL_OUT_MS = 180;
@@ -228,6 +234,77 @@
             idx += 1;
         }
         return `${size.toFixed(size >= 10 ? 1 : 2)} ${units[idx]}`;
+    };
+
+    const trimSummary = (value, maxLen = 48) => {
+        const text = String(value || '').trim();
+        if (text.length <= maxLen) return text;
+        return `${text.slice(0, Math.max(0, maxLen - 3))}...`;
+    };
+
+    const decodeSvgDataUrl = (dataUrl) => {
+        if (!dataUrl || !dataUrl.startsWith('data:image/svg+xml')) return null;
+        const parts = dataUrl.split(',');
+        if (parts.length < 2) return null;
+        const meta = parts[0];
+        const data = parts.slice(1).join(',');
+        try {
+            if (meta.includes(';base64')) {
+                return atob(data);
+            }
+            return decodeURIComponent(data);
+        } catch (_) {
+            return null;
+        }
+    };
+
+    const applyPresetIcon = (iconEl, iconSource) => {
+        if (!iconEl) return;
+        iconEl.innerHTML = '';
+        const source = String(iconSource || '').trim();
+        if (!source) {
+            iconEl.innerHTML = KEY_ICON_SVG;
+            return;
+        }
+        if (source.startsWith('<svg')) {
+            iconEl.innerHTML = source;
+            return;
+        }
+        if (source.startsWith('data:image/svg+xml')) {
+            const decoded = decodeSvgDataUrl(source);
+            if (decoded) {
+                iconEl.innerHTML = decoded;
+                return;
+            }
+        }
+        const img = document.createElement('img');
+        img.src = source;
+        img.alt = 'Preset';
+        img.onerror = () => {
+            iconEl.innerHTML = KEY_ICON_SVG;
+        };
+        iconEl.appendChild(img);
+    };
+
+    const clearActivePreset = () => {
+        if (!activePresetId) return;
+        activePresetId = null;
+        if (presetGrid) {
+            presetGrid.querySelectorAll('.preset-card.active').forEach((el) => el.classList.remove('active'));
+        }
+    };
+
+    const setActivePreset = (id) => {
+        activePresetId = id;
+        if (!presetGrid) return;
+        presetGrid.querySelectorAll('.preset-card').forEach((el) => {
+            el.classList.toggle('active', el.dataset.presetId === id);
+        });
+    };
+
+    const clearActivePresetIfNeeded = () => {
+        if (applyingPreset) return;
+        clearActivePreset();
     };
 
     const formatDuration = (seconds) => {
@@ -470,6 +547,110 @@
         }
         updateActionButtonsState();
         updateEstimatedSize();
+    };
+
+    const applyPreset = async (preset) => {
+        if (!preset || !preset.compressor) return;
+        applyingPreset = true;
+        try {
+            const comp = preset.compressor;
+            const mode = comp.mode || 'percent';
+            setMode(mode, { force: true, animate: false });
+            if (selectedMode === 'percent') {
+                commitPercentValue(comp.target_percent ?? percentInput?.value ?? percentRange?.value ?? 60);
+            } else if (selectedMode === 'size') {
+                if (sizeInput) sizeInput.value = comp.target_size || '';
+            } else {
+                if (crfSelect && !crfSelect.options.length) {
+                    buildCrfOptions();
+                }
+                if (crfSelect) {
+                    crfSelect.value = String(Number.isFinite(comp.crf) ? comp.crf : 26);
+                }
+            }
+            updateActionButtonsState();
+            updateEstimatedSize();
+        } finally {
+            applyingPreset = false;
+        }
+    };
+
+    const handlePresetClick = async (preset) => {
+        if (!preset?.id || !invoke) return;
+        if (activePresetId === preset.id) {
+            clearActivePreset();
+            return;
+        }
+        try {
+            const fullPreset = await invoke('load_preset', { id: preset.id });
+            await applyPreset(fullPreset);
+            setActivePreset(preset.id);
+        } catch (error) {
+            console.error('Failed to load preset:', error);
+        }
+    };
+
+    const loadPresets = async () => {
+        if (!presetGrid || !presetSection || !invoke) return;
+        try {
+            const list = await invoke('list_presets');
+            const safePresets = Array.isArray(list) ? list : [];
+            presets = safePresets.filter((preset) => {
+                const type = String(preset.preset_type || '').toLowerCase();
+                return !preset.hidden && type === 'compressor';
+            });
+        } catch (error) {
+            console.warn('Preset list not available:', error);
+            presets = [];
+        }
+
+        presetGrid.innerHTML = '';
+        const activeId = activePresetId;
+        if (!presets.length) {
+            presetSection.classList.add('hidden');
+            clearActivePreset();
+            return;
+        }
+
+        presetSection.classList.remove('hidden');
+        presets.forEach((preset) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'preset-card';
+            card.dataset.presetId = preset.id;
+
+            const icon = document.createElement('div');
+            icon.className = 'preset-card-icon';
+            const iconSource = preset.icon_data_url || preset.icon;
+            applyPresetIcon(icon, iconSource);
+
+            const info = document.createElement('div');
+            info.className = 'preset-card-info';
+
+            const title = document.createElement('div');
+            title.className = 'preset-card-title';
+            title.textContent = preset.title || t('settings.presetsManager.untitled', 'Untitled');
+
+            const summary = document.createElement('div');
+            summary.className = 'preset-card-summary';
+            summary.textContent = trimSummary(preset.summary || t('settings.presetsManager.noSummary', 'No summary'));
+
+            info.appendChild(title);
+            info.appendChild(summary);
+
+            card.appendChild(icon);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => handlePresetClick(preset));
+            presetGrid.appendChild(card);
+        });
+
+        const exists = presets.some((preset) => preset.id === activeId);
+        if (exists) {
+            setActivePreset(activeId);
+        } else {
+            clearActivePreset();
+        }
     };
 
     const triggerShake = (element) => {
@@ -740,6 +921,7 @@
         updateSpecsVisibility();
         updateCodecOptions();
         updateActionButtonsState();
+        clearActivePreset();
     };
 
     const resolveErrorMessage = (raw) => {
@@ -913,10 +1095,16 @@
                 const selectedPath = await invoke('pick_download_directory');
                 if (selectedPath) {
                     savePathInput.value = selectedPath;
+                    clearActivePresetIfNeeded();
                 }
             } catch (error) {
                 console.error('Failed to pick directory:', error);
             }
+        });
+    }
+    if (savePathInput) {
+        savePathInput.addEventListener('input', () => {
+            clearActivePresetIfNeeded();
         });
     }
 
@@ -928,6 +1116,7 @@
                     triggerShake(btn);
                     return;
                 }
+                clearActivePresetIfNeeded();
                 setMode(mode);
             });
         });
@@ -936,6 +1125,7 @@
     if (percentRange) {
         percentRange.addEventListener('input', () => {
             commitPercentValue(percentRange.value);
+            clearActivePresetIfNeeded();
             updateEstimatedSize();
         });
     }
@@ -947,20 +1137,24 @@
                 percentRange.value = String(value);
                 updatePercentFill();
             }
+            clearActivePresetIfNeeded();
             updateEstimatedSize();
         });
         percentInput.addEventListener('blur', () => {
             commitPercentValue(percentInput.value);
+            clearActivePresetIfNeeded();
             updateEstimatedSize();
         });
     }
 
     if (sizeInput) {
         sizeInput.addEventListener('input', () => {
+            clearActivePresetIfNeeded();
             updateActionButtonsState();
             updateEstimatedSize();
         });
         sizeInput.addEventListener('blur', () => {
+            clearActivePresetIfNeeded();
             updateActionButtonsState();
             updateEstimatedSize();
         });
@@ -968,9 +1162,18 @@
 
     if (crfSelect) {
         crfSelect.addEventListener('change', () => {
+            clearActivePresetIfNeeded();
             updateEstimatedSize();
         });
     }
+
+    [videoCodecSelect, videoAudioCodecSelect, audioCodecSelect].forEach((select) => {
+        if (!select) return;
+        select.addEventListener('change', () => {
+            clearActivePresetIfNeeded();
+            updateEstimatedSize();
+        });
+    });
 
     const applyNameEditState = (enabled) => {
         isEditingName = enabled;
@@ -1272,6 +1475,11 @@
             showDashboard();
         });
     }
+
+    window.addEventListener('pulsar-presets-updated', () => {
+        loadPresets();
+    });
+    loadPresets();
 
     window.compressorUi = {
         syncState: () => {

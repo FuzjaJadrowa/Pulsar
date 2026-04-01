@@ -132,6 +132,9 @@ body.preset-modal-open .page-scroll {
     flex-direction: column;
     gap: 14px;
 }
+.preset-section.hidden {
+    display: none;
+}
 .preset-section-title {
     font-size: 12px;
     text-transform: uppercase;
@@ -275,6 +278,138 @@ body.preset-modal-open .page-scroll {
     color: #fff;
     transform: scale(1.03);
 }
+.preset-compressor-section {
+    align-items: center;
+}
+.preset-compressor-section .preset-section-title {
+    text-align: center;
+    width: 100%;
+}
+.preset-compressor-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    padding: 4px;
+    min-height: 46px;
+    width: fit-content;
+}
+.preset-compressor-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.4px;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    text-transform: uppercase;
+}
+.preset-compressor-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.preset-compressor-option.active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: var(--accent-color);
+    color: #fff;
+    transform: scale(1.03);
+}
+.preset-compressor-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(420px, 90vw);
+    max-width: 100%;
+}
+.preset-compressor-panel {
+    width: 100%;
+}
+.preset-compressor-panel.hidden {
+    display: none;
+}
+.preset-compressor-percent,
+.preset-compressor-size,
+.preset-compressor-quality {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.preset-compressor-track {
+    position: relative;
+    flex: 1 1 auto;
+    height: 12px;
+    min-width: 140px;
+}
+.preset-compressor-track::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+}
+.preset-compressor-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: var(--accent-color);
+    width: 60%;
+    transition: none;
+}
+.preset-compressor-track input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    appearance: none;
+    background: none;
+    margin: 0;
+}
+.preset-compressor-track input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+.preset-compressor-track input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+.preset-compressor-track input[type="range"]::-moz-range-track {
+    background: transparent;
+}
+.preset-compressor-percent-input {
+    width: 60px;
+    text-align: center;
+}
+.preset-compressor-percent-suffix {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.preset-compressor-size .custom-input,
+.preset-compressor-quality .custom-select {
+    width: 100%;
+}
+.preset-compressor-crf-label {
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.75);
+}
 .preset-format-section {
     align-items: center;
 }
@@ -348,6 +483,9 @@ body.preset-modal-open .page-scroll {
     overflow: hidden;
     transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.35s ease;
 }
+.preset-advanced.hidden {
+    display: none;
+}
 .preset-advanced.no-anim {
     transition: none;
 }
@@ -392,6 +530,9 @@ body.preset-modal-open .page-scroll {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+.preset-toggle-grid.hidden {
+    display: none;
 }
 .preset-toggle-line {
     display: flex;
@@ -541,6 +682,27 @@ body.theme-light .preset-section-title {
     color: rgba(29, 35, 48, 0.6);
 }
 body.theme-light .preset-field {
+    color: rgba(29, 35, 48, 0.7);
+}
+body.theme-light .preset-compressor-toggle {
+    background: rgba(0, 0, 0, 0.06);
+}
+body.theme-light .preset-compressor-option {
+    color: rgba(29, 35, 48, 0.65);
+}
+body.theme-light .preset-compressor-option:hover {
+    color: #1d2330;
+}
+body.theme-light .preset-compressor-option.active {
+    color: #1d2330;
+}
+body.theme-light .preset-compressor-track::before {
+    background: rgba(0, 0, 0, 0.12);
+}
+body.theme-light .preset-compressor-percent-suffix {
+    color: rgba(29, 35, 48, 0.6);
+}
+body.theme-light .preset-compressor-crf-label {
     color: rgba(29, 35, 48, 0.7);
 }
 body.theme-light .preset-icon-drop {

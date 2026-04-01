@@ -40,6 +40,27 @@ pub struct PresetDownloaderOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PresetConverterOptions {
+    pub format: String,
+    pub path: Option<String>,
+    pub video_quality: Option<String>,
+    pub video_codec: Option<String>,
+    pub video_bitrate: Option<String>,
+    pub video_fps: Option<String>,
+    pub audio_codec: Option<String>,
+    pub audio_bitrate: Option<String>,
+    pub audio_sample_rate: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PresetCompressorOptions {
+    pub mode: String,
+    pub target_percent: Option<u32>,
+    pub target_size: Option<String>,
+    pub crf: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulsarPreset {
     pub version: u32,
     pub id: String,
@@ -48,7 +69,12 @@ pub struct PulsarPreset {
     pub preset_type: String,
     pub hidden: bool,
     pub icon: PresetIcon,
-    pub downloader: PresetDownloaderOptions,
+    #[serde(default)]
+    pub downloader: Option<PresetDownloaderOptions>,
+    #[serde(default)]
+    pub converter: Option<PresetConverterOptions>,
+    #[serde(default)]
+    pub compressor: Option<PresetCompressorOptions>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -69,7 +95,12 @@ pub struct PresetPayload {
     pub preset_type: String,
     pub hidden: bool,
     pub icon_data_url: String,
-    pub downloader: PresetDownloaderOptions,
+    #[serde(default)]
+    pub downloader: Option<PresetDownloaderOptions>,
+    #[serde(default)]
+    pub converter: Option<PresetConverterOptions>,
+    #[serde(default)]
+    pub compressor: Option<PresetCompressorOptions>,
 }
 
 fn presets_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
@@ -213,6 +244,8 @@ pub fn load_preset(app_handle: AppHandle, id: String) -> Result<PresetPayload, S
         hidden: preset.hidden,
         icon_data_url: encode_icon(&preset.icon),
         downloader: preset.downloader,
+        converter: preset.converter,
+        compressor: preset.compressor,
     })
 }
 
@@ -221,8 +254,62 @@ pub fn save_preset(app_handle: AppHandle, preset: PresetPayload) -> Result<Strin
     if preset.title.trim().is_empty() {
         return Err("Preset title is required.".to_string());
     }
-    if preset.downloader.format.trim().is_empty() {
-        return Err("Preset format is required.".to_string());
+    let preset_type = preset.preset_type.trim().to_lowercase();
+    let preset_type = if preset_type.is_empty() {
+        "downloader".to_string()
+    } else {
+        preset_type
+    };
+    match preset_type.as_str() {
+        "downloader" => {
+            let downloader = preset
+                .downloader
+                .as_ref()
+                .ok_or("Downloader options are required.".to_string())?;
+            if downloader.format.trim().is_empty() {
+                return Err("Preset format is required.".to_string());
+            }
+        }
+        "converter" => {
+            let converter = preset
+                .converter
+                .as_ref()
+                .ok_or("Converter options are required.".to_string())?;
+            if converter.format.trim().is_empty() {
+                return Err("Preset format is required.".to_string());
+            }
+        }
+        "compressor" => {
+            let compressor = preset
+                .compressor
+                .as_ref()
+                .ok_or("Compressor options are required.".to_string())?;
+            let mode = compressor.mode.trim();
+            if mode.is_empty() {
+                return Err("Compression mode is required.".to_string());
+            }
+            match mode {
+                "percent" => {
+                    let value = compressor.target_percent.unwrap_or(0);
+                    if !(1..=100).contains(&value) {
+                        return Err("Compression percent is required.".to_string());
+                    }
+                }
+                "size" => {
+                    let size = compressor.target_size.as_ref().map(|v| v.trim()).unwrap_or("");
+                    if size.is_empty() {
+                        return Err("Target size is required.".to_string());
+                    }
+                }
+                "quality" => {
+                    if compressor.crf.is_none() {
+                        return Err("CRF value is required.".to_string());
+                    }
+                }
+                _ => return Err("Invalid compression mode.".to_string()),
+            }
+        }
+        _ => return Err("Unsupported preset type.".to_string()),
     }
 
     let dir = presets_dir(&app_handle)?;
@@ -235,10 +322,12 @@ pub fn save_preset(app_handle: AppHandle, preset: PresetPayload) -> Result<Strin
         id: id.clone(),
         title: preset.title,
         summary: preset.summary,
-        preset_type: preset.preset_type,
+        preset_type,
         hidden: preset.hidden,
         icon,
         downloader: preset.downloader,
+        converter: preset.converter,
+        compressor: preset.compressor,
     };
     write_preset(&path, &stored)?;
     Ok(id)

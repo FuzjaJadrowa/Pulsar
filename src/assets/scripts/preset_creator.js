@@ -52,20 +52,28 @@
         modalPromise: null,
         presetId: null,
         iconDataUrl: DEFAULT_ICON_DATA_URL,
-        formatData: [],
-        formatMap: new Map(),
+        presetType: 'downloader',
+        compressorMode: 'percent',
+        formatsLoaded: false,
+        formatData: { downloader: [], converter: [] },
+        formatMap: { downloader: new Map(), converter: new Map() },
         hidden: false
     };
 
     const loadFormatData = async () => {
-        if (state.formatData.length) return;
+        if (state.formatsLoaded) return;
         try {
             const response = await fetch('assets/format.json', { cache: 'no-store' });
             if (!response.ok) return;
             const json = await response.json();
-            const formats = Array.isArray(json?.dformats) ? json.dformats : [];
-            state.formatData = formats;
-            state.formatMap = new Map(formats.map((item) => [String(item.id || '').toLowerCase(), item]));
+            const downloaderFormats = Array.isArray(json?.dformats) ? json.dformats : [];
+            const converterFormats = Array.isArray(json?.cformats) ? json.cformats : [];
+            state.formatData = { downloader: downloaderFormats, converter: converterFormats };
+            state.formatMap = {
+                downloader: new Map(downloaderFormats.map((item) => [String(item.id || '').toLowerCase(), item])),
+                converter: new Map(converterFormats.map((item) => [String(item.id || '').toLowerCase(), item]))
+            };
+            state.formatsLoaded = true;
         } catch (error) {
             console.error('Failed to load format.json:', error);
         }
@@ -184,8 +192,115 @@
         const audioSample = document.getElementById('preset-audio-sample');
         const audioCodec = document.getElementById('preset-audio-codec');
         const audioBitrate = document.getElementById('preset-audio-bitrate');
+        const typeButtons = Array.from(document.querySelectorAll('.preset-choice'));
+        const formatSection = document.querySelector('.preset-format-section');
+        const compressorSection = document.getElementById('preset-compressor-section');
+        const compressorToggle = document.getElementById('preset-compressor-toggle');
+        const compressorButtons = compressorToggle ? Array.from(compressorToggle.querySelectorAll('.preset-compressor-option')) : [];
+        const compressorPanels = Array.from(document.querySelectorAll('.preset-compressor-panel'));
+        const compressorPercentRange = document.getElementById('preset-compress-percent-range');
+        const compressorPercentInput = document.getElementById('preset-compress-percent-input');
+        const compressorPercentFill = document.getElementById('preset-compress-percent-fill');
+        const compressorSizeInput = document.getElementById('preset-compress-size-input');
+        const compressorCrfSelect = document.getElementById('preset-compress-crf-select');
+        const toggleGrid = document.getElementById('preset-toggle-grid');
 
         if (!titleInput || !formatInput || !suggestionBox || !saveBtn || !exportBtn) return;
+
+        const normalizePercentValue = (raw) => {
+            const parsed = parseInt(String(raw || '').trim(), 10);
+            if (!Number.isFinite(parsed)) return null;
+            return Math.min(100, Math.max(1, parsed));
+        };
+
+        const updateCompressorPercentFill = () => {
+            if (!compressorPercentRange || !compressorPercentFill) return;
+            const min = Number(compressorPercentRange.min || 1);
+            const max = Number(compressorPercentRange.max || 100);
+            const value = Number(compressorPercentRange.value || 0);
+            const ratio = max > min ? (value - min) / (max - min) : 0;
+            compressorPercentFill.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+        };
+
+        const commitPercentValue = (raw) => {
+            const fallback = 60;
+            const clamped = normalizePercentValue(raw);
+            const value = Number.isFinite(clamped) ? clamped : fallback;
+            if (compressorPercentInput) compressorPercentInput.value = String(value);
+            if (compressorPercentRange) compressorPercentRange.value = String(value);
+            updateCompressorPercentFill();
+            return value;
+        };
+
+        const parseSizeInput = (value) => {
+            const raw = String(value || '').trim().toLowerCase();
+            if (!raw) return null;
+            const match = raw.match(/^(\d+(?:[.,]\d+)?)\s*([a-z]*)$/i);
+            if (!match) return null;
+            const amount = parseFloat(match[1].replace(',', '.'));
+            if (!Number.isFinite(amount)) return null;
+            if (!match[2]) return null;
+            let unit = match[2].toLowerCase();
+            if (unit === 'bytes') unit = 'b';
+            if (unit === 'k') unit = 'kb';
+            if (unit === 'm') unit = 'mb';
+            if (unit === 'g') unit = 'gb';
+            if (unit === 't') unit = 'tb';
+            const multipliers = {
+                b: 1,
+                kb: 1024,
+                kib: 1024,
+                mb: 1024 ** 2,
+                mib: 1024 ** 2,
+                gb: 1024 ** 3,
+                gib: 1024 ** 3,
+                tb: 1024 ** 4,
+                tib: 1024 ** 4
+            };
+            const mult = multipliers[unit];
+            if (!mult) return null;
+            return amount * mult;
+        };
+
+        const setCompressionMode = (mode, options = {}) => {
+            const next = mode === 'size' || mode === 'quality' ? mode : 'percent';
+            if (next === state.compressorMode && !options.force) return;
+            state.compressorMode = next;
+            compressorButtons.forEach((btn) => {
+                const btnMode = btn.getAttribute('data-mode');
+                const active = btnMode === state.compressorMode;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            compressorPanels.forEach((panel) => {
+                const panelMode = panel.getAttribute('data-mode');
+                panel.classList.toggle('hidden', panelMode !== state.compressorMode);
+            });
+        };
+
+        const buildCrfOptions = () => {
+            if (!compressorCrfSelect) return;
+            const labeled = {
+                0: { key: 'compressor.crf.bestQuality', fallback: '0 - Best quality' },
+                26: { key: 'compressor.crf.balance', fallback: '26 - Balance' },
+                51: { key: 'compressor.crf.bestCompression', fallback: '51 - Best compression' }
+            };
+            const options = [];
+            for (let i = 0; i <= 51; i += 1) {
+                const labelInfo = labeled[i];
+                if (labelInfo) {
+                    options.push({
+                        value: String(i),
+                        label: t(labelInfo.key, labelInfo.fallback),
+                        i18n: labelInfo.key
+                    });
+                } else {
+                    options.push({ value: String(i), label: String(i) });
+                }
+            }
+            rebuildSelect(compressorCrfSelect, options);
+            compressorCrfSelect.value = '26';
+        };
 
         const setIconPreview = (dataUrl, inlineSvg = null) => {
             if (!iconPreview) return;
@@ -209,6 +324,11 @@
         };
 
         const updateSubtitlesExtras = () => {
+            if (state.presetType !== 'downloader') {
+                embedSubsRow?.classList.remove('visible');
+                subsCodeRow?.classList.remove('visible');
+                return;
+            }
             const enabled = !!downloadSubs?.checked;
             embedSubsRow?.classList.toggle('visible', enabled);
             subsCodeRow?.classList.toggle('visible', enabled);
@@ -220,19 +340,32 @@
 
         const resolveFormatMeta = (value) => {
             const formatValue = String(value || '').trim().toLowerCase();
-            const meta = state.formatMap.get(formatValue);
+            const map = state.presetType === 'converter' ? state.formatMap.converter : state.formatMap.downloader;
+            const meta = map.get(formatValue);
             const isGif = formatValue === 'gif';
-            const type = meta?.type || (isGif ? 'video' : 'video');
+            let type = String(meta?.type || '').toLowerCase();
+            if (!type) {
+                type = state.presetType === 'downloader' ? (isGif ? 'video' : 'video') : 'video';
+            }
             return { formatValue, meta, isGif, type };
         };
 
         const updateFormatUI = () => {
+            if (state.presetType === 'compressor') return;
             const { formatValue, meta, isGif, type } = resolveFormatMeta(formatInput.value);
-            const hasFormat = state.formatMap.has(formatValue) || isGif;
+            const map = state.presetType === 'converter' ? state.formatMap.converter : state.formatMap.downloader;
+            const hasFormat = map.has(formatValue) || (state.presetType === 'downloader' && isGif);
             advancedPanel?.classList.toggle('expanded', hasFormat);
 
-            const showVideo = type !== 'audio';
-            const showAudio = type === 'audio' || (!isGif && !muteAudio?.checked);
+            let showVideo = false;
+            let showAudio = false;
+            if (state.presetType === 'downloader') {
+                showVideo = type !== 'audio';
+                showAudio = type === 'audio' || (!isGif && !muteAudio?.checked);
+            } else {
+                showVideo = type === 'video';
+                showAudio = type === 'audio' || type === 'video';
+            }
 
             if (showVideo) {
                 videoSection?.classList.remove('hidden');
@@ -241,14 +374,21 @@
                 videoSection?.classList.add('hidden');
                 videoSection?.classList.add('collapsed');
             }
-            audioSection?.classList.remove('hidden');
-            audioSection?.classList.toggle('collapsed', !showAudio);
-            const audioMuted = !!muteAudio?.checked && type === 'video' && !isGif;
+            if (showAudio) {
+                audioSection?.classList.remove('hidden');
+                audioSection?.classList.remove('collapsed');
+            } else {
+                audioSection?.classList.remove('hidden');
+                audioSection?.classList.add('collapsed');
+            }
+            const audioMuted = state.presetType === 'downloader' && !!muteAudio?.checked && type === 'video' && !isGif;
             mediaSection?.classList.toggle('audio-muted', audioMuted);
             mediaSection?.classList.toggle('audio-only', showAudio && !showVideo);
 
             if (muteRow) {
-                if (type === 'audio' || isGif) {
+                if (state.presetType !== 'downloader') {
+                    muteRow.classList.add('hidden');
+                } else if (type === 'audio' || isGif) {
                     muteRow.classList.add('hidden');
                     if (muteAudio) {
                         muteAudio.checked = isGif ? true : false;
@@ -296,12 +436,23 @@
                 suggestionBox.classList.remove('visible');
                 return;
             }
+            if (state.presetType === 'compressor') {
+                suggestionBox.classList.remove('visible');
+                return;
+            }
 
-            let matches = state.formatData.filter((item) => {
+            const formatData = state.presetType === 'converter'
+                ? state.formatData.converter
+                : state.formatData.downloader;
+            const formatMap = state.presetType === 'converter'
+                ? state.formatMap.converter
+                : state.formatMap.downloader;
+
+            let matches = formatData.filter((item) => {
                 const id = String(item.id || '').toLowerCase();
                 return id.includes(term);
             });
-            if (state.formatMap.has(term)) {
+            if (formatMap.has(term)) {
                 matches = matches.filter((item) => String(item.id || '').toLowerCase() === term);
             }
 
@@ -327,16 +478,54 @@
             suggestionBox.classList.toggle('visible', matches.length > 0);
         };
 
+        const setPresetType = (type, options = {}) => {
+            const next = type === 'converter' || type === 'compressor' ? type : 'downloader';
+            if (state.presetType === next && !options.force) return;
+            state.presetType = next;
+            typeButtons.forEach((btn) => {
+                const btnType = btn.getAttribute('data-preset-type');
+                btn.classList.toggle('active', btnType === state.presetType);
+            });
+            const isCompressor = state.presetType === 'compressor';
+            formatSection?.classList.toggle('hidden', isCompressor);
+            advancedPanel?.classList.toggle('hidden', isCompressor);
+            compressorSection?.classList.toggle('hidden', !isCompressor);
+            toggleGrid?.classList.toggle('hidden', state.presetType !== 'downloader');
+            if (isCompressor && advancedPanel) {
+                advancedPanel.classList.remove('expanded');
+            }
+            if (isCompressor) {
+                suggestionBox.classList.remove('visible');
+                setCompressionMode(state.compressorMode, { force: true });
+            }
+            updateFormatUI();
+            updateSubtitlesExtras();
+            validate();
+        };
+
         const validate = () => {
             const titleOk = String(titleInput.value || '').trim().length > 0;
-            const formatOk = String(formatInput.value || '').trim().length > 0;
-            saveBtn.disabled = !(titleOk && formatOk);
-            exportBtn.disabled = !(titleOk && formatOk);
+            let detailsOk = false;
+            if (state.presetType === 'compressor') {
+                if (state.compressorMode === 'size') {
+                    detailsOk = Number.isFinite(parseSizeInput(compressorSizeInput?.value || ''));
+                } else if (state.compressorMode === 'quality') {
+                    detailsOk = Number.isFinite(parseInt(String(compressorCrfSelect?.value || ''), 10));
+                } else {
+                    detailsOk = Number.isFinite(normalizePercentValue(compressorPercentInput?.value ?? compressorPercentRange?.value));
+                }
+            } else {
+                detailsOk = String(formatInput.value || '').trim().length > 0;
+            }
+            saveBtn.disabled = !(titleOk && detailsOk);
+            exportBtn.disabled = !(titleOk && detailsOk);
         };
 
         const resetForm = () => {
             state.presetId = null;
             state.hidden = false;
+            state.presetType = 'downloader';
+            state.compressorMode = 'percent';
             if (modalTitle) modalTitle.textContent = t('presetCreator.title.new', 'Create Preset');
             titleInput.value = '';
             summaryInput.value = '';
@@ -357,12 +546,21 @@
             videoBitrate.value = '';
             audioSample.value = '';
             audioBitrate.value = '';
+            if (compressorPercentInput) compressorPercentInput.value = '60';
+            if (compressorPercentRange) compressorPercentRange.value = '60';
+            if (compressorPercentFill) updateCompressorPercentFill();
+            if (compressorSizeInput) compressorSizeInput.value = '';
+            if (compressorCrfSelect && !compressorCrfSelect.options.length) {
+                buildCrfOptions();
+            }
+            if (compressorCrfSelect) compressorCrfSelect.value = '26';
+            setCompressionMode('percent', { force: true });
             resetIcon();
             updateSubtitlesExtras();
             if (advancedPanel) {
                 advancedPanel.classList.add('no-anim');
             }
-            updateFormatUI();
+            setPresetType('downloader', { force: true });
             if (advancedPanel) {
                 void advancedPanel.offsetHeight;
                 advancedPanel.classList.remove('no-anim');
@@ -371,39 +569,60 @@
         };
 
         const applyPreset = (preset) => {
+            const presetType = String(preset?.preset_type || 'downloader').toLowerCase();
+            setPresetType(presetType, { force: true });
             state.presetId = preset?.id || null;
             state.hidden = !!preset?.hidden;
             if (modalTitle) modalTitle.textContent = t('presetCreator.title.edit', 'Edit Preset');
             titleInput.value = preset?.title || '';
             summaryInput.value = preset?.summary || '';
-            formatInput.value = preset?.downloader?.format || '';
-            pathInput.value = preset?.downloader?.path || '';
-            downloadSubs.checked = !!preset?.downloader?.download_subtitles;
-            embedSubs.checked = !!preset?.downloader?.embed_subtitles;
-            subsCode.value = preset?.downloader?.subtitles_code || '';
-            embedMeta.checked = !!preset?.downloader?.embed_metadata;
-            embedThumb.checked = !!preset?.downloader?.embed_thumbnail;
-            geoBypass.checked = !!preset?.downloader?.geo_bypass;
-            muteAudio.checked = !!preset?.downloader?.mute_audio;
+            if (presetType === 'compressor') {
+                if (compressorCrfSelect && !compressorCrfSelect.options.length) {
+                    buildCrfOptions();
+                }
+                const comp = preset?.compressor || {};
+                setCompressionMode(comp.mode || 'percent', { force: true });
+                if (state.compressorMode === 'percent') {
+                    commitPercentValue(comp.target_percent ?? compressorPercentInput?.value ?? 60);
+                } else if (state.compressorMode === 'size') {
+                    if (compressorSizeInput) {
+                        compressorSizeInput.value = comp.target_size || '';
+                    }
+                } else if (compressorCrfSelect) {
+                    compressorCrfSelect.value = String(Number.isFinite(comp.crf) ? comp.crf : 26);
+                }
+            } else {
+                const source = presetType === 'converter' ? preset?.converter : preset?.downloader;
+                formatInput.value = source?.format || '';
+                pathInput.value = source?.path || '';
 
-            videoQuality.value = preset?.downloader?.video_quality || '';
-            videoFps.value = preset?.downloader?.video_fps || '';
-            videoBitrate.value = preset?.downloader?.video_bitrate
-                ? clampBitrate(preset.downloader.video_bitrate, bitrateConstraints.video, true)
-                : '';
-            audioSample.value = preset?.downloader?.audio_sample_rate || '';
-            audioBitrate.value = preset?.downloader?.audio_bitrate
-                ? clampBitrate(preset.downloader.audio_bitrate, bitrateConstraints.audio, true)
-                : '';
+                downloadSubs.checked = presetType === 'downloader' ? !!source?.download_subtitles : false;
+                embedSubs.checked = presetType === 'downloader' ? !!source?.embed_subtitles : false;
+                subsCode.value = presetType === 'downloader' ? (source?.subtitles_code || '') : '';
+                embedMeta.checked = presetType === 'downloader' ? !!source?.embed_metadata : false;
+                embedThumb.checked = presetType === 'downloader' ? !!source?.embed_thumbnail : false;
+                geoBypass.checked = presetType === 'downloader' ? !!source?.geo_bypass : false;
+                muteAudio.checked = presetType === 'downloader' ? !!source?.mute_audio : false;
+
+                videoQuality.value = source?.video_quality || '';
+                videoFps.value = source?.video_fps || '';
+                videoBitrate.value = source?.video_bitrate
+                    ? clampBitrate(source.video_bitrate, bitrateConstraints.video, true)
+                    : '';
+                audioSample.value = source?.audio_sample_rate || '';
+                audioBitrate.value = source?.audio_bitrate
+                    ? clampBitrate(source.audio_bitrate, bitrateConstraints.audio, true)
+                    : '';
+
+                updateSubtitlesExtras();
+                updateFormatUI();
+
+                if (source?.video_codec) videoCodec.value = source.video_codec;
+                if (source?.audio_codec) audioCodec.value = source.audio_codec;
+            }
 
             state.iconDataUrl = preset?.icon_data_url || DEFAULT_ICON_DATA_URL;
             setIconPreview(state.iconDataUrl);
-
-            updateSubtitlesExtras();
-            updateFormatUI();
-
-            if (preset?.downloader?.video_codec) videoCodec.value = preset.downloader.video_codec;
-            if (preset?.downloader?.audio_codec) audioCodec.value = preset.downloader.audio_codec;
             if (window.initCustomSelects) window.initCustomSelects();
             validate();
         };
@@ -422,50 +641,109 @@
 
         const savePreset = async ({ closeOnSuccess = true } = {}) => {
             if (!window.__TAURI__?.core?.invoke) return null;
-            const { formatValue, type, isGif } = resolveFormatMeta(formatInput.value);
-            const videoBitrateValue = videoSection?.classList.contains('collapsed')
-                ? ''
-                : clampBitrate(videoBitrate?.value, bitrateConstraints.video, true);
-            const audioBitrateValue = audioSection?.classList.contains('collapsed')
-                ? ''
-                : clampBitrate(audioBitrate?.value, bitrateConstraints.audio, true);
-            if (videoBitrate && !videoSection?.classList.contains('collapsed')) {
-                videoBitrate.value = videoBitrateValue;
-            }
-            if (audioBitrate && !audioSection?.classList.contains('collapsed')) {
-                audioBitrate.value = audioBitrateValue;
-            }
-
             const payload = {
                 id: state.presetId,
                 title: String(titleInput.value || '').trim(),
                 summary: String(summaryInput.value || '').trim(),
-                preset_type: 'downloader',
+                preset_type: state.presetType,
                 hidden: state.hidden,
-                icon_data_url: state.iconDataUrl,
-                downloader: {
-                    mode: type === 'audio' ? 'audio' : 'video',
-                    format: formatValue,
-                    path: String(pathInput.value || '').trim() || null,
-                    video_quality: videoSection?.classList.contains('collapsed') ? null : (videoQuality.value || null),
-                    audio_quality: null,
-                    download_subtitles: !!downloadSubs.checked,
-                    embed_subtitles: !!embedSubs.checked,
-                    subtitles_code: downloadSubs.checked ? (String(subsCode.value || '').trim() || null) : null,
-                    embed_metadata: !!embedMeta.checked,
-                    embed_thumbnail: !!embedThumb.checked,
-                    geo_bypass: !!geoBypass.checked,
-                    mute_audio: isGif ? true : !!muteAudio.checked,
-                    video_codec: videoSection?.classList.contains('collapsed') ? null : (videoCodec.value || null),
-                    audio_codec: audioSection?.classList.contains('collapsed') ? null : (audioCodec.value || null),
-                    video_bitrate: videoBitrateValue || null,
-                    audio_bitrate: audioBitrateValue || null,
-                    video_fps: videoSection?.classList.contains('collapsed') ? null : (videoFps.value || null),
-                    audio_sample_rate: audioSection?.classList.contains('collapsed') ? null : (audioSample.value || null)
-                }
+                icon_data_url: state.iconDataUrl
             };
 
-            if (!payload.title || !payload.downloader.format) {
+            if (state.presetType === 'compressor') {
+                const mode = state.compressorMode;
+                const targetPercent = mode === 'percent'
+                    ? commitPercentValue(compressorPercentInput?.value ?? compressorPercentRange?.value)
+                    : null;
+                const parsedSize = mode === 'size' ? parseSizeInput(compressorSizeInput?.value || '') : null;
+                const targetSize = mode === 'size' && Number.isFinite(parsedSize)
+                    ? String(compressorSizeInput?.value || '').trim()
+                    : null;
+                const crfValue = mode === 'quality'
+                    ? parseInt(String(compressorCrfSelect?.value || ''), 10)
+                    : null;
+
+                payload.compressor = {
+                    mode,
+                    target_percent: mode === 'percent' && Number.isFinite(targetPercent) ? targetPercent : null,
+                    target_size: targetSize,
+                    crf: mode === 'quality' && Number.isFinite(crfValue) ? crfValue : null
+                };
+            } else {
+                const { formatValue, type, isGif } = resolveFormatMeta(formatInput.value);
+                const isDownloader = state.presetType === 'downloader';
+                const showVideo = isDownloader ? type !== 'audio' : type === 'video';
+                const showAudio = isDownloader
+                    ? type === 'audio' || (!isGif && !muteAudio?.checked)
+                    : type === 'audio' || type === 'video';
+
+                const videoBitrateValue = showVideo
+                    ? clampBitrate(videoBitrate?.value, bitrateConstraints.video, true)
+                    : '';
+                const audioBitrateValue = showAudio
+                    ? clampBitrate(audioBitrate?.value, bitrateConstraints.audio, true)
+                    : '';
+
+                if (videoBitrate && showVideo) {
+                    videoBitrate.value = videoBitrateValue;
+                }
+                if (audioBitrate && showAudio) {
+                    audioBitrate.value = audioBitrateValue;
+                }
+
+                if (isDownloader) {
+                    payload.downloader = {
+                        mode: type === 'audio' ? 'audio' : 'video',
+                        format: formatValue,
+                        path: String(pathInput.value || '').trim() || null,
+                        video_quality: showVideo ? (videoQuality.value || null) : null,
+                        audio_quality: null,
+                        download_subtitles: !!downloadSubs.checked,
+                        embed_subtitles: !!embedSubs.checked,
+                        subtitles_code: downloadSubs.checked ? (String(subsCode.value || '').trim() || null) : null,
+                        embed_metadata: !!embedMeta.checked,
+                        embed_thumbnail: !!embedThumb.checked,
+                        geo_bypass: !!geoBypass.checked,
+                        mute_audio: isGif ? true : !!muteAudio.checked,
+                        video_codec: showVideo ? (videoCodec.value || null) : null,
+                        audio_codec: showAudio ? (audioCodec.value || null) : null,
+                        video_bitrate: videoBitrateValue || null,
+                        audio_bitrate: audioBitrateValue || null,
+                        video_fps: showVideo ? (videoFps.value || null) : null,
+                        audio_sample_rate: showAudio ? (audioSample.value || null) : null
+                    };
+                } else {
+                    payload.converter = {
+                        format: formatValue,
+                        path: String(pathInput.value || '').trim() || null,
+                        video_quality: showVideo ? (videoQuality.value || null) : null,
+                        video_codec: showVideo ? (videoCodec.value || null) : null,
+                        video_bitrate: videoBitrateValue || null,
+                        video_fps: showVideo ? (videoFps.value || null) : null,
+                        audio_codec: showAudio ? (audioCodec.value || null) : null,
+                        audio_bitrate: audioBitrateValue || null,
+                        audio_sample_rate: showAudio ? (audioSample.value || null) : null
+                    };
+                }
+            }
+
+            let valid = !!payload.title;
+            if (state.presetType === 'compressor') {
+                const comp = payload.compressor || {};
+                if (comp.mode === 'size') {
+                    valid = valid && !!comp.target_size;
+                } else if (comp.mode === 'quality') {
+                    valid = valid && Number.isFinite(comp.crf);
+                } else {
+                    valid = valid && Number.isFinite(comp.target_percent);
+                }
+            } else if (state.presetType === 'downloader') {
+                valid = valid && !!payload.downloader?.format;
+            } else {
+                valid = valid && !!payload.converter?.format;
+            }
+
+            if (!valid) {
                 showNotification(t('presetCreator.notifications.validation', 'Title and format are required.'), 'error');
                 return null;
             }
@@ -797,6 +1075,55 @@
                 console.error('Failed to pick directory:', error);
             }
         });
+
+        typeButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-preset-type') || 'downloader';
+                setPresetType(type);
+            });
+        });
+
+        compressorButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mode = btn.getAttribute('data-mode') || 'percent';
+                setCompressionMode(mode);
+                validate();
+            });
+        });
+
+        if (compressorPercentRange) {
+            compressorPercentRange.addEventListener('input', () => {
+                if (compressorPercentInput) {
+                    compressorPercentInput.value = compressorPercentRange.value;
+                }
+                updateCompressorPercentFill();
+                validate();
+            });
+        }
+        if (compressorPercentInput) {
+            compressorPercentInput.addEventListener('input', () => {
+                const value = normalizePercentValue(compressorPercentInput.value);
+                if (Number.isFinite(value) && compressorPercentRange) {
+                    compressorPercentRange.value = String(value);
+                }
+                updateCompressorPercentFill();
+                validate();
+            });
+            compressorPercentInput.addEventListener('blur', () => {
+                commitPercentValue(compressorPercentInput.value);
+                validate();
+            });
+        }
+        if (compressorSizeInput) {
+            compressorSizeInput.addEventListener('input', () => {
+                validate();
+            });
+        }
+        if (compressorCrfSelect) {
+            compressorCrfSelect.addEventListener('change', () => {
+                validate();
+            });
+        }
 
         formatInput.addEventListener('input', () => {
             renderSuggestions(formatInput.value);
