@@ -1,6 +1,6 @@
 {
   "name": "pulsar",
-  "version": "2.3.1",
+  "version": "3.0.0-dev",
   "description": "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.",
   "author": "Fuzja Jadrowa",
   "scripts": {

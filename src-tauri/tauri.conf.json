@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Pulsar",
-  "version": "2.3.1",
+  "version": "3.0.0-dev",
   "identifier": "com.fuzjajadrowa.pulsar",
   "build": {
     "frontendDist": "../src"

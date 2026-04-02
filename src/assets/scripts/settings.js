@@ -59,7 +59,7 @@
         if (!tags.length) return;
 
         const getTagIconMarkup = () => (
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true">' +
             '<path class="tag-outline" d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12.41V2h10.41l8.18 8.18a2 2 0 0 1 0 2.83z"/>' +
             '<circle class="tag-dot" cx="7.5" cy="7.5" r="1.5"/>' +
             '</svg>'
