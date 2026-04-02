@@ -594,6 +594,7 @@ body.theme-light .title-pill {
     padding: 10px 16px;
     background: rgba(255, 255, 255, 0.08);
     color: #f0f0f0;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
     font-size: 13px;
@@ -761,6 +762,7 @@ body.theme-light .preset-badge {
     font-weight: 600;
     padding: 7px 12px;
     border-radius: 8px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     cursor: pointer;
     transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
 }

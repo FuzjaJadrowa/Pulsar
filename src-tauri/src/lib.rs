@@ -21,6 +21,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .manage(config_manager)
         .manage(queue_manager)
         .manage(bridge_state)
@@ -28,6 +35,10 @@ pub fn run() {
         .setup(|app| {
             let queue_state = app.state::<QueueManager>().load();
             build_tray_icon(app.handle(), &queue_state)?;
+            let bridge_state = app.state::<BridgeState>();
+            if let Err(error) = bridge_state.init(&app.handle()) {
+                eprintln!("Failed to prewarm bridge: {}", error);
+            }
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -68,6 +79,7 @@ pub fn run() {
             core::acceleration::refresh_acceleration_info,
             core::downloader::start_download,
             core::downloader::cancel_download,
+            core::downloader::init_bridge,
             core::downloader::pick_download_directory,
             core::converter::pick_convert_file,
             core::converter::estimate_convert_size,

@@ -157,6 +157,7 @@
         const overlay = document.getElementById('preset-modal-overlay');
         if (!overlay) return;
 
+        const modal = overlay.querySelector('.preset-modal');
         const modalTitle = document.getElementById('preset-modal-title');
         const titleInput = document.getElementById('preset-title');
         const summaryInput = document.getElementById('preset-summary');
@@ -197,6 +198,7 @@
         const compressorSection = document.getElementById('preset-compressor-section');
         const compressorToggle = document.getElementById('preset-compressor-toggle');
         const compressorButtons = compressorToggle ? Array.from(compressorToggle.querySelectorAll('.preset-compressor-option')) : [];
+        const compressorPanelsWrap = document.querySelector('.preset-compressor-panels');
         const compressorPanels = Array.from(document.querySelectorAll('.preset-compressor-panel'));
         const compressorPercentRange = document.getElementById('preset-compress-percent-range');
         const compressorPercentInput = document.getElementById('preset-compress-percent-input');
@@ -262,9 +264,52 @@
             return amount * mult;
         };
 
+        const animateModalResize = (prevRect) => {
+            if (!modal || !prevRect) return;
+            const nextRect = modal.getBoundingClientRect();
+            const delta = Math.abs(nextRect.height - prevRect.height);
+            if (!nextRect.height || delta < 2) {
+                modal.style.height = '';
+                modal.style.transition = '';
+                modal.style.overflow = '';
+                return;
+            }
+            modal.style.height = `${prevRect.height}px`;
+            modal.style.overflow = 'hidden';
+            modal.offsetHeight;
+            modal.style.transition = 'height 0.35s cubic-bezier(0.22, 1, 0.36, 1)';
+            modal.style.height = `${nextRect.height}px`;
+            const cleanup = () => {
+                modal.style.height = '';
+                modal.style.transition = '';
+                modal.style.overflow = '';
+            };
+            modal.addEventListener('transitionend', cleanup, { once: true });
+        };
+
+        const runSectionTransition = (elements, applyChange, options = {}) => {
+            const targets = (Array.isArray(elements) ? elements : [elements]).filter(Boolean);
+            const animate = options.animate !== false;
+            const afterChange = typeof options.afterChange === 'function' ? options.afterChange : null;
+            if (!animate || !targets.length) {
+                applyChange();
+                if (afterChange) afterChange();
+                return;
+            }
+            targets.forEach((el) => el.classList.add('fading-out'));
+            window.setTimeout(() => {
+                applyChange();
+                requestAnimationFrame(() => {
+                    targets.forEach((el) => el.classList.remove('fading-out'));
+                    if (afterChange) afterChange();
+                });
+            }, 180);
+        };
+
         const setCompressionMode = (mode, options = {}) => {
             const next = mode === 'size' || mode === 'quality' ? mode : 'percent';
             if (next === state.compressorMode && !options.force) return;
+            const prevRect = modal ? modal.getBoundingClientRect() : null;
             state.compressorMode = next;
             compressorButtons.forEach((btn) => {
                 const btnMode = btn.getAttribute('data-mode');
@@ -272,10 +317,27 @@
                 btn.classList.toggle('active', active);
                 btn.setAttribute('aria-pressed', active ? 'true' : 'false');
             });
-            compressorPanels.forEach((panel) => {
-                const panelMode = panel.getAttribute('data-mode');
-                panel.classList.toggle('hidden', panelMode !== state.compressorMode);
-            });
+            const applyPanels = () => {
+                compressorPanels.forEach((panel) => {
+                    const panelMode = panel.getAttribute('data-mode');
+                    panel.classList.toggle('hidden', panelMode !== state.compressorMode);
+                });
+            };
+            if (options.animate !== false && compressorPanelsWrap) {
+                compressorPanelsWrap.classList.add('fading-out');
+                window.setTimeout(() => {
+                    applyPanels();
+                    requestAnimationFrame(() => {
+                        compressorPanelsWrap.classList.remove('fading-out');
+                        animateModalResize(prevRect);
+                    });
+                }, 180);
+            } else {
+                applyPanels();
+                if (options.animate !== false) {
+                    animateModalResize(prevRect);
+                }
+            }
         };
 
         const buildCrfOptions = () => {
@@ -481,26 +543,38 @@
         const setPresetType = (type, options = {}) => {
             const next = type === 'converter' || type === 'compressor' ? type : 'downloader';
             if (state.presetType === next && !options.force) return;
+            const prevRect = modal ? modal.getBoundingClientRect() : null;
             state.presetType = next;
             typeButtons.forEach((btn) => {
                 const btnType = btn.getAttribute('data-preset-type');
                 btn.classList.toggle('active', btnType === state.presetType);
             });
             const isCompressor = state.presetType === 'compressor';
-            formatSection?.classList.toggle('hidden', isCompressor);
-            advancedPanel?.classList.toggle('hidden', isCompressor);
-            compressorSection?.classList.toggle('hidden', !isCompressor);
-            toggleGrid?.classList.toggle('hidden', state.presetType !== 'downloader');
-            if (isCompressor && advancedPanel) {
-                advancedPanel.classList.remove('expanded');
-            }
-            if (isCompressor) {
-                suggestionBox.classList.remove('visible');
-                setCompressionMode(state.compressorMode, { force: true });
-            }
-            updateFormatUI();
-            updateSubtitlesExtras();
-            validate();
+            const applyType = () => {
+                formatSection?.classList.toggle('hidden', isCompressor);
+                advancedPanel?.classList.toggle('hidden', isCompressor);
+                compressorSection?.classList.toggle('hidden', !isCompressor);
+                toggleGrid?.classList.toggle('hidden', state.presetType !== 'downloader');
+                if (isCompressor && advancedPanel) {
+                    advancedPanel.classList.remove('expanded');
+                }
+                if (isCompressor) {
+                    suggestionBox.classList.remove('visible');
+                    setCompressionMode(state.compressorMode, { force: true, animate: false });
+                }
+                updateFormatUI();
+                updateSubtitlesExtras();
+                validate();
+            };
+            const afterChange = options.animate === false ? null : () => animateModalResize(prevRect);
+            runSectionTransition(
+                [formatSection, compressorSection, advancedPanel],
+                applyType,
+                {
+                    animate: options.animate,
+                    afterChange
+                }
+            );
         };
 
         const validate = () => {
@@ -554,13 +628,13 @@
                 buildCrfOptions();
             }
             if (compressorCrfSelect) compressorCrfSelect.value = '26';
-            setCompressionMode('percent', { force: true });
+            setCompressionMode('percent', { force: true, animate: false });
             resetIcon();
             updateSubtitlesExtras();
             if (advancedPanel) {
                 advancedPanel.classList.add('no-anim');
             }
-            setPresetType('downloader', { force: true });
+            setPresetType('downloader', { force: true, animate: false });
             if (advancedPanel) {
                 void advancedPanel.offsetHeight;
                 advancedPanel.classList.remove('no-anim');
@@ -570,7 +644,7 @@
 
         const applyPreset = (preset) => {
             const presetType = String(preset?.preset_type || 'downloader').toLowerCase();
-            setPresetType(presetType, { force: true });
+            setPresetType(presetType, { force: true, animate: false });
             state.presetId = preset?.id || null;
             state.hidden = !!preset?.hidden;
             if (modalTitle) modalTitle.textContent = t('presetCreator.title.edit', 'Edit Preset');
@@ -581,7 +655,7 @@
                     buildCrfOptions();
                 }
                 const comp = preset?.compressor || {};
-                setCompressionMode(comp.mode || 'percent', { force: true });
+                setCompressionMode(comp.mode || 'percent', { force: true, animate: false });
                 if (state.compressorMode === 'percent') {
                     commitPercentValue(comp.target_percent ?? compressorPercentInput?.value ?? 60);
                 } else if (state.compressorMode === 'size') {
@@ -814,8 +888,8 @@
         };
 
         const setDropHover = (enabled) => {
-            if (!iconDropTarget) return;
-            iconDropTarget.classList.toggle('dragover', !!enabled);
+            if (iconDropTarget) iconDropTarget.classList.toggle('dragover', !!enabled);
+            if (iconDrop) iconDrop.classList.toggle('dragover', !!enabled);
         };
 
         let lastMousePoint = null;
@@ -1079,14 +1153,14 @@
         typeButtons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const type = btn.getAttribute('data-preset-type') || 'downloader';
-                setPresetType(type);
+                setPresetType(type, { animate: true });
             });
         });
 
         compressorButtons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const mode = btn.getAttribute('data-mode') || 'percent';
-                setCompressionMode(mode);
+                setCompressionMode(mode, { animate: true });
                 validate();
             });
         });

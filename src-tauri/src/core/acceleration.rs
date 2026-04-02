@@ -33,7 +33,7 @@ fn parse_hwaccels(output: &str) -> Vec<String> {
         if trimmed.is_empty() {
             continue;
         }
-        if trimmed.to_lowercase().contains("hardware acceleration methods") {
+        if trimmed.to_lowercase().contains("hardware acceleration methods:") {
             found_header = true;
             continue;
         }

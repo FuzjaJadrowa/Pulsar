@@ -76,6 +76,7 @@
     }
 
     let metadataTaskId = null;
+    let metadataSequence = 0;
     let isLoading = false;
     let lastMetadata = null;
     let currentName = '';
@@ -128,6 +129,11 @@
     const parseInteger = (value) => {
         const parsed = parseInt(String(value || '').trim(), 10);
         return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const buildMetadataTaskId = () => {
+        metadataSequence = (metadataSequence + 1) % 1000;
+        return `${Date.now()}${String(metadataSequence).padStart(3, '0')}`;
     };
 
     const clampNumber = (value, min, max) => {
@@ -415,6 +421,8 @@
         if (category !== 'video' && category !== 'audio' && category !== 'image') return null;
         const outputDir = (savePathInput?.value || '').trim() || extractFolderPath(lastMetadata.path);
         const rawName = sanitizeOutputName(currentName || lastMetadata.name || 'output');
+        const defaultName = sanitizeOutputName(lastMetadata.name || '');
+        const currentNormalized = sanitizeOutputName(currentName || '');
         const inputFormat = normalizeOutputFormat(lastMetadata.extension || lastMetadata.format || '');
         let baseName = rawName;
         if (inputFormat) {
@@ -424,6 +432,10 @@
             }
         }
         if (!baseName) baseName = 'output';
+        const isDefaultName = !currentNormalized || currentNormalized.toLowerCase() === defaultName.toLowerCase();
+        if (isDefaultName) {
+            baseName = `${baseName}-processed`;
+        }
         let outputName = baseName;
         let outputPath = inputFormat ? joinPath(outputDir, `${outputName}.${inputFormat}`) : joinPath(outputDir, outputName);
         if (outputPath && lastMetadata?.path && String(outputPath).toLowerCase() === String(lastMetadata.path).toLowerCase()) {
@@ -1033,7 +1045,7 @@
         const value = pathInput.value.trim();
         if (!value) return;
         setConfirmLoading(true);
-        const clientTaskId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+        const clientTaskId = buildMetadataTaskId();
         metadataTaskId = clientTaskId;
         try {
             await invoke('fetch_metadata_converter', {

@@ -617,9 +617,11 @@ body.page-compressor.compressor-active::after {
 .compressor-meta-location-value {
     max-width: 65%;
     text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .compressor-info-card.no-duration .compressor-meta-duration {

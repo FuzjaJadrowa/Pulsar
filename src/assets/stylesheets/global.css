@@ -356,6 +356,7 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     color: rgba(255, 255, 255, 0.7);
     font-weight: bold;
     font-size: 14px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     height: 40px;
     width: auto;
     min-width: 105px;

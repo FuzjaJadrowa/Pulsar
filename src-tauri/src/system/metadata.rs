@@ -27,13 +27,23 @@ pub fn fetch_metadata_downloader(
     state: State<BridgeState>,
     config_mgr: State<ConfigManager>,
     url: String,
+    client_task_id: Option<String>,
 ) -> Result<String, String> {
     let trimmed_url = url.trim();
     if trimmed_url.is_empty() {
         return Err("URL cannot be empty".to_string());
     }
 
-    let task_id = build_task_id()?;
+    let task_id = client_task_id
+        .and_then(|id| {
+            let trimmed = id.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        })
+        .unwrap_or(build_task_id()?);
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();

@@ -83,6 +83,7 @@
     }
 
     let metadataTaskId = null;
+    let metadataSequence = 0;
     let isLoading = false;
     let currentName = '';
     let isEditingName = false;
@@ -136,6 +137,11 @@
     const parseInteger = (value) => {
         const parsed = parseInt(String(value || '').trim(), 10);
         return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const buildMetadataTaskId = () => {
+        metadataSequence = (metadataSequence + 1) % 1000;
+        return `${Date.now()}${String(metadataSequence).padStart(3, '0')}`;
     };
 
     const clampNumber = (value, min, max) => {
@@ -378,6 +384,8 @@
         if (!outputFormat) return null;
         const outputDir = (savePathInput?.value || '').trim() || extractFolderPath(lastMetadata.path);
         const rawName = sanitizeOutputName(currentName || lastMetadata.name || 'output');
+        const defaultName = sanitizeOutputName(lastMetadata.name || '');
+        const currentNormalized = sanitizeOutputName(currentName || '');
         let baseName = rawName;
         const lowerName = rawName.toLowerCase();
         const suffix = `.${outputFormat}`;
@@ -385,6 +393,11 @@
             baseName = rawName.slice(0, -suffix.length);
         }
         if (!baseName) baseName = 'output';
+        const inputFormat = normalizeOutputFormat(lastMetadata.extension || '');
+        const isDefaultName = !currentNormalized || currentNormalized.toLowerCase() === defaultName.toLowerCase();
+        if (isDefaultName && inputFormat && inputFormat === outputFormat) {
+            baseName = `${baseName}-processed`;
+        }
         const outputPath = joinPath(outputDir, `${baseName}.${outputFormat}`);
         return {
             input_path: lastMetadata.path,
@@ -708,12 +721,39 @@
         });
     };
 
-    const clearFormatSelection = () => {
+    const clearFormatSelection = (options = {}) => {
         selectedFormat = '';
         updateTileSelection();
         setActionButtonsEnabled(false);
-        hideDetailsPanel();
-        clearEstimatedSizes();
+        if (!detailsPanel || detailsPanel.classList.contains('hidden')) {
+            hideDetailsPanel();
+            clearEstimatedSizes();
+            return;
+        }
+        if (!options.animate) {
+            hideDetailsPanel();
+            clearEstimatedSizes();
+            return;
+        }
+        const prevPanelRect = options.prevPanelRect || (optionsPanel ? optionsPanel.getBoundingClientRect() : null);
+        const prevActionRect = options.prevActionRect || (actionFooter ? actionFooter.getBoundingClientRect() : null);
+        if (prevPanelRect) {
+            freezePanelHeight(prevPanelRect);
+        }
+        detailsPanel.classList.add('fading-out');
+        window.setTimeout(() => {
+            hideDetailsPanel();
+            detailsPanel.classList.remove('fading-out');
+            clearEstimatedSizes();
+            requestAnimationFrame(() => {
+                if (prevPanelRect) {
+                    animatePanelResize(prevPanelRect, { freeze: false });
+                }
+                if (prevActionRect && !options.suppressShift) {
+                    animateShift(actionFooter, prevActionRect);
+                }
+            });
+        }, 180);
     };
 
     const animateShift = (element, prevRect) => {
@@ -963,24 +1003,28 @@
         const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
         const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
         const hadDetails = !!selectedFormat && detailsPanel && !detailsPanel.classList.contains('hidden');
+        const shouldAnimateClear = !options.preserveSelection && hadDetails;
         selectedMode = mode === 'audio' ? 'audio' : 'video';
         updateToggleButtons();
         if (!options.preserveSelection) {
-            if (hadDetails && prevPanelRect) {
-                freezePanelHeight(prevPanelRect);
-            }
-            clearFormatSelection();
+            clearFormatSelection({
+                animate: shouldAnimateClear,
+                prevPanelRect,
+                prevActionRect,
+                suppressShift: options.suppressShift
+            });
         }
         const finalize = () => {
             renderFormats();
             requestAnimationFrame(() => {
                 const shouldShift = prevActionRect
                     && !options.suppressShift
-                    && !(hadDetails && prevPanelRect);
+                    && !(hadDetails && prevPanelRect)
+                    && !shouldAnimateClear;
                 if (shouldShift) {
                     animateShift(actionFooter, prevActionRect);
                 }
-                if (hadDetails && prevPanelRect) {
+                if (hadDetails && prevPanelRect && !shouldAnimateClear) {
                     animatePanelResize(prevPanelRect, { freeze: false });
                 }
                 if (typeof options.afterRender === 'function') {
@@ -1012,9 +1056,8 @@
         const suppressShift = !!options.suppressShift;
         const prevPanelRect = optionsPanel ? optionsPanel.getBoundingClientRect() : null;
         const prevActionRect = actionFooter ? actionFooter.getBoundingClientRect() : null;
-        if (shouldAnimatePanel && prevPanelRect) {
-            freezePanelHeight(prevPanelRect);
-        }
+        const hadDetails = !!selectedFormat && detailsPanel && !detailsPanel.classList.contains('hidden');
+        const shouldAnimateClear = shouldAnimatePanel && hadDetails;
         currentCategory = nextCategory;
 
         loadFormatData().then(() => {
@@ -1025,7 +1068,12 @@
             }
             if (!currentCategory) {
                 formatGrid.innerHTML = '';
-                clearFormatSelection();
+                clearFormatSelection({
+                    animate: shouldAnimateClear,
+                    prevPanelRect,
+                    prevActionRect,
+                    suppressShift
+                });
                 return;
             }
 
@@ -1043,7 +1091,12 @@
                 selectedMode = currentCategory === 'audio' ? 'audio' : 'video';
                 updateToggleButtons();
                 if (!shouldPreserveSelection) {
-                    clearFormatSelection();
+                    clearFormatSelection({
+                        animate: shouldAnimateClear,
+                        prevPanelRect,
+                        prevActionRect,
+                        suppressShift
+                    });
                 }
                 const finalize = () => {
                     renderFormats();
@@ -1051,7 +1104,7 @@
                         if (prevActionRect && !shouldAnimatePanel && !suppressShift) {
                             animateShift(actionFooter, prevActionRect);
                         }
-                        if (shouldAnimatePanel) {
+                        if (shouldAnimatePanel && !shouldAnimateClear) {
                             animatePanelResize(prevPanelRect, { freeze: false });
                         }
                     });
@@ -1291,7 +1344,7 @@
         const value = pathInput.value.trim();
         if (!value) return;
         setConfirmLoading(true);
-        const clientTaskId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+        const clientTaskId = buildMetadataTaskId();
         metadataTaskId = clientTaskId;
         try {
             await invoke('fetch_metadata_converter', {

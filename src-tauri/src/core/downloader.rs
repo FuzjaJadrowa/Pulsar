@@ -25,6 +25,11 @@ pub struct BridgeState {
     ffmpeg_ranges: Arc<Mutex<HashMap<String, FfmpegRange>>>,
 }
 
+#[tauri::command]
+pub fn init_bridge(app_handle: AppHandle, state: State<BridgeState>) -> Result<(), String> {
+    state.init(&app_handle)
+}
+
 impl BridgeState {
     pub fn new() -> Self {
         Self {

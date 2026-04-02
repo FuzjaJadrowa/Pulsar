@@ -15,6 +15,7 @@ const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
 let currentThemeSetting = 'System';
 let themeTransitionTimer = null;
 let currentLocale = null;
+let bridgePrewarmed = false;
 
 const resolveLocale = (value) => {
     const raw = String(value || '').trim().toLowerCase();
@@ -401,6 +402,16 @@ const progressLabel = document.getElementById('splash-progress');
 const skipBtn = document.getElementById('splash-skip-btn');
 const splashExitDuration = 520;
 
+function scheduleBridgePrewarm() {
+    if (bridgePrewarmed || !invoke) return;
+    bridgePrewarmed = true;
+    setTimeout(() => {
+        invoke('init_bridge').catch((error) => {
+            console.error('Bridge prewarm failed:', error);
+        });
+    }, splashExitDuration);
+}
+
 function translateSplashStatus(value) {
     if (value === null || typeof value === 'undefined') return value;
     const raw = String(value);
@@ -476,6 +487,7 @@ function finishSplash() {
     }
 
     loadPage('downloader', 0);
+    scheduleBridgePrewarm();
 }
 
 function showSplashOverlay() {
@@ -586,6 +598,7 @@ async function setupSplashListeners() {
             } else {
                 finishSplash();
             }
+            scheduleBridgePrewarm();
         });
     } catch (error) {
         console.error("Splash events error:", error);
@@ -595,6 +608,7 @@ async function setupSplashListeners() {
             } else {
                 finishSplash();
             }
+            scheduleBridgePrewarm();
         }, 2000);
     }
 }

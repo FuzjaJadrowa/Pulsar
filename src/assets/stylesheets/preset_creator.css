@@ -97,6 +97,7 @@ body.preset-modal-open .page-scroll {
     font-weight: 700;
     font-size: 13px;
     letter-spacing: 0.4px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
 }
 .preset-save-btn {
@@ -178,12 +179,18 @@ body.preset-modal-open .page-scroll {
     border: 1px dashed rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.04);
     position: relative;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.preset-icon-drop.dragover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px rgba(138, 43, 226, 0.2);
+}
+.preset-icon-drop.dragover .preset-icon-preview {
+    background: rgba(138, 43, 226, 0.16);
 }
 .preset-icon-preview.dragover {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
     background: rgba(138, 43, 226, 0.16);
+    box-shadow: 0 0 0 2px var(--accent-color);
 }
 .preset-icon-preview {
     width: 72px;
@@ -196,6 +203,7 @@ body.preset-modal-open .page-scroll {
     color: #fff;
     overflow: hidden;
     flex-shrink: 0;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 .preset-icon-preview img,
 .preset-icon-preview svg {
@@ -260,6 +268,7 @@ body.preset-modal-open .page-scroll {
     color: rgba(255, 255, 255, 0.72);
     font-weight: 700;
     font-size: 13px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     cursor: pointer;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -267,10 +276,6 @@ body.preset-modal-open .page-scroll {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
-}
-.preset-choice:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
 }
 .preset-choice.active {
     background: rgba(255, 255, 255, 0.16);
@@ -280,6 +285,18 @@ body.preset-modal-open .page-scroll {
 }
 .preset-compressor-section {
     align-items: center;
+}
+.preset-compressor-section,
+.preset-format-section,
+.preset-advanced {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.preset-compressor-section.fading-out,
+.preset-format-section.fading-out,
+.preset-advanced.fading-out {
+    opacity: 0;
+    transform: scale(0.98);
+    pointer-events: none;
 }
 .preset-compressor-section .preset-section-title {
     text-align: center;
@@ -305,14 +322,11 @@ body.preset-modal-open .page-scroll {
     color: rgba(255, 255, 255, 0.72);
     font-weight: 700;
     font-size: 12px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     cursor: pointer;
     letter-spacing: 0.4px;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     text-transform: uppercase;
-}
-.preset-compressor-option:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
 }
 .preset-compressor-option.active {
     background: rgba(255, 255, 255, 0.16);
@@ -326,6 +340,12 @@ body.preset-modal-open .page-scroll {
     gap: 12px;
     width: min(420px, 90vw);
     max-width: 100%;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.preset-compressor-panels.fading-out {
+    opacity: 0;
+    transform: scale(0.98);
+    pointer-events: none;
 }
 .preset-compressor-panel {
     width: 100%;
@@ -690,9 +710,6 @@ body.theme-light .preset-compressor-toggle {
 body.theme-light .preset-compressor-option {
     color: rgba(29, 35, 48, 0.65);
 }
-body.theme-light .preset-compressor-option:hover {
-    color: #1d2330;
-}
 body.theme-light .preset-compressor-option.active {
     color: #1d2330;
 }
@@ -749,10 +766,6 @@ body.theme-light .preset-type-switcher {
 body.theme-light .preset-choice {
     background: transparent;
     color: rgba(29, 35, 48, 0.7);
-}
-body.theme-light .preset-choice:hover {
-    background: rgba(29, 35, 48, 0.08);
-    color: #1d2330;
 }
 body.theme-light .preset-choice.active {
     background: rgba(76, 111, 255, 0.16);

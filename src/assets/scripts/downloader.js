@@ -97,6 +97,7 @@
         applyingPreset: false,
         presetOverrides: null
     };
+    let metadataSequence = 0;
 
     const openExternalUrl = async (url) => {
         const target = String(url || '').trim();
@@ -276,6 +277,11 @@
         const trimmed = String(value || '').trim();
         if (!trimmed) return false;
         return /^https?:\/\//i.test(trimmed);
+    }
+
+    function buildMetadataTaskId() {
+        metadataSequence = (metadataSequence + 1) % 1000;
+        return `${Date.now()}${String(metadataSequence).padStart(3, '0')}`;
     }
 
     function setFetchLoading(isLoading) {
@@ -904,13 +910,15 @@
         }
         setFetchLoading(true);
 
+        const taskId = buildMetadataTaskId();
+        state.metadataTaskId = taskId;
         try {
-            const taskId = await invoke('fetch_metadata_downloader', { url });
-            state.metadataTaskId = taskId;
+            await invoke('fetch_metadata_downloader', { url, client_task_id: taskId, clientTaskId: taskId });
             return taskId;
         } catch (error) {
             console.error('Metadata fetch failed:', error);
             setFetchLoading(false);
+            state.metadataTaskId = null;
             return null;
         }
     }
