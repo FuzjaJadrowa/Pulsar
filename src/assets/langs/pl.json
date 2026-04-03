@@ -30,6 +30,8 @@
     },
     "nav": {
       "download": "Pobieranie",
+      "convert": "Konwersja",
+      "compress": "Kompresja",
       "settings": "Ustawienia",
       "queue": "Kolejka"
     }
@@ -95,19 +97,49 @@
     }
   },
   "converter": {
+    "path": {
+      "placeholder": "Wybierz plik do konwersji..."
+    },
     "actions": {
+      "browse": "Przeglądaj",
       "convert": "KONWERTUJ",
       "addToQueue": "DODAJ DO KOLEJKI"
     },
     "options": {
-      "convertTo": "KONWERTUJ DO"
+      "compressBy": "KOMPRESUJ PRZEZ",
+      "convertTo": "KONWERTUJ DO",
+      "title": "OPCJE",
+      "pathPlaceholder": "Ścieżka zapisu..."
     },
     "mode": {
       "video": "WIDEO",
       "audio": "AUDIO"
     },
+    "output": {
+      "placeholder": "Nazwa pliku wyjściowego",
+      "editTitle": "Edytuj nazwę pliku wyjściowego"
+    },
     "meta": {
-      "locationLabel": "Lokalizacja"
+      "locationLabel": "Lokalizacja",
+      "sizeLabel": "Rozmiar",
+      "durationLabel": "Czas trwania",
+      "category": {
+        "video": "Wideo",
+        "audio": "Audio",
+        "image": "Obraz",
+        "archive": "Archiwum",
+        "font": "Czcionka"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Nieobsługiwany format.",
+      "startPrefix": "Błąd: {error}",
+      "metadataFailed": "Nie udało się odczytać pliku.",
+      "fileNotFound": "Nie znaleziono pliku.",
+      "noPath": "Nie wybrano pliku."
+    },
+    "drop": {
+      "text": "Upuść plik do konwersji"
     }
   },
   "compressor": {
@@ -115,7 +147,30 @@
       "placeholder": "Wybierz plik do kompresji..."
     },
     "actions": {
-      "browse": "Przeglądaj"
+      "browse": "Przeglądaj",
+      "compress": "KOMPRESUJ",
+      "addToQueue": "DODAJ DO KOLEJKI"
+    },
+    "mode": {
+      "percent": "PROCENT",
+      "size": "ROZMIAR",
+      "quality": "JAKOŚĆ"
+    },
+    "size": {
+      "placeholder": "Docelowy rozmiar"
+    },
+    "options": {
+      "compressBy": "KOMPRESUJ PRZEZ",
+      "title": "OPCJE",
+      "pathPlaceholder": "Ścieżka zapisu...",
+      "estimatedSize": "Szacowany rozmiar",
+      "videoCodec": "Kodek wideo",
+      "audioCodec": "Kodek audio"
+    },
+    "crf": {
+      "bestQuality": "0 - Najlepsza jakość",
+      "balance": "26 - Balans",
+      "bestCompression": "51 - Najlepsza kompresja"
     },
     "output": {
       "placeholder": "Nazwa pliku",
@@ -222,7 +277,9 @@
       "untitled": "Bez tytu\u0142u",
       "noSummary": "Brak opisu",
       "types": {
-        "downloader": "Pobieranie"
+        "downloader": "Pobieranie",
+        "converter": "Konwerter",
+        "compressor": "Kompresor"
       },
       "actions": {
         "add": "Nowy preset",
@@ -272,60 +329,154 @@
   },
   "formats": {
     "flv": {
-      "label": "FLV",
       "description": "Stary format Flash."
     },
     "mkv": {
-      "label": "MKV",
-      "description": "Uniwersalny kontener, kt\u00f3ry mie\u015bci wszystko."
+      "description": "Uniwersalny kontener, który mieści wszystko."
     },
     "mp4": {
-      "label": "MP4",
       "description": "Najpopularniejszy format wideo."
     },
     "mov": {
-      "label": "MOV",
-      "description": "Format Apple z obs\u0142ug\u0105 RGBA."
+      "description": "Format Apple z obsługą RGBA."
     },
     "avi": {
-      "label": "AVI",
-      "description": "Stary, ale wci\u0105\u017c popularny."
+      "description": "Stary, ale wciąż popularny."
     },
     "wav": {
-      "label": "WAV",
       "description": "Bezstratny format audio Windows."
     },
     "aiff": {
-      "label": "AIFF",
       "description": "Bezstratny format audio Apple."
     },
     "m4a": {
-      "label": "M4A",
-      "description": "Lepsza jako\u015b\u0107 i kompresja ni\u017c MP3."
+      "description": "Lepsza jakość i kompresja niż MP3."
     },
     "flac": {
-      "label": "FLAC",
       "description": "Bezstratna kompresja audio."
     },
     "mp3": {
-      "label": "MP3",
       "description": "Najpopularniejszy format audio."
     },
     "ogg": {
-      "label": "OGG",
       "description": "Otwarty kontener audio."
     },
     "opus": {
-      "label": "OPUS",
       "description": "Otwarty, wydajny, stratny format audio."
     },
     "gif": {
-      "label": "GIF",
-      "description": "Po prostu obraz, kt\u00f3ry mo\u017ce by\u0107 animowany."
+      "description": "Po prostu obraz, który może być animowany."
     },
     "webm": {
-      "label": "WEBM",
       "description": "Otwarty format wideo stworzony przez Google dla sieci."
+    },
+    "3gp": {
+      "description": "Przyjazny dla urządzeń mobilnych kontener wideo."
+    },
+    "m4v": {
+      "description": "Format wideo Apple MPEG-4."
+    },
+    "ogv": {
+      "description": "Kontener wideo Ogg."
+    },
+    "ts": {
+      "description": "Strumień transportowy MPEG."
+    },
+    "vob": {
+      "description": "Kontener wideo DVD."
+    },
+    "wmv": {
+      "description": "Windows Media Video."
+    },
+    "aac": {
+      "description": "Zaawansowane kodowanie audio."
+    },
+    "alac": {
+      "description": "Bezstratne audio Apple."
+    },
+    "midi": {
+      "description": "Dane muzyczne MIDI."
+    },
+    "weba": {
+      "description": "Kontener audio WebM."
+    },
+    "wma": {
+      "description": "Windows Media Audio."
+    },
+    "avif": {
+      "description": "Wysokowydajny format obrazu."
+    },
+    "bmp": {
+      "description": "Nieskompresowany obraz bitmapowy."
+    },
+    "heic": {
+      "description": "Wysokowydajny kontener obrazu."
+    },
+    "ico": {
+      "description": "Format obrazów ikon."
+    },
+    "jfif": {
+      "description": "Format wymiany plików JPEG."
+    },
+    "jpg": {
+      "description": "Format obrazu JPEG."
+    },
+    "png": {
+      "description": "Bezstratny format obrazu."
+    },
+    "svg": {
+      "description": "Skalowalna grafika wektorowa."
+    },
+    "tga": {
+      "description": "Format obrazu Targa."
+    },
+    "tiff": {
+      "description": "Wysokiej jakości format obrazu."
+    },
+    "webp": {
+      "description": "Nowoczesny format obrazu dla sieci."
+    },
+    "icns": {
+      "description": "Format ikon Apple."
+    },
+    "7z": {
+      "description": "Archiwum 7-Zip."
+    },
+    "bz2": {
+      "description": "Plik skompresowany Bzip2."
+    },
+    "gz": {
+      "description": "Plik skompresowany Gzip."
+    },
+    "tar": {
+      "description": "Archiwum taśmowe."
+    },
+    "xz": {
+      "description": "Plik skompresowany XZ."
+    },
+    "zip": {
+      "description": "Archiwum ZIP."
+    },
+    ".tar.gz": {
+      "description": "Archiwum tar skompresowane gzipem."
+    },
+    ".tar.xz": {
+      "description": "Archiwum tar skompresowane xz."
+    },
+    "tar.bz2": {
+      "description": "Archiwum tar skompresowane bzip2."
+    },
+    "otf": {
+      "description": "Czcionka OpenType."
+    },
+    "ttf": {
+      "description": "Czcionka TrueType."
+    },
+    "woff": {
+      "description": "Format czcionek WOFF."
+    },
+    "woff2": {
+      "description": "Skompresowany format czcionek WOFF."
     }
   },
   "presetCreator": {
@@ -337,6 +488,7 @@
       "basic": "Szczeg\u00f3\u0142y presetu",
       "type": "Typ presetu",
       "format": "Format",
+      "compression": "Kompresja",
       "misc": "R\u00f3\u017cne",
       "videoAudio": "Wideo i audio",
       "video": "Opcje wideo",
@@ -353,7 +505,8 @@
       "videoFps": "FPS",
       "audioSampleRate": "Cz\u0119stotliwo\u015b\u0107 pr\u00f3bkowania audio",
       "audioCodec": "Kodek audio",
-      "audioBitrate": "Bitrate audio"
+      "audioBitrate": "Bitrate audio",
+      "crf": "CRF"
     },
     "placeholders": {
       "title": "Tytu\u0142 presetu",
@@ -364,7 +517,9 @@
       "bitrate": "Auto"
     },
     "types": {
-      "downloader": "Pobieranie"
+      "downloader": "Pobieranie",
+      "converter": "Konwerter",
+      "compressor": "Kompresor"
     },
     "icon": {
       "title": "Upu\u015b\u0107 ikon\u0119 tutaj",

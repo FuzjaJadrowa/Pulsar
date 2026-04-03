@@ -159,6 +159,7 @@
       "placeholder": "Target size"
     },
     "options": {
+      "compressBy": "COMPRESS BY",
       "title": "OPTIONS",
       "pathPlaceholder": "Save path...",
       "estimatedSize": "Estimated size",
@@ -327,203 +328,153 @@
   },
   "formats": {
     "flv": {
-      "label": "FLV",
       "description": "Legacy Flash format."
     },
     "mkv": {
-      "label": "MKV",
       "description": "Universal container that fits everything."
     },
     "mp4": {
-      "label": "MP4",
       "description": "Most popular video format."
     },
     "mov": {
-      "label": "MOV",
       "description": "Apple format with RGBA support."
     },
     "avi": {
-      "label": "AVI",
       "description": "Legacy but still popular."
     },
     "wav": {
-      "label": "WAV",
       "description": "Lossless Windows audio format."
     },
     "aiff": {
-      "label": "AIFF",
       "description": "Lossless Apple audio format."
     },
     "m4a": {
-      "label": "M4A",
       "description": "Better quality and compression than MP3."
     },
     "flac": {
-      "label": "FLAC",
       "description": "Lossless audio compression."
     },
     "mp3": {
-      "label": "MP3",
       "description": "Most popular audio format."
     },
     "ogg": {
-      "label": "OGG",
       "description": "Open audio container."
     },
     "opus": {
-      "label": "OPUS",
       "description": "Open, efficient, lossy audio format."
     },
     "gif": {
-      "label": "GIF",
       "description": "Just image that can be animated."
     },
     "webm": {
-      "label": "WEBM",
       "description": "Open video format created by Google for the web."
     },
     "3gp": {
-      "label": "3GP",
       "description": "Mobile-friendly video container."
     },
     "m4v": {
-      "label": "M4V",
       "description": "Apple MPEG-4 video format."
     },
     "ogv": {
-      "label": "OGV",
       "description": "Ogg video container."
     },
     "ts": {
-      "label": "TS",
       "description": "MPEG transport stream."
     },
     "vob": {
-      "label": "VOB",
       "description": "DVD video container."
     },
     "wmv": {
-      "label": "WMV",
       "description": "Windows Media Video."
     },
     "aac": {
-      "label": "AAC",
       "description": "Advanced Audio Coding."
     },
     "alac": {
-      "label": "ALAC",
       "description": "Apple lossless audio."
     },
     "midi": {
-      "label": "MIDI",
       "description": "MIDI music data."
     },
     "weba": {
-      "label": "WEBA",
       "description": "WebM audio container."
     },
     "wma": {
-      "label": "WMA",
       "description": "Windows Media Audio."
     },
     "avif": {
-      "label": "AVIF",
       "description": "High-efficiency image format."
     },
     "bmp": {
-      "label": "BMP",
       "description": "Uncompressed bitmap image."
     },
     "heic": {
-      "label": "HEIC",
       "description": "High-efficiency image container."
     },
     "ico": {
-      "label": "ICO",
       "description": "Icon image format."
     },
     "jfif": {
-      "label": "JFIF",
       "description": "JPEG File Interchange Format."
     },
     "jpg": {
-      "label": "JPG",
       "description": "JPEG image format."
     },
     "png": {
-      "label": "PNG",
       "description": "Lossless image format."
     },
     "svg": {
-      "label": "SVG",
       "description": "Scalable vector graphics."
     },
     "tga": {
-      "label": "TGA",
       "description": "Targa image format."
     },
     "tiff": {
-      "label": "TIFF",
       "description": "High-quality image format."
     },
     "webp": {
-      "label": "WEBP",
       "description": "Modern web image format."
     },
     "icns": {
-      "label": "ICNS",
       "description": "Apple icon format."
     },
     "7z": {
-      "label": "7Z",
       "description": "7-Zip archive."
     },
     "bz2": {
-      "label": "BZ2",
       "description": "Bzip2 compressed file."
     },
     "gz": {
-      "label": "GZ",
       "description": "Gzip compressed file."
     },
     "tar": {
-      "label": "TAR",
       "description": "Tape archive."
     },
     "xz": {
-      "label": "XZ",
       "description": "XZ compressed file."
     },
     "zip": {
-      "label": "ZIP",
       "description": "Zip archive."
     },
     ".tar.gz": {
-      "label": "TAR.GZ",
       "description": "Tarball compressed with gzip."
     },
     ".tar.xz": {
-      "label": "TAR.XZ",
       "description": "Tarball compressed with xz."
     },
     "tar.bz2": {
-      "label": "TAR.BZ2",
       "description": "Tarball compressed with bzip2."
     },
     "otf": {
-      "label": "OTF",
       "description": "OpenType font."
     },
     "ttf": {
-      "label": "TTF",
       "description": "TrueType font."
     },
     "woff": {
-      "label": "WOFF",
       "description": "Web Open Font Format."
     },
     "woff2": {
-      "label": "WOFF2",
       "description": "Compressed web font."
     }
   }

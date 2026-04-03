@@ -551,17 +551,18 @@ body.audio-only-source .extras-section .form-row.video-only {
 .custom-args-input {
     flex: 1;
     min-width: 0;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #555;
+    border-radius: 0;
     padding: 8px 10px;
     color: #fff;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    text-align: left;
     outline: none;
-    transition: border-color 0.2s, background 0.2s;
+    transition: 0.2s;
 }
-.custom-args-input::placeholder { color: rgba(255,255,255,0.4); }
-.custom-args-input:focus { border-color: var(--active-color); background: rgba(0,0,0,0.55); }
+.custom-args-input:focus { border-color: var(--active-color); }
 .toggle-switch {
     position: relative; width: 50px; height: 26px;
     appearance: none; background: #333; border-radius: 20px;
@@ -795,11 +796,9 @@ body.theme-light .toggle-switch:checked {
 body.theme-light .toggle-switch:checked::after { background: #ffffff; }
 body.theme-light .toggle-text { color: rgba(29, 35, 48, 0.7); }
 body.theme-light .custom-args-input {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.12);
+    border-bottom-color: rgba(0, 0, 0, 0.2);
     color: #1d2330;
 }
-body.theme-light .custom-args-input::placeholder { color: rgba(29, 35, 48, 0.4); }
 
 body.theme-light .lang-input {
     border-bottom-color: rgba(0, 0, 0, 0.2);
@@ -824,5 +823,6 @@ body.theme-light .big-action-btn {
     color: #8b94a6;
     box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
 }
+body.theme-light .big-action-btn.ready { color: #fff; }
 body.theme-light .search-result-title { color: #f9fafb; }
 body.theme-light .search-result-meta { color: rgba(255, 255, 255, 0.78); }
