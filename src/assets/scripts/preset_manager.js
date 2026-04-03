@@ -277,6 +277,11 @@
         });
     }
 
+    window.addEventListener('pulsar-config-updated', (event) => {
+        if (!event?.detail || typeof event.detail.language === 'undefined') return;
+        renderPresets(state.presets);
+    });
+
     window.presetManager = {
         setPresets,
         refresh: refreshFromBackend

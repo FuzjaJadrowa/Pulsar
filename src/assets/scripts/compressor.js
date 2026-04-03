@@ -27,6 +27,18 @@
     const KEY_ICON_SVG = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>';
 
     const supportedCategories = new Set(['video', 'audio', 'image']);
+    const supportedImageCompressionFormats = new Set([
+        'bmp',
+        'gif',
+        'jfif',
+        'jpg',
+        'jpeg',
+        'png',
+        'tga',
+        'tif',
+        'tiff',
+        'webp'
+    ]);
 
     const searchSection = root.querySelector('#compress-search-section');
     const dashboard = root.querySelector('#compress-dashboard');
@@ -1480,6 +1492,18 @@
                 if (pathInput) pathInput.value = '';
                 resetView();
                 return;
+            }
+            if (category === 'image') {
+                const ext = normalizeOutputFormat(payload.data.extension || payload.data.format || '');
+                if (!supportedImageCompressionFormats.has(ext)) {
+                    showError(t(
+                        'compressor.errors.unsupportedFormat',
+                        'Unsupported format.'
+                    ));
+                    if (pathInput) pathInput.value = '';
+                    resetView();
+                    return;
+                }
             }
 
             lastMetadata = payload.data;

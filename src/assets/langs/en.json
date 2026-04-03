@@ -380,9 +380,6 @@
     "webm": {
       "description": "Open video format created by Google for the web."
     },
-    "3gp": {
-      "description": "Mobile-friendly video container."
-    },
     "m4v": {
       "description": "Apple MPEG-4 video format."
     },
@@ -400,15 +397,6 @@
     },
     "aac": {
       "description": "Advanced Audio Coding."
-    },
-    "alac": {
-      "description": "Apple lossless audio."
-    },
-    "midi": {
-      "description": "MIDI music data."
-    },
-    "weba": {
-      "description": "WebM audio container."
     },
     "wma": {
       "description": "Windows Media Audio."
