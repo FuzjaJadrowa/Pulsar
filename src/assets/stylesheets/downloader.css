@@ -368,6 +368,7 @@ body.page-downloader.mode-audio::after { opacity: 1; }
     margin-bottom: 2rem;
     animation-delay: 0.18s;
 }
+.preset-section.fade-in { animation-duration: 0.7s; }
 .preset-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

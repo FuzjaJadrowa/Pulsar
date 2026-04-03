@@ -145,6 +145,11 @@ body.page-compressor.compressor-active::after {
     animation-delay: 0.1s;
 }
 
+.compressor-page .preset-section {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
 .compressor-controls-panel,
 .compressor-options-panel {
     width: min(900px, 95vw);

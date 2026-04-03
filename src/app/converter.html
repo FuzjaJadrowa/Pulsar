@@ -18,10 +18,6 @@
     </div>
 
     <div id="convert-dashboard" class="converter-dashboard hidden">
-      <div id="convert-preset-section" class="preset-section fade-in hidden">
-        <span class="option-label" data-i18n="downloader.options.presets">PRESETS</span>
-        <div class="preset-grid" id="convert-preset-grid"></div>
-      </div>
       <div class="converter-info-card fade-in">
         <div class="converter-name-row">
           <span id="convert-output-name-text" class="converter-name-text" data-i18n="converter.output.placeholder">Output name</span>
@@ -51,6 +47,11 @@
             <span id="convert-file-duration" class="converter-meta-value">-</span>
           </div>
         </div>
+      </div>
+
+      <div id="convert-preset-section" class="preset-section fade-in hidden">
+        <span class="option-label" data-i18n="downloader.options.presets">PRESETS</span>
+        <div class="preset-grid" id="convert-preset-grid"></div>
       </div>
 
       <div class="converter-options-panel fade-in">
@@ -84,11 +85,11 @@
 
                 <div class="converter-specs-section" data-section="video">
                   <div class="converter-specs-row">
-                    <span class="converter-specs-label">Estimated size</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.estimatedSize">Estimated size</span>
                     <span id="convert-output-video-size" class="converter-specs-value">-</span>
                   </div>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Video quality</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.videoQuality">Video quality</span>
                     <div class="converter-specs-control">
                       <select id="convert-output-video-quality" class="custom-select">
                         <option value="" data-i18n="presetCreator.select.auto">Auto</option>
@@ -104,7 +105,7 @@
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Video codec</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.videoCodec">Video codec</span>
                     <div class="converter-specs-control">
                       <select id="convert-output-video-codec" class="custom-select">
                         <option value="" data-i18n="presetCreator.select.auto">Auto</option>
@@ -112,13 +113,13 @@
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Video bitrate</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.videoBitrate">Video bitrate</span>
                     <div class="converter-specs-control">
                       <input id="convert-output-video-bitrate" class="custom-input" type="text" data-i18n-placeholder="presetCreator.placeholders.bitrate" placeholder="Auto" autocomplete="off">
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">FPS</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.fps">FPS</span>
                     <div class="converter-specs-control">
                       <select id="convert-output-video-fps" class="custom-select">
                         <option value="" data-i18n="presetCreator.select.auto">Auto</option>
@@ -129,7 +130,7 @@
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Audio codec</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.audioCodec">Audio codec</span>
                     <div class="converter-specs-control">
                       <select id="convert-output-video-audio-codec" class="custom-select">
                         <option value="" data-i18n="presetCreator.select.auto">Auto</option>
@@ -137,7 +138,7 @@
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Audio bitrate</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.audioBitrate">Audio bitrate</span>
                     <div class="converter-specs-control">
                       <input id="convert-output-video-audio-bitrate" class="custom-input" type="text" placeholder="Auto" autocomplete="off">
                     </div>
@@ -146,11 +147,11 @@
 
                 <div class="converter-specs-section" data-section="audio">
                   <div class="converter-specs-row">
-                    <span class="converter-specs-label">Estimated size</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.estimatedSize">Estimated size</span>
                     <span id="convert-output-audio-size" class="converter-specs-value">-</span>
                   </div>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Audio codec</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.audioCodec">Audio codec</span>
                     <div class="converter-specs-control">
                       <select id="convert-output-audio-codec" class="custom-select">
                         <option value="" data-i18n="presetCreator.select.auto">Auto</option>
@@ -158,7 +159,7 @@
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Audio bitrate</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.audioBitrate">Audio bitrate</span>
                     <div class="converter-specs-control">
                       <input id="convert-output-audio-bitrate" class="custom-input" type="text" placeholder="Auto" autocomplete="off">
                     </div>
@@ -167,19 +168,19 @@
 
                 <div class="converter-specs-section" data-section="image">
                   <div class="converter-specs-row">
-                    <span class="converter-specs-label">Estimated size</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.estimatedSize">Estimated size</span>
                     <span id="convert-output-image-size" class="converter-specs-value">-</span>
                   </div>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Resolution</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.resolution">Resolution</span>
                     <div class="converter-specs-control converter-resolution-inputs">
-                      <input id="convert-output-image-width" class="custom-input" type="number" min="1" max="5000" placeholder="Width" autocomplete="off">
+                      <input id="convert-output-image-width" class="custom-input" type="number" min="1" max="5000" placeholder="Width" data-i18n-placeholder="converter.options.widthPlaceholder" autocomplete="off">
                       <span class="converter-resolution-sep">x</span>
-                      <input id="convert-output-image-height" class="custom-input" type="number" min="1" max="5000" placeholder="Height" autocomplete="off">
+                      <input id="convert-output-image-height" class="custom-input" type="number" min="1" max="5000" placeholder="Height" data-i18n-placeholder="converter.options.heightPlaceholder" autocomplete="off">
                     </div>
                   </label>
                   <label class="converter-specs-row">
-                    <span class="converter-specs-label">Quality</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.quality">Quality</span>
                     <div class="converter-specs-control converter-percent-input">
                       <input id="convert-output-image-quality-range" class="converter-quality-range" type="range" min="1" max="100" value="100" step="1" aria-label="Quality">
                       <input id="convert-output-image-quality" class="custom-input" type="number" min="1" max="100" value="100" placeholder="100" autocomplete="off">
@@ -190,7 +191,7 @@
 
                 <div class="converter-specs-section" data-section="other">
                   <div class="converter-specs-row">
-                    <span class="converter-specs-label">Estimated size</span>
+                    <span class="converter-specs-label" data-i18n="converter.options.estimatedSize">Estimated size</span>
                     <span id="convert-output-other-size" class="converter-specs-value">-</span>
                   </div>
                 </div>

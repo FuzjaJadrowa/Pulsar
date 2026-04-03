@@ -104,7 +104,7 @@
     position: relative;
     border-radius: 13px;
     overflow: hidden;
-    min-height: 148px;
+    min-height: 176px;
     padding: 14px 14px 12px 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     transition: opacity 0.26s ease, transform 0.26s ease, height 0.26s ease, margin 0.26s ease, padding 0.26s ease;
@@ -168,7 +168,7 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 8px;
-    min-height: 122px;
+    min-height: 150px;
     padding-right: 106px;
 }
 

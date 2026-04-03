@@ -1058,7 +1058,11 @@ window.setQueuePanelVisible = async function(visible) {
             const queueBtn = document.getElementById('btn-queue');
             const clickedInsidePanel = queuePanel && queuePanel.contains(event.target);
             const clickedToggleBtn = queueBtn && queueBtn.contains(event.target);
-            if (!clickedInsidePanel && !clickedToggleBtn) {
+            const consoleOverlay = document.querySelector('.queue-console-overlay');
+            const clickedConsole = consoleOverlay
+                && consoleOverlay.classList.contains('open')
+                && consoleOverlay.contains(event.target);
+            if (!clickedInsidePanel && !clickedToggleBtn && !clickedConsole) {
                 window.setQueuePanelVisible(false);
             }
         });

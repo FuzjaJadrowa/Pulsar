@@ -827,7 +827,6 @@
                 state.presetId = id;
                 if (window.presetManager?.refresh) window.presetManager.refresh();
                 emitPresetsUpdated();
-                showNotification(t('presetCreator.notifications.saved', 'Preset saved.'), 'success');
                 if (closeOnSuccess) closeModal();
                 return id;
             } catch (error) {

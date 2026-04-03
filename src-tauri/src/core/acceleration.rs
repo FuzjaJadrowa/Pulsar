@@ -51,7 +51,14 @@ fn parse_hwaccels(output: &str) -> Vec<String> {
 fn detect_gpu_vendor() -> Option<String> {
     #[cfg(target_os = "windows")]
     {
-        let output = Command::new("wmic")
+        let mut cmd = Command::new("wmic");
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+        let output = cmd
             .args(["path", "win32_videocontroller", "get", "name"])
             .output()
             .ok()?;
@@ -135,7 +142,14 @@ fn detect_hwaccels(ffmpeg_path: &Path) -> Result<Vec<String>, String> {
     if !ffmpeg_path.exists() {
         return Err(format!("FFmpeg not found at {:?}", ffmpeg_path));
     }
-    let output = Command::new(ffmpeg_path)
+    let mut cmd = Command::new(ffmpeg_path);
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    let output = cmd
         .args(["-hide_banner", "-hwaccels"])
         .output()
         .map_err(|e| e.to_string())?;

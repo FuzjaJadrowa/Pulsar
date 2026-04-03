@@ -550,7 +550,14 @@ fn extract_archive(archive_path: &Path, dest_dir: &Path, component: &str) -> Res
         let mut archive = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
         archive.extract(dest_dir).map_err(|e| e.to_string())?;
     } else {
-        let tar = std::process::Command::new("tar")
+        let mut cmd = std::process::Command::new("tar");
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+        let tar = cmd
             .arg("-xf")
             .arg(archive_path)
             .arg("-C")

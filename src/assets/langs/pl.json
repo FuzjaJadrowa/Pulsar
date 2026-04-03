@@ -29,9 +29,9 @@
       "extracting": "Rozpakowywanie..."
     },
     "nav": {
-      "download": "Pobieranie",
-      "convert": "Konwersja",
-      "compress": "Kompresja",
+      "download": "Pobieraj",
+      "convert": "Konwertuj",
+      "compress": "Kompresuj",
       "settings": "Ustawienia",
       "queue": "Kolejka"
     }
@@ -109,7 +109,18 @@
       "compressBy": "KOMPRESUJ PRZEZ",
       "convertTo": "KONWERTUJ DO",
       "title": "OPCJE",
-      "pathPlaceholder": "Ścieżka zapisu..."
+      "pathPlaceholder": "Ścieżka zapisu...",
+      "estimatedSize": "Szacowany rozmiar",
+      "videoQuality": "Jakość wideo",
+      "videoCodec": "Kodek wideo",
+      "videoBitrate": "Bitrate wideo",
+      "fps": "FPS",
+      "audioCodec": "Kodek audio",
+      "audioBitrate": "Bitrate audio",
+      "resolution": "Rozdzielczość",
+      "widthPlaceholder": "Szerokość",
+      "heightPlaceholder": "Wysokość",
+      "quality": "Jakość"
     },
     "mode": {
       "video": "WIDEO",

@@ -108,7 +108,18 @@
     "options": {
       "compressBy": "COMPRESS BY",
       "title": "OPTIONS",
-      "pathPlaceholder": "Save path..."
+      "pathPlaceholder": "Save path...",
+      "estimatedSize": "Estimated size",
+      "videoQuality": "Video quality",
+      "videoCodec": "Video codec",
+      "videoBitrate": "Video bitrate",
+      "fps": "FPS",
+      "audioCodec": "Audio codec",
+      "audioBitrate": "Audio bitrate",
+      "resolution": "Resolution",
+      "widthPlaceholder": "Width",
+      "heightPlaceholder": "Height",
+      "quality": "Quality"
     },
     "mode": {
       "video": "VIDEO",

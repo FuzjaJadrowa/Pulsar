@@ -889,12 +889,36 @@
         updateQueueBtn();
     }
 
+    const extractFolderPath = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        const normalized = raw.replace(/[/\\]+$/, '');
+        const idx = Math.max(normalized.lastIndexOf('/'), normalized.lastIndexOf('\\'));
+        if (idx === -1) return '';
+        return normalized.slice(0, idx);
+    };
+
+    const looksLikeFilePath = (value) => /[\\/][^\\/]+\\.[^\\/]+$/.test(String(value || ''));
+
     async function openLocation(id) {
         const item = state.items.find((x) => x.id === id);
-        if (!item || !item.path) return;
+        if (!item) return;
+        const payload = item.payload && typeof item.payload === 'object' ? item.payload : {};
+        let targetPath = item.path ? String(item.path) : '';
+        if (item.status === 'failed') {
+            if (payload.output_dir) {
+                targetPath = String(payload.output_dir);
+            } else if (payload.path) {
+                targetPath = String(payload.path);
+            } else if (looksLikeFilePath(targetPath)) {
+                const dir = extractFolderPath(targetPath);
+                if (dir) targetPath = dir;
+            }
+        }
+        if (!targetPath) return;
         if (invoke) {
             try {
-                await invoke('open_in_file_manager', { path: String(item.path) });
+                await invoke('open_in_file_manager', { path: String(targetPath) });
                 return;
             } catch (e) {
                 console.error('Open location via backend failed, falling back to opener:', e);
@@ -902,7 +926,7 @@
         }
         if (tauri.opener?.openPath) {
             try {
-                await tauri.opener.openPath(item.path);
+                await tauri.opener.openPath(targetPath);
                 return;
             } catch (e) {
                 console.error('Open path failed, falling back to reveal:', e);
@@ -910,7 +934,7 @@
         }
         if (tauri.opener?.revealItemInDir) {
             try {
-                await tauri.opener.revealItemInDir(item.path);
+                await tauri.opener.revealItemInDir(targetPath);
             } catch (e) {
                 console.error('Reveal item failed:', e);
             }

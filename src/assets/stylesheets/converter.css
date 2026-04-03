@@ -937,3 +937,8 @@ body.theme-light .convert-drop-content,
 body.theme-light .convert-drop-icon {
     color: #1d2330;
 }
+
+.converter-page .preset-section {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
