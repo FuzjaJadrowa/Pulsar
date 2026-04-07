@@ -35,10 +35,6 @@ pub fn run() {
         .setup(|app| {
             let queue_state = app.state::<QueueManager>().load();
             build_tray_icon(app.handle(), &queue_state)?;
-            let bridge_state = app.state::<BridgeState>();
-            if let Err(error) = bridge_state.init(&app.handle()) {
-                eprintln!("Failed to prewarm bridge: {}", error);
-            }
             Ok(())
         })
         .on_window_event(|window, event| {

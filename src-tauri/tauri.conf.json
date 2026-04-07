@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Pulsar",
-  "version": "3.0.0-dev-2",
-  "identifier": "com.fuzjajadrowa.pulsar",
+  "version": "3.0.0",
+  "identifier": "pl.fuzjajadrowa.pulsar",
   "build": {
     "frontendDist": "../src"
   },
@@ -42,7 +42,6 @@
     "windows": {
       "nsis": {
         "installerIcon": "../src/assets/icons/installer_icon.ico",
-        "installerHooks": "./installer-hooks.nsh",
         "installMode": "perMachine"
       }
     }

@@ -15,7 +15,7 @@ const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
 let currentThemeSetting = 'System';
 let themeTransitionTimer = null;
 let currentLocale = null;
-let bridgePrewarmed = false;
+let bridgeWarmPending = false;
 
 const resolveLocale = (value) => {
     const raw = String(value || '').trim().toLowerCase();
@@ -75,6 +75,7 @@ async function applyLocale(locale) {
         if (typeof window.initCustomSelects === 'function') {
             window.initCustomSelects();
         }
+        window.dispatchEvent(new CustomEvent('pulsar-locale-updated', { detail: { language: normalized } }));
     } catch (error) {
         console.error('Failed to initialize i18n:', error);
         if (normalized !== 'en') {
@@ -88,6 +89,7 @@ async function applyLocale(locale) {
                 if (typeof window.initCustomSelects === 'function') {
                     window.initCustomSelects();
                 }
+                window.dispatchEvent(new CustomEvent('pulsar-locale-updated', { detail: { language: 'en' } }));
             } catch (fallbackError) {
                 console.error('Failed to initialize fallback i18n:', fallbackError);
             }
@@ -211,10 +213,11 @@ const dataSea = (() => {
     const isActive = () => {
         const body = document.body;
         if (!body) return false;
+        const isHome = body.classList.contains('page-home');
         const isDownloader = body.classList.contains('page-downloader');
         const isConverter = body.classList.contains('page-converter');
         const isCompressor = body.classList.contains('page-compressor');
-        if (!isDownloader && !isConverter && !isCompressor) return false;
+        if (!isHome && !isDownloader && !isConverter && !isCompressor) return false;
         if (!body.classList.contains('zen-mode')) return false;
         if (!body.classList.contains('idle-anim-enabled')) return false;
         if (body.classList.contains('search-mode')) return false;
@@ -403,12 +406,16 @@ const skipBtn = document.getElementById('splash-skip-btn');
 const splashExitDuration = 520;
 
 function scheduleBridgePrewarm() {
-    if (bridgePrewarmed || !invoke) return;
-    bridgePrewarmed = true;
+    if (!invoke || bridgeWarmPending) return;
+    bridgeWarmPending = true;
     setTimeout(() => {
-        invoke('init_bridge').catch((error) => {
-            console.error('Bridge prewarm failed:', error);
-        });
+        invoke('init_bridge')
+            .catch((error) => {
+                console.error('Bridge prewarm failed:', error);
+            })
+            .finally(() => {
+                bridgeWarmPending = false;
+            });
     }, splashExitDuration);
 }
 
@@ -486,7 +493,7 @@ function finishSplash() {
         appContent.style.opacity = '1';
     }
 
-    loadPage('downloader', 0);
+    loadPage('home', 0);
     scheduleBridgePrewarm();
 }
 
@@ -592,13 +599,17 @@ async function setupSplashListeners() {
             }
         });
 
-        await listen('splash-finished', () => {
+        await listen('splash-finished', (event) => {
+            const payload = event?.payload || {};
+            const shouldPrewarm = !!payload.prewarm_bridge;
             if (isAppLoaded) {
                 hideSplashOverlay();
             } else {
                 finishSplash();
             }
-            scheduleBridgePrewarm();
+            if (isAppLoaded && shouldPrewarm) {
+                scheduleBridgePrewarm();
+            }
         });
     } catch (error) {
         console.error("Splash events error:", error);
@@ -817,7 +828,7 @@ window.closeAllSelects = function() {
 async function loadPage(pageName, pageIndex) {
     if (currentPageName === pageName) return;
 
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.nav-btn, .logo-btn').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${pageName}`);
     if (navBtn) navBtn.classList.add('active');
 
@@ -886,7 +897,7 @@ async function loadPage(pageName, pageIndex) {
     }
 
     const body = document.body;
-    const isWavePage = (name) => name === 'downloader' || name === 'converter' || name === 'compressor';
+    const isWavePage = (name) => name === 'home' || name === 'downloader' || name === 'converter' || name === 'compressor';
     const isWaveVisible = () => {
         if (!body) return false;
         if (!body.classList.contains('wave-page')) return false;
@@ -905,12 +916,16 @@ async function loadPage(pageName, pageIndex) {
     }
     const applyPageClass = (name) => {
         if (!body) return;
+        body.classList.toggle('page-home', name === 'home');
         body.classList.toggle('page-downloader', name === 'downloader');
         body.classList.toggle('page-settings', name === 'settings');
         body.classList.toggle('page-converter', name === 'converter');
         body.classList.toggle('page-compressor', name === 'compressor');
         body.classList.toggle('wave-page', isWavePage(name));
-        if (name === 'converter') {
+        if (name === 'home') {
+            body.classList.add('zen-mode');
+            body.classList.remove('search-mode');
+        } else if (name === 'converter') {
             const keepZen = !body.classList.contains('converter-active');
             body.classList.toggle('zen-mode', keepZen);
             body.classList.remove('search-mode');

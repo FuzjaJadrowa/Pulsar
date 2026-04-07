@@ -198,7 +198,6 @@
     },
     "image_formats": {
       "jpg": { "bpp": 0.5, "quality_weight": 1.0 },
-      "jpeg": { "bpp": 0.5, "quality_weight": 1.0 },
       "jfif": { "bpp": 0.5, "quality_weight": 1.0 },
       "png": { "bpp": 1.6, "quality_weight": 0.25 },
       "webp": { "bpp": 0.45, "quality_weight": 0.9 },
@@ -209,10 +208,8 @@
       "tiff": { "bpp": 2.5, "quality_weight": 0.2 },
       "svg": { "bpp": 0.1, "quality_weight": 0.1 },
       "ico": { "bpp": 1.2, "quality_weight": 0.3 },
-      "psd": { "bpp": 4.0, "quality_weight": 0.05 },
       "tga": { "bpp": 3.0, "quality_weight": 0.1 },
-      "icns": { "bpp": 1.2, "quality_weight": 0.3 },
-      "ai": { "bpp": 0.3, "quality_weight": 0.1 }
+      "icns": { "bpp": 1.2, "quality_weight": 0.3 }
     },
     "container_overhead": {
       "avi": 1.05,
@@ -237,11 +234,23 @@
       "wma": 1.02,
       "gif": 1.03,
       "jpg": 1.0,
-      "jpeg": 1.0,
       "png": 1.0,
       "webp": 1.0,
       "avif": 1.0,
-      "heic": 1.0
+      "heic": 1.0,
+      "7z": 1.0,
+      "bz2": 1.0,
+      "gz": 1.0,
+      "tar": 1.0,
+      "xz": 1.0,
+      "zip": 1.0,
+      "tar.gz": 1.0,
+      "tar.xz": 1.0,
+      "tar.bz2": 1.0,
+      "otf": 1.0,
+      "ttf": 1.0,
+      "woff": 1.0,
+      "woff2": 1.0
     }
   }
 }

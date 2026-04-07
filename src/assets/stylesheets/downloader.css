@@ -44,6 +44,52 @@ body.page-downloader.mode-audio::after { opacity: 1; }
 .search-section.centered { height: var(--search-section-centered-height); }
 .search-section.sticky { height: var(--search-section-sticky-height); justify-content: flex-end; padding-bottom: 10px; }
 .search-section.sticky.has-provider-panel { height: calc(var(--search-section-sticky-height) + 60px); }
+#converter-bar + .drop-hint,
+#compressor-bar + .drop-hint {
+    margin-top: 12px;
+}
+
+.drop-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 0.9;
+    max-height: 40px;
+    transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.25s ease, margin 0.25s ease;
+}
+
+.drop-hint-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drop-hint-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    opacity: 0.7;
+}
+
+.search-section.sticky .drop-hint {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+}
+
+body.theme-light .drop-hint {
+    color: rgba(29, 35, 48, 0.55);
+}
+
+body.theme-light .drop-hint-icon svg {
+    opacity: 0.6;
+}
 #fetch-btn.loading svg {
     animation: fetchSpin 0.7s linear infinite;
 }

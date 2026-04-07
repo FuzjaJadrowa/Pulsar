@@ -387,8 +387,9 @@
     const estimateFromCrf = (sizeBytes, crf) => {
         const numeric = Number.isFinite(crf) ? crf : null;
         if (!Number.isFinite(sizeBytes) || !Number.isFinite(numeric)) return null;
-        const ratio = 1 - (numeric / 51) * 0.75;
-        const safeRatio = Math.max(0.18, Math.min(1, ratio));
+        const normalized = Math.max(0, Math.min(51, numeric)) / 51;
+        const ratio = Math.exp(-2.6 * normalized);
+        const safeRatio = Math.max(0.05, Math.min(1, ratio));
         return Math.round(sizeBytes * safeRatio);
     };
 

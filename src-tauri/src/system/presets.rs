@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager};
+use directories::BaseDirs;
 use tauri_plugin_dialog::DialogExt;
 use base64::engine::general_purpose::STANDARD as BASE64_ENGINE;
 use base64::Engine;
@@ -104,10 +105,14 @@ pub struct PresetPayload {
 }
 
 fn presets_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
-    let base = app_handle
-        .path()
-        .app_local_data_dir()
-        .map_err(|e| e.to_string())?;
+    let base = if let Some(base_dirs) = BaseDirs::new() {
+        base_dirs.data_local_dir().join("Pulsar")
+    } else {
+        app_handle
+            .path()
+            .app_local_data_dir()
+            .map_err(|e| e.to_string())?
+    };
     let dir = base.join(PRESET_FOLDER);
     if let Err(err) = fs::create_dir_all(&dir) {
         return Err(format!("Failed to create presets folder: {}", err));

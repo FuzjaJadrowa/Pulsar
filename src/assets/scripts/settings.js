@@ -1,5 +1,17 @@
 {
     const invoke = window.__TAURI__.core.invoke;
+    const t = (key, fallback = '', params = null) => {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key, fallback, params);
+        }
+        if (params && typeof fallback === 'string') {
+            return fallback.replace(/\{(\w+)\}/g, (_, token) => {
+                if (Object.prototype.hasOwnProperty.call(params, token)) return String(params[token]);
+                return `{${token}}`;
+            });
+        }
+        return fallback || key;
+    };
 
     const idMap = {
         'theme': 'theme',
@@ -603,24 +615,41 @@
         });
     }
 
+    let latestRequirementVersions = null;
+
     function updateVersionNote(noteId, version) {
         const el = document.getElementById(noteId);
         if (!el) return;
         const raw = String(version || '').trim();
         const label = raw ? raw : 'unknown';
-        el.textContent = `Current version: ${label}`;
+        el.textContent = t('settings.currentVersion', 'Current version: {version}', { version: label });
     }
 
     async function loadRequirementVersions() {
         try {
             const versions = await invoke('get_requirements_versions');
-            updateVersionNote(versionNoteIds['pulsar'], versions?.['pulsar']);
-            updateVersionNote(versionNoteIds['pulsar-bridge'], versions?.['pulsar-bridge']);
-            updateVersionNote(versionNoteIds['ffmpeg'], versions?.['ffmpeg']);
+            latestRequirementVersions = versions || {};
+            updateVersionNote(versionNoteIds['pulsar'], latestRequirementVersions?.['pulsar']);
+            updateVersionNote(versionNoteIds['pulsar-bridge'], latestRequirementVersions?.['pulsar-bridge']);
+            updateVersionNote(versionNoteIds['ffmpeg'], latestRequirementVersions?.['ffmpeg']);
         } catch (e) {
             console.error('Failed to load requirement versions:', e);
         }
     }
+
+    window.addEventListener('pulsar-config-updated', (event) => {
+        if (!event?.detail || typeof event.detail.language === 'undefined') return;
+        updateVersionNote(versionNoteIds['pulsar'], latestRequirementVersions?.['pulsar']);
+        updateVersionNote(versionNoteIds['pulsar-bridge'], latestRequirementVersions?.['pulsar-bridge']);
+        updateVersionNote(versionNoteIds['ffmpeg'], latestRequirementVersions?.['ffmpeg']);
+    });
+
+    window.addEventListener('pulsar-locale-updated', (event) => {
+        if (!event?.detail || typeof event.detail.language === 'undefined') return;
+        updateVersionNote(versionNoteIds['pulsar'], latestRequirementVersions?.['pulsar']);
+        updateVersionNote(versionNoteIds['pulsar-bridge'], latestRequirementVersions?.['pulsar-bridge']);
+        updateVersionNote(versionNoteIds['ffmpeg'], latestRequirementVersions?.['ffmpeg']);
+    });
 
     function setupListeners() {
         const inputs = document.querySelectorAll('select, input');

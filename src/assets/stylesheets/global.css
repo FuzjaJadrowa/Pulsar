@@ -341,13 +341,37 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     z-index: 100;
 }
 
-.nav-btn, .window-controls, .control-btn {
+.nav-btn, .logo-btn, .window-controls, .control-btn {
     app-region: no-drag;
+}
+
+.logo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-right: 15px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.logo-btn:hover {
+    filter:
+        drop-shadow(0 0 3px rgba(90, 220, 255, 0.25))
+        drop-shadow(0 0 6px rgba(120, 120, 255, 0.18));
+    transform: translateY(-1px);
+}
+
+.logo-btn:active {
+    transform: translateY(0);
 }
 
 .logo {
     height: 50px;
-    margin-right: 15px;
+    display: block;
 }
 
 .nav-btn {

@@ -29,11 +29,20 @@
       "extracting": "Extracting..."
     },
     "nav": {
-      "download": "Download",
-      "convert": "Convert",
-      "compress": "Compress",
+      "download": "Downloader",
+      "convert": "Converter",
+      "compress": "Compressor",
       "settings": "Settings",
       "queue": "Queue"
+    }
+  },
+  "home": {
+    "title": "What do you want to do today?",
+    "actions": {
+      "downloader": "Downloader",
+      "converter": "Converter",
+      "compressor": "Compressor",
+      "settings": "Settings"
     }
   },
   "downloader": {
@@ -100,6 +109,7 @@
     "path": {
       "placeholder": "Select a file to convert..."
     },
+    "dropHint": "or just drop a file",
     "actions": {
       "browse": "Browse",
       "convert": "CONVERT",
@@ -156,6 +166,7 @@
     "path": {
       "placeholder": "Select file to compress..."
     },
+    "dropHint": "or just drop a file",
     "actions": {
       "browse": "Browse",
       "compress": "COMPRESS",
@@ -269,6 +280,7 @@
     "advancedModeNote": "Shows advanced options and console access.",
     "idleAnimation": "Idle animation",
     "requirements": "Requirements",
+    "currentVersion": "Current version: {version}",
     "autoUpdateApp": "Auto-update Pulsar",
     "autoUpdateBridge": "Auto-update Bridge",
     "autoUpdateFfmpeg": "Auto-update FFmpeg",
