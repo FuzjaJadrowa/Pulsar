@@ -1,10 +1,10 @@
 {
   "version": "3.0.0",
   "notes": "Latest stable build.",
-  "pub_date": "2026-04-09T23:06:13.108Z",
+  "pub_date": "2026-04-09T23:07:07.274Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDBWckxyTXdtWERVOGFSZFRSaWgyZEJmUEpIOGZ2Nm8zTEovZnR3bkNFK3RtcWdHUHFOQUI4NTZVZEtVTWl5ZG1QcmZyZ09lSldxNkx3bUdoSmRrNWdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1Nzc1OTQ1CWZpbGU6UHVsc2FyXzMuMC4wX3g2NC1zZXR1cC5leGUKRTUzNXBHVnJHV1hLeEVMUmpKamowZlh4R1Vrc3dGMGhuSmRlNW9tNHIxa0FMeGNvZG5MZWtxbk1LV2oxSEVmRE10TTVodmp5S0ZEQ1FabENQbitXQWc9PQo=",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDIveUNaT0RsOE1DL1JucHg2Z3VibndxTkt5NEk3VURNaVNkOUFaQXlPYy9sUG9jdmM5THZOWURWYjZWZU80UDA2bkpEZjZYMVdRMDhxWHFFa21abVFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1Nzc1OTk0CWZpbGU6UHVsc2FyXzMuMC4wX3g2NC1zZXR1cC5leGUKQmRkdUFuNVVtNnJaYnVRNmFSeVVNNHZkcnR3TUlPNXNQMGg4T1RJaklseUROYXE3emRXQXRYeHZzNlNwZ28zcFRJbzRBN1d4UkZTM2JROHhwa1FHQkE9PQo=",
       "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v3.0.0/Pulsar-3.0.0-win64.exe"
     },
     "darwin-aarch64": {
