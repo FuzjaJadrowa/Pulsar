@@ -16,6 +16,7 @@ let currentThemeSetting = 'System';
 let themeTransitionTimer = null;
 let currentLocale = null;
 let bridgeWarmPending = false;
+let isPageNavigationInProgress = false;
 
 const resolveLocale = (value) => {
     const raw = String(value || '').trim().toLowerCase();
@@ -387,6 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('minimize-btn')?.addEventListener('click', () => appWindow.minimize());
     document.getElementById('maximize-btn')?.addEventListener('click', () => appWindow.toggleMaximize());
     document.getElementById('close-btn')?.addEventListener('click', () => appWindow.close());
+    bindNavigationHandlers();
 
     await setupSplashListeners();
     await setupBridgeListeners();
@@ -830,6 +832,10 @@ window.closeAllSelects = function() {
 
 async function loadPage(pageName, pageIndex) {
     if (currentPageName === pageName) return;
+    if (isPageNavigationInProgress) return;
+    isPageNavigationInProgress = true;
+
+    try {
 
     document.querySelectorAll('.nav-btn, .logo-btn').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${pageName}`);
@@ -1032,6 +1038,38 @@ async function loadPage(pageName, pageIndex) {
 
     currentPageIndex = pageIndex;
     currentPageName = pageName;
+    } finally {
+        isPageNavigationInProgress = false;
+    }
+}
+
+window.loadPage = loadPage;
+
+function bindNavigationHandlers() {
+    const navBindings = [
+        { id: 'nav-home', page: 'home', index: 0 },
+        { id: 'nav-downloader', page: 'downloader', index: 1 },
+        { id: 'nav-converter', page: 'converter', index: 2 },
+        { id: 'nav-compressor', page: 'compressor', index: 3 },
+        { id: 'nav-settings', page: 'settings', index: 4 }
+    ];
+
+    navBindings.forEach(({ id, page, index }) => {
+        const btn = document.getElementById(id);
+        if (!btn || btn.dataset.navBound === 'true') return;
+        btn.dataset.navBound = 'true';
+        btn.addEventListener('click', () => {
+            loadPage(page, index);
+        });
+    });
+
+    const queueBtn = document.getElementById('btn-queue');
+    if (queueBtn && queueBtn.dataset.navBound !== 'true') {
+        queueBtn.dataset.navBound = 'true';
+        queueBtn.addEventListener('click', () => {
+            window.toggleQueue();
+        });
+    }
 }
 
 window.toggleQueue = async function() {
