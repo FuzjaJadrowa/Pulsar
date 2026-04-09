@@ -56,6 +56,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             system::get_config,
+            system::get_distribution_channel,
             system::save_config,
             system::get_queue_state,
             system::save_queue_state,

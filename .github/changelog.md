@@ -1,19 +1,32 @@
-# <p align="center">2.3.1</p>
+# <p align="center">3.0.0</p>
 ## Added
-* Icons of platforms from which media are downloaded have been added to the queue panel.
-* Added killing of ffmpeg process on application exit.
-* Added support for FFmpeg on macOS.
-* Added the ability to manually check the requirements and show its version in the settings.
+- Full GUI and backend for the Converter module.
+  - Wide range of formats across various categories.
+  - Options for codec change, quality settings, and bitrate adjustment.
+  - Estimated output file size display.
+- Full GUI and backend for the Compressor module.
+  - Support for video, audio, and image compression.
+  - Compression options via percentage, quality, and target weight.
+- Home page and clickable logo functionality for navigation.
+- Hardware acceleration options for FFmpeg.
+- Command display in the console output.
+- Content Security Policy (CSP) protection.
+- Manrope as the new primary font for the application.
 ## Changed
-* Changed placeholder in bitrate field in preset creator to `Auto`.
-* Separated the queue code from the console output code.
-* TS and WMA format is no longer supported.
-* Changed FFmpeg build repository from BtbN to my build repository.
-* Simplified svg for tag in settings.
+- Application ID from `com.fuzjajadrowa.pulsar` to `pl.fuzjajadrowa.pulsar`.
+- License to GPL v3.
+- Improved idle wave transition animation.
+- Optimized several SVG icons.
+- Replaced PNG logo in the navbar with an SVG version.
+- Improved colors for certain elements in light mode.
+- Unified and improved several CSS animations.
+- Default font for all elements changed to Manrope.
+- Removed support for AppImage and tar.gz on Linux.
+- Removed support for internal app updates in the `.deb` package.
+- Removed unnecessary NSIS installer hooks.
 ## Fixed
-* Fixed an issue with the expanded part of the dropdown menu not being attached in the preset creator.
-* Fixed section change not jumping smoothly when deleting presets.
-* Fixed a memory leak related to idle wave animations where invisible objects were added.
-* Improved idle wave fade animations.
-* Improved the preset view on the download page.
-* Fixed the appearance of some objects in light mode.
+- Bug where the "Current version" text in settings did not change language.
+- Reinstallation of requirements after updating Pulsar.
+- Issues with on-demand updates for Pulsar Bridge.
+- Frontend file paths for JS and CSS to prevent errors.
+- Many other minor bugs and stability issues.

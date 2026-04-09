@@ -51,6 +51,7 @@
     const DEFAULT_TITLE_TEMPLATE = '%(title)s [%(id)s]';
     let titleConstructorReady = false;
     let titleSaveTimer = null;
+    let updateAppLockedForDeb = false;
 
     const scheduleTitleSave = () => {
         if (titleSaveTimer) window.clearTimeout(titleSaveTimer);
@@ -532,6 +533,9 @@
 
         const radio = document.querySelector('input[name="close_behavior"]:checked');
         config['close_behavior'] = radio ? radio.value : 'hide';
+        if (updateAppLockedForDeb) {
+            config.update_app = false;
+        }
 
         if (window.applyTheme && config.theme) {
             window.applyTheme(config.theme);
@@ -543,6 +547,36 @@
             window.queueManager.refreshConfig();
         }
         window.dispatchEvent(new CustomEvent('pulsar-config-updated', { detail: config }));
+    }
+
+    async function applyDistributionLocks() {
+        const updateAppInput = document.getElementById('update_app');
+        if (!updateAppInput) return false;
+        const pulsarUpdateCheckBtn = document.querySelector('.update-check-btn[data-update-check="pulsar"]');
+
+        let channel = 'default';
+        try {
+            channel = String(await invoke('get_distribution_channel')).trim().toLowerCase() || 'default';
+        } catch (_) {
+            channel = 'default';
+        }
+
+        updateAppLockedForDeb = channel === 'deb';
+        const switchLabel = updateAppInput.closest('label.switch');
+
+        if (!updateAppLockedForDeb) {
+            updateAppInput.disabled = false;
+            if (switchLabel) switchLabel.classList.remove('is-disabled');
+            if (pulsarUpdateCheckBtn) pulsarUpdateCheckBtn.disabled = false;
+            return false;
+        }
+
+        const wasChecked = !!updateAppInput.checked;
+        updateAppInput.checked = false;
+        updateAppInput.disabled = true;
+        if (switchLabel) switchLabel.classList.add('is-disabled');
+        if (pulsarUpdateCheckBtn) pulsarUpdateCheckBtn.disabled = true;
+        return wasChecked;
     }
 
     async function loadSettings() {
@@ -585,6 +619,7 @@
             }
 
             initTitleConstructor(config?.title_template);
+            const lockChanged = await applyDistributionLocks();
             setupListeners();
             setupUpdateCheckButtons();
             await loadRequirementVersions();
@@ -592,6 +627,9 @@
                 await invoke('refresh_acceleration_info');
             } catch (e) {
                 console.warn('Acceleration refresh failed:', e);
+            }
+            if (lockChanged) {
+                await saveSettings();
             }
 
         } catch (e) {

@@ -17,6 +17,11 @@ pub fn get_config(state: State<ConfigManager>) -> AppConfig {
 }
 
 #[tauri::command]
+pub fn get_distribution_channel() -> String {
+    option_env!("PULSAR_DIST").unwrap_or("default").to_string()
+}
+
+#[tauri::command]
 pub fn save_config(new_config: AppConfig, state: State<ConfigManager>) {
     let mut config = state.config.lock().unwrap();
     *config = new_config;
