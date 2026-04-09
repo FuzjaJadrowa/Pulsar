@@ -31,12 +31,10 @@
 * **Portable (.app.tar.gz)**: Unzip the file and run the `Pulsar.app` bundle.
     * *Note:* If you encounter a damage warning, type in command prompt: ```sudo xattr -cr [Path to Pulsar.app]``` and select **Open** to authorize the first launch.
 ### For Linux (x86_64)
-* **AppImage (.AppImage)**: Download, make it executable (`chmod +x Pulsar-X.X.X-Linux.AppImage`), and run it directly.
 * **Debian/Ubuntu (.deb)**: Install via your package manager:
   ```bash
   sudo apt install ./Pulsar-X.X.X-Linux.deb
   ```
-* **Portable (.tar.gz)**: Extract the archive and execute the pulsar binary. Ensure required system libraries are installed.
 ## Building from Source
 To build Pulsar yourself, ensure you have **Node.js (v20+)** and the **Rust stable** toolchain installed.
 1. Install OS Dependencies
@@ -67,4 +65,4 @@ If you just want to run the app in development mode, use:
   ```
 ## License
 Distributed under the terms specified in the LICENSE file.
-Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://github.com/BtbN/FFmpeg-Builds).
+Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://ffmpeg.org/).

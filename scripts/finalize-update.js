@@ -7,7 +7,6 @@ const updateJsonPath = path.join(rootDir, 'update.json');
 
 const sigFiles = {
     'windows-x86_64': 'Pulsar-win64.sig',
-    'linux-x86_64': 'Pulsar-Linux.sig',
     'darwin-aarch64': 'Pulsar-MacOS.sig'
 };
 
@@ -28,8 +27,7 @@ Object.keys(sigFiles).forEach(platform => {
             updateData.platforms[platform].signature = signature;
             const baseUrl = `https://github.com/FuzjaJadrowa/Pulsar/releases/download/v${version}`;
             const fileName = platform === 'windows-x86_64' ? `Pulsar-${version}-win64.exe` :
-                platform === 'linux-x86_64' ? `Pulsar-${version}-Linux.AppImage` :
-                    `Pulsar-${version}-MacOS.app.tar.gz`;
+                `Pulsar-${version}-MacOS.app.tar.gz`;
             updateData.platforms[platform].url = `${baseUrl}/${fileName}`;
         }
     }

@@ -64,18 +64,8 @@ jobs:
               runIds[wf] = run.id;
             }
             core.setOutput("all_found", "true");
-            core.setOutput("linux_run_id", runIds["build-linux.yml"]);
             core.setOutput("macos_run_id", runIds["build-macos.yml"]);
             core.setOutput("windows_run_id", runIds["build-windows.yml"]);
-
-      - name: Download Linux signature
-        if: steps.runs.outputs.all_found == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          path: sigs
-          name: sig-linux
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ steps.runs.outputs.linux_run_id }}
 
       - name: Download macOS signature
         if: steps.runs.outputs.all_found == 'true'

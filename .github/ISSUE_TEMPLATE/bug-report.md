@@ -17,7 +17,7 @@ assignees: ''
 ## Environment
 * **OS:** [e.g. Windows 11, macOS 14 (Apple Silicon), Ubuntu 22.04]
 * **Pulsar Version:** [e.g. v2.1.1]
-* **Installation type:** [e.g. Installer (.exe), Portable, AppImage]
+* **Installation type:** [e.g. Installer (.exe), Portable (.zip), Debian package (.deb)]
 
 ## Application Logs / Console Output
 ```text

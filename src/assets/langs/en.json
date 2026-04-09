@@ -29,9 +29,9 @@
       "extracting": "Extracting..."
     },
     "nav": {
-      "download": "Downloader",
-      "convert": "Converter",
-      "compress": "Compressor",
+      "download": "Download",
+      "convert": "Convert",
+      "compress": "Compress",
       "settings": "Settings",
       "queue": "Queue"
     }
@@ -39,9 +39,9 @@
   "home": {
     "title": "What do you want to do today?",
     "actions": {
-      "downloader": "Downloader",
-      "converter": "Converter",
-      "compressor": "Compressor",
+      "downloader": "Download",
+      "converter": "Convert",
+      "compressor": "Compress",
       "settings": "Settings"
     }
   },
