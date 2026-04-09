@@ -154,6 +154,14 @@ impl BridgeState {
         if let Some(stdin) = self.stdin.lock().unwrap().as_mut() {
             let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
             writeln!(stdin, "{}", json).map_err(|e| format!("Failed to write to bridge: {}", e))?;
+            if let Ok(mut payload) = serde_json::from_str::<Value>(&json) {
+                if payload.get("id").is_some() {
+                    payload["type"] = Value::from("bridge_command");
+                    payload["direction"] = Value::from("RUST -> BRIDGE");
+                    payload["raw"] = Value::from(json.clone());
+                    let _ = app_handle.emit("download-event", payload);
+                }
+            }
             println!("[RUST -> BRIDGE]: {}", json);
             Ok(())
         } else {

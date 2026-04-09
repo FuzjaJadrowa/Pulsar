@@ -43,6 +43,7 @@
 .home-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     padding: 14px 22px;
     border-radius: 999px;
@@ -63,6 +64,10 @@
     height: 20px;
     flex-shrink: 0;
     opacity: 0.82;
+}
+
+.home-pill span {
+    text-align: center;
 }
 
 .home-pill:hover {

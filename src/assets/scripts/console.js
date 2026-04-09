@@ -75,10 +75,20 @@
         const lines = logs.get(key) || [];
         const timestamp = new Date().toLocaleTimeString();
         let text = '';
-        try {
-            text = JSON.stringify(payload);
-        } catch (_) {
-            text = String(payload);
+        if (
+            payload
+            && typeof payload === 'object'
+            && payload.type === 'bridge_command'
+            && typeof payload.direction === 'string'
+        ) {
+            const raw = typeof payload.raw === 'string' ? payload.raw : '';
+            text = raw ? `[${payload.direction}]: ${raw}` : `[${payload.direction}]`;
+        } else {
+            try {
+                text = JSON.stringify(payload);
+            } catch (_) {
+                text = String(payload);
+            }
         }
         lines.push(`[${timestamp}] ${text}`);
         // Keep memory bounded for long-running sessions.
