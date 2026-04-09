@@ -1,15 +1,15 @@
 {
   "version": "3.0.0",
   "notes": "Latest stable build.",
-  "pub_date": "2026-03-08T11:26:30.394Z",
+  "pub_date": "2026-04-09T22:23:05.223Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURHh0UzNxMW9sY0RhbWZoVUh5MjlwQTdqQUFjMkJvU2NMUUYrRGdVdUU0czVqdkpXV01FMjFPK3JBOEI0UmlBQ2QwdFNTbGFTVUJHU0lXaHUrTjdJVUFnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcyOTY5MTU0CWZpbGU6UHVsc2FyXzIuMy4xX3g2NC1zZXR1cC5leGUKU21RdTBWTGZpd25QaFh5emR2cWJaeTFRTVl1bTMxc2ZZRGE5T1FHQnZnMXJiR2dHUnl3RDB2SHF1K0IvZXg1MDVsNnRsMVRYZmsxbGhJNDcrRmI5QXc9PQo=",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.1/Pulsar-2.3.1-win64.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDBmMVlRMnQ1TlJTbzRzWm1Lc3B1YUFxelBsUmlvbng4ZjdCVEp3bVdDb0s3ZnNRa2pEMFFyTHJoRWZuU3NGT3dURzRYdVd4SU9QRFlLQ2lRUjQ2Z3dvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NzczMzU5CWZpbGU6UHVsc2FyXzMuMC4wX3g2NC1zZXR1cC5leGUKakJVZ1lWS3piRDl6Z1YrOVJzSUNWMnNYekZJMTR4ZlZXcGpMNThjYzU5UnhnL3JTQTA5OWs3c3RlSE1wd3FubUJSYmQ0dWJqSTRta0toeEJvREUxQXc9PQo=",
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v3.0.0/Pulsar-3.0.0-win64.exe"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDR1Vi9NQmYxRmlieVVEUGEzMll1T0dVRnVFaTBDK0ZJbzE5Vk1GZjNBWERLSmVVdHdvUTZvTjhZOUJPYk9xYlhtV0hFT1pEWjJRVlRrSzhJMVdqMXdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcyOTY5MDQ3CWZpbGU6UHVsc2FyLmFwcC50YXIuZ3oKZDEzQTVnYi8ySkFUNjM1RVJzNVBYWFBxQWN0V095elNIdk9ERjBpTExYZ1NGZEF1WnJ1eEhJY0dNUDVMdmVJcGUvWmlBTW9TS0thSmtnRHloTDQwREE9PQo=",
-      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v2.3.1/Pulsar-2.3.1-MacOS.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDJHbHRNYTE3ZFRzR1JicXRiUHpaR0FBb1c3bGhPSU9wbG1tK0t5dkhlOVJJUUlRcVNQQVZMQWNCZnkyenhGUUowSFZHL3R1WXg4WEtiVW1XYkEwV2dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NzczMTI1CWZpbGU6UHVsc2FyLmFwcC50YXIuZ3oKWGhWOTZJQzh1UDA4UGQ3UllKaHdYODNNSnBkRTlXYjJDUUR2b0s4Mk52TmVDd2Fvd081Y09qR3dzRHg4NE10cHB6Y0dNRmtkcGlYZ3hOWVJDdlRpQXc9PQo=",
+      "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v3.0.0/Pulsar-3.0.0-MacOS.app.tar.gz"
     }
   }
 }
