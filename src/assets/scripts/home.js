@@ -6,6 +6,7 @@
     if (!buttons.length) return;
 
     const actionMap = {
+        // Index keeps sidebar navigation and page loader in sync.
         downloader: { page: 'downloader', index: 1 },
         converter: { page: 'converter', index: 2 },
         compressor: { page: 'compressor', index: 3 },

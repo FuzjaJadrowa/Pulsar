@@ -52,6 +52,7 @@
     function extractBasePrefix(value) {
         const raw = String(value || '').trim().toLowerCase();
         if (!raw) return 'ytsearch';
+        // Provider buttons may contain a numeric suffix from a previous config.
         return raw.replace(/\d+$/, '') || 'ytsearch';
     }
 
@@ -109,6 +110,7 @@
         const hasQuery = raw.length > 0 && !looksLikeUrl(raw);
         const resultsHidden = resultsSection ? resultsSection.classList.contains('hidden') : true;
         const dashboardHidden = dashboard ? dashboard.classList.contains('hidden') : true;
+        // Provider chooser is only useful for plain-text search queries.
         const shouldShow = hasQuery && resultsHidden && dashboardHidden && !isSearching;
         setProviderPanelVisible(shouldShow);
     }

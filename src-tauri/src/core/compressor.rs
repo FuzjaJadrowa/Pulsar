@@ -140,7 +140,8 @@ fn build_output_path(options: &CompressOptions, output_format: &str) -> Result<S
         output_path == input_str
     };
     if equal {
-        let suffix = "_compressed";
+        // Avoid rewriting the source file when output resolves to the same path.
+        let suffix = "-processed";
         let file_name = if output_format.is_empty() {
             format!("{}{}", name, suffix)
         } else {
@@ -385,6 +386,7 @@ fn build_ffmpeg_args(options: &CompressOptions, output_path: &str, hwaccel: Opti
         } else {
             let mut audio_kbps = clamp_f64(kbps * 0.1, 64.0, 192.0);
             let mut video_kbps = kbps - audio_kbps;
+            // Keep a safe floor for video bitrate in constrained-size mode.
             if video_kbps < 200.0 {
                 video_kbps = 200.0;
                 audio_kbps = (kbps - video_kbps).max(32.0);

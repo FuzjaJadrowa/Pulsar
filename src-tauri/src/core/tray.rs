@@ -101,6 +101,7 @@ fn load_tray_icon<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
         }
     }
 
+    // Final fallback for environments where resource resolution fails.
     Image::from_bytes(include_bytes!("../../../src/assets/icons/icon.png"))
         .ok()
         .map(|img| img.to_owned())

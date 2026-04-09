@@ -33,6 +33,7 @@ pub fn get_queue_state(state: State<QueueManager>) -> QueueState {
 #[tauri::command]
 pub fn save_queue_state(app_handle: AppHandle, state: State<QueueManager>, queue_state: QueueState) -> Result<(), String> {
     state.save(&queue_state)?;
+    // Keep tray counters in sync with persisted queue state.
     sync_tray_from_queue(&app_handle, &queue_state);
     Ok(())
 }

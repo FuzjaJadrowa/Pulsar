@@ -33,6 +33,7 @@ pub fn send_system_notification(
             toast = toast.icon(icon.as_path(), IconCrop::Circular, "Pulsar");
         }
 
+        // Fallback app ID improves delivery on systems without custom registration.
         if toast.show().is_err() {
             let mut fallback = Toast::new(Toast::POWERSHELL_APP_ID).title(&title).text1(&body);
             if let Some(ref icon) = icon_path {

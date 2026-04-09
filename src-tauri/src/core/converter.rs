@@ -76,6 +76,7 @@ static ESIZE_CACHE: OnceLock<ESizeData> = OnceLock::new();
 
 fn load_esize() -> &'static ESizeData {
     ESIZE_CACHE.get_or_init(|| {
+        // Bundle format heuristics at compile time and cache once per process.
         let raw = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../src/assets/format.json"));
         serde_json::from_str::<FormatCatalog>(raw)
             .map(|data| data.esize)
@@ -339,6 +340,7 @@ pub fn estimate_convert_size(payload: EstimatePayload) -> Result<Option<u64>, St
         return Ok(None);
     }
     let esize = load_esize();
+    // Route estimation by target category to keep each heuristic isolated.
     let estimate = match category.as_str() {
         "video" => estimate_video(&payload, esize),
         "audio" => estimate_audio(&payload, esize),

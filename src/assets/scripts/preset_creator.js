@@ -127,6 +127,7 @@
         await loadFormatData();
 
         if (!document.getElementById('preset-modal-overlay')) {
+            // Load modal markup lazily to keep initial page load lighter.
             let html = null;
             try {
                 const response = await fetch('app/preset_creator.html', { cache: 'no-store' });
@@ -296,6 +297,7 @@
                 if (afterChange) afterChange();
                 return;
             }
+            // Fade out before mutating complex form sections to reduce visual jumps.
             targets.forEach((el) => el.classList.add('fading-out'));
             window.setTimeout(() => {
                 applyChange();

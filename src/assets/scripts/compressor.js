@@ -144,6 +144,7 @@
     };
 
     const buildMetadataTaskId = () => {
+        // Append a short sequence to avoid collisions inside the same millisecond.
         metadataSequence = (metadataSequence + 1) % 1000;
         return `${Date.now()}${String(metadataSequence).padStart(3, '0')}`;
     };
@@ -235,6 +236,7 @@
     const scheduleScrollRestore = () => {
         if (!scrollContainer) return;
         const target = Number.isFinite(lastScrollTop) ? lastScrollTop : 0;
+        // Restore after layout settles to avoid jumping during animated panel changes.
         requestAnimationFrame(() => {
             scrollContainer.scrollTop = target;
         });
@@ -452,7 +454,7 @@
         let outputName = baseName;
         let outputPath = inputFormat ? joinPath(outputDir, `${outputName}.${inputFormat}`) : joinPath(outputDir, outputName);
         if (outputPath && lastMetadata?.path && String(outputPath).toLowerCase() === String(lastMetadata.path).toLowerCase()) {
-            outputName = `${baseName}_compressed`;
+            outputName = `${baseName}-processed`;
             outputPath = inputFormat
                 ? joinPath(outputDir, `${outputName}.${inputFormat}`)
                 : joinPath(outputDir, outputName);

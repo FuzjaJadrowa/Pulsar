@@ -174,6 +174,7 @@
 
         const ensureEmptyAnchor = () => {
             if (hasContent()) return;
+            // Keep a caret target when the editable field has no visible content.
             if (
                 input.childNodes.length === 1 &&
                 input.firstChild &&
@@ -324,6 +325,7 @@
                 tokenRegex.lastIndex = 0;
                 while ((match = tokenRegex.exec(text)) !== null) {
                     const token = match[0];
+                    // Ignore unknown placeholders and keep them as plain text.
                     if (!tokenMap.has(token)) continue;
                     if (match.index > lastIndex) {
                         frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));

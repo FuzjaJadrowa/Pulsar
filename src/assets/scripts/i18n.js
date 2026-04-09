@@ -42,6 +42,7 @@
             return state.dictionary;
         }
         if (!state.initPromise) {
+            // Coalesce concurrent init calls into one fetch.
             state.initPromise = loadDictionary(locale).finally(() => {
                 state.initPromise = null;
             });

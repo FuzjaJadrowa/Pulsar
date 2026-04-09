@@ -147,6 +147,7 @@
         if (!input) return false;
 
         try {
+            // URL parsing is preferred to avoid false positives from plain substring checks.
             const url = new URL(input);
             const host = url.hostname.toLowerCase();
             if (host === 'music.youtube.com' || host.endsWith('.music.youtube.com')) return true;
@@ -194,6 +195,7 @@
             subtitlesGroup.classList.toggle('audio-only', audioOnly);
         }
         if (state.isAnalyzed && state.mode && audioOnly && state.mode === 'video') {
+            // Force a valid mode when the source does not provide video streams.
             setMode('audio');
         }
         updateSubtitleInputVisibility();

@@ -35,6 +35,7 @@ const requestConverterSync = (options = {}) => {
             api.syncState(opts);
             return;
         }
+        // Page scripts are loaded lazily, so retry for a short window.
         attempts += 1;
         if (attempts < maxAttempts) {
             setTimeout(trySync, 50);
@@ -53,6 +54,7 @@ const requestCompressorSync = (options = {}) => {
             api.syncState(opts);
             return;
         }
+        // Page scripts are loaded lazily, so retry for a short window.
         attempts += 1;
         if (attempts < maxAttempts) {
             setTimeout(trySync, 50);
@@ -80,6 +82,7 @@ async function applyLocale(locale) {
         console.error('Failed to initialize i18n:', error);
         if (normalized !== 'en') {
             try {
+                // Fall back to English when the selected locale cannot be loaded.
                 await window.i18n.init('en');
                 currentLocale = 'en';
                 window.i18n.apply(document);
@@ -1085,7 +1088,7 @@ window.setQueuePanelVisible = async function(visible) {
     }
 };
 
-/**document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     });
@@ -1133,4 +1136,4 @@ window.setQueuePanelVisible = async function(visible) {
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
-});**/
+});

@@ -124,6 +124,7 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let req_path = get_requirements_path();
     let mut versions = load_versions(&req_path);
     let app_tag = normalize_app_tag(&app.package_info().version.to_string());
+    // Persist current app version in the same registry as external requirements.
     versions.local_versions.insert("pulsar".to_string(), app_tag);
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
     let bridge_state = app.state::<BridgeState>();
@@ -162,6 +163,7 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let ffmpeg_exists = check_file_exists(&req_path, "ffmpeg");
 
     let bridge_needs_check = if bridge_update_enabled {
+        // With auto-update on, check periodically; without it, only ensure presence.
         !bridge_exists || now - versions.bridge_last_check > update_interval_secs
     } else {
         !bridge_exists
@@ -506,6 +508,7 @@ async fn update_component(
 
     let mut remote_ver = json["published_at"].as_str().unwrap_or("").to_string();
     if name == "ffmpeg" || name == "pulsar-bridge" {
+        // Prefer release tag/name, then fallback to checksum for FFmpeg if needed.
         let version_hint = build_release_version(release_tag, release_name);
         if !version_hint.is_empty() {
             remote_ver = version_hint;

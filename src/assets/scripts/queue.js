@@ -72,6 +72,7 @@
 
     const queueId = () => {
         let id = Date.now();
+        // Prevent collisions when multiple items are created in the same tick.
         while (state.items.some((i) => String(i.id) === String(id))) id += 1;
         return String(id);
     };

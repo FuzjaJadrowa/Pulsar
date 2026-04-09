@@ -31,6 +31,7 @@ class NotificationManager {
 
         const removeToast = () => {
             toast.classList.add('hiding');
+            // Remove only after exit animation completes.
             toast.addEventListener('animationend', () => {
                 if(toast.parentElement) toast.parentElement.removeChild(toast);
             });

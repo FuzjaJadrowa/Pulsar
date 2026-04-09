@@ -101,6 +101,7 @@ impl BridgeState {
                         println!("[BRIDGE OUT]: {}", l);
                         if let Ok(mut json_val) = serde_json::from_str::<Value>(&l) {
                             if json_val.get("type").and_then(|v| v.as_str()) == Some("progress_ffmpeg") {
+                                // Add percent/ETA only when we know the requested trim duration.
                                 if let Some(id) = json_val.get("id").and_then(|v| v.as_str()) {
                                     if let Some(total) = ffmpeg_ranges.lock().unwrap().get(id).map(|r| r.total_seconds) {
                                         if let Some(elapsed) = extract_ffmpeg_elapsed_seconds(&json_val) {
@@ -354,6 +355,7 @@ fn build_subtitle_args(options: &DownloadOptions) -> Vec<String> {
                     continue;
                 }
 
+                // Unknown language code: request both manual and auto subtitles.
                 push_unique(&mut target_langs, lang_req.to_string());
                 ensure_flag(&mut args, "--write-subs");
                 ensure_flag(&mut args, "--write-auto-subs");
@@ -619,6 +621,7 @@ pub fn start_download(
         if let (Some(start), Some(end)) = (parse_time_to_seconds(&options.start_time), parse_time_to_seconds(&options.end_time)) {
             let total = (end - start).max(0.0);
             if total > 0.0 {
+                // Store expected ffmpeg range so progress events can expose ETA.
                 state.set_ffmpeg_range(task_id.clone(), total);
             }
         }

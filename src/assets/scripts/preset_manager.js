@@ -171,6 +171,7 @@
                         if (event.propertyName !== 'max-height') return;
                         finalizeRemoval();
                     }, { once: true });
+                    // Fallback in case transitionend is skipped by the browser.
                     window.setTimeout(finalizeRemoval, 260);
                     emitPresetsUpdated();
                 } catch (error) {

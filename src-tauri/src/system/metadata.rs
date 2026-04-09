@@ -129,6 +129,7 @@ pub fn search(
 
     let max_results = config.maximum_search_results.clamp(1, 50);
     let normalized = prefix.unwrap_or_default().to_lowercase();
+    // Strip trailing digits so user-provided prefix still respects current max_results.
     let base_prefix = normalized.trim_end_matches(|c: char| c.is_ascii_digit());
     let search_prefix = match base_prefix {
         "ytsearch" => format!("ytsearch{}", max_results),

@@ -394,6 +394,7 @@ pub fn import_preset(app_handle: AppHandle) -> Result<(), String> {
             .unwrap_or("preset");
         let mut idx = 1;
         loop {
+            // Preserve existing presets by picking the first free suffixed name.
             let candidate = format!("{}-{}.{}", stem, idx, PRESET_EXTENSION);
             let candidate_path = dir.join(candidate);
             if !candidate_path.exists() {

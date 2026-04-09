@@ -33,6 +33,7 @@ fn parse_hwaccels(output: &str) -> Vec<String> {
         if trimmed.is_empty() {
             continue;
         }
+        // Ignore preamble and start parsing only after the ffmpeg header line.
         if trimmed.to_lowercase().contains("hardware acceleration methods:") {
             found_header = true;
             continue;
@@ -130,6 +131,7 @@ fn choose_preferred(accels: &[String], current: &str) -> String {
         if has_accel(accels, "videotoolbox") { return "videotoolbox".to_string(); }
     }
 
+    // Prefer non-AMF fallback when vendor detection is uncertain.
     let fallback = if vendor.as_deref() != Some("amd") {
         accels.iter().find(|item| item.as_str() != "amf").cloned()
     } else {

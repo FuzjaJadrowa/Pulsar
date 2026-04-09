@@ -102,6 +102,7 @@ impl QueueManager {
     }
 
     pub fn save(&self, queue_state: &QueueState) -> Result<(), String> {
+        // Serialize writes to avoid partial/competing queue file updates.
         let _guard = self.write_guard.lock().unwrap();
         let serialized = serde_json::to_string_pretty(queue_state).map_err(|e| e.to_string())?;
         fs::write(&self.queue_path, serialized).map_err(|e| e.to_string())

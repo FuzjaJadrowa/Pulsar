@@ -81,6 +81,7 @@
             text = String(payload);
         }
         lines.push(`[${timestamp}] ${text}`);
+        // Keep memory bounded for long-running sessions.
         if (lines.length > 250) lines.splice(0, lines.length - 250);
         logs.set(key, lines);
         if (state.openId === key) updateContent();
