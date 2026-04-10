@@ -15,6 +15,8 @@ use crate::system::config::ConfigManager;
 
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/FFbuilder/releases/latest";
+const FLATPAK_BRIDGE_VERSION: &str = "b17";
+const FLATPAK_FFMPEG_VERSION: &str = "ffmpeg-n8.0-v2";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
@@ -94,7 +96,11 @@ pub fn cancel_splash_checks(state: State<'_, SplashState>) {
 #[tauri::command]
 pub fn get_requirements_versions() -> std::collections::HashMap<String, String> {
     let req_path = get_requirements_path();
-    let versions = load_versions(&req_path);
+    let mut versions = load_versions(&req_path);
+    if is_flatpak_runtime() {
+        let app_tag = normalize_app_tag(env!("CARGO_PKG_VERSION"));
+        populate_flatpak_versions(&mut versions, &app_tag);
+    }
     versions.local_versions
 }
 
@@ -116,9 +122,10 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
         let config = locked.clone();
         config
     };
-    let app_update_enabled = app_config.update_app;
-    let bridge_update_enabled = app_config.update_ytdlp;
-    let ffmpeg_update_enabled = app_config.update_ffmpeg;
+    let is_flatpak = is_flatpak_runtime();
+    let app_update_enabled = if is_flatpak { false } else { app_config.update_app };
+    let bridge_update_enabled = if is_flatpak { false } else { app_config.update_ytdlp };
+    let ffmpeg_update_enabled = if is_flatpak { false } else { app_config.update_ffmpeg };
     let update_interval_secs = app_config.update_app_cooldown_minutes.max(1) * 60;
 
     let req_path = get_requirements_path();
@@ -126,6 +133,10 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let app_tag = normalize_app_tag(&app.package_info().version.to_string());
     // Persist current app version in the same registry as external requirements.
     versions.local_versions.insert("pulsar".to_string(), app_tag);
+    if is_flatpak {
+        let app_ver = versions.local_versions.get("pulsar").cloned().unwrap_or_default();
+        populate_flatpak_versions(&mut versions, &app_ver);
+    }
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
     let bridge_state = app.state::<BridgeState>();
     let mut bridge_shutdown = false;
@@ -162,14 +173,18 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let bridge_exists = check_file_exists(&req_path, "pulsar-bridge");
     let ffmpeg_exists = check_file_exists(&req_path, "ffmpeg");
 
-    let bridge_needs_check = if bridge_update_enabled {
+    let bridge_needs_check = if is_flatpak {
+        false
+    } else if bridge_update_enabled {
         // With auto-update on, check periodically; without it, only ensure presence.
         !bridge_exists || now - versions.bridge_last_check > update_interval_secs
     } else {
         !bridge_exists
     };
 
-    let ffmpeg_needs_check = if ffmpeg_update_enabled {
+    let ffmpeg_needs_check = if is_flatpak {
+        false
+    } else if ffmpeg_update_enabled {
         !ffmpeg_exists || now - versions.ffmpeg_last_check > update_interval_secs
     } else {
         !ffmpeg_exists
@@ -265,6 +280,18 @@ pub async fn run_requirement_check(app: AppHandle, window: Window, component: St
 
     let app_tag = normalize_app_tag(&app.package_info().version.to_string());
     versions.local_versions.insert("pulsar".to_string(), app_tag);
+    if is_flatpak_runtime() {
+        let app_ver = versions.local_versions.get("pulsar").cloned().unwrap_or_default();
+        populate_flatpak_versions(&mut versions, &app_ver);
+        save_versions(&req_path, &versions);
+        emit_status(&window, "Starting...", false, false);
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        let _ = window.emit("splash-finished", SplashFinishedPayload {
+            prewarm_bridge: true,
+            bridge_updated: false,
+        });
+        return Ok(());
+    }
     let bridge_state = app.state::<BridgeState>();
     let mut bridge_shutdown = false;
     let mut bridge_updated = false;
@@ -648,6 +675,23 @@ fn emit_status(window: &Window, status: &str, is_downloading: bool, can_skip: bo
 }
 
 fn get_requirements_path() -> PathBuf {
+    if cfg!(target_os = "linux") {
+        let flatpak_channel = std::env::var("PULSAR_DIST")
+            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
+            .unwrap_or(false);
+        let in_flatpak = std::env::var("FLATPAK_ID")
+            .map(|v| !v.trim().is_empty())
+            .unwrap_or(false);
+        if flatpak_channel || in_flatpak {
+            if let Ok(dir) = std::env::var("PULSAR_REQUIREMENTS_DIR") {
+                let trimmed = dir.trim();
+                if !trimmed.is_empty() {
+                    return PathBuf::from(trimmed);
+                }
+            }
+            return PathBuf::from("/app/lib/pulsar/requirements");
+        }
+    }
     if let Some(base_dirs) = BaseDirs::new() {
         let path = base_dirs.data_local_dir().join("Pulsar").join("Requirements");
 
@@ -697,6 +741,27 @@ fn normalize_app_tag(version: &str) -> String {
     } else {
         format!("v{}", trimmed)
     }
+}
+
+fn is_flatpak_runtime() -> bool {
+    if cfg!(target_os = "linux") {
+        let flatpak_channel = std::env::var("PULSAR_DIST")
+            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
+            .unwrap_or(false);
+        let in_flatpak = std::env::var("FLATPAK_ID")
+            .map(|v| !v.trim().is_empty())
+            .unwrap_or(false);
+        return flatpak_channel || in_flatpak;
+    }
+    false
+}
+
+fn populate_flatpak_versions(versions: &mut Versions, app_version: &str) {
+    if !app_version.trim().is_empty() {
+        versions.local_versions.insert("pulsar".to_string(), app_version.to_string());
+    }
+    versions.local_versions.insert("pulsar-bridge".to_string(), FLATPAK_BRIDGE_VERSION.to_string());
+    versions.local_versions.insert("ffmpeg".to_string(), FLATPAK_FFMPEG_VERSION.to_string());
 }
 
 fn shutdown_bridge_once(bridge_state: &BridgeState, bridge_shutdown: &mut bool) {

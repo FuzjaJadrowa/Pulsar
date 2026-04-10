@@ -745,6 +745,23 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
 }
 
 fn get_requirements_path() -> PathBuf {
+    if cfg!(target_os = "linux") {
+        let flatpak_channel = std::env::var("PULSAR_DIST")
+            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
+            .unwrap_or(false);
+        let in_flatpak = std::env::var("FLATPAK_ID")
+            .map(|v| !v.trim().is_empty())
+            .unwrap_or(false);
+        if flatpak_channel || in_flatpak {
+            if let Ok(dir) = std::env::var("PULSAR_REQUIREMENTS_DIR") {
+                let trimmed = dir.trim();
+                if !trimmed.is_empty() {
+                    return PathBuf::from(trimmed);
+                }
+            }
+            return PathBuf::from("/app/lib/pulsar/requirements");
+        }
+    }
     if let Some(base_dirs) = BaseDirs::new() {
         return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
     }

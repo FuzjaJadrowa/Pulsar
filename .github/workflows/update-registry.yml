@@ -42,6 +42,7 @@ jobs:
         with:
           script: |
             const headSha = "${{ github.event.workflow_run.head_sha }}";
+            const tag = "${{ steps.tag.outputs.tag }}";
             const workflows = [
               "build-linux.yml",
               "build-macos.yml",
@@ -53,11 +54,16 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: wf,
-                per_page: 50
+                per_page: 100
               });
-              const run = data.workflow_runs.find(r => r.head_sha === headSha && r.conclusion === "success");
+              // Same commit can produce both branch and tag runs. Use only tag-scoped runs.
+              const run = data.workflow_runs.find(r =>
+                r.head_sha === headSha &&
+                r.conclusion === "success" &&
+                r.display_title === tag
+              );
               if (!run) {
-                core.info(`No successful run found for ${wf} and ${headSha}.`);
+                core.info(`No successful tag run found for ${wf}, ${headSha}, ${tag}.`);
                 core.setOutput("all_found", "false");
                 return;
               }

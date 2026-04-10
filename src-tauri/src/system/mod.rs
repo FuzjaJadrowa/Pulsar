@@ -18,6 +18,12 @@ pub fn get_config(state: State<ConfigManager>) -> AppConfig {
 
 #[tauri::command]
 pub fn get_distribution_channel() -> String {
+    if let Ok(runtime_value) = std::env::var("PULSAR_DIST") {
+        let trimmed = runtime_value.trim();
+        if !trimmed.is_empty() {
+            return trimmed.to_string();
+        }
+    }
     option_env!("PULSAR_DIST").unwrap_or("default").to_string()
 }
 

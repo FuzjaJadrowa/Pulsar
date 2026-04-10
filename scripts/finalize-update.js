@@ -10,6 +10,24 @@ const sigFiles = {
     'darwin-aarch64': 'Pulsar-MacOS.sig'
 };
 
+function decodeSignatureText(signature) {
+    try {
+        return Buffer.from(signature, 'base64').toString('utf8');
+    } catch (_) {
+        return '';
+    }
+}
+
+function expectedSignatureFileHint(platform, currentVersion) {
+    if (platform === 'windows-x86_64') {
+        return `file:Pulsar_${currentVersion}_x64-setup.exe`;
+    }
+    if (platform === 'darwin-aarch64') {
+        return 'file:Pulsar.app.tar.gz';
+    }
+    return '';
+}
+
 if (!fs.existsSync(updateJsonPath)) {
     console.error('update.json not found');
     process.exit(1);
@@ -23,6 +41,12 @@ Object.keys(sigFiles).forEach(platform => {
     const sigPath = path.join(rootDir, 'sigs', sigFiles[platform]);
     if (fs.existsSync(sigPath)) {
         const signature = fs.readFileSync(sigPath, 'utf8').trim();
+        const decodedSignature = decodeSignatureText(signature);
+        const expectedHint = expectedSignatureFileHint(platform, version);
+        if (!decodedSignature || (expectedHint && !decodedSignature.includes(expectedHint))) {
+            console.warn(`Skipping ${platform} signature update: signature payload does not match expected file hint (${expectedHint}).`);
+            return;
+        }
         if (updateData.platforms[platform]) {
             updateData.platforms[platform].signature = signature;
             const baseUrl = `https://github.com/FuzjaJadrowa/Pulsar/releases/download/v${version}`;

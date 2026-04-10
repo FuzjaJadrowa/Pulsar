@@ -51,7 +51,7 @@
     const DEFAULT_TITLE_TEMPLATE = '%(title)s [%(id)s]';
     let titleConstructorReady = false;
     let titleSaveTimer = null;
-    let updateAppLockedForDeb = false;
+    let lockedUpdateKeys = new Set();
 
     const scheduleTitleSave = () => {
         if (titleSaveTimer) window.clearTimeout(titleSaveTimer);
@@ -533,8 +533,14 @@
 
         const radio = document.querySelector('input[name="close_behavior"]:checked');
         config['close_behavior'] = radio ? radio.value : 'hide';
-        if (updateAppLockedForDeb) {
+        if (lockedUpdateKeys.has('update_app')) {
             config.update_app = false;
+        }
+        if (lockedUpdateKeys.has('update_ytdlp')) {
+            config.update_ytdlp = false;
+        }
+        if (lockedUpdateKeys.has('update_ffmpeg')) {
+            config.update_ffmpeg = false;
         }
 
         if (window.applyTheme && config.theme) {
@@ -550,9 +556,15 @@
     }
 
     async function applyDistributionLocks() {
-        const updateAppInput = document.getElementById('update_app');
-        if (!updateAppInput) return false;
-        const pulsarUpdateCheckBtn = document.querySelector('.update-check-btn[data-update-check="pulsar"]');
+        const updateIds = ['update_app', 'update_ytdlp', 'update_ffmpeg'];
+        const updateInputs = updateIds
+            .map((id) => document.getElementById(id))
+            .filter(Boolean);
+        if (!updateInputs.length) return false;
+        const updateCheckTargets = ['pulsar', 'pulsar-bridge', 'ffmpeg'];
+        const updateCheckButtons = updateCheckTargets
+            .map((target) => document.querySelector(`.update-check-btn[data-update-check="${target}"]`))
+            .filter(Boolean);
 
         let channel = 'default';
         try {
@@ -561,22 +573,38 @@
             channel = 'default';
         }
 
-        updateAppLockedForDeb = channel === 'deb';
-        const switchLabel = updateAppInput.closest('label.switch');
+        lockedUpdateKeys = channel === 'flatpak'
+            ? new Set(['update_app', 'update_ytdlp', 'update_ffmpeg'])
+            : (channel === 'deb' ? new Set(['update_app']) : new Set());
 
-        if (!updateAppLockedForDeb) {
-            updateAppInput.disabled = false;
-            if (switchLabel) switchLabel.classList.remove('is-disabled');
-            if (pulsarUpdateCheckBtn) pulsarUpdateCheckBtn.disabled = false;
-            return false;
-        }
+        let changed = false;
 
-        const wasChecked = !!updateAppInput.checked;
-        updateAppInput.checked = false;
-        updateAppInput.disabled = true;
-        if (switchLabel) switchLabel.classList.add('is-disabled');
-        if (pulsarUpdateCheckBtn) pulsarUpdateCheckBtn.disabled = true;
-        return wasChecked;
+        updateInputs.forEach((input) => {
+            const key = idMap[input.id];
+            const shouldLock = !!key && lockedUpdateKeys.has(key);
+            const switchLabel = input.closest('label.switch');
+            if (shouldLock && input.checked) {
+                changed = true;
+            }
+            if (shouldLock) {
+                input.checked = false;
+            }
+            input.disabled = shouldLock;
+            if (switchLabel) {
+                switchLabel.classList.toggle('is-disabled', shouldLock);
+            }
+        });
+
+        updateCheckButtons.forEach((btn) => {
+            const target = String(btn.dataset.updateCheck || '').trim();
+            const shouldLock =
+                (target === 'pulsar' && lockedUpdateKeys.has('update_app'))
+                || (target === 'pulsar-bridge' && lockedUpdateKeys.has('update_ytdlp'))
+                || (target === 'ffmpeg' && lockedUpdateKeys.has('update_ffmpeg'));
+            btn.disabled = shouldLock;
+        });
+
+        return changed;
     }
 
     async function loadSettings() {
