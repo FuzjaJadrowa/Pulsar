@@ -43,12 +43,22 @@ jobs:
           script: |
             const headSha = "${{ github.event.workflow_run.head_sha }}";
             const tag = "${{ steps.tag.outputs.tag }}";
-            const workflows = [
-              "build-linux.yml",
-              "build-macos.yml",
-              "build-windows.yml"
-            ];
+            const requiredWorkflows = ["build-macos.yml", "build-windows.yml"];
+            const optionalWorkflows = ["build-linux.yml"];
+            const workflows = [...requiredWorkflows, ...optionalWorkflows];
             const runIds = {};
+
+            const pickTaggedRun = (runs) => {
+              const candidates = runs
+                .filter(r =>
+                  r.head_sha === headSha &&
+                  r.conclusion === "success" &&
+                  (r.head_branch === tag || r.display_title === tag)
+                )
+                .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+              return candidates[0];
+            };
+
             for (const wf of workflows) {
               const { data } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
@@ -56,19 +66,21 @@ jobs:
                 workflow_id: wf,
                 per_page: 100
               });
-              // Same commit can produce both branch and tag runs. Use only tag-scoped runs.
-              const run = data.workflow_runs.find(r =>
-                r.head_sha === headSha &&
-                r.conclusion === "success" &&
-                r.display_title === tag
-              );
-              if (!run) {
-                core.info(`No successful tag run found for ${wf}, ${headSha}, ${tag}.`);
+
+              // Same commit can produce both branch and tag runs. Keeping only tag-scoped runs.
+              const run = pickTaggedRun(data.workflow_runs);
+              if (!run && requiredWorkflows.includes(wf)) {
+                core.info(`No successful tagged run found for required workflow ${wf}, ${headSha}, ${tag}.`);
                 core.setOutput("all_found", "false");
                 return;
               }
+              if (!run) {
+                core.info(`No successful tagged run for optional workflow ${wf}, ${headSha}, ${tag}. Continuing.`);
+                continue;
+              }
               runIds[wf] = run.id;
             }
+
             core.setOutput("all_found", "true");
             core.setOutput("macos_run_id", runIds["build-macos.yml"]);
             core.setOutput("windows_run_id", runIds["build-windows.yml"]);
