@@ -33,7 +33,7 @@ jobs:
         run: npm install
 
       - name: Check DOM event bindings
-        run: npm run check:dom-events
+        run: node scripts/check-dom-events.js
 
       - name: Rust check
         run: cargo check --manifest-path src-tauri/Cargo.toml
