@@ -42,7 +42,7 @@ Pulsar is built using **Rust** and **Tauri**. To work on the project locally, yo
 * Go to the main Pulsar repository page on GitHub.
 * You will see a yellow bar with a **"Compare & pull request"** button. Click it.
 * Briefly describe what your PR changes and what problems it solves, use Pull Request template.
-* Wait for a code review—I might have some questions or suggestions before merging.
+* Wait for a code review. I might have some questions or suggestions before merging.
 ## Coding Guidelines
 * **Clarity:** Write readable code and add comments where logic is complex.
 * **Translations:** If you add new UI text, remember to add the corresponding keys to the JSON files in the `langs/` folder.

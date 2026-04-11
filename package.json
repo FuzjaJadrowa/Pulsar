@@ -8,7 +8,10 @@
     "dev": "tauri dev",
     "build": "tauri build",
     "sign": "tauri signer generate",
-    "set-version": "node scripts/update-version.js"
+    "set-version": "node scripts/update-version.js",
+    "check:dom-events": "node scripts/check-dom-events.js",
+    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

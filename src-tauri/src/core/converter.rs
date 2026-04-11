@@ -685,3 +685,61 @@ pub fn start_convert(
 
     Ok(task_id)
 }
+
+// Preparing for refactoring code
+/*#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_convert_options() -> ConvertOptions {
+        ConvertOptions {
+            input_path: "input.mp4".to_string(),
+            output_dir: Some("out".to_string()),
+            output_name: Some("result".to_string()),
+            output_format: "mp4".to_string(),
+            category: Some("video".to_string()),
+            video_quality: Some("720p".to_string()),
+            video_codec: Some("h264".to_string()),
+            video_bitrate: Some("3500kbps".to_string()),
+            video_fps: Some("59.94fps".to_string()),
+            audio_codec: Some("mp3".to_string()),
+            audio_bitrate: Some("192kbps".to_string()),
+            image_width: None,
+            image_height: None,
+            image_quality: None,
+            source_duration_seconds: Some(120.0),
+            client_task_id: None,
+        }
+    }
+
+    fn has_flag_value(args: &[String], flag: &str, value: &str) -> bool {
+        args.windows(2).any(|w| w[0] == flag && w[1] == value)
+    }
+
+    #[test]
+    fn normalize_output_format_strips_dot_and_case() {
+        assert_eq!(normalize_output_format(" .MP4 "), "mp4");
+    }
+
+    #[test]
+    fn parse_helpers_strip_units() {
+        assert_eq!(parse_kbps_string(Some(" 320kbps ")), Some("320".to_string()));
+        assert_eq!(parse_numeric_string(Some("59.94fps")), Some("59.94".to_string()));
+        assert_eq!(parse_numeric_string(Some("abc")), None);
+    }
+
+    #[test]
+    fn build_ffmpeg_args_for_video_maps_codecs_and_scale() {
+        let options = sample_convert_options();
+        let args = build_ffmpeg_args(&options, "out.mp4", Some("auto".to_string()));
+
+        assert!(has_flag_value(&args, "-hwaccel", "auto"));
+        assert!(has_flag_value(&args, "-c:v", "libx264"));
+        assert!(has_flag_value(&args, "-b:v", "3500k"));
+        assert!(has_flag_value(&args, "-r", "59.94"));
+        assert!(has_flag_value(&args, "-c:a", "libmp3lame"));
+        assert!(has_flag_value(&args, "-b:a", "192k"));
+        assert!(has_flag_value(&args, "-vf", "scale=-2:720"));
+        assert_eq!(args.last().map(String::as_str), Some("out.mp4"));
+    }
+}*/

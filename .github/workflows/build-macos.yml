@@ -30,13 +30,13 @@ jobs:
         run: npm install
 
       - name: Check DOM event bindings
-        run: node scripts/check-dom-events.js
+        run: npm run check:dom-events
 
       - name: Rust check
-        run: cargo check --manifest-path src-tauri/Cargo.toml
+        run: npm run check:rust
 
       - name: Rust tests
-        run: cargo test --manifest-path src-tauri/Cargo.toml
+        run: npm run test:rust
 
       - name: Get version
         shell: bash
