@@ -776,7 +776,7 @@ fn ensure_ffmpeg_permissions(dest_dir: &Path) {
     #[cfg(target_family = "unix")]
     {
         use std::os::unix::fs::PermissionsExt;
-        for name in ["ffmpeg", "ffprobe"] {
+        for name in ["ffmpeg"] {
             let path = dest_dir.join(name);
             if let Ok(metadata) = fs::metadata(&path) {
                 let mut perms = metadata.permissions();

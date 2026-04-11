@@ -20,6 +20,13 @@
 * **Flexible Format Control**: Seamlessly choose between video/audio containers and resolutions, embed metadata/thumbnails and many more features.
 * **Advanced Options**: Built-in support for Geo-Bypass, specific time-range downloads, and extracting authentication cookies directly from your browser.
 * **Theming & Localization**: Dark, Light, and System modes, along with multi-language UI support.
+## How it works
+Pulsar serves as a user-friendly interface for the powerful **yt-dlp** command-line tool, which is used for downloading media from various online platforms.
+When you add a media URL to the queue, Pulsar translates your selections into yt-dlp commands and executes them in the background.
+The application continuously monitors the download progress, providing real-time updates on speed, estimated time remaining, and any errors that may occur.
+Once the download is complete, you can easily access the media file directly from the app. It serves also **ffmpeg** in converter and compressor mode that is powerful C toll
+for processing multimedia files such as videos and audio, allowing you to further customize your media files.
+It supports a wide range of formats and options, giving you full control over the output quality and file size.
 ## How to Install
 1. Go to the **[Releases](https://github.com/fuzjajadrowa/Pulsar/releases)** tab and download the latest version for your operating system.
 ### For Windows (x86_64)
@@ -34,6 +41,14 @@
 * **Debian/Ubuntu (.deb)**: Install via your package manager:
   ```bash
   sudo apt install ./Pulsar-X.X.X-Linux.deb
+  ```
+* **Flatpak (Flathub)**:
+  ```bash
+  flatpak install flathub pl.fuzjajadrowa.pulsar
+  ```
+  If Flathub is not configured yet:
+  ```bash
+  flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   ```
 ## Building from Source
 To build Pulsar yourself, ensure you have **Node.js (v20+)** and the **Rust stable** toolchain installed.
@@ -63,6 +78,26 @@ If you just want to run the app in development mode, use:
   ```bash
     npx tauri dev
   ```
+## Screenshots
+<table align="center">
+  <tr>
+    <td align="center"><img src=".github/assets/01-home.png" alt="Home" width="100%" /></td>
+    <td align="center"><img src=".github/assets/02-downloader.png" alt="Downloader" width="100%" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Home screen</sub></td>
+    <td align="center"><sub>Fast and simple downloader</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/03-converter.png" alt="Converter" width="100%" /></td>
+    <td align="center"><img src=".github/assets/04-compressor.png" alt="Compressor" width="100%" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Converter with advanced media options</sub></td>
+    <td align="center"><sub>Compressor with many compression types</sub></td>
+  </tr>
+</table>
+
 ## License
 Distributed under the terms specified in the LICENSE file.
 Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://ffmpeg.org/).

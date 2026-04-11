@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
@@ -61,6 +61,8 @@ pub fn send_system_notification(
 }
 
 #[cfg(windows)]
+use std::path::Path;
+
 fn ensure_windows_app_id(app_id: &str, app_name: &str, icon_path: &Path) -> Result<(), String> {
     use windows_registry::CURRENT_USER;
 

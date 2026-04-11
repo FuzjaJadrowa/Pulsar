@@ -372,6 +372,8 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
 .logo {
     height: 50px;
     display: block;
+    -webkit-user-drag: none;
+    user-drag: none;
 }
 
 .nav-btn {
