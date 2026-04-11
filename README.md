@@ -24,7 +24,7 @@
 Pulsar serves as a user-friendly interface for the powerful **yt-dlp** command-line tool, which is used for downloading media from various online platforms.
 When you add a media URL to the queue, Pulsar translates your selections into yt-dlp commands and executes them in the background.
 The application continuously monitors the download progress, providing real-time updates on speed, estimated time remaining, and any errors that may occur.
-Once the download is complete, you can easily access the media file directly from the app. It serves also **ffmpeg** in converter and compressor mode that is powerful C toll
+Once the download is complete, you can easily access the media file directly from the app. It serves also **ffmpeg** in converter and compressor mode that is powerful C tool
 for processing multimedia files such as videos and audio, allowing you to further customize your media files.
 It supports a wide range of formats and options, giving you full control over the output quality and file size.
 ## How to Install
