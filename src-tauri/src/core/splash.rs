@@ -15,8 +15,8 @@ use crate::system::config::ConfigManager;
 
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/FFbuilder/releases/latest";
-const FLATPAK_BRIDGE_VERSION: &str = "b17";
-const FLATPAK_FFMPEG_VERSION: &str = "ffmpeg-n8.0-v2";
+const FLATPAK_BRIDGE_VERSION: &str = "b19";
+const FLATPAK_FFMPEG_VERSION: &str = "7.1";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
