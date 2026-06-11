@@ -117,6 +117,7 @@
     },
     "options": {
       "compressBy": "COMPRESS BY",
+      "convertTo": "CONVERT TO",
       "title": "OPTIONS",
       "pathPlaceholder": "Save path...",
       "estimatedSize": "Estimated size",

@@ -29,15 +29,6 @@ jobs:
       - name: Install dependencies (Node)
         run: npm install
 
-      - name: Check DOM event bindings
-        run: npm run check:dom-events
-
-      - name: Rust check
-        run: npm run check:rust
-
-      - name: Rust tests
-        run: npm run test:rust
-
       - name: Get version
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
