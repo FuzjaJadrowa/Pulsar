@@ -4,11 +4,13 @@
   "description": "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.",
   "author": "Fuzja Jadrowa",
   "scripts": {
+    "set-version": "node scripts/update-version.js",
     "tauri": "tauri",
-    "dev": "tauri dev",
-    "build": "tauri build",
-    "sign": "tauri signer generate",
-    "set-version": "node scripts/update-version.js"
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:sign": "tauri signer generate",
+    "check:translations": "node scripts/check-translations.js",
+    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
