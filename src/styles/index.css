@@ -1,0 +1,13 @@
+@import "./tokens.css";
+@import "./base.css";
+@import "./layout.css";
+@import "./components.css";
+
+/* TODO: Optimise and clean this files */
+@import "./pages/home.css";
+@import "./pages/downloader.css";
+@import "./pages/converter.css";
+@import "./pages/compressor.css";
+@import "./pages/settings.css";
+@import "./pages/preset_creator.css";
+@import "./pages/queue.css";

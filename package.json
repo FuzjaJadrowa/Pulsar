@@ -3,7 +3,11 @@
   "version": "3.0.1",
   "description": "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.",
   "author": "Fuzja Jadrowa",
+  "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "set-version": "node scripts/update-version.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
@@ -12,7 +16,18 @@
     "check:translations": "node scripts/check-translations.js",
     "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml"
   },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2"
+  },
   "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4",
     "@tauri-apps/cli": "^2"
   }
 }

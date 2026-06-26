@@ -4,7 +4,10 @@
   "version": "3.0.1",
   "identifier": "pl.fuzjajadrowa.pulsar",
   "build": {
-    "frontendDist": "../src"
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
   },
   "app": {
     "withGlobalTauri": true,

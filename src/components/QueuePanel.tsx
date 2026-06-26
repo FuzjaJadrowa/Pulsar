@@ -1,0 +1,470 @@
+import React, { useState, useEffect } from "react";
+import { useQueue, QueueItem } from "../services/queue";
+import { useTranslation } from "../services/i18n";
+import { formatBytes, detectSourceFromUrl } from "../utils/format";
+import { useConfig } from "../services/config";
+import { openConsole } from "../services/console";
+
+const ICONS = {
+  play: (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <polygon points="5 3 19 12 5 21"></polygon>
+    </svg>
+  ),
+  stop: (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+    </svg>
+  ),
+  trash: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+    </svg>
+  ),
+  open: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H3z"></path>
+      <path d="M3 7V5a2 2 0 0 1 2-2h5l2 2"></path>
+    </svg>
+  ),
+  retry: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <polyline points="1 4 1 10 7 10"></polyline>
+      <path d="M3.5 15a9 9 0 1 0 .5-9.3L1 10"></path>
+    </svg>
+  ),
+  check: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  ),
+  cross: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  ),
+  video: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <rect x="2" y="2" width="20" height="20" rx="2.2"></rect>
+      <line x1="7" y1="2" x2="7" y2="22"></line>
+      <line x1="17" y1="2" x2="17" y2="22"></line>
+      <line x1="2" y1="12" x2="22" y2="12"></line>
+    </svg>
+  ),
+  audio: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <path d="M9 18V5l12-2v13"></path>
+      <circle cx="6" cy="18" r="3"></circle>
+      <circle cx="18" cy="16" r="3"></circle>
+    </svg>
+  ),
+  image: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <path d="m1 16 5.36-5.36c.49-.49 1.27-.49 1.76 0h0l4.11 4.11m.02 0 3.49-3.49c.49-.49 1.27-.49 1.76 0h0l3.49 3.49m-8.74 0 2.81 2.81" />
+      <path d="M15 1H7c-2.11 0-3.15 0-3.95.41-.7.36-1.27.94-1.64 1.64C1 3.85 1 4.9 1 7v8c0 2.1 0 3.15.41 3.95.36.7.94 1.27 1.64 1.64C3.85 21 4.9 21 7 21h8c2.1 0 3.15 0 3.95-.41.7-.36 1.27-.94 1.64-1.64.41-.8.41-1.85.41-3.95V7m0 .01c0-2.11 0-3.15-.41-3.95-.36-.7-.94-1.27-1.64-1.64-.8-.41-1.85-.41-3.95-.41" />
+    </svg>
+  ),
+  font: (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <path d="M4.99 3.3.48 20.7h3l1.13-4.35h4.47l1.13 4.35h3L8.69 3.3H5Zm3.33 10.15L6.84 7.73l-1.48 5.72h2.97Zm12.3-2.41c-2.53-1.2-5.56-.12-6.76 2.41s-.12 5.56 2.41 6.76c1.38.65 2.97.65 4.35 0v.49h2.9V10.55h-2.9zm-4.35 4.59c0-1.2.97-2.18 2.18-2.18s2.18.97 2.18 2.18-.97 2.18-2.18 2.18-2.18-.97-2.18-2.18" />
+    </svg>
+  ),
+  archive: (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <path d="m21.71 5.79-3-3A1 1 0 0 0 18 2.5H6c-.27 0-.52.11-.71.29l-3 3A1 1 0 0 0 2 6.5v13c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-13c0-.27-.11-.52-.29-.71M6.41 4.5h11.17l1 1H5.41zM4 19.5v-12h16v12z" />
+      <path d="M14 9.5h-4v3H7l5 5 5-5h-3z" />
+    </svg>
+  ),
+  download: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+  ),
+  convert: (
+    <svg viewBox="0 0 256 256" fill="currentColor" width="16" height="16">
+      <path
+        d="M7.288 48.34c.061.04.129.068.193.105.18.105.363.201.559.277.093.036.19.06.286.089.175.053.351.098.535.127.049.008.094.028.144.034q.238.027.476.028h.001q.401-.001.79-.08c.154-.031.297-.086.443-.134.101-.033.206-.054.304-.094.162-.067.31-.158.46-.245.075-.043.156-.075.228-.124a4 4 0 0 0 .604-.495l7.492-7.492a3.995 3.995 0 0 0-4.249-6.56c4.535-11.868 16.033-20.322 29.475-20.322 12.266 0 23.516 7.2 28.658 18.342a4 4 0 1 0 7.264-3.352C74.503 14.478 60.403 5.455 45.027 5.455c-17.837 0-32.947 11.873-37.859 28.129-1.224-1.611-3.48-2.084-5.247-1.008a4 4 0 0 0-1.338 5.496l5.481 9.007c.014.023.035.041.049.063q.189.291.424.545c.036.039.064.085.101.122q.297.3.65.531m82.128 3.589-5.48-9.008c-.014-.023-.035-.04-.049-.063a4 4 0 0 0-.424-.546c-.035-.039-.063-.084-.1-.121a4 4 0 0 0-.65-.531c-.061-.04-.129-.067-.192-.104a4 4 0 0 0-.56-.277c-.093-.036-.19-.06-.287-.089a4 4 0 0 0-.534-.127c-.049-.008-.095-.028-.144-.034-.07-.008-.138.003-.208-.001-.091-.007-.177-.028-.269-.028-.082 0-.159.019-.239.024q-.18.01-.36.036a4 4 0 0 0-.503.113c-.105.03-.209.058-.312.097a4 4 0 0 0-.509.243c-.082.045-.166.082-.245.133-.237.153-.46.326-.659.524l-.001.001-7.492 7.492a4 4 0 0 0 0 5.656 3.99 3.99 0 0 0 4.249.904c-4.535 11.868-16.033 20.321-29.475 20.321a31.505 31.505 0 0 1-29.068-19.268 4 4 0 0 0-7.368 3.117 39.49 39.49 0 0 0 36.436 24.151c17.831 0 32.937-11.864 37.854-28.111a4 4 0 0 0 3.176 1.574c.708 0 1.426-.188 2.075-.584a3.996 3.996 0 0 0 1.338-5.494"
+        transform="translate(1.407 1.407)scale(2.81)"
+      />
+    </svg>
+  ),
+  compress: (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
+    </svg>
+  ),
+  console: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+      <polyline points="7 9 10 12 7 15"></polyline>
+      <line x1="12" y1="15" x2="16" y2="15"></line>
+    </svg>
+  ),
+};
+
+const SOURCE_ICONS = {
+  youtube: (
+    <svg viewBox="0 0 28.57 20" aria-hidden="true" fill="currentColor">
+      <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" />
+      <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" fill="white" />
+    </svg>
+  ),
+  ytmusic: (
+    <svg viewBox="0 0 176 176" aria-hidden="true" fill="currentColor">
+      <circle cx="88" cy="88" r="88" />
+      <path d="M88,46c23.1,0,42,18.8,42,42s-18.8,42-42,42s-42-18.8-42-42S64.9,46,88,46 M88,42c-25.4,0-46,20.6-46,46s20.6,46,46,46s46-20.6,46-46S113.4,42,88,42L88,42z" fill="white" />
+      <polygon points="72,111 111,87 72,65" fill="white" />
+    </svg>
+  ),
+  soundcloud: (
+    <svg viewBox="0 0 2499.998 1386.695" aria-hidden="true" fill="currentColor">
+      <path d="M0 1137.737c0 31.024 11.247 54.481 33.737 70.382 22.491 15.898 46.533 21.52 72.126 16.868 24.041-4.653 40.91-13.185 50.607-25.593 9.693-12.408 14.542-32.962 14.542-61.657V800.372c0-24.044-8.336-44.403-25.012-61.075-16.672-16.676-37.03-25.012-61.074-25.012-23.267 0-43.237 8.336-59.912 25.012C8.339 755.969 0 776.327 0 800.372zm267.566 144.253c0 22.495 7.95 39.36 23.848 50.608 15.9 11.247 36.26 16.868 61.075 16.868 25.593 0 46.338-5.624 62.238-16.868 15.898-11.245 23.849-28.113 23.849-50.608V495.58c0-23.267-8.34-43.239-25.012-59.912-16.675-16.672-37.033-25.011-61.075-25.011-23.266 0-43.239 8.339-59.911 25.011-16.676 16.676-25.012 36.645-25.012 59.912zm266.403 37.227c0 22.492 8.143 39.36 24.43 50.607 16.286 11.245 37.226 16.869 62.822 16.869 24.816 0 45.174-5.624 61.072-16.869 15.9-11.247 23.851-28.115 23.851-50.607V601.442c0-24.041-8.339-44.595-25.012-61.657-16.675-17.061-36.644-25.59-59.911-25.59-24.044 0-44.595 8.529-61.657 25.59-17.061 17.062-25.593 37.616-25.593 61.657v717.775zm267.566 3.49c0 42.657 28.695 63.986 86.086 63.986 57.39 0 86.084-21.329 86.084-63.986V159.377c0-65.147-19.776-101.985-59.33-110.517-25.593-6.205-50.8 1.163-75.616 22.103-24.818 20.94-37.227 50.41-37.227 88.413v1163.331zm272.222 33.737V90.74c0-40.328 12.02-64.37 36.063-72.127C1161.78 6.205 1213.356 0 1264.543 0c118.657 0 229.176 27.92 331.547 83.76 102.373 55.84 185.165 132.038 248.37 228.594 63.21 96.56 99.854 203.001 109.936 319.337 47.308-20.165 97.717-30.247 151.23-30.247 108.578 0 201.452 38.39 278.618 115.17 77.168 76.782 115.754 169.072 115.754 276.875 0 108.578-38.586 201.256-115.754 278.036-77.166 76.78-169.651 115.17-277.455 115.17l-1012.097-1.163c-6.983-2.327-12.218-6.594-15.708-12.797s-5.227-11.638-5.227-16.291z" />
+    </svg>
+  ),
+  spotify: (
+    <svg viewBox="0 0 496 512" aria-hidden="true" fill="currentColor">
+      <path d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8Z" />
+      <path d="M406.6 231.1c-5.2 0-8.4-1.3-12.9-3.9-71.2-42.5-198.5-52.7-280.9-29.7-3.6 1-8.1 2.6-12.9 2.6-13.2 0-23.3-10.3-23.3-23.6 0-13.6 8.4-21.3 17.4-23.9 35.2-10.3 74.6-15.2 117.5-15.2 73 0 149.5 15.2 205.4 47.8 7.8 4.5 12.9 10.7 12.9 22.6 0 13.6-11 23.3-23.2 23.3zm-31 76.2c-5.2 0-8.7-2.3-12.3-4.2-62.5-37-155.7-51.9-238.6-29.4-4.8 1.3-7.4 2.6-11.9 2.6-10.7 0-19.4-8.7-19.4-19.4s5.2-17.8 15.5-20.7c27.8-7.8 56.2-13.6 97.8-13.6 64.9 0 127.6 16.1 177 45.5 8.1 4.8 11.3 11 11.3 19.7-.1 10.8-8.5 19.5-19.4 19.5zm-26.9 65.6c-4.2 0-6.8-1.3-10.7-3.6-62.4-37.6-135-39.2-206.7-24.5-3.9 1-9 2.6-11.9 2.6-9.7 0-15.8-7.7-15.8-15.8 0-10.3 6.1-15.2 13.6-16.8 81.9-18.1 165.6-16.5 237 26.2 6.1 3.9 9.7 7.4 9.7 16.5s-7.1 15.4-15.2 15.4z" fill="black" />
+    </svg>
+  ),
+};
+
+export const QueuePanel: React.FC = () => {
+  const { t } = useTranslation();
+  const { config } = useConfig();
+  const {
+    items,
+    startItem,
+    cancelItem,
+    removeItem,
+    clearQueue,
+    startAll,
+    stopAll,
+    openInFileManager,
+  } = useQueue();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(3);
+
+  // Re-calculate perPage on resize
+  useEffect(() => {
+    const handleResize = () => {
+      const h = window.innerHeight || 800;
+      const w = window.innerWidth || 1000;
+      if (h < 760 || w < 900) setPerPage(2);
+      else if (h < 900 || w < 1100) setPerPage(3);
+      else setPerPage(4);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+  const activePage = Math.min(currentPage, totalPages);
+  const startIndex = (activePage - 1) * perPage;
+  const pageItems = items.slice(startIndex, startIndex + perPage);
+
+  // Mode helpers
+  const getModeInfo = (item: QueueItem) => {
+    const itemType = item.itemType;
+    const payloadCategory = String(
+      item.payload?.category || item.payload?.target_category || ""
+    ).toLowerCase();
+
+    const mode =
+      itemType === "download"
+        ? String(item.payload?.mode || "video").toLowerCase()
+        : payloadCategory || itemType;
+
+    let modeIcon = ICONS.download;
+    if (itemType === "download") {
+      modeIcon = mode === "audio" ? ICONS.audio : ICONS.video;
+    } else {
+      if (payloadCategory === "audio") modeIcon = ICONS.audio;
+      else if (payloadCategory === "image") modeIcon = ICONS.image;
+      else if (payloadCategory === "video") modeIcon = ICONS.video;
+      else if (payloadCategory === "font") modeIcon = ICONS.font;
+      else if (payloadCategory === "archive") modeIcon = ICONS.archive;
+      else modeIcon = itemType === "convert" ? ICONS.convert : ICONS.compress;
+    }
+
+    const source = detectSourceFromUrl(item.payload?.url);
+    const sourceIcon = source ? (
+      <span className={`queue-source-icon ${source}-icon`} aria-hidden="true">
+        {SOURCE_ICONS[source as keyof typeof SOURCE_ICONS]}
+      </span>
+    ) : null;
+
+    // Info details
+    let text = "";
+    if (itemType === "compress") {
+      const outputFormat = String(
+        item.payload?.output_format ||
+          item.payload?.format ||
+          item.payload?.source_format ||
+          "--"
+      ).toUpperCase();
+      const sourceSize = formatBytes(item.payload?.source_size_bytes);
+      text = `${outputFormat} | ${sourceSize}`;
+    } else if (itemType === "convert") {
+      const outputFormat = String(
+        item.payload?.output_format || item.payload?.format || "--"
+      ).toUpperCase();
+      const sourceSize = formatBytes(item.payload?.source_size_bytes);
+      text = `${outputFormat} | ${sourceSize}`;
+    } else {
+      const dMode = String(item.payload?.mode || "video").toLowerCase();
+      const format =
+        dMode === "audio"
+          ? String(item.payload?.audio_format || "--").toUpperCase()
+          : String(item.payload?.video_format || "--").toUpperCase();
+      const quality =
+        dMode === "audio"
+          ? String(item.payload?.audio_quality || "--")
+          : String(item.payload?.video_quality || "--");
+      const subs =
+        item.payload?.download_subs ||
+        item.payload?.download_chat ||
+        item.payload?.embed_subs
+          ? t("queue.subtitles.on", "ON")
+          : t("queue.subtitles.off", "OFF");
+      text = `${format} | ${quality} | SUB: ${subs}`;
+    }
+
+    let typeIcon = ICONS.download;
+    if (itemType === "convert") typeIcon = ICONS.convert;
+    else if (itemType === "compress") typeIcon = ICONS.compress;
+
+    return {
+      modeIcon,
+      sourceIcon,
+      infoMarkup: (
+        <>
+          <span className={`queue-type-icon ${itemType}-type-icon`}>
+            {typeIcon}
+          </span>
+          <span className="queue-item-details-text">{text}</span>
+        </>
+      ),
+    };
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  return (
+    <div className="queue-panel-inner">
+      <div className="queue-title">{t("queue.title", "Queue")}</div>
+
+      <div className="queue-actions">
+        <button
+          className="queue-action queue-action-start"
+          onClick={startAll}
+        >
+          {t("queue.actions.startAll", "Start all")}
+        </button>
+        <button
+          className="queue-action queue-action-stop"
+          onClick={stopAll}
+        >
+          {t("queue.actions.stopAll", "Stop all")}
+        </button>
+        <button className="queue-action" onClick={clearQueue}>
+          {t("queue.actions.clearQueue", "Clear queue")}
+        </button>
+      </div>
+
+      <div className="queue-items" id="queue-items">
+        {pageItems.length === 0 ? (
+          <div className="queue-empty">{t("queue.empty", "Queue is empty.")}</div>
+        ) : (
+          pageItems.map((item) => {
+            const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
+
+            return (
+              <div
+                key={item.id}
+                className={`queue-item status-${item.status}`}
+                data-id={item.id}
+              >
+                <div
+                  className="queue-item-bg"
+                  style={{
+                    backgroundImage: item.thumbnail
+                      ? `url('${item.thumbnail}')`
+                      : "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.45))",
+                  }}
+                ></div>
+                <div className="queue-item-content">
+                  <div className="queue-item-title-row">
+                    <span className="queue-mode-icon">{modeIcon}</span>
+                    {sourceIcon}
+                    <div className="queue-item-title">{item.title}</div>
+                  </div>
+                  <div className="queue-item-details">{infoMarkup}</div>
+                  <div className="queue-item-progress-wrap">
+                    <div className="queue-progress-bar">
+                      <div
+                        className="queue-progress-fill"
+                        style={{ width: `${Math.round(item.progress)}%` }}
+                      ></div>
+                    </div>
+                    <div className="queue-progress-meta">
+                      <span>
+                        {Math.round(item.progress)}%
+                        {item.listProgress ? ` (${item.listProgress})` : ""}
+                      </span>
+                      <span>
+                        {t("common.eta", "ETA")} {item.eta || "--"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="queue-item-actions">
+                  {item.status === "pending" && (
+                    <>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => startItem(item.id, "queue-manual")}
+                        title={t("queue.itemActions.start", "Start")}
+                      >
+                        {ICONS.play}
+                      </button>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => removeItem(item.id)}
+                        title={t("queue.itemActions.remove", "Remove")}
+                      >
+                        {ICONS.trash}
+                      </button>
+                    </>
+                  )}
+                  {item.status === "downloading" && (
+                    <button
+                      className="queue-icon-btn"
+                      onClick={() => cancelItem(item.id)}
+                      title={t("queue.itemActions.stop", "Stop")}
+                    >
+                      {ICONS.stop}
+                    </button>
+                  )}
+                  {item.status === "failed" && (
+                    <>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => startItem(item.id, "queue-manual", true)}
+                        title={t("queue.itemActions.retry", "Retry")}
+                      >
+                        {ICONS.retry}
+                      </button>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => removeItem(item.id)}
+                        title={t("queue.itemActions.remove", "Remove")}
+                      >
+                        {ICONS.trash}
+                      </button>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => openInFileManager(item.path)}
+                        title={t("queue.itemActions.openLocation", "Open location")}
+                      >
+                        {ICONS.open}
+                      </button>
+                    </>
+                  )}
+                  {item.status === "completed" && (
+                    <>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => openInFileManager(item.path)}
+                        title={t("queue.itemActions.openLocation", "Open location")}
+                      >
+                        {ICONS.open}
+                      </button>
+                      <button
+                        className="queue-icon-btn"
+                        onClick={() => removeItem(item.id)}
+                        title={t("queue.itemActions.remove", "Remove")}
+                      >
+                        {ICONS.trash}
+                      </button>
+                    </>
+                  )}
+
+                  {config.advanced_mode && (
+                    <button
+                      className="queue-icon-btn"
+                      onClick={() => openConsole(item.id)}
+                      title={t("queue.itemActions.console", "Console")}
+                    >
+                      {ICONS.console}
+                    </button>
+                  )}
+                </div>
+
+                {(item.status === "completed" || item.status === "failed") && (
+                  <div
+                    className={`queue-status-icon ${
+                      item.status === "completed" ? "success" : "failed"
+                    }`}
+                  >
+                    {item.status === "completed" ? ICONS.check : ICONS.cross}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div
+        className={`queue-pagination ${items.length <= perPage ? "hidden" : ""}`}
+      >
+        <button
+          className="queue-page-btn"
+          onClick={handlePrevPage}
+          disabled={activePage === 1}
+          aria-label={t("queue.pagination.previous", "Previous page")}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <span id="queue-page-label">
+          {t("common.pageLabel", "Page {current}/{total}", {
+            current: activePage,
+            total: totalPages,
+          })}
+        </span>
+        <button
+          className="queue-page-btn"
+          onClick={handleNextPage}
+          disabled={activePage === totalPages}
+          aria-label={t("queue.pagination.next", "Next page")}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+export default QueuePanel;

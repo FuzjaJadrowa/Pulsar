@@ -1,0 +1,54 @@
+body {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
+    color: var(--text-color);
+    overflow: hidden;
+
+    background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    background-size: cover;
+    background-attachment: fixed;
+    transition: background 0.5s ease;
+
+    user-select: none;
+}
+
+body.theme-transition,
+body.theme-transition * {
+    transition:
+        background 0.35s ease,
+        background-image 0.35s ease,
+        background-color 0.35s ease,
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease,
+        opacity 0.35s ease,
+        filter 0.35s ease,
+        fill 0.35s ease,
+        stroke 0.35s ease;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+body.theme-light ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+body.theme-light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+}
+body.theme-light ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.28);
+}
