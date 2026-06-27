@@ -22,7 +22,7 @@
         "fullscreen": false,
         "decorations": false,
         "backgroundColor": [30, 30, 30, 255],
-        "devtools": false
+        "devtools": true
       }
     ],
     "security": {
