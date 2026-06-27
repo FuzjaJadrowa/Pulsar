@@ -33,19 +33,20 @@
     "active": true,
     "targets": ["nsis", "app", "deb"],
     "icon": [
-      "../src/assets/icons/icon.png",
-      "../src/assets/icons/icon.icns",
-      "../src/assets/icons/icon.ico"
+      "../public/assets/icons/icon.png",
+      "../public/assets/icons/icon.icns",
+      "../public/assets/icons/icon.ico"
     ],
     "resources": [
-      "../src/assets/icons/icon.png"
+      "../public/assets/icons/icon.png"
     ],
     "copyright": "Copyright © 2026 Fuzja Jadrowa",
     "licenseFile": "../LICENSE",
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
-        "installerIcon": "../src/assets/icons/installer_icon.ico",
+        "installerIcon": "../public/assets/icons/installer_icon.ico",
+        "installerHooks": "nsis-hooks.nsi",
         "installMode": "perMachine"
       }
     }

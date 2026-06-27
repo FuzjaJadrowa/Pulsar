@@ -82,7 +82,7 @@ fn resolve_icon_path(app: &AppHandle) -> Option<PathBuf> {
         candidates.push(path);
     }
     if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("src").join("assets").join("icons").join("icon.png"));
+        candidates.push(cwd.join("public").join("assets").join("icons").join("icon.png"));
     }
 
     for path in candidates {

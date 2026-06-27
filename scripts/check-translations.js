@@ -1,8 +1,12 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const rootDir = path.resolve(__dirname, '..');
-const langsDir = path.join(rootDir, 'src', 'assets', 'langs');
+const langsDir = path.join(rootDir, 'public', 'assets', 'langs');
 
 function getKeys(obj, prefix = '') {
   let keys = [];
@@ -19,37 +23,30 @@ function getKeys(obj, prefix = '') {
   return keys;
 }
 
-const enPath = path.join(langsDir, 'en.json');
-const plPath = path.join(langsDir, 'pl.json');
-
-if (!fs.existsSync(enPath) || !fs.existsSync(plPath)) {
-  console.error('Translation files en.json and pl.json must exist.');
+if (!fs.existsSync(langsDir)) {
+  console.error(`Translations directory does not exist: ${langsDir}`);
   process.exit(1);
 }
 
-const enContent = fs.readFileSync(enPath, 'utf8').replace(/^\uFEFF/, '');
-const plContent = fs.readFileSync(plPath, 'utf8').replace(/^\uFEFF/, '');
+const files = fs.readdirSync(langsDir).filter(file => file.endsWith('.json'));
 
-const en = JSON.parse(enContent);
-const pl = JSON.parse(plContent);
-
-const enKeys = new Set(getKeys(en));
-const plKeys = new Set(getKeys(pl));
-
-let hasErrors = false;
-
-// Check for keys in en but not in pl
-for (const key of enKeys) {
-  if (!plKeys.has(key)) {
-    console.error(`Missing translation key in pl.json: "${key}"`);
-    hasErrors = true;
-  }
+if (files.length === 0) {
+  console.error(`No JSON translation files found in ${langsDir}`);
+  process.exit(1);
 }
 
-// Check for keys in pl but not in en
-for (const key of plKeys) {
-  if (!enKeys.has(key)) {
-    console.error(`Missing translation key in en.json: "${key}"`);
+let hasErrors = false;
+const langKeysMap = new Map();
+
+for (const file of files) {
+  const filePath = path.join(langsDir, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
+    const json = JSON.parse(content);
+    const keys = new Set(getKeys(json));
+    langKeysMap.set(file, keys);
+  } catch (err) {
+    console.error(`Error reading or parsing ${file}: ${err.message}`);
     hasErrors = true;
   }
 }
@@ -58,4 +55,31 @@ if (hasErrors) {
   process.exit(1);
 }
 
-console.log('Translation keys check passed successfully!');
+const referenceFile = files.includes('en.json') ? 'en.json' : files[0];
+const referenceKeys = langKeysMap.get(referenceFile);
+
+for (const file of files) {
+  if (file === referenceFile) continue;
+
+  const currentKeys = langKeysMap.get(file);
+
+  for (const key of referenceKeys) {
+    if (!currentKeys.has(key)) {
+      console.error(`Missing translation key in ${file}: "${key}" (present in ${referenceFile})`);
+      hasErrors = true;
+    }
+  }
+
+  for (const key of currentKeys) {
+    if (!referenceKeys.has(key)) {
+      console.error(`Extra translation key in ${file}: "${key}" (not in ${referenceFile})`);
+      hasErrors = true;
+    }
+  }
+}
+
+if (hasErrors) {
+  process.exit(1);
+}
+
+console.log(`Translation keys check passed successfully for ${files.length} language file(s): ${files.join(', ')}!`);

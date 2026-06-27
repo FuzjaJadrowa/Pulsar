@@ -90,7 +90,7 @@ fn load_tray_icon<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
         candidates.push(path);
     }
     if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("src").join("assets").join("icons").join("icon.png"));
+        candidates.push(cwd.join("public").join("assets").join("icons").join("icon.png"));
     }
 
     for path in candidates {
@@ -101,8 +101,8 @@ fn load_tray_icon<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
         }
     }
 
-    // Final fallback for environments where resource resolution fails.
-    Image::from_bytes(include_bytes!("../../../src/assets/icons/icon.png"))
+    // Final fallback
+    Image::from_bytes(include_bytes!("../../../public/assets/icons/icon.png"))
         .ok()
         .map(|img| img.to_owned())
 }

@@ -67,7 +67,6 @@ jobs:
                 per_page: 100
               });
 
-              // Same commit can produce both branch and tag runs. Keeping only tag-scoped runs.
               const run = pickTaggedRun(data.workflow_runs);
               if (!run && requiredWorkflows.includes(wf)) {
                 core.info(`No successful tagged run found for required workflow ${wf}, ${headSha}, ${tag}.`);
