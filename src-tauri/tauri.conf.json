@@ -46,7 +46,6 @@
     "windows": {
       "nsis": {
         "installerIcon": "../public/assets/icons/installer_icon.ico",
-        "installerHooks": "nsis-hooks.nsi",
         "installMode": "perMachine"
       }
     }
