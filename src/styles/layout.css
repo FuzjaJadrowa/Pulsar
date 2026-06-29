@@ -245,7 +245,6 @@
     max-width: 320px;
 }
 
-/* Window Controls */
 .window-controls {
     width: 160px;
     height: 45px;
@@ -311,7 +310,6 @@ body.theme-light .control-btn:hover {
     color: #1d2330;
 }
 
-/* Background Waves (Data Sea) */
 .zen-data-sea {
     position: fixed;
     bottom: -10vh;
@@ -378,7 +376,6 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     100% { background-position: 0% 50%; }
 }
 
-/* Notifications Container */
 #notification-container {
     position: fixed;
     top: calc(var(--titlebar-height) + 10px);
@@ -480,7 +477,6 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     }
 }
 
-/* Light Theme overrides for Notifications */
 body.theme-light .notification-toast {
     background: rgba(255, 255, 255, 0.78);
     color: #1d2330;
@@ -502,7 +498,6 @@ body.theme-light .notif-close {
     color: rgba(29, 35, 48, 0.5);
 }
 
-/* Splash Screen Layout */
 #splash-screen {
     position: fixed;
     top: 0;

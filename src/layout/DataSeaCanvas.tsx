@@ -1,13 +1,14 @@
 import React, { useEffect, useRef } from "react";
-import { useConfig } from "../services/config";
 
 interface DataSeaCanvasProps {
-  currentPage: string;
+  currentPage?: string;
 }
 
-export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => {
-  const { config } = useConfig();
+export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const waveOffsetBackRef = useRef(0);
+  const waveOffsetFrontRef = useRef(0);
+  const lastTsRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -20,9 +21,6 @@ export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => 
     let height = 0;
     let dpr = 1;
     let rafId: number | null = null;
-    let lastTs: number | null = null;
-    let waveOffsetBack = 0;
-    let waveOffsetFront = 0;
 
     const backSpeed = 0.55;
     const frontSpeed = 0.9;
@@ -40,12 +38,6 @@ export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => 
 
     window.addEventListener("resize", resize);
     resize();
-
-    const isWavePage = ["home", "downloader", "converter", "compressor"].includes(currentPage);
-    const isSearchMode = document.body.classList.contains("search-mode");
-    const isIdleAnimEnabled = config.idle_animation;
-
-    const isActive = isWavePage && isIdleAnimEnabled && !isSearchMode;
 
     const waveY = (x: number, base: number, amplitude: number, wavelength: number, offset: number) => {
       return (
@@ -72,13 +64,12 @@ export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => 
     };
 
     const tick = (ts: number) => {
-      if (!isActive) return;
-      if (lastTs === null) lastTs = ts;
-      const dt = Math.min(60, ts - lastTs) / 1000;
-      lastTs = ts;
+      if (lastTsRef.current === null) lastTsRef.current = ts;
+      const dt = Math.min(60, ts - lastTsRef.current) / 1000;
+      lastTsRef.current = ts;
 
-      waveOffsetBack += backSpeed * dt;
-      waveOffsetFront += frontSpeed * dt;
+      waveOffsetBackRef.current += backSpeed * dt;
+      waveOffsetFrontRef.current += frontSpeed * dt;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -89,15 +80,13 @@ export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => 
       const backWavelength = Math.max(180, width * 0.32);
       const frontWavelength = Math.max(160, width * 0.26);
 
-      drawWave("rgba(0, 150, 200, 0.4)", backBase, backAmp, backWavelength, waveOffsetBack);
-      drawWave("rgba(0, 120, 180, 1)", frontBase, frontAmp, frontWavelength, waveOffsetFront);
+      drawWave("rgba(0, 150, 200, 0.4)", backBase, backAmp, backWavelength, waveOffsetBackRef.current);
+      drawWave("rgba(0, 120, 180, 1)", frontBase, frontAmp, frontWavelength, waveOffsetFrontRef.current);
 
       rafId = window.requestAnimationFrame(tick);
     };
 
-    if (isActive) {
-      rafId = window.requestAnimationFrame(tick);
-    }
+    rafId = window.requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("resize", resize);
@@ -105,7 +94,7 @@ export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = ({ currentPage }) => 
         window.cancelAnimationFrame(rafId);
       }
     };
-  }, [currentPage, config.idle_animation]);
+  }, []);
 
   return <canvas ref={canvasRef} id="data-sea-canvas" className="zen-data-sea" aria-hidden="true" />;
 };

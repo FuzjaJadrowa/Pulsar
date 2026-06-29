@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { invoke, listen } from "../services/tauri";
 import { useTranslation } from "../services/i18n";
+import { triggerIdleWavesEnter } from "../services/config";
 
 interface SplashProps {
-  onFinished: (prewarmBridge: boolean) => void;
+  onFinished?: (prewarmBridge: boolean) => void;
 }
 
 export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
@@ -64,22 +65,43 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     invoke("cancel_splash_checks").catch((err) => {
       console.error("Failed to cancel splash checks:", err);
     });
-    // Exit immediately
     finish(false);
   };
 
   const finish = (prewarm: boolean) => {
     setIsExiting(true);
+    triggerIdleWavesEnter();
     setTimeout(() => {
       setIsHidden(true);
-      onFinished(prewarm);
-    }, 520); // splashExitDuration
+      if (onFinished) onFinished(prewarm);
+    }, 520);
+  };
+
+  const showSplashOverlay = () => {
+    setIsHidden(false);
+    setIsExiting(false);
+    setStatus(t("index.splash.checking", "Checking..."));
+    setProgress("");
+    setCanSkip(false);
   };
 
   useEffect(() => {
     let unlistStatus: any = null;
     let unlistProgress: any = null;
     let unlistFinished: any = null;
+
+    const win = window as any;
+    win.showSplashOverlay = showSplashOverlay;
+    win.runRequirementCheck = async (component: string) => {
+      if (!component) return;
+      showSplashOverlay();
+      try {
+        await invoke("run_requirement_check", { component });
+      } catch (error) {
+        console.error("Failed to run requirement check:", error);
+        finish(false);
+      }
+    };
 
     const setupListeners = async () => {
       unlistStatus = await listen<{ status: string; can_skip: boolean; is_downloading: boolean }>(
@@ -113,6 +135,8 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
       if (unlistStatus) unlistStatus();
       if (unlistProgress) unlistProgress();
       if (unlistFinished) unlistFinished();
+      delete win.showSplashOverlay;
+      delete win.runRequirementCheck;
     };
   }, []);
 

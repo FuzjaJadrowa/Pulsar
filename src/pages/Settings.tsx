@@ -13,6 +13,24 @@ const GEAR_ICON = (
   </svg>
 );
 
+const TAG_ICON_SVG = (
+  <span className="title-tag-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <path className="tag-outline" d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12.41V2h10.41l8.18 8.18a2 2 0 0 1 0 2.83z" />
+      <circle className="tag-dot" cx="7.5" cy="7.5" r="1.5" />
+    </svg>
+  </span>
+);
+
+const PILL_ICON_SVG = (
+  <span className="title-pill-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <path className="tag-outline" d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12.41V2h10.41l8.18 8.18a2 2 0 0 1 0 2.83z" />
+      <circle className="tag-dot" cx="7.5" cy="7.5" r="1.5" />
+    </svg>
+  </span>
+);
+
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
@@ -110,8 +128,73 @@ export const Settings: React.FC = () => {
   };
 
   const handleAddTag = (tag: string) => {
-    const newVal = config.title_template + tag;
+    const newVal = (config.title_template || "") + tag;
     updateConfig({ title_template: newVal });
+  };
+
+  const handleRemoveTag = (token: string) => {
+    const newVal = (config.title_template || "").split(token).join("");
+    updateConfig({ title_template: newVal });
+  };
+
+  const renderTemplatePills = () => {
+    const template = config.title_template || "";
+    if (!template.trim()) return null;
+
+    const tokenMap: Record<string, string> = {
+      "%(title)s": t("settings.titleConstructorTags.title", "Title"),
+      "%(id)s": t("settings.titleConstructorTags.id", "Video ID"),
+      "%(resolution)s": t("settings.titleConstructorTags.resolution", "Resolution"),
+      "%(duration_string)s": t("settings.titleConstructorTags.durationString", "Duration"),
+      "%(fps)s": t("settings.titleConstructorTags.fps", "FPS"),
+      "%(upload_date)s": t("settings.titleConstructorTags.uploadDate", "Upload Date"),
+      "%(view_count)s": t("settings.titleConstructorTags.viewCount", "View Count"),
+      "%(like_count)s": t("settings.titleConstructorTags.likeCount", "Like Count"),
+      "%(dislike_count)s": t("settings.titleConstructorTags.dislikeCount", "Dislike Count"),
+      "%(uploader)s": t("settings.titleConstructorTags.uploader", "Uploader"),
+      "%(playlist)s": t("settings.titleConstructorTags.playlist", "Playlist Name"),
+      "%(playlist_index)s": t("settings.titleConstructorTags.playlistIndex", "Playlist Index"),
+      "%(video_autonumber)s": t("settings.titleConstructorTags.videoAutonumber", "Queue Number"),
+      "%(track)s": t("settings.titleConstructorTags.track", "Track"),
+      "%(artist)s": t("settings.titleConstructorTags.artist", "Artist"),
+      "%(album)s": t("settings.titleConstructorTags.album", "Album"),
+      "%(release_year)s": t("settings.titleConstructorTags.releaseYear", "Release Year")
+    };
+
+    const tokenRegex = /%\([a-zA-Z0-9_]+\)s/g;
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = tokenRegex.exec(template)) !== null) {
+      const token = match[0];
+      if (match.index > lastIndex) {
+        elements.push(<span key={`text-${lastIndex}`}>{template.slice(lastIndex, match.index)}</span>);
+      }
+      if (tokenMap[token]) {
+        elements.push(
+          <span
+            key={`pill-${match.index}`}
+            className="title-pill pill-in"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveTag(token);
+            }}
+            title="Click to remove tag"
+          >
+            {PILL_ICON_SVG}
+            <span className="title-pill-label">{tokenMap[token]}</span>
+          </span>
+        );
+      } else {
+        elements.push(<span key={`raw-${match.index}`}>{token}</span>);
+      }
+      lastIndex = match.index + token.length;
+    }
+    if (lastIndex < template.length) {
+      elements.push(<span key={`text-${lastIndex}`}>{template.slice(lastIndex)}</span>);
+    }
+    return elements;
   };
 
   const languages = [
@@ -271,7 +354,7 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version:")} {pulsarVersion}
+          {t("settings.currentVersion", "Current version: {version}", { version: pulsarVersion })}
         </div>
 
         <div className="form-row">
@@ -299,7 +382,7 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version:")} {bridgeVersion}
+          {t("settings.currentVersion", "Current version: {version}", { version: bridgeVersion })}
         </div>
 
         <div className="form-row">
@@ -327,7 +410,7 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version:")} {ffmpegVersion}
+          {t("settings.currentVersion", "Current version: {version}", { version: ffmpegVersion })}
         </div>
 
         <div className="form-row">
@@ -403,13 +486,13 @@ export const Settings: React.FC = () => {
         <div className="title-constructor">
           <div className="title-constructor-title">{t("settings.titleConstructor", "Title Constructor")}</div>
           <div className="title-constructor-input-row">
-            <input
-              type="text"
+            <div
               className="title-template-input"
-              value={config.title_template}
-              onChange={(e) => updateConfig({ title_template: e.target.value })}
-              placeholder="%(title)s [%(id)s]"
-            />
+              data-empty={!(config.title_template || "").trim()}
+              data-placeholder="%(title)s [%(id)s]"
+            >
+              {renderTemplatePills()}
+            </div>
           </div>
           <div className="title-constructor-note">
             {t("settings.titleConstructorNote", "Not every tag is available for all media.")}
@@ -419,72 +502,104 @@ export const Settings: React.FC = () => {
             <div className="title-canvas-group">
               <div className="title-canvas-title">{t("settings.titleConstructorCategories.video", "Video")}</div>
               <div className="title-canvas-tags">
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(title)s")}>
-                  {t("settings.titleConstructorTags.title", "Title")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(id)s")}>
-                  {t("settings.titleConstructorTags.id", "Video ID")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(resolution)s")}>
-                  {t("settings.titleConstructorTags.resolution", "Resolution")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(duration_string)s")}>
-                  {t("settings.titleConstructorTags.durationString", "Duration")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(fps)s")}>
-                  {t("settings.titleConstructorTags.fps", "FPS")}
-                </button>
+                {([
+                  ["%(title)s", t("settings.titleConstructorTags.title", "Title")],
+                  ["%(id)s", t("settings.titleConstructorTags.id", "Video ID")],
+                  ["%(resolution)s", t("settings.titleConstructorTags.resolution", "Resolution")],
+                  ["%(duration_string)s", t("settings.titleConstructorTags.durationString", "Duration")],
+                  ["%(fps)s", t("settings.titleConstructorTags.fps", "FPS")],
+                ] as const).map(([token, label]) => {
+                  const isUsed = (config.title_template || "").includes(token);
+                  return (
+                    <button
+                      key={token}
+                      type="button"
+                      className={`title-tag ${isUsed ? "used" : ""}`}
+                      disabled={isUsed}
+                      onClick={() => handleAddTag(token)}
+                    >
+                      {TAG_ICON_SVG}
+                      <span className="title-tag-label">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="title-canvas-group">
               <div className="title-canvas-title">{t("settings.titleConstructorCategories.statsDates", "Stats & Dates")}</div>
               <div className="title-canvas-tags">
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(upload_date)s")}>
-                  {t("settings.titleConstructorTags.uploadDate", "Upload Date")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(view_count)s")}>
-                  {t("settings.titleConstructorTags.viewCount", "View Count")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(like_count)s")}>
-                  {t("settings.titleConstructorTags.likeCount", "Like Count")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(uploader)s")}>
-                  {t("settings.titleConstructorTags.uploader", "Uploader")}
-                </button>
+                {([
+                  ["%(upload_date)s", t("settings.titleConstructorTags.uploadDate", "Upload Date")],
+                  ["%(view_count)s", t("settings.titleConstructorTags.viewCount", "View Count")],
+                  ["%(like_count)s", t("settings.titleConstructorTags.likeCount", "Like Count")],
+                  ["%(uploader)s", t("settings.titleConstructorTags.uploader", "Uploader")],
+                ] as const).map(([token, label]) => {
+                  const isUsed = (config.title_template || "").includes(token);
+                  return (
+                    <button
+                      key={token}
+                      type="button"
+                      className={`title-tag ${isUsed ? "used" : ""}`}
+                      disabled={isUsed}
+                      onClick={() => handleAddTag(token)}
+                    >
+                      {TAG_ICON_SVG}
+                      <span className="title-tag-label">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="title-canvas-group">
               <div className="title-canvas-title">{t("settings.titleConstructorCategories.playlist", "Playlist")}</div>
               <div className="title-canvas-tags">
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(playlist)s")}>
-                  {t("settings.titleConstructorTags.playlist", "Playlist Name")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(playlist_index)s")}>
-                  {t("settings.titleConstructorTags.playlistIndex", "Playlist Index")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(video_autonumber)s")}>
-                  {t("settings.titleConstructorTags.videoAutonumber", "Queue Number")}
-                </button>
+                {([
+                  ["%(playlist)s", t("settings.titleConstructorTags.playlist", "Playlist Name")],
+                  ["%(playlist_index)s", t("settings.titleConstructorTags.playlistIndex", "Playlist Index")],
+                  ["%(video_autonumber)s", t("settings.titleConstructorTags.videoAutonumber", "Queue Number")],
+                ] as const).map(([token, label]) => {
+                  const isUsed = (config.title_template || "").includes(token);
+                  return (
+                    <button
+                      key={token}
+                      type="button"
+                      className={`title-tag ${isUsed ? "used" : ""}`}
+                      disabled={isUsed}
+                      onClick={() => handleAddTag(token)}
+                    >
+                      {TAG_ICON_SVG}
+                      <span className="title-tag-label">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="title-canvas-group">
               <div className="title-canvas-title">{t("settings.titleConstructorCategories.music", "Music")}</div>
               <div className="title-canvas-tags">
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(track)s")}>
-                  {t("settings.titleConstructorTags.track", "Track")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(artist)s")}>
-                  {t("settings.titleConstructorTags.artist", "Artist")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(album)s")}>
-                  {t("settings.titleConstructorTags.album", "Album")}
-                </button>
-                <button type="button" className="title-tag" onClick={() => handleAddTag("%(release_year)s")}>
-                  {t("settings.titleConstructorTags.releaseYear", "Release Year")}
-                </button>
+                {([
+                  ["%(track)s", t("settings.titleConstructorTags.track", "Track")],
+                  ["%(artist)s", t("settings.titleConstructorTags.artist", "Artist")],
+                  ["%(album)s", t("settings.titleConstructorTags.album", "Album")],
+                  ["%(release_year)s", t("settings.titleConstructorTags.releaseYear", "Release Year")],
+                ] as const).map(([token, label]) => {
+                  const isUsed = (config.title_template || "").includes(token);
+                  return (
+                    <button
+                      key={token}
+                      type="button"
+                      className={`title-tag ${isUsed ? "used" : ""}`}
+                      disabled={isUsed}
+                      onClick={() => handleAddTag(token)}
+                    >
+                      {TAG_ICON_SVG}
+                      <span className="title-tag-label">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

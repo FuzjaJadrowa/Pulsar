@@ -46,7 +46,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              <span>{t("home.actions.downloader", "Downloader")}</span>
+              <span>{t("home.actions.downloader", "Download")}</span>
             </button>
             <button
               type="button"
@@ -59,7 +59,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   transform="translate(1.407 1.407)scale(2.81)"
                 />
               </svg>
-              <span>{t("home.actions.converter", "Converter")}</span>
+              <span>{t("home.actions.converter", "Convert")}</span>
             </button>
             <button
               type="button"
@@ -69,7 +69,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
                 <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
               </svg>
-              <span>{t("home.actions.compressor", "Compressor")}</span>
+              <span>{t("home.actions.compressor", "Compress")}</span>
             </button>
           </div>
 

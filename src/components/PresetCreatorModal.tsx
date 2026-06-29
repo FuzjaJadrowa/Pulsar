@@ -13,7 +13,7 @@ interface PresetCreatorModalProps {
   onSaved: () => void;
 }
 
-const DEFAULT_ICON = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:%234c6fff"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
+const DEFAULT_ICON = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:%23ffffff"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
 
 export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   isOpen,
@@ -175,7 +175,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   // Handle image conversion to Base64
   const processImageFile = (file: File) => {
-    if (!file.type.startsWith("image/")) {
+    const isImg = file.type?.startsWith("image/") || /\.(svg|png|jpg|jpeg|webp|gif)$/i.test(file.name);
+    if (!isImg) {
       showNotification(t("common.error", "Error"), "File is not an image.", "error");
       return;
     }
@@ -190,12 +191,20 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (e.dataTransfer.files?.length) {
       processImageFile(e.dataTransfer.files[0]);
+    } else if (e.dataTransfer.items?.length) {
+      const item = e.dataTransfer.items[0];
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) processImageFile(file);
+      }
     }
   };
 

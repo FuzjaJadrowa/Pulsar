@@ -24,8 +24,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
+  const [isAnimatingOpenUp, setIsAnimatingOpenUp] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const headRef = useRef<HTMLDivElement | null>(null);
+  const closeTimerRef = useRef<any>(null);
 
   const selectedOption = options.find((o) => o.value === value) || options[0];
 
@@ -41,18 +43,45 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       const spaceBelow = window.innerHeight - headRect.bottom;
       const shouldOpenUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
       setOpenUp(shouldOpenUp);
+      setIsAnimatingOpenUp(shouldOpenUp);
     }
+    
+    if (isOpen && openUp) {
+      setIsAnimatingOpenUp(true);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
+        setIsAnimatingOpenUp(false);
+        setOpenUp(false);
+      }, 300);
+    }
+
     setIsOpen((prev) => !prev);
   };
 
   const handleSelect = (val: string) => {
     onChange(val);
+    if (openUp) {
+      setIsAnimatingOpenUp(true);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
+        setIsAnimatingOpenUp(false);
+        setOpenUp(false);
+      }, 300);
+    }
     setIsOpen(false);
   };
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        if (openUp) {
+          setIsAnimatingOpenUp(true);
+          if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+          closeTimerRef.current = setTimeout(() => {
+            setIsAnimatingOpenUp(false);
+            setOpenUp(false);
+          }, 300);
+        }
         setIsOpen(false);
       }
     };
@@ -62,7 +91,23 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     return () => {
       document.removeEventListener("click", handleOutsideClick);
     };
+  }, [isOpen, openUp]);
+
+  useEffect(() => {
+    const card = wrapperRef.current?.closest(".settings-section-card");
+    if (card) {
+      if (isOpen) {
+        card.classList.add("select-open-card");
+      } else {
+        card.classList.remove("select-open-card");
+      }
+    }
+    return () => {
+      if (card) card.classList.remove("select-open-card");
+    };
   }, [isOpen]);
+
+  const showOpenUpClass = openUp || isAnimatingOpenUp;
 
   return (
     <div
@@ -72,7 +117,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     >
       <div
         ref={headRef}
-        className={`select-head ${isOpen ? "open" : ""} ${openUp && isOpen ? "open-up" : ""}`}
+        className={`select-head ${isOpen ? "open" : ""} ${showOpenUpClass && isOpen ? "open-up" : ""}`}
         onClick={toggleOpen}
         style={{
           opacity: disabled ? 0.5 : 1,
@@ -81,19 +126,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       >
         {selectedOption?.label || ""}
       </div>
-      {isOpen && (
-        <div className={`select-list open ${openUp ? "open-up" : ""}`}>
-          {options.map((opt) => (
-            <div
-              key={opt.value}
-              className={`select-item ${opt.value === value ? "selected" : ""}`}
-              onClick={() => handleSelect(opt.value)}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className={`select-list ${isOpen ? "open" : ""} ${showOpenUpClass ? "open-up" : ""}`}>
+        {options.map((opt) => (
+          <div
+            key={opt.value}
+            className={`select-item ${opt.value === value ? "selected" : ""}`}
+            onClick={() => handleSelect(opt.value)}
+          >
+            {opt.label}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

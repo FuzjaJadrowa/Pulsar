@@ -83,6 +83,24 @@ export function setIdleAnimationClass(enabled: boolean) {
   body.classList.toggle("idle-anim-enabled", enabled);
 }
 
+let idleWavesEnterTimer: any = null;
+export function triggerIdleWavesEnter() {
+  const body = document.body;
+  if (!body) return;
+  if (!body.classList.contains("zen-mode")) return;
+  if (!body.classList.contains("idle-anim-enabled")) return;
+  if (body.classList.contains("search-mode")) return;
+
+  if (idleWavesEnterTimer) clearTimeout(idleWavesEnterTimer);
+  body.classList.remove("idle-waves-enter");
+  void body.offsetWidth;
+  body.classList.add("idle-waves-enter");
+  idleWavesEnterTimer = setTimeout(() => {
+    document.body?.classList.remove("idle-waves-enter");
+    idleWavesEnterTimer = null;
+  }, 360);
+}
+
 // Watch system theme change if config theme is "System"
 themeMedia.addEventListener("change", () => {
   if (globalConfig.theme.toLowerCase() === "system") {

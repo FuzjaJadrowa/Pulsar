@@ -62,14 +62,14 @@ export const Converter: React.FC = () => {
     const body = document.body;
     if (!body) return;
 
-    body.classList.toggle("converter-active", isDashboardVisible || filePath.trim().length > 0);
+    body.classList.toggle("converter-active", isDashboardVisible);
     body.classList.toggle("advanced-mode", !!config?.advanced_mode);
-    body.classList.toggle("zen-mode", !isDashboardVisible && filePath.trim().length === 0);
+    body.classList.toggle("zen-mode", !isDashboardVisible);
 
     return () => {
       body.classList.remove("converter-active", "zen-mode");
     };
-  }, [isDashboardVisible, filePath, config?.advanced_mode]);
+  }, [isDashboardVisible, config?.advanced_mode]);
 
   useEffect(() => {
     // Load formats definition
@@ -92,6 +92,7 @@ export const Converter: React.FC = () => {
     listen<any>("download-event", (event) => {
       const payload = event.payload;
       if (!payload || !payload.type) return;
+      if (payload.type === "bridge_command") return;
 
       if (payload.id === currentMetadataTaskIdRef.current) {
         setIsConfirmLoading(false);
@@ -1089,18 +1090,16 @@ export const Converter: React.FC = () => {
       </div>
 
       {/* Drag & Drop overlay */}
-      {showDropOverlay && (
-        <div id="convert-drop-overlay" className="convert-drop-overlay visible" aria-hidden="false">
-          <div className="convert-drop-content">
-            <div className="convert-drop-icon" aria-hidden="true">
-              <svg viewBox="0 0 512 512">
-                <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
-              </svg>
-            </div>
-            <div className="convert-drop-text">{t("converter.drop.text", "Drop file to convert")}</div>
+      <div id="convert-drop-overlay" className={`convert-drop-overlay ${showDropOverlay ? "visible" : ""}`} aria-hidden={!showDropOverlay}>
+        <div className="convert-drop-content">
+          <div className="convert-drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 512 512">
+              <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
+            </svg>
           </div>
+          <div className="convert-drop-text">{t("converter.drop.text", "Drop file to convert")}</div>
         </div>
-      )}
+      </div>
 
     </div>
   );
