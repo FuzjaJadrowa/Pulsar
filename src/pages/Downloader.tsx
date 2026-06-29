@@ -72,17 +72,19 @@ export const Downloader: React.FC = () => {
     const body = document.body;
     if (!body) return;
 
+    const isZen = !isSearchMode && !isDashboardVisible;
+
     body.classList.toggle("search-mode", isSearchMode);
     body.classList.toggle("audio-only-source", isAudioOnlySource);
-    body.classList.toggle("mode-video", !isSearchMode && mode === "video");
-    body.classList.toggle("mode-audio", !isSearchMode && mode === "audio");
+    body.classList.toggle("mode-video", !isZen && mode === "video");
+    body.classList.toggle("mode-audio", !isZen && mode === "audio");
     body.classList.toggle("advanced-mode", !!config?.advanced_mode);
-    body.classList.toggle("zen-mode", !isSearchMode && !isDashboardVisible && url.trim().length === 0);
+    body.classList.toggle("zen-mode", isZen);
 
     return () => {
       body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio", "zen-mode");
     };
-  }, [isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible, url]);
+  }, [isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
 
   useEffect(() => {
     // To delete
@@ -785,10 +787,17 @@ export const Downloader: React.FC = () => {
               onClick={handleFetch}
               disabled={isAnalyzing || isSearching}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+              {(isAnalyzing || isSearching) ? (
+                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
+                  <path d="M12 3a9 9 0 0 1 9 9" />
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              )}
             </button>
           </div>
 

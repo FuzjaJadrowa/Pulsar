@@ -12,10 +12,22 @@ import { Downloader } from "../pages/Downloader";
 import { Converter } from "../pages/Converter";
 import { Compressor } from "../pages/Compressor";
 
+const PAGE_INDICES: Record<string, number> = {
+  home: 0,
+  downloader: 1,
+  converter: 2,
+  compressor: 3,
+  settings: 4,
+};
+
 export const AppShell: React.FC = () => {
   const { t } = useTranslation();
   const { items } = useQueue();
   const [currentPage, setCurrentPage] = useState<string>("home");
+  const [transition, setTransition] = useState<{
+    outgoing: string | null;
+    direction: "left" | "right" | null;
+  }>({ outgoing: null, direction: null });
   const [queueVisible, setQueueVisible] = useState<boolean>(false);
 
   useEffect(() => {
@@ -44,11 +56,25 @@ export const AppShell: React.FC = () => {
     }
   }, [currentPage]);
 
+  const navigateTo = (pageName: string) => {
+    if (pageName === currentPage) return;
+    const currentIdx = PAGE_INDICES[currentPage] ?? 0;
+    const nextIdx = PAGE_INDICES[pageName] ?? 0;
+    const dir = nextIdx > currentIdx ? "right" : "left";
+
+    setTransition({ outgoing: currentPage, direction: dir });
+    setCurrentPage(pageName);
+
+    setTimeout(() => {
+      setTransition({ outgoing: null, direction: null });
+    }, 300);
+  };
+
   useEffect(() => {
     const win = window as any;
 
     win.loadPage = (pageName: string, _index: number) => {
-      setCurrentPage(pageName);
+      navigateTo(pageName);
     };
 
     win.toggleQueue = () => {
@@ -64,11 +90,7 @@ export const AppShell: React.FC = () => {
       delete win.toggleQueue;
       delete win.setQueuePanelVisible;
     };
-  }, []);
-
-  const navigateTo = (pageName: string) => {
-    setCurrentPage(pageName);
-  };
+  }, [currentPage]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -91,6 +113,23 @@ export const AppShell: React.FC = () => {
   }, [queueVisible]);
 
   const isQueueBtnVisible = items.length > 0;
+
+  const renderPageContent = (pageName: string) => {
+    switch (pageName) {
+      case "home":
+        return <Home onNavigate={navigateTo} />;
+      case "downloader":
+        return <Downloader />;
+      case "converter":
+        return <Converter />;
+      case "compressor":
+        return <Compressor />;
+      case "settings":
+        return <Settings />;
+      default:
+        return <Home onNavigate={navigateTo} />;
+    }
+  };
 
   return (
     <div className="page-root">
@@ -228,24 +267,21 @@ export const AppShell: React.FC = () => {
       </div>
 
       <div id="content-area">
-        {currentPage === "home" ? (
-          <Home onNavigate={navigateTo} />
-        ) : currentPage === "downloader" ? (
-          <Downloader />
-        ) : currentPage === "converter" ? (
-          <Converter />
-        ) : currentPage === "compressor" ? (
-          <Compressor />
-        ) : (
-          <Settings />
+        {transition.outgoing && transition.direction && (
+          <div className={`view-container ${transition.direction === "right" ? "slide-out-to-left" : "slide-out-to-right"}`}>
+            {renderPageContent(transition.outgoing)}
+          </div>
         )}
+        <div className={`view-container active-view ${transition.direction ? (transition.direction === "right" ? "slide-in-from-right" : "slide-in-from-left") : ""}`}>
+          {renderPageContent(currentPage)}
+        </div>
       </div>
 
       <DataSeaCanvas currentPage={currentPage} />
 
       <div
         id="queue-panel"
-        style={{ display: queueVisible ? "block" : "none" }}
+        className={queueVisible ? "visible" : ""}
       >
         <QueuePanel />
       </div>

@@ -299,10 +299,26 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const crfOptions = Array.from({ length: 52 }, (_, i) => ({ value: String(i), label: String(i) }));
 
-  if (!isOpen) return null;
+  const [renderModal, setRenderModal] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.toggle("preset-modal-open", isOpen);
+    if (isOpen) {
+      setRenderModal(true);
+      const timer = setTimeout(() => setIsVisible(true), 20);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => setRenderModal(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!renderModal) return null;
 
   return (
-    <div className="preset-modal-overlay visible" id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={`preset-modal-overlay ${isVisible ? "visible" : ""}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="preset-modal" role="dialog" aria-modal="true">
         <div className="preset-modal-header">
           <div className="preset-modal-title">

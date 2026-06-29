@@ -1,30 +1,30 @@
 {
   "common": {
-    "error": "B≥πd",
+    "error": "B≈ÇƒÖd",
     "success": "Sukces",
     "info": "Informacja",
-    "unknownTitle": "Nieznany tytu≥",
-    "unknownChannel": "Nieznany kana≥",
+    "unknownTitle": "Nieznany tytu≈Ç",
+    "unknownChannel": "Nieznany kana≈Ç",
     "pageLabel": "Strona {current}/{total}",
-    "eta": "ETA"
+    "eta": "Pozosta≈Çy czas"
   },
   "connection": {
-    "noInternet": "Brak po≥πczenia z internetem. NiektÛre funkcje aplikacji mogπ byÊ niedostÍpne.",
-    "lost": "Utracono po≥πczenie z internetem.",
-    "restored": "Po≥πczenie z internetem przywrÛcone."
+    "noInternet": "Brak po≈ÇƒÖczenia z internetem. Niekt√≥re funkcje aplikacji mogƒÖ byƒá niedostƒôpne.",
+    "lost": "Utracono po≈ÇƒÖczenie z internetem.",
+    "restored": "Przywr√≥cono po≈ÇƒÖczenie z internetem."
   },
   "index": {
     "splash": {
       "starting": "Uruchamianie...",
-      "skipUpdate": "PomiÒ aktualizacjÍ",
+      "skipUpdate": "Pomi≈Ñ aktualizacjƒô",
       "checking": "Sprawdzanie...",
       "checkingForUpdates": "Sprawdzanie aktualizacji...",
       "checkingComponent": "Sprawdzanie {component}...",
       "updatingTo": "Aktualizowanie do {version}",
-      "updateCheckFailed": "Nie uda≥o siÍ sprawdziÊ aktualizacji: {error}",
-      "errorPrefix": "B≥πd: {error}",
-      "updateAvailableAutoDisabled": "DostÍpna aktualizacja (autoaktualizacja wy≥πczona)",
-      "updateInstalledRestarting": "Aktualizacja zainstalowana. Ponowne uruchamianie...",
+      "updateCheckFailed": "B≈ÇƒÖd sprawdzania aktualizacji: {error}",
+      "errorPrefix": "B≈ÇƒÖd: {error}",
+      "updateAvailableAutoDisabled": "Dostƒôpna aktualizacja (automatyczne aktualizacje wy≈ÇƒÖczone)",
+      "updateInstalledRestarting": "Zainstalowano aktualizacjƒô. Ponowne uruchamianie...",
       "downloadingComponent": "Pobieranie {component}...",
       "extracting": "Rozpakowywanie..."
     },
@@ -37,30 +37,30 @@
     }
   },
   "home": {
-    "title": "Co chcesz dziú zrobiÊ?",
+    "title": "Co chcesz dzisiaj zrobiƒá?",
     "actions": {
-      "downloader": "Pobieraj",
-      "converter": "Konwertuj",
-      "compressor": "Kompresuj",
+      "downloader": "Pobieranie",
+      "converter": "Konwersja",
+      "compressor": "Kompresja",
       "settings": "Ustawienia"
     }
   },
   "downloader": {
     "search": {
-      "urlPlaceholder": "Wpisz coú do pobrania...",
+      "urlPlaceholder": "Wpisz co≈õ, aby pobraƒá...",
       "pasteTitle": "Wklej ze schowka",
       "providerLabel": "Szukaj w",
       "resultsTitle": "WYNIKI WYSZUKIWANIA",
-      "resultsCount": "{count} wynikÛw",
+      "resultsCount": "Wyniki: {count}",
       "loading": "Wyszukiwanie...",
-      "empty": "Brak wynikÛw."
+      "empty": "Brak wynik√≥w."
     },
     "meta": {
-      "defaultAuthor": "Nazwa kana≥u"
+      "defaultAuthor": "Nazwa kana≈Çu"
     },
     "path": {
-      "placeholder": "Nie wybrano úcieøki zapisu...",
-      "browseTitle": "Wybierz folder"
+      "placeholder": "Nie wybrano ≈õcie≈ºki zapisu...",
+      "browseTitle": "PrzeglƒÖdaj"
     },
     "mode": {
       "video": "WIDEO",
@@ -68,38 +68,38 @@
     },
     "options": {
       "format": "FORMAT",
-      "quality": "JAKOå∆",
+      "quality": "JAKO≈öƒÜ",
       "thumbnail": "MINIATURA",
-      "preview": "PODGL•D",
+      "preview": "PODGLƒÑD",
       "presets": "PRESETY",
       "other": "INNE",
-      "geoBypass": "Obejúcie geoblokady",
-      "embedMetadata": "Osadü metadane",
+      "geoBypass": "Obej≈õcie geoblokady",
+      "embedMetadata": "Osad≈∫ metadane",
       "muteAudio": "Wycisz audio",
-      "customArgs": "W≥asne argumenty",
-      "customArgsPlaceholder": "Opcjonalne",
+      "customArgs": "W≈Çasne argumenty",
+      "customArgsPlaceholder": "Opcjonalnie",
       "subtitles": "NAPISY",
       "downloadSubtitles": "Pobierz napisy",
-      "embedSubtitles": "Osadü napisy",
-      "downloadLiveChat": "Pobierz czat na øywo",
+      "embedSubtitles": "Osad≈∫ napisy",
+      "downloadLiveChat": "Pobierz czat na ≈ºywo",
       "codeOptional": "Kod (opcjonalnie)"
     },
     "thumbnail": {
       "none": "Brak",
       "saveToFile": "Zapisz do pliku",
-      "embedInVideo": "Osadü w wideo",
+      "embedInVideo": "Osad≈∫ w wideo",
       "alt": "Miniatura",
-      "noPreview": "BRAK PODGL•DU",
-      "saveFailed": "Nie uda≥o siÍ zapisaÊ miniatury. Sprawdü konsolÍ, aby poznaÊ szczegÛ≥y."
+      "noPreview": "BRAK PODGLƒÑDU",
+      "saveFailed": "Nie uda≈Ço siƒô zapisaƒá miniatury. Sprawd≈∫ konsolƒô."
     },
     "actions": {
       "download": "POBIERZ",
       "addToQueue": "DODAJ DO KOLEJKI"
     },
     "errors": {
-      "invalidLink": "Nieprawid≥owy link.",
-      "startPrefix": "B≥πd: {error}",
-      "searchFailed": "Wyszukiwanie nie powiod≥o siÍ."
+      "invalidLink": "Nieprawid≈Çowy link.",
+      "startPrefix": "B≈ÇƒÖd: {error}",
+      "searchFailed": "Wyszukiwanie nie powiod≈Ço siƒô."
     },
     "languages": {
       "global": "Globalny"
@@ -109,36 +109,36 @@
     "path": {
       "placeholder": "Wybierz plik do konwersji..."
     },
-    "dropHint": "lub po prostu upuúÊ plik",
+    "dropHint": "lub po prostu upu≈õƒá plik",
     "actions": {
-      "browse": "Przeglπdaj",
+      "browse": "PrzeglƒÖdaj",
       "convert": "KONWERTUJ",
       "addToQueue": "DODAJ DO KOLEJKI"
     },
     "options": {
-      "compressBy": "KOMPRESUJ PRZEZ",
-      "convertTo": "KONWERTUJ DO",
+      "compressBy": "KOMPRESUJ WED≈ÅUG",
+      "convertTo": "KONWERTUJ NA",
       "title": "OPCJE",
-      "pathPlaceholder": "åcieøka zapisu...",
+      "pathPlaceholder": "≈öcie≈ºka zapisu...",
       "estimatedSize": "Szacowany rozmiar",
-      "videoQuality": "JakoúÊ wideo",
+      "videoQuality": "Jako≈õƒá wideo",
       "videoCodec": "Kodek wideo",
       "videoBitrate": "Bitrate wideo",
       "fps": "FPS",
       "audioCodec": "Kodek audio",
       "audioBitrate": "Bitrate audio",
-      "resolution": "RozdzielczoúÊ",
-      "widthPlaceholder": "SzerokoúÊ",
-      "heightPlaceholder": "WysokoúÊ",
-      "quality": "JakoúÊ"
+      "resolution": "Rozdzielczo≈õƒá",
+      "widthPlaceholder": "Szeroko≈õƒá",
+      "heightPlaceholder": "Wysoko≈õƒá",
+      "quality": "Jako≈õƒá"
     },
     "mode": {
       "video": "WIDEO",
       "audio": "AUDIO"
     },
     "output": {
-      "placeholder": "Nazwa pliku wyjúciowego",
-      "editTitle": "Edytuj nazwÍ pliku wyjúciowego"
+      "placeholder": "Nazwa wyj≈õciowa",
+      "editTitle": "Edytuj nazwƒô wyj≈õciowƒÖ"
     },
     "meta": {
       "locationLabel": "Lokalizacja",
@@ -153,50 +153,50 @@
       }
     },
     "errors": {
-      "unsupportedFormat": "Nieobs≥ugiwany format.",
-      "startPrefix": "B≥πd: {error}",
-      "metadataFailed": "Nie uda≥o siÍ odczytaÊ pliku.",
+      "unsupportedFormat": "Niewspierany format.",
+      "startPrefix": "B≈ÇƒÖd: {error}",
+      "metadataFailed": "Nie uda≈Ço siƒô odczytaƒá pliku.",
       "fileNotFound": "Nie znaleziono pliku.",
       "noPath": "Nie wybrano pliku."
     },
     "drop": {
-      "text": "UpuúÊ plik do konwersji"
+      "text": "Upu≈õƒá plik, aby go przekonwertowaƒá"
     }
   },
   "compressor": {
     "path": {
       "placeholder": "Wybierz plik do kompresji..."
     },
-    "dropHint": "lub po prostu upuúÊ plik",
+    "dropHint": "lub po prostu upu≈õƒá plik",
     "actions": {
-      "browse": "Przeglπdaj",
+      "browse": "PrzeglƒÖdaj",
       "compress": "KOMPRESUJ",
       "addToQueue": "DODAJ DO KOLEJKI"
     },
     "mode": {
       "percent": "PROCENT",
       "size": "ROZMIAR",
-      "quality": "JAKOå∆"
+      "quality": "JAKO≈öƒÜ"
     },
     "size": {
       "placeholder": "Docelowy rozmiar"
     },
     "options": {
-      "compressBy": "KOMPRESUJ PRZEZ",
+      "compressBy": "KOMPRESUJ WED≈ÅUG",
       "title": "OPCJE",
-      "pathPlaceholder": "åcieøka zapisu...",
+      "pathPlaceholder": "≈öcie≈ºka zapisu...",
       "estimatedSize": "Szacowany rozmiar",
       "videoCodec": "Kodek wideo",
       "audioCodec": "Kodek audio"
     },
     "crf": {
-      "bestQuality": "0 - Najlepsza jakoúÊ",
+      "bestQuality": "0 - Najlepsza jako≈õƒá",
       "balance": "26 - Balans",
       "bestCompression": "51 - Najlepsza kompresja"
     },
     "output": {
-      "placeholder": "Nazwa pliku",
-      "editTitle": "Edytuj nazwÍ pliku"
+      "placeholder": "Nazwa wyj≈õciowa",
+      "editTitle": "Edytuj nazwƒô wyj≈õciowƒÖ"
     },
     "meta": {
       "locationLabel": "Lokalizacja",
@@ -209,13 +209,13 @@
       }
     },
     "errors": {
-      "unsupportedFormat": "Nieobs≥ugiwany format.",
-      "metadataFailed": "Nie uda≥o siÍ odczytaÊ pliku.",
+      "unsupportedFormat": "Niewspierany format.",
+      "metadataFailed": "Nie uda≈Ço siƒô odczytaƒá pliku.",
       "fileNotFound": "Nie znaleziono pliku.",
       "noPath": "Nie wybrano pliku."
     },
     "drop": {
-      "text": "UpuúÊ plik do kompresji"
+      "text": "Upu≈õƒá plik, aby go skompresowaƒá"
     }
   },
   "queue": {
@@ -223,81 +223,81 @@
     "actions": {
       "startAll": "Uruchom wszystkie",
       "stopAll": "Zatrzymaj wszystkie",
-      "clearQueue": "WyczyúÊ kolejkÍ"
+      "clearQueue": "Wyczy≈õƒá kolejkƒô"
     },
     "pagination": {
       "previous": "Poprzednia strona",
-      "next": "NastÍpna strona",
+      "next": "Nastƒôpna strona",
       "label": "Strona 1/1"
     },
     "empty": "Kolejka jest pusta.",
     "itemActions": {
-      "start": "Start",
-      "stop": "Stop",
-      "remove": "UsuÒ",
-      "retry": "PonÛw",
-      "openLocation": "OtwÛrz lokalizacjÍ",
+      "start": "Uruchom",
+      "stop": "Zatrzymaj",
+      "remove": "Usu≈Ñ",
+      "retry": "Spr√≥buj ponownie",
+      "openLocation": "Otw√≥rz lokalizacjƒô",
       "console": "Konsola"
     },
     "console": {
       "title": "Konsola - {id}",
-      "empty": "Brak wyjúcia z konsoli."
+      "empty": "Brak danych w konsoli."
     },
     "subtitles": {
       "label": "Napisy",
-      "on": "W£•CZONE",
-      "off": "WY£•CZONE"
+      "on": "W≈Å",
+      "off": "WY≈Å"
     },
     "notifications": {
       "systemTitle": "Pulsar",
-      "downloadCompleted": "Pobieranie zakoÒczone pomyúlnie.",
-      "downloadCompletedSystem": "Pobieranie zakoÒczone.",
-      "queueCompleted": "Elementy z kolejki zakoÒczone pomyúlnie.",
-      "queueCompletedSystem": "Elementy z kolejki zakoÒczone.",
-      "downloadFailed": "Pobieranie nie powiod≥o siÍ.{suffix}",
-      "downloadFailedSystem": "Pobieranie nie powiod≥o siÍ.{suffix}",
-      "errorSuffix": " Kod b≥Ídu: {code}",
-      "downloadStopped": "Pobieranie zatrzymane przez uøytkownika."
+      "downloadCompleted": "Pobieranie zako≈Ñczone pomy≈õlnie.",
+      "downloadCompletedSystem": "Pobieranie zako≈Ñczone.",
+      "queueCompleted": "Elementy kolejki zako≈Ñczone pomy≈õlnie.",
+      "queueCompletedSystem": "Kolejka zako≈Ñczona.",
+      "downloadFailed": "Pobieranie nie powiod≈Ço siƒô.{suffix}",
+      "downloadFailedSystem": "Pobieranie nie powiod≈Ço siƒô.{suffix}",
+      "errorSuffix": " Kod b≈Çƒôdu: {code}",
+      "downloadStopped": "Pobieranie zatrzymane przez u≈ºytkownika."
     }
   },
   "settings": {
     "title": "Ustawienia",
-    "general": "OgÛlne",
-    "appearance": "Wyglπd",
+    "general": "Og√≥lne",
+    "appearance": "WyglƒÖd",
     "theme": "Motyw",
     "themeOptions": {
       "system": "Systemowy",
       "dark": "Ciemny",
       "light": "Jasny"
     },
-    "language": "JÍzyk",
-    "closeBehavior": "Po zamkniÍciu Pulsara:",
+    "language": "Jƒôzyk",
+    "closeBehavior": "Gdy zamykam Pulsara:",
     "closeBehaviorOptions": {
       "hide": "Ukryj",
       "exit": "Zamknij"
     },
     "systemNotifications": "Powiadomienia systemowe",
     "advancedMode": "Tryb zaawansowany",
-    "advancedModeNote": "Pokazuje opcje zaawansowane i dostÍp do konsoli.",
-    "idleAnimation": "Animacja bezczynnoúci",
+    "advancedModeNote": "Pokazuje zaawansowane opcje oraz dostƒôp do konsoli.",
+    "idleAnimation": "Animacja bezczynno≈õci",
     "requirements": "Wymagania",
     "currentVersion": "Aktualna wersja: {version}",
     "autoUpdateApp": "Automatyczne aktualizacje Pulsara",
     "autoUpdateBridge": "Automatyczne aktualizacje Bridge",
     "autoUpdateFfmpeg": "Automatyczne aktualizacje FFmpeg",
-    "ffmpegHwAccel": "Akceleracja sprzÍtowa FFmpeg",
-    "updateCooldown": "OdstÍp miÍdzy sprawdzaniem aktualizacji (minuty)",
+    "ffmpegHwAccel": "Akceleracja sprzƒôtowa FFmpeg",
+    "updateCooldown": "Odstƒôp miƒôdzy sprawdzaniem aktualizacji (minuty)",
     "downloadSettings": "Ustawienia pobierania",
-    "cookiesFromBrowser": "Ciasteczka z przeglπdarki",
-    "cookiesFromBrowserNote": "Pozwala uøywaÊ ciasteczek z przeglπdarki do pobierania ograniczonych filmÛw, do ktÛrych masz dostÍp.",
-    "maximumConcurrentProcesses": "Maksymalna liczba rÛwnoczesnych procesÛw",
-    "maximumSearchResults": "Maksymalna liczba wynikÛw wyszukiwania",
+    "cookiesFromBrowser": "Ciasteczka z przeglƒÖdarki",
+    "cookiesFromBrowserNote": "Pozwala u≈ºywaƒá ciasteczek z przeglƒÖdarki do pobierania ograniczonych film√≥w, do kt√≥rych masz dostƒôp.",
+    "maximumConcurrentProcesses": "Maksymalna liczba r√≥wnoczesnych proces√≥w",
+    "maximumSearchResults": "Maksymalna liczba wynik√≥w wyszukiwania",
     "presetsManager": {
-      "title": "Menedøer presetÛw",
-      "count": "{count} presetÛw",
+      "title": "Mened≈ºer preset√≥w",
+      "count": "{count} preset√≥w",
       "countSingle": "1 preset",
-      "empty": "Brak presetÛw.",
-      "untitled": "Bez tytu≥u",
+      "empty": "Brak preset√≥w.",
+      "untitled": "Bez tytu≈Çu",
       "noSummary": "Brak opisu",
       "types": {
         "downloader": "Pobieraj",
@@ -309,18 +309,18 @@
         "import": "Importuj",
         "edit": "Edytuj",
         "export": "Eksportuj",
-        "delete": "UsuÒ",
+        "delete": "Usu≈Ñ",
         "hide": "Ukryte"
       },
       "notifications": {
-        "unavailable": "Ta akcja nie jest jeszcze dostÍpna.",
-        "importFailed": "Nie uda≥o siÍ zaimportowaÊ presetu.",
-        "exportFailed": "Nie uda≥o siÍ wyeksportowaÊ presetu.",
-        "deleteFailed": "Nie uda≥o siÍ usunπÊ presetu."
+        "unavailable": "Ta akcja nie jest jeszcze dostƒôpna.",
+        "importFailed": "Nie uda≈Ço siƒô zaimportowaƒá presetu.",
+        "exportFailed": "Nie uda≈Ço siƒô wyeksportowaƒá presetu.",
+        "deleteFailed": "Nie uda≈Ço siƒô usunƒÖƒá presetu."
       }
     },
-    "titleConstructor": "Konstruktor tytu≥u",
-    "titleConstructorNote": "Nie kaødy tag jest dostÍpny dla wszystkich mediÛw.",
+    "titleConstructor": "Konstruktor tytu≈Çu",
+    "titleConstructorNote": "Nie ka≈ºdy tag jest dostƒôpny dla wszystkich medi√≥w.",
     "titleConstructorCategories": {
       "video": "Wideo",
       "statsDates": "Statystyki i daty",
@@ -328,18 +328,18 @@
       "music": "Muzyka"
     },
     "titleConstructorTags": {
-      "title": "Tytu≥",
+      "title": "Tytu≈Ç",
       "id": "ID wideo",
-      "resolution": "RozdzielczoúÊ",
+      "resolution": "Rozdzielczo≈õƒá",
       "durationString": "Czas trwania",
       "fps": "FPS",
       "uploadDate": "Data publikacji",
-      "viewCount": "Liczba wyúwietleÒ",
-      "likeCount": "Liczba polubieÒ",
-      "dislikeCount": "Liczba niepolubieÒ",
+      "viewCount": "Liczba wy≈õwietle≈Ñ",
+      "likeCount": "Liczba polubie≈Ñ",
+      "dislikeCount": "Liczba niepolubie≈Ñ",
       "uploader": "Autor",
       "playlist": "Nazwa playlisty",
-      "playlistIndex": "Numer w playliúcie",
+      "playlistIndex": "Numer w playli≈õcie",
       "videoAutonumber": "Numer w kolejce",
       "track": "Nazwa utworu",
       "artist": "Wykonawca",
@@ -347,7 +347,7 @@
       "releaseYear": "Rok wydania"
     },
     "support": "Wsparcie",
-    "supportText": "Okaø wsparcie!",
+    "supportText": "Poka≈º wsparcie!",
     "supportButton": "Wesprzyj projekt"
   },
   "formats": {
@@ -355,16 +355,16 @@
       "description": "Stary format Flash."
     },
     "mkv": {
-      "description": "Uniwersalny kontener, ktÛry mieúci wszystko."
+      "description": "Uniwersalny kontener, kt√≥ry mie≈õci wszystko."
     },
     "mp4": {
       "description": "Najpopularniejszy format wideo."
     },
     "mov": {
-      "description": "Format Apple z obs≥ugπ RGBA."
+      "description": "Format Apple z obs≈ÇugƒÖ RGBA."
     },
     "avi": {
-      "description": "Stary, ale wciπø popularny."
+      "description": "Stary, ale wciƒÖ≈º popularny."
     },
     "wav": {
       "description": "Bezstratny format audio Windows."
@@ -373,7 +373,7 @@
       "description": "Bezstratny format audio Apple."
     },
     "m4a": {
-      "description": "Lepsza jakoúÊ i kompresja niø MP3."
+      "description": "Lepsza jako≈õƒá i kompresja ni≈º MP3."
     },
     "flac": {
       "description": "Bezstratna kompresja audio."
@@ -388,7 +388,7 @@
       "description": "Otwarty, wydajny, stratny format audio."
     },
     "gif": {
-      "description": "Po prostu obraz, ktÛry moøe byÊ animowany."
+      "description": "Po prostu obraz, kt√≥ry mo≈ºe byƒá animowany."
     },
     "webm": {
       "description": "Otwarty format wideo stworzony przez Google dla sieci."
@@ -400,7 +400,7 @@
       "description": "Kontener wideo Ogg."
     },
     "ts": {
-      "description": "StrumieÒ transportowy MPEG."
+      "description": "Strumie≈Ñ transportowy MPEG."
     },
     "vob": {
       "description": "Kontener wideo DVD."
@@ -424,10 +424,10 @@
       "description": "Wysokowydajny kontener obrazu."
     },
     "ico": {
-      "description": "Format obrazÛw ikon."
+      "description": "Format obraz√≥w ikon."
     },
     "jfif": {
-      "description": "Format wymiany plikÛw JPEG."
+      "description": "Format wymiany plik√≥w JPEG."
     },
     "jpg": {
       "description": "Format obrazu JPEG."
@@ -442,7 +442,7 @@
       "description": "Format obrazu Targa."
     },
     "tiff": {
-      "description": "Wysokiej jakoúci format obrazu."
+      "description": "Wysokiej jako≈õci format obrazu."
     },
     "webp": {
       "description": "Nowoczesny format obrazu dla sieci."
@@ -460,7 +460,7 @@
       "description": "Plik skompresowany Gzip."
     },
     "tar": {
-      "description": "Archiwum taúmowe."
+      "description": "Archiwum ta≈õmowe."
     },
     "xz": {
       "description": "Plik skompresowany XZ."
@@ -492,36 +492,36 @@
   },
   "presetCreator": {
     "title": {
-      "new": "UtwÛrz preset",
+      "new": "Utw√≥rz preset",
       "edit": "Edytuj preset"
     },
     "sections": {
-      "basic": "SzczegÛ≥y presetu",
+      "basic": "Szczeg√≥≈Çy presetu",
       "type": "Typ presetu",
       "format": "Format",
       "compression": "Kompresja",
-      "misc": "RÛøne",
+      "misc": "R√≥≈ºne",
       "videoAudio": "Wideo i audio",
       "video": "Opcje wideo",
       "audio": "Opcje audio"
     },
     "fields": {
-      "title": "Tytu≥",
+      "title": "Tytu≈Ç",
       "summary": "Opis",
       "icon": "Ikona",
-      "path": "åcieøka zapisu",
-      "videoQuality": "JakoúÊ wideo",
+      "path": "≈öcie≈ºka zapisu",
+      "videoQuality": "Jako≈õƒá wideo",
       "videoCodec": "Kodek wideo",
       "videoBitrate": "Bitrate wideo",
       "videoFps": "FPS",
-      "audioSampleRate": "CzÍstotliwoúÊ prÛbkowania audio",
+      "audioSampleRate": "Czƒôstotliwo≈õƒá pr√≥bkowania audio",
       "audioCodec": "Kodek audio",
       "audioBitrate": "Bitrate audio",
       "crf": "CRF"
     },
     "placeholders": {
-      "title": "Tytu≥ presetu",
-      "summary": "KrÛtki opis",
+      "title": "Tytu≈Ç presetu",
+      "summary": "Kr√≥tki opis",
       "format": "Typ formatu",
       "path": "Opcjonalnie",
       "subtitlesCode": "en",
@@ -533,21 +533,21 @@
       "compressor": "Kompresuj"
     },
     "icon": {
-      "title": "UpuúÊ ikonÍ tutaj",
+      "title": "Upu≈õƒá ikonƒô tutaj",
       "hint": "Proporcje 1:1, PNG/JPG/SVG",
-      "browse": "Przeglπdaj"
+      "browse": "PrzeglƒÖdaj"
     },
     "toggles": {
       "downloadSubtitles": "Pobierz napisy",
-      "embedSubtitles": "Osadü napisy",
+      "embedSubtitles": "Osad≈∫ napisy",
       "subtitlesCode": "Kod (opcjonalnie)",
-      "embedMetadata": "Osadü metadane",
-      "embedThumbnail": "Osadü miniaturÍ",
-      "geoBypass": "Obejúcie geoblokady",
+      "embedMetadata": "Osad≈∫ metadane",
+      "embedThumbnail": "Osad≈∫ miniaturƒô",
+      "geoBypass": "Obej≈õcie geoblokady",
       "muteAudio": "Wycisz audio"
     },
     "actions": {
-      "browse": "Przeglπdaj",
+      "browse": "PrzeglƒÖdaj",
       "save": "Zapisz preset",
       "export": "Eksportuj preset",
       "close": "Zamknij"
@@ -556,12 +556,12 @@
       "auto": "Auto"
     },
     "notifications": {
-      "invalidIcon": "Nieprawid≥owy plik ikony.",
-      "validation": "Tytu≥ i format sπ wymagane.",
+      "invalidIcon": "Nieprawid≈Çowy plik ikony.",
+      "validation": "Tytu≈Ç i format sƒÖ wymagane.",
       "saved": "Preset zapisany.",
-      "saveFailed": "Nie uda≥o siÍ zapisaÊ presetu.",
-      "exportFailed": "Nie uda≥o siÍ wyeksportowaÊ presetu.",
-      "loadFailed": "Nie uda≥o siÍ wczytaÊ presetu."
+      "saveFailed": "Nie uda≈Ço siƒô zapisaƒá presetu.",
+      "exportFailed": "Nie uda≈Ço siƒô wyeksportowaƒá presetu.",
+      "loadFailed": "Nie uda≈Ço siƒô wczytaƒá presetu."
     }
   }
 }

@@ -604,7 +604,10 @@ export const Compressor: React.FC = () => {
               disabled={isConfirmLoading}
             >
               {isConfirmLoading ? (
-                <div className="bar-spinner" />
+                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
+                  <path d="M12 3a9 9 0 0 1 9 9" />
+                </svg>
               ) : (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
