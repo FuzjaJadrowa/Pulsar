@@ -1,0 +1,68 @@
+name: Build Linux
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies (Node)
+        run: npm install
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          PULSAR_DIST: deb
+
+      - name: Rename Artifacts and Extract Signature (Linux)
+        shell: bash
+        run: |
+          ver="${{ env.VERSION }}"
+          os="Linux"
+
+          cp src-tauri/target/release/bundle/deb/*.deb "Pulsar-$ver-$os.deb"
+          echo "ASSET_DEB=Pulsar-$ver-$os.deb" >> $GITHUB_ENV
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ github.ref_name }}
+          path: |
+            ${{ env.ASSET_DEB }}
+
+      - name: Upload Release Assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.ASSET_DEB }}
