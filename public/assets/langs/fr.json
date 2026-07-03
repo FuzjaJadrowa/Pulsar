@@ -1,0 +1,567 @@
+{
+  "common": {
+    "error": "Erreur",
+    "success": "Succès",
+    "info": "Info",
+    "unknownTitle": "Titre inconnu",
+    "unknownChannel": "Chaîne inconnue",
+    "pageLabel": "Page {current}/{total}",
+    "eta": "Temps restant"
+  },
+  "connection": {
+    "noInternet": "Pas de connexion internet. Certaines fonctionnalités de l'application peuvent être indisponibles.",
+    "lost": "Connexion internet perdue.",
+    "restored": "Connexion internet rétablie."
+  },
+  "index": {
+    "splash": {
+      "starting": "Démarrage...",
+      "skipUpdate": "Ignorer la mise à jour",
+      "checking": "Vérification...",
+      "checkingForUpdates": "Vérification des mises à jour...",
+      "checkingComponent": "Vérification de {component}...",
+      "updatingTo": "Mise à jour vers la version {version}",
+      "updateCheckFailed": "Échec de la vérification de la mise à jour : {error}",
+      "errorPrefix": "Erreur : {error}",
+      "updateAvailableAutoDisabled": "Mise à jour disponible (mise à jour auto désactivée)",
+      "updateInstalledRestarting": "Mise à jour installée. Redémarrage...",
+      "downloadingComponent": "Téléchargement de {component}...",
+      "extracting": "Extraction..."
+    },
+    "nav": {
+      "download": "Télécharger",
+      "convert": "Convertir",
+      "compress": "Compresser",
+      "settings": "Paramètres",
+      "queue": "File d'attente"
+    }
+  },
+  "home": {
+    "title": "Que voulez-vous faire aujourd'hui ?",
+    "actions": {
+      "downloader": "Télécharger",
+      "converter": "Convertir",
+      "compressor": "Compresser",
+      "settings": "Paramètres"
+    }
+  },
+  "downloader": {
+    "search": {
+      "urlPlaceholder": "Saisissez quelque chose à télécharger...",
+      "pasteTitle": "Coller depuis le presse-papiers",
+      "providerLabel": "Rechercher sur",
+      "resultsTitle": "RÉSULTATS DE RECHERCHE",
+      "resultsCount": "{count} résultats",
+      "loading": "Recherche en cours...",
+      "empty": "Aucun résultat."
+    },
+    "meta": {
+      "defaultAuthor": "Nom de la chaîne"
+    },
+    "path": {
+      "placeholder": "Aucun dossier de sauvegarde sélectionné...",
+      "browseTitle": "Parcourir"
+    },
+    "mode": {
+      "video": "VIDÉO",
+      "audio": "AUDIO"
+    },
+    "options": {
+      "format": "FORMAT",
+      "quality": "QUALITÉ",
+      "thumbnail": "MINIATURE",
+      "preview": "APERÇU",
+      "presets": "PRÉRÉGLAGES",
+      "other": "AUTRE",
+      "geoBypass": "Contournement géo",
+      "embedMetadata": "Intégrer les métadonnées",
+      "muteAudio": "Couper le son",
+      "customArgs": "Arguments personnalisés",
+      "customArgsPlaceholder": "Optionnel",
+      "subtitles": "SOUS-TITRES",
+      "downloadSubtitles": "Télécharger les sous-titres",
+      "embedSubtitles": "Intégrer les sous-titres",
+      "downloadLiveChat": "Télécharger le chat en direct",
+      "codeOptional": "Code (optionnel)"
+    },
+    "thumbnail": {
+      "none": "Aucune",
+      "saveToFile": "Enregistrer dans un fichier",
+      "embedInVideo": "Intégrer dans la vidéo",
+      "alt": "Miniature",
+      "noPreview": "PAS D'APERÇU",
+      "saveFailed": "Échec de l'enregistrement de la miniature. Vérifiez la console pour plus de détails."
+    },
+    "actions": {
+      "download": "TÉLÉCHARGER",
+      "addToQueue": "AJOUTER À LA FILE"
+    },
+    "errors": {
+      "invalidLink": "Lien invalide.",
+      "startPrefix": "Erreur : {error}",
+      "searchFailed": "Échec de la recherche."
+    },
+    "languages": {
+      "global": "Global"
+    }
+  },
+  "converter": {
+    "path": {
+      "placeholder": "Sélectionnez un fichier à convertir..."
+    },
+    "dropHint": "ou glissez-déposez simplement un fichier",
+    "actions": {
+      "browse": "Parcourir",
+      "convert": "CONVERTIR",
+      "addToQueue": "AJOUTER À LA FILE"
+    },
+    "options": {
+      "compressBy": "COMPRESSER PAR",
+      "convertTo": "CONVERTIR EN",
+      "title": "OPTIONS",
+      "pathPlaceholder": "Dossier de sauvegarde...",
+      "estimatedSize": "Taille estimée",
+      "videoQuality": "Qualité vidéo",
+      "videoCodec": "Codec vidéo",
+      "videoBitrate": "Débit binaire vidéo",
+      "fps": "FPS",
+      "audioCodec": "Codec audio",
+      "audioBitrate": "Débit binaire audio",
+      "resolution": "Résolution",
+      "widthPlaceholder": "Largeur",
+      "heightPlaceholder": "Hauteur",
+      "quality": "Qualité"
+    },
+    "mode": {
+      "video": "VIDÉO",
+      "audio": "AUDIO"
+    },
+    "output": {
+      "placeholder": "Nom du fichier de sortie",
+      "editTitle": "Modifier le nom de sortie"
+    },
+    "meta": {
+      "locationLabel": "Emplacement",
+      "sizeLabel": "Taille",
+      "durationLabel": "Durée",
+      "category": {
+        "video": "Vidéo",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Police"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Format non supporté.",
+      "startPrefix": "Erreur : {error}",
+      "metadataFailed": "Échec de la lecture du fichier.",
+      "fileNotFound": "Fichier introuvable.",
+      "noPath": "Aucun fichier sélectionné."
+    },
+    "drop": {
+      "text": "Déposez le fichier à convertir"
+    }
+  },
+  "compressor": {
+    "path": {
+      "placeholder": "Sélectionnez un fichier à compresser..."
+    },
+    "dropHint": "ou glissez-déposez simplement un fichier",
+    "actions": {
+      "browse": "Parcourir",
+      "compress": "COMPRESSER",
+      "addToQueue": "AJOUTER À LA FILE"
+    },
+    "mode": {
+      "percent": "POURCENTAGE",
+      "size": "TAILLE",
+      "quality": "QUALITÉ"
+    },
+    "size": {
+      "placeholder": "Taille cible"
+    },
+    "options": {
+      "compressBy": "COMPRESSER PAR",
+      "title": "OPTIONS",
+      "pathPlaceholder": "Dossier de sauvegarde...",
+      "estimatedSize": "Taille estimée",
+      "videoCodec": "Codec vidéo",
+      "audioCodec": "Codec audio"
+    },
+    "crf": {
+      "bestQuality": "0 - Meilleure qualité",
+      "balance": "26 - Équilibré",
+      "bestCompression": "51 - Meilleure compression"
+    },
+    "output": {
+      "placeholder": "Nom du fichier de sortie",
+      "editTitle": "Modifier le nom de sortie"
+    },
+    "meta": {
+      "locationLabel": "Emplacement",
+      "sizeLabel": "Taille",
+      "durationLabel": "Durée",
+      "category": {
+        "video": "Vidéo",
+        "audio": "Audio",
+        "image": "Image"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Format non supporté.",
+      "metadataFailed": "Échec de la lecture du fichier.",
+      "fileNotFound": "Fichier introuvable.",
+      "noPath": "Aucun fichier sélectionné."
+    },
+    "drop": {
+      "text": "Déposez le fichier à compresser"
+    }
+  },
+  "queue": {
+    "title": "File d'attente",
+    "actions": {
+      "startAll": "Tout lancer",
+      "stopAll": "Tout arrêter",
+      "clearQueue": "Vider la file"
+    },
+    "pagination": {
+      "previous": "Page précédente",
+      "next": "Page suivante",
+      "label": "Page 1/1"
+    },
+    "empty": "La file d'attente est vide.",
+    "itemActions": {
+      "start": "Lancer",
+      "stop": "Arrêter",
+      "remove": "Retirer",
+      "retry": "Réessayer",
+      "openLocation": "Ouvrir l'emplacement",
+      "console": "Console"
+    },
+    "console": {
+      "title": "Console - {id}",
+      "empty": "Aucune sortie console pour le moment."
+    },
+    "subtitles": {
+      "label": "Sous-titres",
+      "on": "ACTIFS",
+      "off": "INACTIFS"
+    },
+    "notifications": {
+      "systemTitle": "Pulsar",
+      "downloadCompleted": "Téléchargement terminé avec succès.",
+      "downloadCompletedSystem": "Téléchargement terminé.",
+      "queueCompleted": "Éléments de la file d'attente terminés avec succès.",
+      "queueCompletedSystem": "Éléments de la file d'attente terminés.",
+      "downloadFailed": "Échec du téléchargement.{suffix}",
+      "downloadFailedSystem": "Échec du téléchargement.{suffix}",
+      "errorSuffix": " Code d'erreur : {code}",
+      "downloadStopped": "Téléchargement arrêté par l'utilisateur."
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "general": "Général",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "themeOptions": {
+      "system": "Système",
+      "dark": "Sombre",
+      "light": "Clair"
+    },
+    "language": "Langue",
+    "closeBehavior": "Quand je ferme Pulsar :",
+    "closeBehaviorOptions": {
+      "hide": "Masquer",
+      "exit": "Quitter"
+    },
+    "systemNotifications": "Notifications système",
+    "advancedMode": "Mode avancé",
+    "advancedModeNote": "Affiche les options avancées et l'accès à la console.",
+    "idleAnimation": "Animation d'inactivité",
+    "requirements": "Prérequis",
+    "currentVersion": "Version actuelle : {version}",
+    "autoUpdateApp": "Mise à jour auto de Pulsar",
+    "autoUpdateBridge": "Mise à jour auto de Bridge",
+    "autoUpdateFfmpeg": "Mise à jour auto de FFmpeg",
+    "ffmpegHwAccel": "Accélération matérielle FFmpeg",
+    "updateCooldown": "Délai de vérification des mises à jour (minutes)",
+    "downloadSettings": "Paramètres de téléchargement",
+    "cookiesFromBrowser": "Cookies du navigateur",
+    "cookiesFromBrowserNote": "Permet d'utiliser les cookies de votre navigateur pour télécharger des vidéos restreintes auxquelles vous avez accès.",
+    "maximumConcurrentProcesses": "Nombre maximum de processus simultanés",
+    "maximumSearchResults": "Nombre maximum de résultats de recherche",
+    "presetsManager": {
+      "title": "Gestionnaire de préréglages",
+      "count": "{count} préréglages",
+      "countSingle": "1 préréglage",
+      "empty": "Aucun préréglage pour le moment.",
+      "untitled": "Sans titre",
+      "noSummary": "Aucun résumé",
+      "types": {
+        "downloader": "Téléchargeur",
+        "converter": "Convertisseur",
+        "compressor": "Compresseur"
+      },
+      "actions": {
+        "add": "Nouveau préréglage",
+        "import": "Importer",
+        "edit": "Modifier",
+        "export": "Exporter",
+        "delete": "Supprimer",
+        "hide": "Masqué"
+      },
+      "notifications": {
+        "unavailable": "Cette action n'est pas encore disponible.",
+        "importFailed": "Échec de l'importation du préréglage.",
+        "exportFailed": "Échec de l'exportation du préréglage.",
+        "deleteFailed": "Échec de la suppression du préréglage."
+      }
+    },
+    "titleConstructor": "Constructeur de titre",
+    "titleConstructorNote": "Toutes les balises ne sont pas disponibles pour tous les médias.",
+    "titleConstructorCategories": {
+      "video": "Vidéo",
+      "statsDates": "Stats & Dates",
+      "playlist": "Playlist",
+      "music": "Musique"
+    },
+    "titleConstructorTags": {
+      "title": "Titre",
+      "id": "ID de la vidéo",
+      "resolution": "Résolution",
+      "durationString": "Durée",
+      "fps": "FPS",
+      "uploadDate": "Date d'envoi",
+      "viewCount": "Nombre de vues",
+      "likeCount": "Nombre de j'aime",
+      "dislikeCount": "Nombre de je n'aime pas",
+      "uploader": "Auteur du transfert",
+      "playlist": "Nom de la playlist",
+      "playlistIndex": "Index dans la playlist",
+      "videoAutonumber": "Numéro dans la file",
+      "track": "Nom de la piste",
+      "artist": "Artiste",
+      "album": "Album",
+      "releaseYear": "Année de sortie"
+    },
+    "support": "Soutien",
+    "supportText": "Affichez votre soutien !",
+    "supportButton": "Soutenir le projet"
+  },
+  "formats": {
+    "flv": {
+      "description": "Format Flash hérité."
+    },
+    "mkv": {
+      "description": "Conteneur universel qui s'adapte à tout."
+    },
+    "mp4": {
+      "description": "Format vidéo le plus populaire."
+    },
+    "mov": {
+      "description": "Format Apple avec support RGBA."
+    },
+    "avi": {
+      "description": "Ancien mais toujours populaire."
+    },
+    "wav": {
+      "description": "Format audio Windows sans perte."
+    },
+    "aiff": {
+      "description": "Format audio Apple sans perte."
+    },
+    "m4a": {
+      "description": "Meilleure qualité et compression que le MP3."
+    },
+    "flac": {
+      "description": "Compression audio sans perte."
+    },
+    "mp3": {
+      "description": "Format audio le plus populaire."
+    },
+    "ogg": {
+      "description": "Conteneur audio ouvert."
+    },
+    "opus": {
+      "description": "Format audio ouvert, efficace avec perte."
+    },
+    "gif": {
+      "description": "Simple image pouvant être animée."
+    },
+    "webm": {
+      "description": "Format vidéo ouvert créé par Google pour le web."
+    },
+    "m4v": {
+      "description": "Format vidéo MPEG-4 d'Apple."
+    },
+    "ogv": {
+      "description": "Conteneur vidéo Ogg."
+    },
+    "ts": {
+      "description": "Flux de transport MPEG."
+    },
+    "vob": {
+      "description": "Conteneur vidéo DVD."
+    },
+    "wmv": {
+      "description": "Windows Media Video."
+    },
+    "aac": {
+      "description": "Advanced Audio Coding."
+    },
+    "wma": {
+      "description": "Windows Media Audio."
+    },
+    "avif": {
+      "description": "Format d'image à haute efficacité."
+    },
+    "bmp": {
+      "description": "Image bitmap non compressée."
+    },
+    "heic": {
+      "description": "Conteneur d'image à haute efficacité."
+    },
+    "ico": {
+      "description": "Format d'image d'icône."
+    },
+    "jfif": {
+      "description": "JPEG File Interchange Format."
+    },
+    "jpg": {
+      "description": "Format d'image JPEG."
+    },
+    "png": {
+      "description": "Format d'image sans perte."
+    },
+    "svg": {
+      "description": "Graphismes vectoriels adaptables."
+    },
+    "tga": {
+      "description": "Format d'image Targa."
+    },
+    "tiff": {
+      "description": "Format d'image de haute qualité."
+    },
+    "webp": {
+      "description": "Format d'image web moderne."
+    },
+    "icns": {
+      "description": "Format d'icône Apple."
+    },
+    "7z": {
+      "description": "Archive 7-Zip."
+    },
+    "bz2": {
+      "description": "Fichier compressé Bzip2."
+    },
+    "gz": {
+      "description": "Fichier compressé Gzip."
+    },
+    "tar": {
+      "description": "Archive Tape (tar)."
+    },
+    "xz": {
+      "description": "Fichier compressé XZ."
+    },
+    "zip": {
+      "description": "Archive Zip."
+    },
+    ".tar.gz": {
+      "description": "Fichier Tarball compressé avec gzip."
+    },
+    ".tar.xz": {
+      "description": "Fichier Tarball compressé avec xz."
+    },
+    "tar.bz2": {
+      "description": "Fichier Tarball compressé avec bzip2."
+    },
+    "otf": {
+      "description": "Police OpenType."
+    },
+    "ttf": {
+      "description": "Police TrueType."
+    },
+    "woff": {
+      "description": "Web Open Font Format."
+    },
+    "woff2": {
+      "description": "Police web compressée."
+    }
+  },
+  "presetCreator": {
+    "title": {
+      "new": "Créer un préréglage",
+      "edit": "Modifier le préréglage"
+    },
+    "sections": {
+      "basic": "Détails du préréglage",
+      "type": "Type de préréglage",
+      "format": "Format",
+      "compression": "Compression",
+      "misc": "Divers",
+      "videoAudio": "Vidéo & Audio",
+      "video": "Options vidéo",
+      "audio": "Options audio"
+    },
+    "fields": {
+      "title": "Titre",
+      "summary": "Résumé",
+      "icon": "Icône",
+      "path": "Dossier de sauvegarde",
+      "videoQuality": "Qualité vidéo",
+      "videoCodec": "Codec vidéo",
+      "videoBitrate": "Débit binaire vidéo",
+      "videoFps": "FPS",
+      "audioSampleRate": "Taux d'échantillonnage audio",
+      "audioCodec": "Codec audio",
+      "audioBitrate": "Débit binaire audio",
+      "crf": "CRF"
+    },
+    "placeholders": {
+      "title": "Titre du préréglage",
+      "summary": "Brève description",
+      "format": "Saisir le format",
+      "path": "Optionnel",
+      "subtitlesCode": "fr",
+      "bitrate": "Auto"
+    },
+    "types": {
+      "downloader": "Téléchargeur",
+      "converter": "Convertisseur",
+      "compressor": "Compresseur"
+    },
+    "icon": {
+      "title": "Déposez l'icône ici",
+      "hint": "Format 1:1, PNG/JPG/SVG",
+      "browse": "Parcourir"
+    },
+    "toggles": {
+      "downloadSubtitles": "Télécharger les sous-titres",
+      "embedSubtitles": "Intégrer les sous-titres",
+      "subtitlesCode": "Code (optionnel)",
+      "embedMetadata": "Intégrer les métadonnées",
+      "embedThumbnail": "Intégrer la miniature",
+      "geoBypass": "Contournement géo",
+      "muteAudio": "Couper le son"
+    },
+    "actions": {
+      "browse": "Parcourir",
+      "save": "Enregistrer le préréglage",
+      "export": "Exporter le préréglage",
+      "close": "Fermer"
+    },
+    "select": {
+      "auto": "Auto"
+    },
+    "notifications": {
+      "invalidIcon": "Fichier d'icône invalide.",
+      "validation": "Le titre et le format sont requis.",
+      "saved": "Préréglage enregistré.",
+      "saveFailed": "Échec de l'enregistrement du préréglage.",
+      "exportFailed": "Échec de l'exportation du préréglage.",
+      "loadFailed": "Échec du chargement du préréglage."
+    }
+  }
+}

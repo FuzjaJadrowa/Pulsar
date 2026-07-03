@@ -199,6 +199,7 @@ export const Settings: React.FC = () => {
 
   const languages = [
     { value: "en", label: "English" },
+    { value: "fr", label: "Français" },
     { value: "pl", label: "Polski" },
   ];
 

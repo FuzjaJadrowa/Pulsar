@@ -53,8 +53,26 @@ async function loadDictionary(locale: string): Promise<Dictionary> {
   return state.dictionary;
 }
 
+function normalizeLocale(locale: string = "en"): string {
+  const normalized = String(locale || "en").trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    en: "en",
+    english: "en",
+    anglais: "en",
+    fr: "fr",
+    french: "fr",
+    francais: "fr",
+    français: "fr",
+    pl: "pl",
+    polish: "pl",
+    polski: "pl",
+  };
+
+  return aliases[normalized] || "en";
+}
+
 export async function initI18n(locale: string = "en"): Promise<Dictionary> {
-  const normalized = locale === "pl" || locale === "polish" || locale === "polski" ? "pl" : "en";
+  const normalized = normalizeLocale(locale);
   
   if (state.locale === normalized && Object.keys(state.dictionary).length > 0) {
     return state.dictionary;
