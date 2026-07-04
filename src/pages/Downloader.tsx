@@ -13,7 +13,11 @@ const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
 
 const DEFAULT_ICON = `<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
 
-export const Downloader: React.FC = () => {
+interface DownloaderProps {
+  active?: boolean;
+}
+
+export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
@@ -24,6 +28,7 @@ export const Downloader: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchExiting, setSearchExiting] = useState(false);
   const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
   const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
 
@@ -69,6 +74,8 @@ export const Downloader: React.FC = () => {
   const downloaderPresets = presets.filter(p => p.preset_type === "downloader" && !p.hidden);
 
   useEffect(() => {
+    if (!active) return;
+
     const body = document.body;
     if (!body) return;
 
@@ -76,27 +83,27 @@ export const Downloader: React.FC = () => {
 
     body.classList.toggle("search-mode", isSearchMode);
     body.classList.toggle("audio-only-source", isAudioOnlySource);
-    body.classList.toggle("mode-video", !isZen && mode === "video");
-    body.classList.toggle("mode-audio", !isZen && mode === "audio");
+    body.classList.toggle("mode-video", isDashboardVisible && mode === "video");
+    body.classList.toggle("mode-audio", isDashboardVisible && mode === "audio");
     body.classList.toggle("advanced-mode", !!config?.advanced_mode);
     body.classList.toggle("zen-mode", isZen);
 
     return () => {
       body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio", "zen-mode");
     };
-  }, [isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
+  }, [active, isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
 
   useEffect(() => {
     // To delete
     (window as any).downloaderUi = {
       startMetadataForUrl: async (targetUrl: string) => {
         setUrl(targetUrl);
-        const taskId = generateTaskId();
-        currentMetadataTaskIdRef.current = taskId;
+        const generatedId = generateTaskId();
         setPendingMetadataUrl(targetUrl);
         setIsAnalyzing(true);
         try {
-          await invoke("fetch_metadata_downloader", { url: targetUrl, client_task_id: taskId, clientTaskId: taskId });
+          const taskId = await invoke<string>("fetch_metadata_downloader", { url: targetUrl, clientTaskId: generatedId });
+          currentMetadataTaskIdRef.current = taskId;
           return taskId;
         } catch (error) {
           console.error("Metadata fetch failed:", error);
@@ -237,10 +244,10 @@ export const Downloader: React.FC = () => {
       setSearchResults([]);
       applySourceConstraints(raw);
       setIsAnalyzing(true);
-      const taskId = generateTaskId();
-      currentMetadataTaskIdRef.current = taskId;
+      const generatedId = generateTaskId();
       try {
-        await invoke("fetch_metadata_downloader", { url: raw, client_task_id: taskId, clientTaskId: taskId });
+        const taskId = await invoke<string>("fetch_metadata_downloader", { url: raw, clientTaskId: generatedId });
+        currentMetadataTaskIdRef.current = taskId;
       } catch (error) {
         console.error("Fetch metadata failed:", error);
         setIsAnalyzing(false);
@@ -254,10 +261,9 @@ export const Downloader: React.FC = () => {
       setSearchResults([]);
       const maxResults = config?.maximum_search_results ?? 10;
       const prefix = `${provider}${maxResults}`;
-      const taskId = generateTaskId();
-      currentSearchIdRef.current = taskId;
       try {
-        await invoke("search", { query: raw, prefix });
+        const taskId = await invoke<string>("search", { query: raw, prefix });
+        currentSearchIdRef.current = taskId;
       } catch (error) {
         console.error("Search invocation failed:", error);
         setIsSearching(false);
@@ -372,9 +378,18 @@ export const Downloader: React.FC = () => {
     setSelectedFormat(null);
     setSelectedQuality(null);
 
-    setTimeout(() => {
-      setIsDashboardVisible(true);
-    }, 150);
+    if (isSearchMode) {
+      setSearchExiting(true);
+      setTimeout(() => {
+        setIsSearchMode(false);
+        setSearchExiting(false);
+        setIsDashboardVisible(true);
+      }, 350);
+    } else {
+      setTimeout(() => {
+        setIsDashboardVisible(true);
+      }, 150);
+    }
   };
 
   const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>(videoQualities);
@@ -565,10 +580,10 @@ export const Downloader: React.FC = () => {
     if (!targetUrl) return;
     setPendingMetadataUrl(targetUrl);
     setIsAnalyzing(true);
-    const taskId = generateTaskId();
-    currentMetadataTaskIdRef.current = taskId;
+    const generatedId = generateTaskId();
     try {
-      await invoke("fetch_metadata_downloader", { url: targetUrl, client_task_id: taskId, clientTaskId: taskId });
+      const taskId = await invoke<string>("fetch_metadata_downloader", { url: targetUrl, clientTaskId: generatedId });
+      currentMetadataTaskIdRef.current = taskId;
     } catch (error) {
       console.error("Fetch metadata from search failed:", error);
       setIsAnalyzing(false);
@@ -1314,7 +1329,7 @@ export const Downloader: React.FC = () => {
         </div>
 
         {/* Search Results Section */}
-        <div id="search-results-section" className={`search-results-section ${isSearchMode ? "" : "hidden"}`}>
+        <div id="search-results-section" className={`search-results-section ${isSearchMode ? "" : "hidden"} ${searchExiting ? "exiting" : ""}`}>
           <div className="search-results-header fade-in">
             <h3 id="search-results-title">{t("downloader.search.resultsTitle", "SEARCH RESULTS")}</h3>
             <span id="search-results-count">

@@ -16,7 +16,11 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const DEFAULT_ICON = `<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
 
-export const Converter: React.FC = () => {
+interface ConverterProps {
+  active?: boolean;
+}
+
+export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
@@ -59,6 +63,8 @@ export const Converter: React.FC = () => {
   const converterPresets = presets.filter(p => p.preset_type === "converter" && !p.hidden);
 
   useEffect(() => {
+    if (!active) return;
+
     const body = document.body;
     if (!body) return;
 
@@ -69,7 +75,7 @@ export const Converter: React.FC = () => {
     return () => {
       body.classList.remove("converter-active", "zen-mode");
     };
-  }, [isDashboardVisible, config?.advanced_mode]);
+  }, [active, isDashboardVisible, config?.advanced_mode]);
 
   useEffect(() => {
     // Load formats definition
@@ -228,14 +234,13 @@ export const Converter: React.FC = () => {
   const triggerConfirmPath = async (targetPath: string) => {
     if (isConfirmLoading) return;
     setIsConfirmLoading(true);
-    const taskId = generateTaskId();
-    currentMetadataTaskIdRef.current = taskId;
+    const generatedId = generateTaskId();
     try {
-      await invoke("fetch_metadata_converter", {
+      const taskId = await invoke<string>("fetch_metadata_converter", {
         path: targetPath,
-        client_task_id: taskId,
-        clientTaskId: taskId
+        clientTaskId: generatedId
       });
+      currentMetadataTaskIdRef.current = taskId;
     } catch (error) {
       setIsConfirmLoading(false);
       currentMetadataTaskIdRef.current = null;

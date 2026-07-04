@@ -115,15 +115,16 @@ export const AppShell: React.FC = () => {
   const isQueueBtnVisible = items.length > 0;
 
   const renderPageContent = (pageName: string) => {
+    const isActive = pageName === currentPage;
     switch (pageName) {
       case "home":
         return <Home onNavigate={navigateTo} />;
       case "downloader":
-        return <Downloader />;
+        return <Downloader active={isActive} />;
       case "converter":
-        return <Converter />;
+        return <Converter active={isActive} />;
       case "compressor":
-        return <Compressor />;
+        return <Compressor active={isActive} />;
       case "settings":
         return <Settings />;
       default:

@@ -49,6 +49,24 @@ body.theme-light select {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.select-head:hover {
+    background-color: #2a2a2a;
+    border-color: #555;
+}
+.select-head.open {
+    border-color: var(--accent-color);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.select-head.open.open-up {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 .select-head:after {
     content: "";
@@ -62,26 +80,52 @@ body.theme-light select {
 }
 .select-head.open:after {
     transform: translateY(-50%) rotate(180deg);
+    border-top-color: var(--accent-color);
 }
 
 .select-list {
     position: absolute;
     top: 100%;
     left: 0;
-    right: 0;
-    background: #1e1e24;
+    background: #252525;
     border: 1px solid #3d3d3d;
-    border-radius: 8px;
-    margin-top: 5px;
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
     padding: 5px 0;
-    z-index: 1000;
-    max-height: 240px;
+    z-index: 1200;
+    max-height: 0;
+    opacity: 0;
     overflow-y: auto;
-    display: none;
+    pointer-events: none;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    transform: translateY(-10px);
+    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    min-width: 100%;
+    width: max-content;
+    box-sizing: border-box;
 }
 .select-list.open {
-    display: block;
+    max-height: var(--select-max-height, 240px);
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+.select-list.open-up {
+    top: auto;
+    bottom: 100%;
+    border-top: 1px solid #3d3d3d;
+    border-bottom: 1px solid #3d3d3d;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    transform: translateY(10px);
+}
+.select-list.open.open-up {
+    transform: translateY(0);
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
 }
 
 .select-item {

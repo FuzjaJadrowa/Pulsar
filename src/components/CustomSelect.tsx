@@ -39,8 +39,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     if (!isOpen && headRef.current) {
       const headRect = headRef.current.getBoundingClientRect();
       const estimatedHeight = Math.min(options.length * 40, 240);
-      const spaceAbove = headRect.top;
-      const spaceBelow = window.innerHeight - headRect.bottom;
+      
+      let spaceAbove = headRect.top;
+      let spaceBelow = window.innerHeight - headRect.bottom;
+      
+      const modalBody = wrapperRef.current?.closest(".preset-modal-body");
+      if (modalBody) {
+        const modalRect = modalBody.getBoundingClientRect();
+        spaceAbove = headRect.top - modalRect.top;
+        spaceBelow = modalRect.bottom - headRect.bottom;
+      }
+
       const shouldOpenUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
       setOpenUp(shouldOpenUp);
       setIsAnimatingOpenUp(shouldOpenUp);

@@ -79,7 +79,11 @@ const normalizeFormatKey = (value: string) => {
   return raw;
 };
 
-export const Compressor: React.FC = () => {
+interface CompressorProps {
+  active?: boolean;
+}
+
+export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets, loadPreset } = usePresets();
@@ -132,6 +136,8 @@ export const Compressor: React.FC = () => {
   }, [selectedMode]);
 
   useEffect(() => {
+    if (!active) return;
+
     // Apply body classes
     const body = document.body;
     if (!body) return;
@@ -143,7 +149,7 @@ export const Compressor: React.FC = () => {
     return () => {
       body.classList.remove("compressor-active", "zen-mode");
     };
-  }, [isDashboardVisible, config?.advanced_mode]);
+  }, [active, isDashboardVisible, config?.advanced_mode]);
 
   useEffect(() => {
     // Load formats definition
@@ -305,14 +311,13 @@ export const Compressor: React.FC = () => {
   const triggerConfirmPath = async (targetPath: string) => {
     if (isConfirmLoading) return;
     setIsConfirmLoading(true);
-    const taskId = generateTaskId();
-    currentMetadataTaskIdRef.current = taskId;
+    const generatedId = generateTaskId();
     try {
-      await invoke("fetch_metadata_converter", {
+      const taskId = await invoke<string>("fetch_metadata_converter", {
         path: targetPath,
-        client_task_id: taskId,
-        clientTaskId: taskId
+        clientTaskId: generatedId
       });
+      currentMetadataTaskIdRef.current = taskId;
     } catch (error) {
       setIsConfirmLoading(false);
       currentMetadataTaskIdRef.current = null;

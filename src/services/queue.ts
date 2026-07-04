@@ -451,17 +451,34 @@ export function removeItem(id: string) {
   const item = state.items.find((i) => i.id === id);
   if (!item) return;
 
-  if (item.status === "downloading") {
-    cancelItem(id).then(() => {
-      state.items = state.items.filter((i) => i.id !== id);
-      notifyListeners();
-      persistSoon();
-    });
-  } else {
+  const performStateRemoval = () => {
     state.items = state.items.filter((i) => i.id !== id);
     state.priorityQueue = state.priorityQueue.filter((pqId) => pqId !== id);
     notifyListeners();
     persistSoon();
+  };
+
+  const el = document.querySelector(`.queue-item[data-id="${id}"]`) as HTMLElement;
+  if (el) {
+    el.style.height = `${el.offsetHeight}px`;
+    // Force reflow
+    void el.offsetHeight;
+    el.classList.add("removing");
+    el.style.height = "0px";
+
+    setTimeout(() => {
+      if (item.status === "downloading") {
+        cancelItem(id).then(performStateRemoval);
+      } else {
+        performStateRemoval();
+      }
+    }, 320);
+  } else {
+    if (item.status === "downloading") {
+      cancelItem(id).then(performStateRemoval);
+    } else {
+      performStateRemoval();
+    }
   }
 }
 
@@ -678,7 +695,48 @@ export function refreshConfig() {
   state.maxConcurrent = cfg.maximum_concurrent_processes || 3;
 }
 
-// Global window mappings for compatibility
+export function animateQueueOrb(sourceEl: HTMLElement) {
+  setTimeout(() => {
+    const btn = document.getElementById("btn-queue");
+    if (!sourceEl || !btn) return;
+
+    const s = sourceEl.getBoundingClientRect();
+    const t = btn.getBoundingClientRect();
+    const startX = s.left + s.width / 2;
+    const startY = s.top + s.height / 2;
+    const endX = t.left + t.width / 2;
+    const endY = t.top + t.height / 2;
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    const orb = document.createElement("div");
+    orb.className = "queue-orb";
+    orb.style.left = `${startX}px`;
+    orb.style.top = `${startY}px`;
+    document.body.appendChild(orb);
+
+    const a = orb.animate([
+      { transform: "translate(-50%, -50%) scale(0.65)", opacity: 0.95 },
+      { transform: `translate(-50%, -50%) translate(${dx * 0.62}px, ${dy * 0.62}px) scale(1.15)`, opacity: 1 },
+      { transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.85)`, opacity: 0 }
+    ], { duration: 750, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+
+    a.onfinish = () => {
+      orb.remove();
+      btn.classList.add("queue-pulse");
+      setTimeout(() => {
+        btn.classList.remove("queue-pulse");
+      }, 1000);
+
+      // Open queue panel
+      const w = window as any;
+      if (typeof w.setQueuePanelVisible === "function") {
+        w.setQueuePanelVisible(true);
+      }
+    };
+  }, 50);
+}
+
 const win = window as any;
 win.queueManager = {
   enqueue,
@@ -689,5 +747,6 @@ win.queueManager = {
   startItem: startItemById,
   cancelItem,
   removeItem,
+  animateQueueOrb,
 };
 win.refreshConfig = refreshConfig;
