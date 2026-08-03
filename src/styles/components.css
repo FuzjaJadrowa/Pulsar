@@ -73,13 +73,17 @@ body.theme-light select {
     position: absolute;
     right: 12px;
     top: 50%;
-    transform: translateY(-50%);
-    border: 5px solid transparent;
-    border-top-color: #888;
-    transition: transform 0.2s;
+    margin-top: -2px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid #888;
+    transform-origin: center 2px;
+    transition: transform 0.2s, border-top-color 0.2s;
 }
 .select-head.open:after {
-    transform: translateY(-50%) rotate(180deg);
+    transform: rotate(180deg);
     border-top-color: var(--accent-color);
 }
 
