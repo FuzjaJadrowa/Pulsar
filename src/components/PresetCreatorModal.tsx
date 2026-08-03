@@ -295,6 +295,16 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const selectedFormatLower = format.toLowerCase().trim();
   const formatMap = presetType === "converter" ? formatData.converter : formatData.downloader;
   const currentFormatMeta = formatMap.find((item) => String(item.id).toLowerCase() === selectedFormatLower);
+
+  const videoCodecOptions = [
+    { value: "", label: t("presetCreator.select.auto", "Auto") },
+    ...(currentFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
+  ];
+
+  const audioCodecOptions = [
+    { value: "", label: t("presetCreator.select.auto", "Auto") },
+    ...(currentFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
+  ];
   
   const showVideoSettings = presetType !== "compressor" && (!currentFormatMeta || currentFormatMeta.type === "video");
   const showAudioSettings = presetType !== "compressor" && (!currentFormatMeta || currentFormatMeta.type === "audio" || (currentFormatMeta.type === "video" && !muteAudio));
@@ -686,9 +696,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                       <label className="preset-field">
                         <span>{t("presetCreator.fields.videoCodec", "Video codec")}</span>
                         <CustomSelect
-                          options={[
-                            { value: "", label: t("presetCreator.select.auto", "Auto") },
-                          ]}
+                          options={videoCodecOptions}
                           value={videoCodec}
                           onChange={setVideoCodec}
                         />
@@ -747,9 +755,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                       <label className="preset-field">
                         <span>{t("presetCreator.fields.audioCodec", "Audio codec")}</span>
                         <CustomSelect
-                          options={[
-                            { value: "", label: t("presetCreator.select.auto", "Auto") },
-                          ]}
+                          options={audioCodecOptions}
                           value={audioCodec}
                           onChange={setAudioCodec}
                         />

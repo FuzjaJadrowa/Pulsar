@@ -8,13 +8,13 @@ import { showNotification } from "../services/notifications";
 import { formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
+import { useTauriMetadata } from "../hooks/useTauriMetadata";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
-
-const DEFAULT_ICON = `<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
+import { DEFAULT_ICON } from "../utils/icons";
 
 interface DownloaderProps {
   active?: boolean;
@@ -27,7 +27,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const [url, setUrl] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -35,7 +34,22 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
   const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
 
-  const [metadata, setMetadata] = useState<any>(null);
+  const {
+    metadata,
+    isLoading: isAnalyzing,
+    fetchMetadata: triggerFetchMetadata,
+    reset: resetMetadataState,
+    setMetadata
+  } = useTauriMetadata({
+    pickerCommand: "fetch_metadata_downloader",
+    onSuccess: (data) => {
+      handleMetadataLoaded(data);
+    },
+    onError: (err) => {
+      showNotification(t("common.error", "Error"), err, "error");
+    }
+  });
+
   const [duration, setDuration] = useState(0);
   const [mode, setMode] = useState<"video" | "audio">("video");
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
@@ -71,7 +85,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [isPlaylist, setIsPlaylist] = useState(false);
 
   const currentSearchIdRef = useRef<string | null>(null);
-  const currentMetadataTaskIdRef = useRef<string | null>(null);
+
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
   const downloaderPresets = presets.filter(p => p.preset_type === "downloader" && !p.hidden);
@@ -97,27 +111,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   }, [active, isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
 
   useEffect(() => {
-    // To delete
+    // Expose window.downloaderUi
     (window as any).downloaderUi = {
       startMetadataForUrl: async (targetUrl: string) => {
         setUrl(targetUrl);
-        const generatedId = generateTaskId();
         setPendingMetadataUrl(targetUrl);
-        setIsAnalyzing(true);
-        try {
-          const taskId = await invoke<string>("fetch_metadata_downloader", { url: targetUrl, clientTaskId: generatedId });
-          currentMetadataTaskIdRef.current = taskId;
-          return taskId;
-        } catch (error) {
-          console.error("Metadata fetch failed:", error);
-          setIsAnalyzing(false);
-          setPendingMetadataUrl(null);
-          currentMetadataTaskIdRef.current = null;
-          return null;
-        }
+        triggerFetchMetadata(targetUrl);
+        return "";
       },
-      setFetchLoading: (isLoading: boolean) => {
-        setIsAnalyzing(isLoading);
+      setFetchLoading: () => {
+        // Handled by hook
       },
       triggerShake: () => {
         triggerShakeInput();
@@ -135,7 +138,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         setSearchResults(payload.data || []);
         setIsSearchMode(true);
         setIsDashboardVisible(false);
-        setMetadata(null);
+        resetMetadataState();
       }
 
       if (payload.type === "finished" && payload.id === currentSearchIdRef.current && payload.success === false) {
@@ -143,22 +146,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         showNotification(t("common.error", "Error"), payload.error || t("downloader.errors.searchFailed", "Search failed."), "error");
         setSearchResults([]);
         setIsSearchMode(true);
-      }
-
-      if (payload.id === currentMetadataTaskIdRef.current) {
-        setIsAnalyzing(false);
-        setPendingMetadataUrl(null);
-        currentMetadataTaskIdRef.current = null;
-
-        if (payload.type === "finished" && payload.success === false) {
-          showNotification(t("common.error", "Error"), payload.error || t("downloader.errors.invalidLink", "Invalid link."), "error");
-        } else if (payload.type === "metadata") {
-          if (payload.success && payload.data) {
-            handleMetadataLoaded(payload.data);
-          } else {
-            showNotification(t("common.error", "Error"), t("downloader.errors.invalidLink", "Invalid link."), "error");
-          }
-        }
       }
     });
 
@@ -183,9 +170,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setLangSuggestions(matches);
   }, [subsLang, subtitleOptions]);
 
-  const generateTaskId = () => {
-    return `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
-  };
+
 
   const looksLikeUrl = (value: string) => {
     return /^https?:\/\//i.test(value.trim());
@@ -246,16 +231,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       setIsSearchMode(false);
       setSearchResults([]);
       applySourceConstraints(raw);
-      setIsAnalyzing(true);
-      const generatedId = generateTaskId();
-      try {
-        const taskId = await invoke<string>("fetch_metadata_downloader", { url: raw, clientTaskId: generatedId });
-        currentMetadataTaskIdRef.current = taskId;
-      } catch (error) {
-        console.error("Fetch metadata failed:", error);
-        setIsAnalyzing(false);
-        currentMetadataTaskIdRef.current = null;
-      }
+      triggerFetchMetadata(raw);
     } else {
       if (isSearching) return;
       setIsSearching(true);
@@ -402,7 +378,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setIsDashboardVisible(false);
     setIsSearchMode(false);
     setSearchResults([]);
-    setMetadata(null);
+    resetMetadataState();
     setDuration(0);
     setSelectedFormat(null);
     setSelectedQuality(null);
@@ -552,17 +528,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const targetUrl = resolveResultUrl(entry);
     if (!targetUrl) return;
     setPendingMetadataUrl(targetUrl);
-    setIsAnalyzing(true);
-    const generatedId = generateTaskId();
-    try {
-      const taskId = await invoke<string>("fetch_metadata_downloader", { url: targetUrl, clientTaskId: generatedId });
-      currentMetadataTaskIdRef.current = taskId;
-    } catch (error) {
-      console.error("Fetch metadata from search failed:", error);
-      setIsAnalyzing(false);
-      setPendingMetadataUrl(null);
-      currentMetadataTaskIdRef.current = null;
-    }
+    triggerFetchMetadata(targetUrl);
   };
 
   const resolveResultUrl = (entry: any) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { invoke, listen } from "../services/tauri";
+import { invoke } from "../services/tauri";
 import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue } from "../services/queue";
@@ -8,14 +8,11 @@ import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
+import { useTauriMetadata } from "../hooks/useTauriMetadata";
+import { useFileDragDrop } from "../hooks/useFileDragDrop";
+import { CustomSelect } from "../components/CustomSelect";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>`,
-  audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-  image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m1 16 5.36-5.36c.49-.49 1.27-.49 1.76 0h0l4.11 4.11m.02 0 3.49-3.49c.49-.49 1.27-.49 1.76 0h0l3.49 3.49m-8.74 0 2.81 2.81"/><path d="M15 1H7c-2.11 0-3.15 0-3.95.41-.7.36-1.27.94-1.64 1.64C1 3.85 1 4.9 1 7v8c0 2.1 0 3.15.41 3.95.36.7.94 1.27 1.64 1.64C3.85 21 4.9 21 7 21h8c2.1 0 3.15 0 3.95-.41.7-.36 1.27-.94 1.64-1.64.41-.8.41-1.85.41-3.95V7m0 .01c0-2.11 0-3.15-.41-3.95-.36-.7-.94-1.27-1.64-1.64-.8-.41-1.85-.41-3.95-.41"/></svg>`
-};
-
-const DEFAULT_ICON = `<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
+import { DEFAULT_ICON, CATEGORY_ICONS } from "../utils/icons";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
 const SUPPORTED_IMAGE_FORMATS = new Set([
@@ -92,11 +89,45 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const { presets, loadPreset } = usePresets();
 
   const [filePath, setFilePath] = useState("");
-  const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [showDropOverlay, setShowDropOverlay] = useState(false);
 
-  const [metadata, setMetadata] = useState<any>(null);
+  const {
+    metadata,
+    isLoading: isConfirmLoading,
+    fetchMetadata: triggerFetchMetadata,
+    reset: resetMetadataState,
+    setMetadata
+  } = useTauriMetadata({
+    pickerCommand: "fetch_metadata_converter",
+    onSuccess: (data) => {
+      const category = String(data.category || "").toLowerCase();
+      if (!SUPPORTED_CATEGORIES.has(category)) {
+        showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+        resetView();
+        return;
+      }
+      if (category === "image") {
+        const ext = normalizeFormatKey(data.extension || data.format || "");
+        if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
+          showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+          resetView();
+          return;
+        }
+      }
+      handleMetadataLoaded(data);
+    },
+    onError: (err) => {
+      showNotification(t("common.error", "Error"), err, "error");
+    }
+  });
+
+  const { showDropOverlay } = useFileDragDrop({
+    pageClass: "page-compressor",
+    onFileDrop: (path) => {
+      setFilePath(path);
+      triggerFetchMetadata(path);
+    }
+  });
   const [currentName, setCurrentName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [savePath, setSavePath] = useState("");
@@ -124,7 +155,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const [panelTransitionClass, setPanelTransitionClass] = useState("depth-enter");
 
   // Refs
-  const currentMetadataTaskIdRef = useRef<string | null>(null);
+
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
   const compressorPresets = presets.filter(p => p.preset_type === "compressor" && !p.hidden);
@@ -168,99 +199,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       syncState: () => {}
     };
 
-    let active = true;
-
-    const unsubPromises = [
-      listen<any>("download-event", (event) => {
-        if (!active) return;
-        const payload = event.payload;
-        if (!payload || !payload.type) return;
-        if (payload.type === "bridge_command") return;
-
-        if (payload.id === currentMetadataTaskIdRef.current) {
-          setIsConfirmLoading(false);
-          currentMetadataTaskIdRef.current = null;
-
-          if (payload.type === "finished" && payload.success === false) {
-            showNotification(t("common.error", "Error"), payload.error || t("compressor.errors.invalidFile", "Invalid file."), "error");
-          } else if (payload.type === "metadata") {
-            if (payload.success && payload.data) {
-              const category = String(payload.data.category || "").toLowerCase();
-              if (!SUPPORTED_CATEGORIES.has(category)) {
-                showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
-                resetView();
-                return;
-              }
-              if (category === "image") {
-                const ext = normalizeFormatKey(payload.data.extension || payload.data.format || "");
-                if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
-                  showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
-                  resetView();
-                  return;
-                }
-              }
-              handleMetadataLoaded(payload.data);
-            } else {
-              showNotification(t("common.error", "Error"), t("compressor.errors.invalidFile", "Invalid file."), "error");
-            }
-          }
-        }
-      }),
-
-      listen<any>("tauri://drag-enter", () => {
-        if (!active) return;
-        if (document.body?.classList.contains("page-compressor")) {
-          setShowDropOverlay(true);
-        }
-      }),
-
-      listen<any>("tauri://drag-leave", () => {
-        if (!active) return;
-        setShowDropOverlay(false);
-      }),
-
-      listen<any>("tauri://drag-drop", (event) => {
-        if (!active) return;
-        setShowDropOverlay(false);
-        if (!document.body?.classList.contains("page-compressor")) return;
-        const paths = event.payload?.paths;
-        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-        if (rawPath) {
-          setFilePath(rawPath);
-          triggerConfirmPath(rawPath);
-        }
-      }),
-
-      listen<any>("tauri://file-drop-hover", () => {
-        if (!active) return;
-        if (document.body?.classList.contains("page-compressor")) {
-          setShowDropOverlay(true);
-        }
-      }),
-
-      listen<any>("tauri://file-drop-cancelled", () => {
-        if (!active) return;
-        setShowDropOverlay(false);
-      }),
-
-      listen<any>("tauri://file-drop", (event) => {
-        if (!active) return;
-        setShowDropOverlay(false);
-        if (!document.body?.classList.contains("page-compressor")) return;
-        const paths = event.payload?.paths || event.payload;
-        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-        if (rawPath) {
-          setFilePath(rawPath);
-          triggerConfirmPath(rawPath);
-        }
-      })
-    ];
-
     return () => {
-      active = false;
-      unsubPromises.forEach((promise) => {
-        promise.then((unsub) => unsub());
-      });
       delete (window as any).compressorUi;
     };
   }, []);
@@ -294,9 +233,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     crfValue
   ]);
 
-  const generateTaskId = () => {
-    return `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
-  };
+
 
   const handleMetadataLoaded = (data: any) => {
     setMetadata(data);
@@ -317,30 +254,13 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }, 150);
   };
 
-  const triggerConfirmPath = async (targetPath: string) => {
-    if (isConfirmLoading) return;
-    setIsConfirmLoading(true);
-    const generatedId = generateTaskId();
-    try {
-      const taskId = await invoke<string>("fetch_metadata_converter", {
-        path: targetPath,
-        clientTaskId: generatedId
-      });
-      currentMetadataTaskIdRef.current = taskId;
-    } catch (error) {
-      setIsConfirmLoading(false);
-      currentMetadataTaskIdRef.current = null;
-      console.error("Fetch metadata error:", error);
-    }
-  };
-
   const handleConfirmPath = () => {
     const raw = filePath.trim();
     if (!raw) {
       triggerShakeInput();
       return;
     }
-    triggerConfirmPath(raw);
+    triggerFetchMetadata(raw);
   };
 
   const triggerShakeInput = () => {
@@ -370,9 +290,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const resetView = () => {
     setFilePath("");
-    setIsConfirmLoading(false);
     setIsDashboardVisible(false);
-    setMetadata(null);
+    resetMetadataState();
     setCurrentName("");
     setSavePath("");
     clearActivePreset();
@@ -851,21 +770,18 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 <div className={`compressor-mode-panel ${selectedMode === "quality" ? "" : "hidden"} ${panelTransitionClass}`} data-mode="quality">
                   <div className="compressor-quality-control">
                     <span className="compressor-crf-label">CRF</span>
-                    <select
-                      id="compress-crf-select"
-                      className="custom-select"
+                    <CustomSelect
+                      options={Array.from({ length: 52 }, (_, i) => ({
+                        value: String(i),
+                        label: getCrfLabel(i)
+                      }))}
                       value={crfValue}
-                      onChange={(e) => {
-                        setCrfValue(e.target.value);
+                      onChange={(val) => {
+                        setCrfValue(val);
                         clearActivePreset();
                       }}
-                    >
-                      {Array.from({ length: 52 }, (_, i) => (
-                        <option key={i} value={String(i)}>
-                          {getCrfLabel(i)}
-                        </option>
-                      ))}
-                    </select>
+                      width="100%"
+                    />
                   </div>
                 </div>
               </div>
@@ -904,39 +820,35 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                         <label className="compressor-specs-row">
                           <span className="compressor-specs-label">{t("compressor.options.videoCodec", "Video codec")}</span>
                           <div className="compressor-specs-control">
-                            <select
-                              id="compress-video-codec"
-                              className="custom-select"
+                            <CustomSelect
+                              options={[
+                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                ...videoCodecsOptions.map((c: string) => ({ value: c, label: c }))
+                              ]}
                               value={videoCodec}
-                              onChange={(e) => {
-                                setVideoCodec(e.target.value);
+                              onChange={(val) => {
+                                setVideoCodec(val);
                                 clearActivePreset();
                               }}
-                            >
-                              <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                              {videoCodecsOptions.map((c: string) => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
+                              width="100%"
+                            />
                           </div>
                         </label>
                         <label className="compressor-specs-row">
                           <span className="compressor-specs-label">{t("compressor.options.audioCodec", "Audio codec")}</span>
                           <div className="compressor-specs-control">
-                            <select
-                              id="compress-video-audio-codec"
-                              className="custom-select"
+                            <CustomSelect
+                              options={[
+                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
+                              ]}
                               value={videoAudioCodec}
-                              onChange={(e) => {
-                                setVideoAudioCodec(e.target.value);
+                              onChange={(val) => {
+                                setVideoAudioCodec(val);
                                 clearActivePreset();
                               }}
-                            >
-                              <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                              {audioCodecsOptions.map((c: string) => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
+                              width="100%"
+                            />
                           </div>
                         </label>
                       </div>
@@ -952,20 +864,18 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                         <label className="compressor-specs-row">
                           <span className="compressor-specs-label">{t("compressor.options.audioCodec", "Audio codec")}</span>
                           <div className="compressor-specs-control">
-                            <select
-                              id="compress-audio-codec"
-                              className="custom-select"
+                            <CustomSelect
+                              options={[
+                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
+                              ]}
                               value={audioCodec}
-                              onChange={(e) => {
-                                setAudioCodec(e.target.value);
+                              onChange={(val) => {
+                                setAudioCodec(val);
                                 clearActivePreset();
                               }}
-                            >
-                              <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                              {audioCodecsOptions.map((c: string) => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
+                              width="100%"
+                            />
                           </div>
                         </label>
                       </div>

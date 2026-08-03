@@ -8,21 +8,26 @@ import { showNotification } from "../services/notifications";
 import { sanitizeSvg } from "../utils/security";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { invoke } from "../services/tauri";
+import { GEAR_ICON, TAG_ICON_SVG } from "../utils/icons";
 
-const GEAR_ICON = (
-  <svg viewBox="0 0 24 24" style={{ width: "100%", height: "100%", display: "block", fill: "currentColor" }}>
-    <path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4" />
-  </svg>
-);
-
-const TAG_ICON_SVG = (
-  <span className="title-tag-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24">
-      <path className="tag-outline" d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12.41V2h10.41l8.18 8.18a2 2 0 0 1 0 2.83z" />
-      <circle className="tag-dot" cx="7.5" cy="7.5" r="1.5" />
-    </svg>
-  </span>
-);
+const TAG_LABELS: Record<string, string> = {
+  "%(title)s": "Title",
+  "%(id)s": "Video ID",
+  "%(resolution)s": "Resolution",
+  "%(duration_string)s": "Duration",
+  "%(fps)s": "FPS",
+  "%(upload_date)s": "Upload Date",
+  "%(view_count)s": "View Count",
+  "%(like_count)s": "Like Count",
+  "%(uploader)s": "Uploader",
+  "%(playlist)s": "Playlist Name",
+  "%(playlist_index)s": "Playlist Index",
+  "%(video_autonumber)s": "Queue Number",
+  "%(track)s": "Track",
+  "%(artist)s": "Artist",
+  "%(album)s": "Album",
+  "%(release_year)s": "Release Year",
+};
 
 
 
@@ -122,6 +127,24 @@ export const Settings: React.FC = () => {
   const handleAddTag = (tag: string) => {
     const newVal = (config.title_template || "") + tag;
     updateConfig({ title_template: newVal });
+  };
+
+  const handlePartChange = (index: number, value: string, parts: string[]) => {
+    const newParts = [...parts];
+    newParts[index] = value;
+    const combined = newParts.join("");
+    updateConfig({ title_template: combined });
+  };
+
+  const handleRemovePart = (index: number, parts: string[]) => {
+    const newParts = [...parts];
+    // Usuń tag z nieparzystego indeksu
+    newParts.splice(index, 1);
+    
+    // Jeśli usunęliśmy tag, to po lewej i po prawej stronie były elementy tekstowe (np. parts[index-1] i parts[index+1]).
+    // Ponieważ splikowaliśmy tag, musimy połączyć pusty string lub tekst, co join() i tak zrobi automatycznie.
+    const combined = newParts.join("");
+    updateConfig({ title_template: combined });
   };
 
 
@@ -389,13 +412,58 @@ export const Settings: React.FC = () => {
         <div className="title-constructor">
           <div className="title-constructor-title">{t("settings.titleConstructor", "Title Constructor")}</div>
           <div className="title-constructor-input-row">
-            <input
-              type="text"
-              className="title-template-input"
-              value={config.title_template || ""}
-              onChange={(e) => updateConfig({ title_template: e.target.value })}
-              placeholder="%(title)s [%(id)s]"
-            />
+            <div className="title-template-input">
+              <div className="title-template-input-container" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", width: "100%" }}>
+                {(() => {
+                  const template = config.title_template || "";
+                  const tokenRegex = /(%\(.*?\)(?:s|d))/g;
+                  const parts = template.split(tokenRegex);
+
+                  return parts.map((part, index) => {
+                    const isToken = index % 2 === 1;
+                    if (isToken) {
+                      const label = TAG_LABELS[part] || part;
+                      return (
+                        <div
+                          key={`${part}-${index}`}
+                          className="title-pill pill-in"
+                          onClick={() => handleRemovePart(index, parts)}
+                          title={t("settings.titleConstructor.removeTag", "Click to remove")}
+                        >
+                          {TAG_ICON_SVG}
+                          <span>{label}</span>
+                        </div>
+                      );
+                    } else {
+                      // Obliczamy przybliżoną szerokość inputa na podstawie liczby znaków
+                      const inputWidth = Math.max(15, part.length * 8 + 10);
+                      return (
+                        <input
+                          key={`text-${index}`}
+                          type="text"
+                          className="title-template-text-input"
+                          value={part}
+                          style={{
+                            width: `${inputWidth}px`,
+                            border: "none",
+                            background: "transparent",
+                            color: "inherit",
+                            fontSize: "inherit",
+                            fontFamily: "inherit",
+                            outline: "none",
+                            padding: "2px 4px",
+                            maxWidth: "100%",
+                            minWidth: "15px"
+                          }}
+                          placeholder={index === 0 && parts.length === 1 ? "%(title)s [%(id)s]" : ""}
+                          onChange={(e) => handlePartChange(index, e.target.value, parts)}
+                        />
+                      );
+                    }
+                  });
+                })()}
+              </div>
+            </div>
           </div>
           <div className="title-constructor-note">
             {t("settings.titleConstructorNote", "Not every tag is available for all media.")}

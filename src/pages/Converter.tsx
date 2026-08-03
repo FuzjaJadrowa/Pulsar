@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { invoke, listen } from "../services/tauri";
+import { invoke } from "../services/tauri";
 import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue } from "../services/queue";
@@ -8,16 +8,11 @@ import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
+import { useTauriMetadata } from "../hooks/useTauriMetadata";
+import { useFileDragDrop } from "../hooks/useFileDragDrop";
+import { CustomSelect } from "../components/CustomSelect";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>`,
-  audio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-  image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m1 16 5.36-5.36c.49-.49 1.27-.49 1.76 0h0l4.11 4.11m.02 0 3.49-3.49c.49-.49 1.27-.49 1.76 0h0l3.49 3.49m-8.74 0 2.81 2.81"/><path d="M15 1H7c-2.11 0-3.15 0-3.95.41-.7.36-1.27.94-1.64 1.64C1 3.85 1 4.9 1 7v8c0 2.1 0 3.15.41 3.95.36.7.94 1.27 1.64 1.64C3.85 21 4.9 21 7 21h8c2.1 0 3.15 0 3.95-.41.7-.36 1.27-.94 1.64-1.64.41-.8.41-1.85.41-3.95V7m0 .01c0-2.11 0-3.15-.41-3.95-.36-.7-.94-1.27-1.64-1.64-.8-.41-1.85-.41-3.95-.41"/></svg>`,
-  archive: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="m21.71 5.79-3-3A1 1 0 0 0 18 2.5H6c-.27 0-.52.11-.71.29l-3 3A1 1 0 0 0 2 6.5v13c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-13c0-.27-.11-.52-.29-.71M6.41 4.5h11.17l1 1H5.41zM4 19.5v-12h16v12z"/><path d="M14 9.5h-4v3H7l5 5 5-5h-3z"/></svg>`,
-  font: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.99 3.3.48 20.7h3l1.13-4.35h4.47l1.13 4.35h3L8.69 3.3H5Zm3.33 10.15L6.84 7.73l-1.48 5.72h2.97Zm12.3-2.41c-2.53-1.2-5.56-.12-6.76 2.41s-.12 5.56 2.41 6.76c1.38.65 2.97.65 4.35 0v.49h2.9V10.55h-2.9zm-4.35 4.59c0-1.2.97-2.18 2.18-2.18s2.18.97 2.18 2.18-.97 2.18-2.18 2.18-2.18-.97-2.18-2.18" style="fill-rule:evenodd"/></svg>`
-};
-
-const DEFAULT_ICON = `<svg viewBox="0 0 24 24" style="width:100%;height:100%;display:block;fill:currentColor"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
+import { DEFAULT_ICON, CATEGORY_ICONS } from "../utils/icons";
 
 interface ConverterProps {
   active?: boolean;
@@ -29,11 +24,32 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { presets } = usePresets();
 
   const [filePath, setFilePath] = useState("");
-  const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [showDropOverlay, setShowDropOverlay] = useState(false);
 
-  const [metadata, setMetadata] = useState<any>(null);
+  const {
+    metadata,
+    isLoading: isConfirmLoading,
+    fetchMetadata: triggerFetchMetadata,
+    reset: resetMetadataState,
+    setMetadata
+  } = useTauriMetadata({
+    pickerCommand: "fetch_metadata_converter",
+    onSuccess: (data) => {
+      handleMetadataLoaded(data);
+    },
+    onError: (err) => {
+      showNotification(t("common.error", "Error"), err, "error");
+    }
+  });
+
+  const { showDropOverlay } = useFileDragDrop({
+    pageClass: "page-converter",
+    onFileDrop: (path) => {
+      setFilePath(path);
+      triggerFetchMetadata(path);
+    }
+  });
+
   const [currentName, setCurrentName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedMode, setSelectedMode] = useState<"video" | "audio">("video");
@@ -60,7 +76,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const [formatData, setFormatData] = useState<any[]>([]);
 
-  const currentMetadataTaskIdRef = useRef<string | null>(null);
+
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
   const converterPresets = presets.filter(p => p.preset_type === "converter" && !p.hidden);
@@ -93,85 +109,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       syncState: () => {}
     };
 
-    let active = true;
-
-    const unsubPromises = [
-      listen<any>("download-event", (event) => {
-        if (!active) return;
-        const payload = event.payload;
-        if (!payload || !payload.type) return;
-        if (payload.type === "bridge_command") return;
-
-        if (payload.id === currentMetadataTaskIdRef.current) {
-          setIsConfirmLoading(false);
-          currentMetadataTaskIdRef.current = null;
-
-          if (payload.type === "finished" && payload.success === false) {
-            showNotification(t("common.error", "Error"), payload.error || t("converter.errors.invalidFile", "Invalid file."), "error");
-          } else if (payload.type === "metadata") {
-            if (payload.success && payload.data) {
-              handleMetadataLoaded(payload.data);
-            } else {
-              showNotification(t("common.error", "Error"), t("converter.errors.invalidFile", "Invalid file."), "error");
-            }
-          }
-        }
-      }),
-
-      listen<any>("tauri://drag-enter", () => {
-        if (!active) return;
-        if (document.body?.classList.contains("page-converter")) {
-          setShowDropOverlay(true);
-        }
-      }),
-
-      listen<any>("tauri://drag-leave", () => {
-        if (!active) return;
-        setShowDropOverlay(false);
-      }),
-
-      listen<any>("tauri://drag-drop", (event) => {
-        if (!active) return;
-        setShowDropOverlay(false);
-        if (!document.body?.classList.contains("page-converter")) return;
-        const paths = event.payload?.paths;
-        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-        if (rawPath) {
-          setFilePath(rawPath);
-          triggerConfirmPath(rawPath);
-        }
-      }),
-
-      listen<any>("tauri://file-drop-hover", () => {
-        if (!active) return;
-        if (document.body?.classList.contains("page-converter")) {
-          setShowDropOverlay(true);
-        }
-      }),
-
-      listen<any>("tauri://file-drop-cancelled", () => {
-        if (!active) return;
-        setShowDropOverlay(false);
-      }),
-
-      listen<any>("tauri://file-drop", (event) => {
-        if (!active) return;
-        setShowDropOverlay(false);
-        if (!document.body?.classList.contains("page-converter")) return;
-        const paths = event.payload?.paths || event.payload;
-        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-        if (rawPath) {
-          setFilePath(rawPath);
-          triggerConfirmPath(rawPath);
-        }
-      })
-    ];
-
     return () => {
-      active = false;
-      unsubPromises.forEach((promise) => {
-        promise.then((unsub) => unsub());
-      });
       delete (window as any).converterUi;
     };
   }, []);
@@ -205,10 +143,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     metadata
   ]);
 
-  const generateTaskId = () => {
-    return `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
-  };
-
   const handleMetadataLoaded = (data: any) => {
     setMetadata(data);
     setCurrentName(data.name || "");
@@ -240,30 +174,13 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }, 150);
   };
 
-  const triggerConfirmPath = async (targetPath: string) => {
-    if (isConfirmLoading) return;
-    setIsConfirmLoading(true);
-    const generatedId = generateTaskId();
-    try {
-      const taskId = await invoke<string>("fetch_metadata_converter", {
-        path: targetPath,
-        clientTaskId: generatedId
-      });
-      currentMetadataTaskIdRef.current = taskId;
-    } catch (error) {
-      setIsConfirmLoading(false);
-      currentMetadataTaskIdRef.current = null;
-      console.error("Fetch metadata error:", error);
-    }
-  };
-
   const handleConfirmPath = () => {
     const raw = filePath.trim();
     if (!raw) {
       triggerShakeInput();
       return;
     }
-    triggerConfirmPath(raw);
+    triggerFetchMetadata(raw);
   };
 
   const triggerShakeInput = () => {
@@ -293,9 +210,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const resetView = () => {
     setFilePath("");
-    setIsConfirmLoading(false);
     setIsDashboardVisible(false);
-    setMetadata(null);
+    resetMetadataState();
     setCurrentName("");
     setSelectedFormat(null);
     setSavePath("");
@@ -778,44 +694,42 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.videoQuality", "Video quality")}</span>
                             <div className="converter-specs-control">
-                              <select
-                                id="convert-output-video-quality"
-                                className="custom-select"
+                              <CustomSelect
+                                options={[
+                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "2160p", label: "2160p" },
+                                  { value: "1440p", label: "1440p" },
+                                  { value: "1080p", label: "1080p" },
+                                  { value: "720p", label: "720p" },
+                                  { value: "480p", label: "480p" },
+                                  { value: "360p", label: "360p" },
+                                  { value: "240p", label: "240p" },
+                                  { value: "144p", label: "144p" },
+                                ]}
                                 value={videoQuality}
-                                onChange={(e) => {
-                                  setVideoQuality(e.target.value);
+                                onChange={(val) => {
+                                  setVideoQuality(val);
                                   clearActivePreset();
                                 }}
-                              >
-                                <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                                <option value="2160p">2160p</option>
-                                <option value="1440p">1440p</option>
-                                <option value="1080p">1080p</option>
-                                <option value="720p">720p</option>
-                                <option value="480p">480p</option>
-                                <option value="360p">360p</option>
-                                <option value="240p">240p</option>
-                                <option value="144p">144p</option>
-                              </select>
+                                width="100%"
+                              />
                             </div>
                           </label>
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.videoCodec", "Video codec")}</span>
                             <div className="converter-specs-control">
-                              <select
-                                id="convert-output-video-codec"
-                                className="custom-select"
+                              <CustomSelect
+                                options={[
+                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  ...(selectedFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
+                                ]}
                                 value={videoCodec}
-                                onChange={(e) => {
-                                  setVideoCodec(e.target.value);
+                                onChange={(val) => {
+                                  setVideoCodec(val);
                                   clearActivePreset();
                                 }}
-                              >
-                                <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                                {selectedFormatMeta?.video_codecs?.map((vc: string) => (
-                                  <option key={vc} value={vc}>{vc}</option>
-                                ))}
-                              </select>
+                                width="100%"
+                              />
                             </div>
                           </label>
                           <label className="converter-specs-row">
@@ -838,39 +752,37 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.fps", "FPS")}</span>
                             <div className="converter-specs-control">
-                              <select
-                                id="convert-output-video-fps"
-                                className="custom-select"
+                              <CustomSelect
+                                options={[
+                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "60", label: "60" },
+                                  { value: "30", label: "30" },
+                                  { value: "24", label: "24" },
+                                ]}
                                 value={videoFps}
-                                onChange={(e) => {
-                                  setVideoFps(e.target.value);
+                                onChange={(val) => {
+                                  setVideoFps(val);
                                   clearActivePreset();
                                 }}
-                              >
-                                <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                                <option value="60">60</option>
-                                <option value="30">30</option>
-                                <option value="24">24</option>
-                              </select>
+                                width="100%"
+                              />
                             </div>
                           </label>
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.audioCodec", "Audio codec")}</span>
                             <div className="converter-specs-control">
-                              <select
-                                id="convert-output-video-audio-codec"
-                                className="custom-select"
+                              <CustomSelect
+                                options={[
+                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
+                                ]}
                                 value={videoAudioCodec}
-                                onChange={(e) => {
-                                  setVideoAudioCodec(e.target.value);
+                                onChange={(val) => {
+                                  setVideoAudioCodec(val);
                                   clearActivePreset();
                                 }}
-                              >
-                                <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                                {selectedFormatMeta?.audio_codecs?.map((ac: string) => (
-                                  <option key={ac} value={ac}>{ac}</option>
-                                ))}
-                              </select>
+                                width="100%"
+                              />
                             </div>
                           </label>
                           <label className="converter-specs-row">
@@ -903,20 +815,18 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.audioCodec", "Audio codec")}</span>
                             <div className="converter-specs-control">
-                              <select
-                                id="convert-output-audio-codec"
-                                className="custom-select"
+                              <CustomSelect
+                                options={[
+                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
+                                ]}
                                 value={audioCodec}
-                                onChange={(e) => {
-                                  setAudioCodec(e.target.value);
+                                onChange={(val) => {
+                                  setAudioCodec(val);
                                   clearActivePreset();
                                 }}
-                              >
-                                <option value="">{t("presetCreator.select.auto", "Auto")}</option>
-                                {selectedFormatMeta?.audio_codecs?.map((ac: string) => (
-                                  <option key={ac} value={ac}>{ac}</option>
-                                ))}
-                              </select>
+                                width="100%"
+                              />
                             </div>
                           </label>
                           <label className="converter-specs-row">
