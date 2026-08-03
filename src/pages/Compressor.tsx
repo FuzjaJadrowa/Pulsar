@@ -5,6 +5,9 @@ import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue } from "../services/queue";
 import { showNotification } from "../services/notifications";
+import { formatBytes, formatDuration } from "../utils/format";
+import { sanitizeSvg } from "../utils/security";
+import { PathSelector } from "../components/PathSelector";
 
 const CATEGORY_ICONS: Record<string, string> = {
   video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>`,
@@ -165,93 +168,99 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       syncState: () => {}
     };
 
-    let unlisten: (() => void) | null = null;
-    let unlistenHover: (() => void) | null = null;
-    let unlistenCancelled: (() => void) | null = null;
-    let unlistenDrop: (() => void) | null = null;
+    let active = true;
 
-    listen<any>("download-event", (event) => {
-      const payload = event.payload;
-      if (!payload || !payload.type) return;
-      if (payload.type === "bridge_command") return;
+    const unsubPromises = [
+      listen<any>("download-event", (event) => {
+        if (!active) return;
+        const payload = event.payload;
+        if (!payload || !payload.type) return;
+        if (payload.type === "bridge_command") return;
 
-      if (payload.id === currentMetadataTaskIdRef.current) {
-        setIsConfirmLoading(false);
-        currentMetadataTaskIdRef.current = null;
+        if (payload.id === currentMetadataTaskIdRef.current) {
+          setIsConfirmLoading(false);
+          currentMetadataTaskIdRef.current = null;
 
-        if (payload.type === "finished" && payload.success === false) {
-          showNotification(t("common.error", "Error"), payload.error || t("compressor.errors.invalidFile", "Invalid file."), "error");
-        } else if (payload.type === "metadata") {
-          if (payload.success && payload.data) {
-            const category = String(payload.data.category || "").toLowerCase();
-            if (!SUPPORTED_CATEGORIES.has(category)) {
-              showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
-              resetView();
-              return;
-            }
-            if (category === "image") {
-              const ext = normalizeFormatKey(payload.data.extension || payload.data.format || "");
-              if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
+          if (payload.type === "finished" && payload.success === false) {
+            showNotification(t("common.error", "Error"), payload.error || t("compressor.errors.invalidFile", "Invalid file."), "error");
+          } else if (payload.type === "metadata") {
+            if (payload.success && payload.data) {
+              const category = String(payload.data.category || "").toLowerCase();
+              if (!SUPPORTED_CATEGORIES.has(category)) {
                 showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
                 resetView();
                 return;
               }
+              if (category === "image") {
+                const ext = normalizeFormatKey(payload.data.extension || payload.data.format || "");
+                if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
+                  showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+                  resetView();
+                  return;
+                }
+              }
+              handleMetadataLoaded(payload.data);
+            } else {
+              showNotification(t("common.error", "Error"), t("compressor.errors.invalidFile", "Invalid file."), "error");
             }
-            handleMetadataLoaded(payload.data);
-          } else {
-            showNotification(t("common.error", "Error"), t("compressor.errors.invalidFile", "Invalid file."), "error");
           }
         }
-      }
-    }).then((un) => unlisten = un);
+      }),
 
-    // Tauri file drop events
-    listen<any>("tauri://drag-enter", () => {
-      if (document.body?.classList.contains("page-compressor")) {
-        setShowDropOverlay(true);
-      }
-    }).then((un) => unlistenHover = un);
+      listen<any>("tauri://drag-enter", () => {
+        if (!active) return;
+        if (document.body?.classList.contains("page-compressor")) {
+          setShowDropOverlay(true);
+        }
+      }),
 
-    listen<any>("tauri://drag-leave", () => {
-      setShowDropOverlay(false);
-    }).then((un) => unlistenCancelled = un);
+      listen<any>("tauri://drag-leave", () => {
+        if (!active) return;
+        setShowDropOverlay(false);
+      }),
 
-    listen<any>("tauri://drag-drop", (event) => {
-      setShowDropOverlay(false);
-      if (!document.body?.classList.contains("page-compressor")) return;
-      const paths = event.payload?.paths;
-      const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-      if (rawPath) {
-        setFilePath(rawPath);
-        triggerConfirmPath(rawPath);
-      }
-    }).then((un) => unlistenDrop = un);
+      listen<any>("tauri://drag-drop", (event) => {
+        if (!active) return;
+        setShowDropOverlay(false);
+        if (!document.body?.classList.contains("page-compressor")) return;
+        const paths = event.payload?.paths;
+        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
+        if (rawPath) {
+          setFilePath(rawPath);
+          triggerConfirmPath(rawPath);
+        }
+      }),
 
-    // Legacy file-drop support
-    listen<any>("tauri://file-drop-hover", () => {
-      if (document.body?.classList.contains("page-compressor")) {
-        setShowDropOverlay(true);
-      }
-    });
-    listen<any>("tauri://file-drop-cancelled", () => {
-      setShowDropOverlay(false);
-    });
-    listen<any>("tauri://file-drop", (event) => {
-      setShowDropOverlay(false);
-      if (!document.body?.classList.contains("page-compressor")) return;
-      const paths = event.payload?.paths || event.payload;
-      const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
-      if (rawPath) {
-        setFilePath(rawPath);
-        triggerConfirmPath(rawPath);
-      }
-    });
+      listen<any>("tauri://file-drop-hover", () => {
+        if (!active) return;
+        if (document.body?.classList.contains("page-compressor")) {
+          setShowDropOverlay(true);
+        }
+      }),
+
+      listen<any>("tauri://file-drop-cancelled", () => {
+        if (!active) return;
+        setShowDropOverlay(false);
+      }),
+
+      listen<any>("tauri://file-drop", (event) => {
+        if (!active) return;
+        setShowDropOverlay(false);
+        if (!document.body?.classList.contains("page-compressor")) return;
+        const paths = event.payload?.paths || event.payload;
+        const rawPath = Array.isArray(paths) ? paths[0] : (typeof paths === "string" ? paths : null);
+        if (rawPath) {
+          setFilePath(rawPath);
+          triggerConfirmPath(rawPath);
+        }
+      })
+    ];
 
     return () => {
-      if (unlisten) unlisten();
-      if (unlistenHover) unlistenHover();
-      if (unlistenCancelled) unlistenCancelled();
-      if (unlistenDrop) unlistenDrop();
+      active = false;
+      unsubPromises.forEach((promise) => {
+        promise.then((unsub) => unsub());
+      });
       delete (window as any).compressorUi;
     };
   }, []);
@@ -353,17 +362,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }
   };
 
-  const browseSavePath = async () => {
-    try {
-      const selected = await invoke<string>("pick_download_directory");
-      if (selected) {
-        setSavePath(selected);
-        clearActivePreset();
-      }
-    } catch (e) {
-      console.error("Browse directory failed:", e);
-    }
-  };
+
 
   const clearActivePreset = () => {
     setActivePresetId(null);
@@ -379,29 +378,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     clearActivePreset();
   };
 
-  const formatBytes = (bytes: any) => {
-    const value = Number(bytes);
-    if (!Number.isFinite(value)) return "-";
-    if (value < 1024) return `${value} B`;
-    const units = ["KB", "MB", "GB", "TB"];
-    let idx = -1;
-    let size = value;
-    while (size >= 1024 && idx < units.length - 1) {
-      size /= 1024;
-      idx += 1;
-    }
-    return `${size.toFixed(size >= 10 ? 1 : 2)} ${units[idx]}`;
-  };
 
-  const formatDuration = (seconds: any) => {
-    const total = Number(seconds);
-    if (!Number.isFinite(total)) return "-";
-    const safe = Math.max(0, Math.floor(total));
-    const hrs = Math.floor(safe / 3600).toString().padStart(2, "0");
-    const mins = Math.floor((safe % 3600) / 60).toString().padStart(2, "0");
-    const secs = Math.floor(safe % 60).toString().padStart(2, "0");
-    return `${hrs}:${mins}:${secs}`;
-  };
 
   const estimateFromCrf = (sizeBytes: number, crf: number) => {
     if (!Number.isFinite(sizeBytes) || !Number.isFinite(crf)) return null;
@@ -741,7 +718,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     >
                       <div
                         className="preset-card-icon"
-                        dangerouslySetInnerHTML={{ __html: pr.icon_data_url || pr.icon || DEFAULT_ICON }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || pr.icon || DEFAULT_ICON) }}
                       />
                       <div className="preset-card-info">
                         <div className="preset-card-title">
@@ -899,29 +876,19 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               <span className="option-label compressor-options-title">{t("compressor.options.title", "OPTIONS")}</span>
 
               {/* Destination Save Path */}
-              <div id="compress-save-path-panel" className="compressor-path-selector fade-in">
-                <input
-                  type="text"
-                  id="compress-save-path-input"
-                  placeholder={t("compressor.options.pathPlaceholder", "Save path...")}
-                  value={savePath}
-                  onChange={(e) => {
-                    setSavePath(e.target.value);
-                    clearActivePreset();
-                  }}
-                  autoComplete="off"
-                />
-                <button
-                  id="compress-save-path-browse"
-                  className="compressor-small-btn"
-                  title={t("compressor.actions.browse", "Browse")}
-                  onClick={browseSavePath}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                </button>
-              </div>
+              <PathSelector
+                className="compressor-path-selector fade-in"
+                id="compress-save-path-input"
+                placeholder={t("compressor.options.pathPlaceholder", "Save path...")}
+                value={savePath}
+                onChange={(selected) => {
+                  setSavePath(selected);
+                  clearActivePreset();
+                }}
+                pickerCommand="pick_download_directory"
+                title={t("compressor.actions.browse", "Browse")}
+                buttonClassName="compressor-small-btn"
+              />
 
               {/* Specs Card */}
               <div id="compress-specs-panel" className="compressor-specs-card fade-in">

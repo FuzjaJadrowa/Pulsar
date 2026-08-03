@@ -4,6 +4,9 @@ import { invoke } from "../services/tauri";
 import { Preset } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
 import { showNotification } from "../services/notifications";
+import { sanitizeSvg } from "../utils/security";
+import { ToggleSwitch } from "./ToggleSwitch";
+import { PathSelector } from "./PathSelector";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -218,17 +221,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     }
   };
 
-  // Browse save directory path using Tauri picking
-  const handleBrowsePath = async () => {
-    try {
-      const selected = await invoke<string>("pick_download_directory");
-      if (selected) {
-        setSavePath(selected);
-      }
-    } catch (err) {
-      console.error("Failed to pick download folder:", err);
-    }
-  };
+
 
   // Submit preset payload
   const handleSave = async () => {
@@ -380,7 +373,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     }}
                   >
                     {iconDataUrl.startsWith("<svg") && (
-                      <div dangerouslySetInnerHTML={{ __html: iconDataUrl }} style={{ width: "100%", height: "100%" }} />
+                      <div dangerouslySetInnerHTML={{ __html: sanitizeSvg(iconDataUrl) }} style={{ width: "100%", height: "100%" }} />
                     )}
                   </div>
                   <div className="preset-icon-meta">
@@ -572,19 +565,16 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
               <div className="preset-form-grid">
                 <div className="preset-field preset-path-field">
                   <span>{t("presetCreator.fields.path", "Save path")}</span>
-                  <div className="preset-inline" style={{ display: "flex", gap: "8px" }}>
-                    <input
-                      style={{ flex: 1 }}
-                      className="custom-input"
-                      type="text"
-                      value={savePath}
-                      onChange={(e) => setSavePath(e.target.value)}
-                      placeholder={t("presetCreator.placeholders.path", "Optional")}
-                    />
-                    <button type="button" className="anim-btn preset-browse-btn" onClick={handleBrowsePath}>
-                      {t("presetCreator.actions.browse", "Browse")}
-                    </button>
-                  </div>
+                  <PathSelector
+                    className="preset-inline"
+                    inputClassName="custom-input"
+                    buttonClassName="anim-btn preset-browse-btn"
+                    value={savePath}
+                    onChange={setSavePath}
+                    placeholder={t("presetCreator.placeholders.path", "Optional")}
+                    pickerCommand="pick_download_directory"
+                    title={t("presetCreator.actions.browse", "Browse")}
+                  />
                 </div>
               </div>
 
@@ -594,27 +584,19 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   <div className="preset-toggle-line preset-toggle-line-subs">
                     <div className="preset-toggle-item">
                       <span>{t("presetCreator.toggles.downloadSubtitles", "Download subtitles")}</span>
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          checked={downloadSubs}
-                          onChange={(e) => setDownloadSubs(e.target.checked)}
-                        />
-                        <span className="slider"></span>
-                      </label>
+                      <ToggleSwitch
+                        checked={downloadSubs}
+                        onChange={setDownloadSubs}
+                      />
                     </div>
                     {downloadSubs && (
                       <>
                         <div className="preset-toggle-item preset-subs-extra">
                           <span>{t("presetCreator.toggles.embedSubtitles", "Embed subtitles")}</span>
-                          <label className="switch">
-                            <input
-                              type="checkbox"
-                              checked={embedSubs}
-                              onChange={(e) => setEmbedSubs(e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                          </label>
+                          <ToggleSwitch
+                            checked={embedSubs}
+                            onChange={setEmbedSubs}
+                          />
                         </div>
                         <div className="preset-toggle-item preset-toggle-code preset-subs-extra">
                           <span>{t("presetCreator.toggles.subtitlesCode", "Code (optional)")}</span>
@@ -634,48 +616,32 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                 <div className="preset-toggle-line">
                   <div className="preset-toggle-item">
                     <span>{t("presetCreator.toggles.embedMetadata", "Embed metadata")}</span>
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        checked={embedMetadata}
-                        onChange={(e) => setEmbedMetadata(e.target.checked)}
-                      />
-                      <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                      checked={embedMetadata}
+                      onChange={setEmbedMetadata}
+                    />
                   </div>
                   <div className="preset-toggle-item">
                     <span>{t("presetCreator.toggles.embedThumbnail", "Embed thumbnail")}</span>
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        checked={embedThumbnail}
-                        onChange={(e) => setEmbedThumbnail(e.target.checked)}
-                      />
-                      <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                      checked={embedThumbnail}
+                      onChange={setEmbedThumbnail}
+                    />
                   </div>
                   <div className="preset-toggle-item">
                     <span>{t("presetCreator.toggles.geoBypass", "Geo bypass")}</span>
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        checked={geoBypass}
-                        onChange={(e) => setGeoBypass(e.target.checked)}
-                      />
-                      <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                      checked={geoBypass}
+                      onChange={setGeoBypass}
+                    />
                   </div>
                   {presetType === "downloader" && selectedFormatLower !== "gif" && (
                     <div className="preset-toggle-item">
                       <span>{t("presetCreator.toggles.muteAudio", "Mute audio")}</span>
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          checked={muteAudio}
-                          onChange={(e) => setMuteAudio(e.target.checked)}
-                        />
-                        <span className="slider"></span>
-                      </label>
+                      <ToggleSwitch
+                        checked={muteAudio}
+                        onChange={setMuteAudio}
+                      />
                     </div>
                   )}
                 </div>

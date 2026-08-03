@@ -5,6 +5,9 @@ import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue } from "../services/queue";
 import { showNotification } from "../services/notifications";
+import { formatDuration } from "../utils/format";
+import { sanitizeSvg } from "../utils/security";
+import { PathSelector } from "../components/PathSelector";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
@@ -121,8 +124,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       }
     };
 
-    let unlisten: (() => void) | null = null;
-    listen<any>("download-event", (event) => {
+    let active = true;
+    const unsubPromise = listen<any>("download-event", (event) => {
+      if (!active) return;
       const payload = event.payload;
       if (!payload || !payload.type) return;
 
@@ -156,12 +160,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           }
         }
       }
-    }).then((unsub) => {
-      unlisten = unsub;
     });
 
     return () => {
-      if (unlisten) unlisten();
+      active = false;
+      unsubPromise.then((unsub) => unsub());
       delete (window as any).downloaderUi;
     };
   }, [provider]);
@@ -367,7 +370,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       setEmbedSubs(false);
     }
 
-    const durString = data.duration_string || formatTime(dur);
+    const durString = data.duration_string || formatDuration(dur);
     setTimeStart("00:00:00");
     setTimeEnd(durString);
     setRangeStart(0);
@@ -484,24 +487,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const formatDuration = (totalSeconds: any) => {
-    const safe = Number.isFinite(totalSeconds) ? Math.max(0, Math.floor(totalSeconds)) : 0;
-    const hrs = Math.floor(safe / 3600);
-    const min = Math.floor((safe % 3600) / 60);
-    const sec = safe % 60;
-    if (hrs > 0) {
-      return `${hrs}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-    }
-    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-  };
-
   const handleRangeStartChange = (val: number) => {
     if (val > rangeEnd) {
       setRangeStart(rangeEnd);
-      if (duration > 0) setTimeStart(formatTime(duration * (rangeEnd / 100)));
+      if (duration > 0) setTimeStart(formatDuration(duration * (rangeEnd / 100)));
     } else {
       setRangeStart(val);
-      if (duration > 0) setTimeStart(formatTime(duration * (val / 100)));
+      if (duration > 0) setTimeStart(formatDuration(duration * (val / 100)));
     }
     clearActivePreset();
   };
@@ -509,21 +501,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const handleRangeEndChange = (val: number) => {
     if (val < rangeStart) {
       setRangeEnd(rangeStart);
-      if (duration > 0) setTimeEnd(formatTime(duration * (rangeStart / 100)));
+      if (duration > 0) setTimeEnd(formatDuration(duration * (rangeStart / 100)));
     } else {
       setRangeEnd(val);
-      if (duration > 0) setTimeEnd(formatTime(duration * (val / 100)));
+      if (duration > 0) setTimeEnd(formatDuration(duration * (val / 100)));
     }
     clearActivePreset();
-  };
-
-  const formatTime = (s: number) => {
-    const safe = Number.isFinite(s) ? s : 0;
-    const total = Math.max(0, Math.floor(safe));
-    const hrs = Math.floor(total / 3600).toString().padStart(2, "0");
-    const min = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
-    const sec = Math.floor(total % 60).toString().padStart(2, "0");
-    return `${hrs}:${min}:${sec}`;
   };
 
   const parseTimeToSeconds = (str: string) => {
@@ -563,17 +546,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     clearActivePreset();
   };
 
-  const browseSavePath = async () => {
-    try {
-      const selected = await invoke<string>("pick_download_directory");
-      if (selected) {
-        setSavePath(selected);
-        clearActivePreset();
-      }
-    } catch (e) {
-      console.error("Failed to pick download directory:", e);
-    }
-  };
+
 
   const handleSelectSearchResult = async (entry: any) => {
     const targetUrl = resolveResultUrl(entry);
@@ -910,7 +883,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </span>
                   <span className="meta-separator">-</span>
                   <span id="meta-duration">
-                    {metadata.duration_string || formatTime(duration)}
+                    {metadata.duration_string || formatDuration(duration)}
                   </span>
                 </p>
               </div>
@@ -929,7 +902,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       >
                         <div
                           className="preset-card-icon"
-                          dangerouslySetInnerHTML={{ __html: pr.icon_data_url || pr.icon || DEFAULT_ICON }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || pr.icon || DEFAULT_ICON) }}
                         />
                         <div className="preset-card-info">
                           <div className="preset-card-title">
@@ -946,29 +919,18 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               )}
 
               {/* Save Path input */}
-              <div className="path-selector fade-in">
-                <input
-                  type="text"
-                  id="path-input"
-                  placeholder={t("downloader.path.placeholder", "No save path selected...")}
-                  value={savePath}
-                  onChange={(e) => {
-                    setSavePath(e.target.value);
-                    clearActivePreset();
-                  }}
-                  autoComplete="off"
-                />
-                <button
-                  id="browse-btn"
-                  className="small-btn"
-                  title={t("downloader.path.browseTitle", "Browse")}
-                  onClick={browseSavePath}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                </button>
-              </div>
+              <PathSelector
+                className="path-selector fade-in"
+                id="path-input"
+                placeholder={t("downloader.path.placeholder", "No save path selected...")}
+                value={savePath}
+                onChange={(selected) => {
+                  setSavePath(selected);
+                  clearActivePreset();
+                }}
+                pickerCommand="pick_download_directory"
+                title={t("downloader.path.browseTitle", "Browse")}
+              />
 
               {/* Mode Switcher */}
               <div className="mode-switcher fade-in">

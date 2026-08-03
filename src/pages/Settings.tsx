@@ -5,6 +5,8 @@ import { usePresets } from "../services/presets";
 import { CustomSelect } from "../components/CustomSelect";
 import { PresetCreatorModal } from "../components/PresetCreatorModal";
 import { showNotification } from "../services/notifications";
+import { sanitizeSvg } from "../utils/security";
+import { ToggleSwitch } from "../components/ToggleSwitch";
 import { invoke } from "../services/tauri";
 
 const GEAR_ICON = (
@@ -201,26 +203,18 @@ export const Settings: React.FC = () => {
 
         <div className="form-row">
           <span>{t("settings.systemNotifications", "System notifications")}</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={config.system_notifications}
-              onChange={(e) => updateConfig({ system_notifications: e.target.checked })}
-            />
-            <span className="slider"></span>
-          </label>
+          <ToggleSwitch
+            checked={!!config.system_notifications}
+            onChange={(checked) => updateConfig({ system_notifications: checked })}
+          />
         </div>
 
         <div className="form-row">
           <span>{t("settings.advancedMode", "Advanced mode")}</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={config.advanced_mode}
-              onChange={(e) => updateConfig({ advanced_mode: e.target.checked })}
-            />
-            <span className="slider"></span>
-          </label>
+          <ToggleSwitch
+            checked={!!config.advanced_mode}
+            onChange={(checked) => updateConfig({ advanced_mode: checked })}
+          />
         </div>
         <div className="settings-note">
           {t("settings.advancedModeNote", "Shows advanced options and console access.")}
@@ -243,14 +237,10 @@ export const Settings: React.FC = () => {
 
         <div className="form-row">
           <span>{t("settings.idleAnimation", "Idle animation")}</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={config.idle_animation}
-              onChange={(e) => updateConfig({ idle_animation: e.target.checked })}
-            />
-            <span className="slider"></span>
-          </label>
+          <ToggleSwitch
+            checked={!!config.idle_animation}
+            onChange={(checked) => updateConfig({ idle_animation: checked })}
+          />
         </div>
       </section>
 
@@ -272,14 +262,10 @@ export const Settings: React.FC = () => {
                 <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
               </svg>
             </button>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={config.update_app}
-                onChange={(e) => updateConfig({ update_app: e.target.checked })}
-              />
-              <span className="slider"></span>
-            </label>
+            <ToggleSwitch
+              checked={!!config.update_app}
+              onChange={(checked) => updateConfig({ update_app: checked })}
+            />
           </div>
         </div>
         <div className="settings-note">
@@ -300,14 +286,10 @@ export const Settings: React.FC = () => {
                 <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
               </svg>
             </button>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={config.update_ytdlp}
-                onChange={(e) => updateConfig({ update_ytdlp: e.target.checked })}
-              />
-              <span className="slider"></span>
-            </label>
+            <ToggleSwitch
+              checked={!!config.update_ytdlp}
+              onChange={(checked) => updateConfig({ update_ytdlp: checked })}
+            />
           </div>
         </div>
         <div className="settings-note">
@@ -328,14 +310,10 @@ export const Settings: React.FC = () => {
                 <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
               </svg>
             </button>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={config.update_ffmpeg}
-                onChange={(e) => updateConfig({ update_ffmpeg: e.target.checked })}
-              />
-              <span className="slider"></span>
-            </label>
+            <ToggleSwitch
+              checked={!!config.update_ffmpeg}
+              onChange={(checked) => updateConfig({ update_ffmpeg: checked })}
+            />
           </div>
         </div>
         <div className="settings-note">
@@ -344,14 +322,10 @@ export const Settings: React.FC = () => {
 
         <div className="form-row">
           <span>{t("settings.ffmpegHwAccel", "FFmpeg hardware acceleration")}</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={config.ffmpeg_hwaccel === "auto"}
-              onChange={(e) => updateConfig({ ffmpeg_hwaccel: e.target.checked ? "auto" : "none" })}
-            />
-            <span className="slider"></span>
-          </label>
+          <ToggleSwitch
+            checked={config.ffmpeg_hwaccel === "auto"}
+            onChange={(checked) => updateConfig({ ffmpeg_hwaccel: checked ? "auto" : "none" })}
+          />
         </div>
 
         <div className="form-row">
@@ -570,7 +544,7 @@ export const Settings: React.FC = () => {
                   <div className="preset-item-icon">
                     {preset.icon ? (
                       preset.icon.startsWith("<svg") ? (
-                        <div dangerouslySetInnerHTML={{ __html: preset.icon }} style={{ width: "100%", height: "100%" }} />
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeSvg(preset.icon) }} style={{ width: "100%", height: "100%" }} />
                       ) : (
                         <img src={preset.icon} alt={preset.title} />
                       )
@@ -606,14 +580,10 @@ export const Settings: React.FC = () => {
 
                     <div className="preset-item-toggle">
                       <span>{t("settings.presetsManager.actions.hide", "Hidden")}</span>
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          checked={!!preset.hidden}
-                          onChange={(e) => setPresetHidden(preset.id || "", e.target.checked)}
-                        />
-                        <span className="slider"></span>
-                      </label>
+                      <ToggleSwitch
+                        checked={!!preset.hidden}
+                        onChange={(checked) => setPresetHidden(preset.id || "", checked)}
+                      />
                     </div>
                   </div>
                 </div>
