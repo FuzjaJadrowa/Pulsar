@@ -18,13 +18,15 @@ interface ConverterProps {
   active?: boolean;
 }
 
+let cachedConverterState: any = null;
+
 export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
 
-  const [filePath, setFilePath] = useState("");
-  const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [filePath, setFilePath] = useState(() => cachedConverterState?.filePath ?? "");
+  const [isDashboardVisible, setIsDashboardVisible] = useState(() => cachedConverterState?.isDashboardVisible ?? false);
 
   const {
     metadata,
@@ -50,36 +52,69 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }
   });
 
-  const [currentName, setCurrentName] = useState("");
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<"video" | "audio">("video");
-  const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
-  const [savePath, setSavePath] = useState("");
+  const [currentName, setCurrentName] = useState(() => cachedConverterState?.currentName ?? "");
+  const [isEditingName, setIsEditingName] = useState(() => cachedConverterState?.isEditingName ?? false);
+  const [selectedMode, setSelectedMode] = useState<"video" | "audio">((() => cachedConverterState?.selectedMode ?? "video"));
+  const [selectedFormat, setSelectedFormat] = useState<string | null>(() => cachedConverterState?.selectedFormat ?? null);
+  const [savePath, setSavePath] = useState(() => cachedConverterState?.savePath ?? "");
 
-  const [videoQuality, setVideoQuality] = useState("");
-  const [videoCodec, setVideoCodec] = useState("");
-  const [videoBitrate, setVideoBitrate] = useState("");
-  const [videoFps, setVideoFps] = useState("");
-  const [videoAudioCodec, setVideoAudioCodec] = useState("");
-  const [videoAudioBitrate, setVideoAudioBitrate] = useState("");
+  const [videoQuality, setVideoQuality] = useState(() => cachedConverterState?.videoQuality ?? "");
+  const [videoCodec, setVideoCodec] = useState(() => cachedConverterState?.videoCodec ?? "");
+  const [videoBitrate, setVideoBitrate] = useState(() => cachedConverterState?.videoBitrate ?? "");
+  const [videoFps, setVideoFps] = useState(() => cachedConverterState?.videoFps ?? "");
+  const [videoAudioCodec, setVideoAudioCodec] = useState(() => cachedConverterState?.videoAudioCodec ?? "");
+  const [videoAudioBitrate, setVideoAudioBitrate] = useState(() => cachedConverterState?.videoAudioBitrate ?? "");
 
-  const [audioCodec, setAudioCodec] = useState("");
-  const [audioBitrate, setAudioBitrate] = useState("");
+  const [audioCodec, setAudioCodec] = useState(() => cachedConverterState?.audioCodec ?? "");
+  const [audioBitrate, setAudioBitrate] = useState(() => cachedConverterState?.audioBitrate ?? "");
 
-  const [imageWidth, setImageWidth] = useState<number | "">("");
-  const [imageHeight, setImageHeight] = useState<number | "">("");
-  const [imageQuality, setImageQuality] = useState<number | "">(100);
+  const [imageWidth, setImageWidth] = useState<number | "">(() => cachedConverterState?.imageWidth ?? "");
+  const [imageHeight, setImageHeight] = useState<number | "">(() => cachedConverterState?.imageHeight ?? "");
+  const [imageQuality, setImageQuality] = useState<number | "">(() => cachedConverterState?.imageQuality ?? 100);
 
-  const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
+  const [estimatedSize, setEstimatedSize] = useState<string | null>(() => cachedConverterState?.estimatedSize ?? null);
 
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(() => cachedConverterState?.activePresetId ?? null);
 
-  const [formatData, setFormatData] = useState<any[]>([]);
+  const [formatData, setFormatData] = useState<any[]>(() => cachedConverterState?.formatData ?? []);
 
 
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
   const converterPresets = presets.filter(p => p.preset_type === "converter" && !p.hidden);
+
+  useEffect(() => {
+    if (cachedConverterState && cachedConverterState.metadata) {
+      setMetadata(cachedConverterState.metadata);
+    }
+  }, []);
+
+  useEffect(() => {
+    cachedConverterState = {
+      filePath,
+      isDashboardVisible,
+      currentName,
+      isEditingName,
+      selectedMode,
+      selectedFormat,
+      savePath,
+      videoQuality,
+      videoCodec,
+      videoBitrate,
+      videoFps,
+      videoAudioCodec,
+      videoAudioBitrate,
+      audioCodec,
+      audioBitrate,
+      imageWidth,
+      imageHeight,
+      imageQuality,
+      estimatedSize,
+      activePresetId,
+      formatData,
+      metadata,
+    };
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -448,7 +483,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               ref={pathInputRef}
               placeholder={t("converter.path.placeholder", "Select a file to convert...")}
               value={filePath}
-              onChange={(e) => setFilePath(e.target.value)}
+              onChange={(e) => {
+                setFilePath(e.target.value);
+                if (e.target.value.trim() === "") {
+                  resetView();
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

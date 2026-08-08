@@ -303,7 +303,6 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       const savedId = await invoke<string>("save_preset", { preset: payload });
       onSaved();
       await exportPreset(savedId);
-      showNotification(t("common.success", "Success"), "Preset exported successfully.", "success");
       onClose();
     } catch (err) {
       console.error("Export preset failed:", err);

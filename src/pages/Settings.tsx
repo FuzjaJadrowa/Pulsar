@@ -129,7 +129,6 @@ export const Settings: React.FC = () => {
   const handleExportPreset = async (id: string) => {
     try {
       await exportPreset(id);
-      showNotification(t("common.success", "Success"), "Preset exported successfully.", "success");
     } catch (err) {
       console.error("Export preset failed:", err);
       showNotification(t("common.error", "Error"), "Failed to export preset.", "error");
@@ -149,7 +148,6 @@ export const Settings: React.FC = () => {
   const handleImportPreset = async () => {
     try {
       await importPreset();
-      showNotification(t("common.success", "Success"), "Preset imported successfully.", "success");
     } catch (err) {
       console.error("Import preset failed:", err);
       showNotification(t("common.error", "Error"), "Failed to import preset.", "error");

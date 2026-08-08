@@ -20,19 +20,21 @@ interface DownloaderProps {
   active?: boolean;
 }
 
+let cachedDownloaderState: any = null;
+
 export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
 
-  const [url, setUrl] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSearchMode, setIsSearchMode] = useState(false);
-  const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searchExiting, setSearchExiting] = useState(false);
-  const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
-  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
+  const [url, setUrl] = useState(() => cachedDownloaderState?.url ?? "");
+  const [isSearching, setIsSearching] = useState(() => cachedDownloaderState?.isSearching ?? false);
+  const [isSearchMode, setIsSearchMode] = useState(() => cachedDownloaderState?.isSearchMode ?? false);
+  const [isDashboardVisible, setIsDashboardVisible] = useState(() => cachedDownloaderState?.isDashboardVisible ?? false);
+  const [searchResults, setSearchResults] = useState<any[]>(() => cachedDownloaderState?.searchResults ?? []);
+  const [searchExiting, setSearchExiting] = useState(() => cachedDownloaderState?.searchExiting ?? false);
+  const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">(() => cachedDownloaderState?.provider ?? "ytsearch");
+  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(() => cachedDownloaderState?.pendingMetadataUrl ?? null);
 
   const {
     metadata,
@@ -50,45 +52,99 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   });
 
-  const [duration, setDuration] = useState(0);
-  const [mode, setMode] = useState<"video" | "audio">("video");
-  const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
-  const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
-  const [savePath, setSavePath] = useState("");
+  const [duration, setDuration] = useState(() => cachedDownloaderState?.duration ?? 0);
+  const [mode, setMode] = useState<"video" | "audio">(() => cachedDownloaderState?.mode ?? "video");
+  const [selectedFormat, setSelectedFormat] = useState<string | null>(() => cachedDownloaderState?.selectedFormat ?? null);
+  const [selectedQuality, setSelectedQuality] = useState<string | null>(() => cachedDownloaderState?.selectedQuality ?? null);
+  const [savePath, setSavePath] = useState(() => cachedDownloaderState?.savePath ?? "");
 
-  const [rangeStart, setRangeStart] = useState<number>(0);
-  const [rangeEnd, setRangeEnd] = useState<number>(100);
-  const [timeStart, setTimeStart] = useState<string>("00:00:00");
-  const [timeEnd, setTimeEnd] = useState<string>("00:00:00");
+  const [rangeStart, setRangeStart] = useState<number>(() => cachedDownloaderState?.rangeStart ?? 0);
+  const [rangeEnd, setRangeEnd] = useState<number>(() => cachedDownloaderState?.rangeEnd ?? 100);
+  const [timeStart, setTimeStart] = useState<string>(() => cachedDownloaderState?.timeStart ?? "00:00:00");
+  const [timeEnd, setTimeEnd] = useState<string>(() => cachedDownloaderState?.timeEnd ?? "00:00:00");
 
-  const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">("none");
-  const [geoBypass, setGeoBypass] = useState(false);
-  const [embedMetadata, setEmbedMetadata] = useState(false);
-  const [muteAudio, setMuteAudio] = useState(false);
-  const [customArgs, setCustomArgs] = useState("");
+  const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">((() => cachedDownloaderState?.thumbnailAction ?? "none"));
+  const [geoBypass, setGeoBypass] = useState(() => cachedDownloaderState?.geoBypass ?? false);
+  const [embedMetadata, setEmbedMetadata] = useState(() => cachedDownloaderState?.embedMetadata ?? false);
+  const [muteAudio, setMuteAudio] = useState(() => cachedDownloaderState?.muteAudio ?? false);
+  const [customArgs, setCustomArgs] = useState(() => cachedDownloaderState?.customArgs ?? "");
 
-  const [subtitlesAvailable, setSubtitlesAvailable] = useState(true);
-  const [downloadSubs, setDownloadSubs] = useState(false);
-  const [downloadChat, setDownloadChat] = useState(false);
-  const [embedSubs, setEmbedSubs] = useState(false);
-  const [subsLang, setSubsLang] = useState("");
-  const [subtitleOptions, setSubtitleOptions] = useState<any[]>([]);
-  const [metaSubLangs, setMetaSubLangs] = useState<string[]>([]);
-  const [metaAutoLangs, setMetaAutoLangs] = useState<string[]>([]);
-  const [showLangSuggestions, setShowLangSuggestions] = useState(false);
-  const [langSuggestions, setLangSuggestions] = useState<any[]>([]);
+  const [subtitlesAvailable, setSubtitlesAvailable] = useState(() => cachedDownloaderState?.subtitlesAvailable ?? true);
+  const [downloadSubs, setDownloadSubs] = useState(() => cachedDownloaderState?.downloadSubs ?? false);
+  const [downloadChat, setDownloadChat] = useState(() => cachedDownloaderState?.downloadChat ?? false);
+  const [embedSubs, setEmbedSubs] = useState(() => cachedDownloaderState?.embedSubs ?? false);
+  const [subsLang, setSubsLang] = useState(() => cachedDownloaderState?.subsLang ?? "");
+  const [subtitleOptions, setSubtitleOptions] = useState<any[]>(() => cachedDownloaderState?.subtitleOptions ?? []);
+  const [metaSubLangs, setMetaSubLangs] = useState<string[]>(() => cachedDownloaderState?.metaSubLangs ?? []);
+  const [metaAutoLangs, setMetaAutoLangs] = useState<string[]>(() => cachedDownloaderState?.metaAutoLangs ?? []);
+  const [showLangSuggestions, setShowLangSuggestions] = useState(() => cachedDownloaderState?.showLangSuggestions ?? false);
+  const [langSuggestions, setLangSuggestions] = useState<any[]>(() => cachedDownloaderState?.langSuggestions ?? []);
 
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [presetOverrides, setPresetOverrides] = useState<any | null>(null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(() => cachedDownloaderState?.activePresetId ?? null);
+  const [presetOverrides, setPresetOverrides] = useState<any | null>(() => cachedDownloaderState?.presetOverrides ?? null);
 
-  const [isAudioOnlySource, setIsAudioOnlySource] = useState(false);
-  const [isPlaylist, setIsPlaylist] = useState(false);
+  const [isAudioOnlySource, setIsAudioOnlySource] = useState(() => cachedDownloaderState?.isAudioOnlySource ?? false);
+  const [isPlaylist, setIsPlaylist] = useState(() => cachedDownloaderState?.isPlaylist ?? false);
 
   const currentSearchIdRef = useRef<string | null>(null);
 
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
   const downloaderPresets = presets.filter(p => p.preset_type === "downloader" && !p.hidden);
+
+  useEffect(() => {
+    if (cachedDownloaderState && cachedDownloaderState.metadata) {
+      setMetadata(cachedDownloaderState.metadata);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedFormat && selectedFormat.toLowerCase() === "gif") {
+      setMuteAudio(true);
+    }
+  }, [selectedFormat]);
+
+  useEffect(() => {
+    cachedDownloaderState = {
+      url,
+      isSearching,
+      isSearchMode,
+      isDashboardVisible,
+      searchResults,
+      searchExiting,
+      provider,
+      pendingMetadataUrl,
+      duration,
+      mode,
+      selectedFormat,
+      selectedQuality,
+      savePath,
+      rangeStart,
+      rangeEnd,
+      timeStart,
+      timeEnd,
+      thumbnailAction,
+      geoBypass,
+      embedMetadata,
+      muteAudio,
+      customArgs,
+      subtitlesAvailable,
+      downloadSubs,
+      downloadChat,
+      embedSubs,
+      subsLang,
+      subtitleOptions,
+      metaSubLangs,
+      metaAutoLangs,
+      showLangSuggestions,
+      langSuggestions,
+      activePresetId,
+      presetOverrides,
+      isAudioOnlySource,
+      isPlaylist,
+      metadata,
+    };
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -346,7 +402,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       setEmbedSubs(false);
     }
 
-    const durString = data.duration_string || formatDuration(dur);
+    const durString = formatDuration(dur);
     setTimeStart("00:00:00");
     setTimeEnd(durString);
     setRangeStart(0);
@@ -680,7 +736,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     if (!thumbUrl) return;
     try {
       await invoke("save_thumbnail_to_disk", { url: thumbUrl });
-      showNotification(t("common.success", "Success"), "Thumbnail saved successfully", "success");
     } catch (e) {
       console.error("Failed to save thumbnail:", e);
       showNotification(t("common.error", "Error"), "Failed to save thumbnail", "error");
@@ -699,7 +754,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       <div className="page-scroll app-scroll">
 
         {/* Search Section */}
-        <div id="search-section" className={`search-section ${!isDashboardVisible && !isSearchMode ? "centered" : "sticky"} ${!isDashboardVisible && !isSearchMode && url.trim().length > 0 && !looksLikeUrl(url) ? "has-provider-panel" : ""}`}>
+        <div id="search-section" className={`search-section ${!isDashboardVisible && !isSearchMode ? "centered" : "sticky"} ${!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url) ? "has-provider-panel" : ""}`}>
           <div className="search-box-row">
             <input
               type="text"
@@ -758,8 +813,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           {/* Search Provider selection */}
           <div
             id="search-provider-panel"
-            className={`search-provider-panel ${!isDashboardVisible && !isSearchMode && url.trim().length > 0 && !looksLikeUrl(url) ? "visible" : ""}`}
-            aria-hidden={!(!isDashboardVisible && !isSearchMode && url.trim().length > 0 && !looksLikeUrl(url))}
+            className={`search-provider-panel ${!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url) ? "visible" : ""}`}
+            aria-hidden={!(!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url))}
           >
             <span className="provider-label">{t("downloader.search.providerLabel", "Search on")}</span>
             <div className="provider-buttons">
@@ -989,6 +1044,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       id="time-start"
                       value={timeStart}
                       onChange={(e) => handleTimeStartChange(e.target.value)}
+                      onBlur={() => {
+                        const secs = parseTimeToSeconds(timeStart);
+                        setTimeStart(formatDuration(secs));
+                      }}
                     />
                     <div className="slider-track-container">
                       <div className="track-bg"></div>
@@ -1023,6 +1082,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       id="time-end"
                       value={timeEnd}
                       onChange={(e) => handleTimeEndChange(e.target.value)}
+                      onBlur={() => {
+                        const secs = parseTimeToSeconds(timeEnd);
+                        setTimeEnd(formatDuration(secs));
+                      }}
                     />
                   </div>
                 </div>

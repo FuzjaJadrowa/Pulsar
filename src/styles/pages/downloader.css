@@ -540,6 +540,7 @@ body.mode-audio .tile.active { color: #a9f5c6; }
     text-align: center; font-family: "Roboto", "Manrope", "Montserrat", sans-serif; font-size: 1rem; color: #fff;
     outline: none; transition: 0.2s;
 }
+.time-box:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); }
 .time-box:focus { border-color: var(--active-color); background: rgba(0,0,0,0.6); }
 .slider-track-container { position: relative; flex-grow: 1; height: 12px; margin: 0 10px; }
 .track-bg { width: 100%; height: 100%; background: #333; border-radius: 6px; position: absolute; }
@@ -804,6 +805,10 @@ body.theme-light .time-box {
     background: rgba(255, 255, 255, 0.9);
     border-color: rgba(0, 0, 0, 0.12);
     color: #1d2330;
+}
+body.theme-light .time-box:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.22);
 }
 body.theme-light .track-bg { background: rgba(0, 0, 0, 0.12); }
 body.theme-light .slider-track-container input[type="range"]::-webkit-slider-thumb {

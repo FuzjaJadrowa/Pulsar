@@ -698,11 +698,13 @@ export function refreshConfig() {
 }
 
 export function animateQueueOrb(sourceEl: HTMLElement) {
+  if (!sourceEl) return;
+  const s = sourceEl.getBoundingClientRect();
+
   setTimeout(() => {
     const btn = document.getElementById("btn-queue");
-    if (!sourceEl || !btn) return;
+    if (!btn) return;
 
-    const s = sourceEl.getBoundingClientRect();
     const t = btn.getBoundingClientRect();
     const startX = s.left + s.width / 2;
     const startY = s.top + s.height / 2;

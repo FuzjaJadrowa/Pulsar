@@ -83,13 +83,15 @@ interface CompressorProps {
   active?: boolean;
 }
 
+let cachedCompressorState: any = null;
+
 export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets, loadPreset } = usePresets();
 
-  const [filePath, setFilePath] = useState("");
-  const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [filePath, setFilePath] = useState(() => cachedCompressorState?.filePath ?? "");
+  const [isDashboardVisible, setIsDashboardVisible] = useState(() => cachedCompressorState?.isDashboardVisible ?? false);
 
   const {
     metadata,
@@ -128,28 +130,55 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       triggerFetchMetadata(path);
     }
   });
-  const [currentName, setCurrentName] = useState("");
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [savePath, setSavePath] = useState("");
+  const [currentName, setCurrentName] = useState(() => cachedCompressorState?.currentName ?? "");
+  const [isEditingName, setIsEditingName] = useState(() => cachedCompressorState?.isEditingName ?? false);
+  const [savePath, setSavePath] = useState(() => cachedCompressorState?.savePath ?? "");
 
-  const [selectedMode, setSelectedMode] = useState<"percent" | "size" | "quality">("percent");
-  const [percentValue, setPercentValue] = useState<number | "">(60);
-  const [sizeInputValue, setSizeInputValue] = useState("");
-  const [crfValue, setCrfValue] = useState("26");
+  const [selectedMode, setSelectedMode] = useState<"percent" | "size" | "quality">((() => cachedCompressorState?.selectedMode ?? "percent"));
+  const [percentValue, setPercentValue] = useState<number | "">(() => cachedCompressorState?.percentValue ?? 60);
+  const [sizeInputValue, setSizeInputValue] = useState(() => cachedCompressorState?.sizeInputValue ?? "");
+  const [crfValue, setCrfValue] = useState(() => cachedCompressorState?.crfValue ?? "26");
 
   // Specs options
-  const [videoCodec, setVideoCodec] = useState("");
-  const [videoAudioCodec, setVideoAudioCodec] = useState("");
-  const [audioCodec, setAudioCodec] = useState("");
+  const [videoCodec, setVideoCodec] = useState(() => cachedCompressorState?.videoCodec ?? "");
+  const [videoAudioCodec, setVideoAudioCodec] = useState(() => cachedCompressorState?.videoAudioCodec ?? "");
+  const [audioCodec, setAudioCodec] = useState(() => cachedCompressorState?.audioCodec ?? "");
 
   // Local size estimation
-  const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
+  const [estimatedSize, setEstimatedSize] = useState<string | null>(() => cachedCompressorState?.estimatedSize ?? null);
 
   // Presets
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(() => cachedCompressorState?.activePresetId ?? null);
 
   // Format Data Map
-  const [formatData, setFormatData] = useState<any[]>([]);
+  const [formatData, setFormatData] = useState<any[]>(() => cachedCompressorState?.formatData ?? []);
+
+  useEffect(() => {
+    if (cachedCompressorState && cachedCompressorState.metadata) {
+      setMetadata(cachedCompressorState.metadata);
+    }
+  }, []);
+
+  useEffect(() => {
+    cachedCompressorState = {
+      filePath,
+      isDashboardVisible,
+      currentName,
+      isEditingName,
+      savePath,
+      selectedMode,
+      percentValue,
+      sizeInputValue,
+      crfValue,
+      videoCodec,
+      videoAudioCodec,
+      audioCodec,
+      estimatedSize,
+      activePresetId,
+      formatData,
+      metadata,
+    };
+  });
 
   // Depth transitions for mode panels
   const [panelTransitionClass, setPanelTransitionClass] = useState("depth-enter");
@@ -475,7 +504,12 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               ref={pathInputRef}
               placeholder={t("compressor.path.placeholder", "Select file to compress...")}
               value={filePath}
-              onChange={(e) => setFilePath(e.target.value)}
+              onChange={(e) => {
+                setFilePath(e.target.value);
+                if (e.target.value.trim() === "") {
+                  resetView();
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleConfirmPath();
