@@ -526,6 +526,15 @@ body.theme-light .notif-close {
     pointer-events: none;
 }
 
+#splash-screen.entering {
+    animation: splashFadeIn 0.5s ease-out forwards;
+}
+
+@keyframes splashFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .splash-content {
     text-align: center;
     display: flex;

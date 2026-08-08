@@ -245,7 +245,6 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     }
 
     emit_status(&window, "Starting...", false, false);
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
     let _ = window.emit("splash-finished", SplashFinishedPayload {
         prewarm_bridge: true,
@@ -285,7 +284,6 @@ pub async fn run_requirement_check(app: AppHandle, window: Window, component: St
         populate_flatpak_versions(&mut versions, &app_ver);
         save_versions(&req_path, &versions);
         emit_status(&window, "Starting...", false, false);
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
         let _ = window.emit("splash-finished", SplashFinishedPayload {
             prewarm_bridge: true,
             bridge_updated: false,
@@ -369,7 +367,6 @@ pub async fn run_requirement_check(app: AppHandle, window: Window, component: St
     }
 
     emit_status(&window, "Starting...", false, false);
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     let _ = window.emit("splash-finished", SplashFinishedPayload {
         prewarm_bridge: bridge_updated,
         bridge_updated,

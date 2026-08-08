@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { useConfig } from "../services/config";
+import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../services/config";
 import { usePresets } from "../services/presets";
 import { CustomSelect } from "../components/CustomSelect";
 import { PresetCreatorModal } from "../components/PresetCreatorModal";
@@ -30,10 +30,48 @@ const TAG_LABELS: Record<string, string> = {
 };
 
 
-
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
+  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(null);
+  const [pendingFocus, setPendingFocus] = useState<{ index: number; offset: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [localCooldown, setLocalCooldown] = useState<string>("");
+  const [localProcesses, setLocalProcesses] = useState<string>("");
+  const [localSearchResults, setLocalSearchResults] = useState<string>("");
+
+  useEffect(() => {
+    if (config) {
+      setLocalCooldown(String(config.update_app_cooldown_minutes ?? 30));
+      setLocalProcesses(String(config.maximum_concurrent_processes ?? 3));
+      setLocalSearchResults(String(config.maximum_search_results ?? 10));
+    }
+  }, [config.update_app_cooldown_minutes, config.maximum_concurrent_processes, config.maximum_search_results]);
+
+  useEffect(() => {
+    return () => {
+      // Revert title template to default on unmount if left empty
+      const current = getCurrentConfig();
+      if (!current.title_template || !current.title_template.trim()) {
+        saveConfig({ title_template: DEFAULT_CONFIG.title_template });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (pendingFocus && containerRef.current) {
+      const inputs = containerRef.current.querySelectorAll("input");
+      const inputIdx = pendingFocus.index / 2;
+      const targetInput = inputs[inputIdx] as HTMLInputElement | undefined;
+      if (targetInput) {
+        targetInput.focus();
+        const offset = Math.min(pendingFocus.offset, targetInput.value.length);
+        targetInput.setSelectionRange(offset, offset);
+      }
+      setPendingFocus(null);
+    }
+  }, [pendingFocus, config.title_template]);
   const {
     presets,
     importPreset,
@@ -145,6 +183,41 @@ export const Settings: React.FC = () => {
     // Ponieważ splikowaliśmy tag, musimy połączyć pusty string lub tekst, co join() i tak zrobi automatycznie.
     const combined = newParts.join("");
     updateConfig({ title_template: combined });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number, parts: string[]) => {
+    if (e.key === "Backspace" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
+      if (index > 0) {
+        const newParts = [...parts];
+        const pillToDelete = index - 1;
+        const textBefore = newParts[index - 2] || "";
+        const textCurrent = newParts[index] || "";
+        
+        newParts[index - 2] = textBefore + textCurrent;
+        newParts.splice(pillToDelete, 2);
+        
+        const combined = newParts.join("");
+        updateConfig({ title_template: combined });
+        
+        setPendingFocus({
+          index: index - 2,
+          offset: textBefore.length
+        });
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains("title-template-input") || target.classList.contains("title-template-input-container")) {
+      if (containerRef.current) {
+        const inputs = containerRef.current.querySelectorAll("input");
+        if (inputs.length > 0) {
+          (inputs[inputs.length - 1] as HTMLInputElement).focus();
+        }
+      }
+    }
   };
 
 
@@ -356,10 +429,23 @@ export const Settings: React.FC = () => {
           <input
             className="custom-input"
             type="number"
-            min="10"
-            max="500"
-            value={config.update_app_cooldown_minutes}
-            onChange={(e) => updateConfig({ update_app_cooldown_minutes: parseInt(e.target.value, 10) || 30 })}
+            value={localCooldown}
+            onChange={(e) => {
+              let valStr = e.target.value;
+              let val = parseInt(valStr, 10);
+              if (!isNaN(val) && val > 500) {
+                valStr = "500";
+              }
+              setLocalCooldown(valStr);
+            }}
+            onBlur={() => {
+              let val = parseInt(localCooldown, 10);
+              if (isNaN(val)) val = 30;
+              if (val < 10) val = 10;
+              if (val > 500) val = 500;
+              setLocalCooldown(String(val));
+              updateConfig({ update_app_cooldown_minutes: val });
+            }}
             style={{ width: "120px" }}
           />
         </div>
@@ -387,10 +473,23 @@ export const Settings: React.FC = () => {
           <input
             className="custom-input"
             type="number"
-            min="1"
-            max="10"
-            value={config.maximum_concurrent_processes}
-            onChange={(e) => updateConfig({ maximum_concurrent_processes: parseInt(e.target.value, 10) || 3 })}
+            value={localProcesses}
+            onChange={(e) => {
+              let valStr = e.target.value;
+              let val = parseInt(valStr, 10);
+              if (!isNaN(val) && val > 10) {
+                valStr = "10";
+              }
+              setLocalProcesses(valStr);
+            }}
+            onBlur={() => {
+              let val = parseInt(localProcesses, 10);
+              if (isNaN(val)) val = 3;
+              if (val < 1) val = 1;
+              if (val > 10) val = 10;
+              setLocalProcesses(String(val));
+              updateConfig({ maximum_concurrent_processes: val });
+            }}
             style={{ width: "120px" }}
           />
         </div>
@@ -400,10 +499,23 @@ export const Settings: React.FC = () => {
           <input
             className="custom-input"
             type="number"
-            min="1"
-            max="50"
-            value={config.maximum_search_results}
-            onChange={(e) => updateConfig({ maximum_search_results: parseInt(e.target.value, 10) || 10 })}
+            value={localSearchResults}
+            onChange={(e) => {
+              let valStr = e.target.value;
+              let val = parseInt(valStr, 10);
+              if (!isNaN(val) && val > 50) {
+                valStr = "50";
+              }
+              setLocalSearchResults(valStr);
+            }}
+            onBlur={() => {
+              let val = parseInt(localSearchResults, 10);
+              if (isNaN(val)) val = 10;
+              if (val < 1) val = 1;
+              if (val > 50) val = 50;
+              setLocalSearchResults(String(val));
+              updateConfig({ maximum_search_results: val });
+            }}
             style={{ width: "120px" }}
           />
         </div>
@@ -412,8 +524,16 @@ export const Settings: React.FC = () => {
         <div className="title-constructor">
           <div className="title-constructor-title">{t("settings.titleConstructor", "Title Constructor")}</div>
           <div className="title-constructor-input-row">
-            <div className="title-template-input">
-              <div className="title-template-input-container" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", width: "100%" }}>
+            <div
+              className="title-template-input"
+              onClick={handleWrapperClick}
+              style={{ cursor: "text" }}
+            >
+              <div
+                ref={containerRef}
+                className="title-template-input-container"
+                style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", width: "100%" }}
+              >
                 {(() => {
                   const template = config.title_template || "";
                   const tokenRegex = /(%\(.*?\)(?:s|d))/g;
@@ -435,8 +555,19 @@ export const Settings: React.FC = () => {
                         </div>
                       );
                     } else {
-                      // Obliczamy przybliżoną szerokość inputa na podstawie liczby znaków
-                      const inputWidth = Math.max(15, part.length * 8 + 10);
+                      const isFocused = focusedInputIndex === index;
+                      let inputWidth;
+                      if (part.length === 0) {
+                        if (isFocused) {
+                          inputWidth = 30;
+                        } else if (parts.length === 1) {
+                          inputWidth = 120;
+                        } else {
+                          inputWidth = 2;
+                        }
+                      } else {
+                        inputWidth = Math.max(12, part.length * 8 + 10);
+                      }
                       return (
                         <input
                           key={`text-${index}`}
@@ -451,12 +582,15 @@ export const Settings: React.FC = () => {
                             fontSize: "inherit",
                             fontFamily: "inherit",
                             outline: "none",
-                            padding: "2px 4px",
+                            padding: "2px 2px",
                             maxWidth: "100%",
-                            minWidth: "15px"
+                            minWidth: "0px"
                           }}
-                          placeholder={index === 0 && parts.length === 1 ? "%(title)s [%(id)s]" : ""}
+                          placeholder={index === 0 && parts.length === 1 ? "%(x)s" : ""}
                           onChange={(e) => handlePartChange(index, e.target.value, parts)}
+                          onKeyDown={(e) => handleKeyDown(e, index, parts)}
+                          onFocus={() => setFocusedInputIndex(index)}
+                          onBlur={() => setFocusedInputIndex(null)}
                         />
                       );
                     }

@@ -14,6 +14,7 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   const [canSkip, setCanSkip] = useState<boolean>(false);
   const [isExiting, setIsExiting] = useState<boolean>(false);
   const [isHidden, setIsHidden] = useState<boolean>(false);
+  const [isEntering, setIsEntering] = useState<boolean>(false);
 
   const translateSplashStatus = (val: any): string => {
     if (val === null || typeof val === "undefined") return "";
@@ -80,9 +81,14 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   const showSplashOverlay = () => {
     setIsHidden(false);
     setIsExiting(false);
+    setIsEntering(true);
     setStatus(t("index.splash.checking", "Checking..."));
     setProgress("");
     setCanSkip(false);
+
+    setTimeout(() => {
+      setIsEntering(false);
+    }, 500);
   };
 
   useEffect(() => {
@@ -143,7 +149,7 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   if (isHidden) return null;
 
   return (
-    <div id="splash-screen" className={`${isExiting ? "exiting" : ""}`}>
+    <div id="splash-screen" className={`${isExiting ? "exiting" : ""} ${isEntering ? "entering" : ""}`}>
       <div className="splash-content">
         <div className="spinner-container">
           <div className="spinner"></div>

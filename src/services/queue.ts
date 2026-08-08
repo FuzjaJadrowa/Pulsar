@@ -528,11 +528,13 @@ export function stopAll() {
     if (i.status === "pending") i.skippedByStop = true;
   });
 
-  showNotification(
-    t("common.info", "Info"),
-    t("queue.notifications.downloadStopped", "Download stopped by user."),
-    "info"
-  );
+  if (toCancel.length > 0) {
+    showNotification(
+      t("common.info", "Info"),
+      t("queue.notifications.downloadStopped", "Download stopped by user."),
+      "info"
+    );
+  }
   notifyListeners();
   persistSoon();
 }

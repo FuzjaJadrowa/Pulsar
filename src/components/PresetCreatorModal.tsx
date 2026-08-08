@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
-import { Preset } from "../services/presets";
+import { Preset, exportPreset } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
 import { showNotification } from "../services/notifications";
 import { sanitizeSvg } from "../utils/security";
@@ -34,7 +34,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [presetType, setPresetType] = useState<"downloader" | "converter" | "compressor">("downloader");
   const [format, setFormat] = useState("");
   const [compressMode, setCompressMode] = useState<"percent" | "size" | "quality">("percent");
-  const [compressPercent, setCompressPercent] = useState<number>(60);
+  const [compressPercent, setCompressPercent] = useState<number | "">(60);
   const [compressSize, setCompressSize] = useState("");
   const [compressCrf, setCompressCrf] = useState("23");
   const [savePath, setSavePath] = useState("");
@@ -223,12 +223,31 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
 
 
-  // Submit preset payload
-  const handleSave = async () => {
-    if (!title.trim()) {
-      showNotification(t("common.error", "Error"), "Preset title is required.", "error");
-      return;
+  const isFormValid = () => {
+    if (!title.trim()) return false;
+    
+    if (presetType === "downloader" || presetType === "converter") {
+      return format.trim().length > 0;
     }
+    
+    if (presetType === "compressor") {
+      if (!compressMode) return false;
+      if (compressMode === "percent") {
+        return typeof compressPercent === "number" && compressPercent >= 1 && compressPercent <= 100;
+      }
+      if (compressMode === "size") {
+        return compressSize.trim().length > 0;
+      }
+      if (compressMode === "quality") {
+        return !!compressCrf;
+      }
+    }
+    
+    return true;
+  };
+
+  const handleExport = async () => {
+    if (!isFormValid()) return;
 
     const payload: Preset = {
       id: mode === "edit" ? presetId || undefined : undefined,
@@ -274,7 +293,73 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     } else if (presetType === "compressor") {
       payload.compressor = {
         mode: compressMode,
-        target_percent: compressMode === "percent" ? compressPercent : undefined,
+        target_percent: compressMode === "percent" ? (typeof compressPercent === "number" ? compressPercent : undefined) : undefined,
+        target_size: compressMode === "size" ? compressSize : undefined,
+        crf: compressMode === "quality" ? parseInt(compressCrf) || undefined : undefined,
+      };
+    }
+
+    try {
+      const savedId = await invoke<string>("save_preset", { preset: payload });
+      onSaved();
+      await exportPreset(savedId);
+      showNotification(t("common.success", "Success"), "Preset exported successfully.", "success");
+      onClose();
+    } catch (err) {
+      console.error("Export preset failed:", err);
+      showNotification(t("common.error", "Error"), "Failed to save & export preset.", "error");
+    }
+  };
+
+  // Submit preset payload
+  const handleSave = async () => {
+    if (!isFormValid()) return;
+
+    const payload: Preset = {
+      id: mode === "edit" ? presetId || undefined : undefined,
+      title: title.trim(),
+      summary: summary.trim(),
+      icon_data_url: iconDataUrl,
+      preset_type: presetType,
+      hidden: false,
+    };
+
+    if (presetType === "downloader") {
+      payload.downloader = {
+        mode: "video",
+        format: format.trim().toLowerCase(),
+        path: savePath.trim() || undefined,
+        video_quality: videoQuality || undefined,
+        download_subtitles: downloadSubs,
+        embed_subtitles: downloadSubs && embedSubs,
+        subtitles_code: downloadSubs && subsCode.trim() ? subsCode.trim() : undefined,
+        embed_metadata: embedMetadata,
+        embed_thumbnail: embedThumbnail,
+        geo_bypass: geoBypass,
+        mute_audio: muteAudio,
+        video_codec: videoCodec || undefined,
+        audio_codec: audioCodec || undefined,
+        video_bitrate: videoBitrate || undefined,
+        audio_bitrate: audioBitrate || undefined,
+        video_fps: videoFps || undefined,
+        audio_sample_rate: audioSample || undefined,
+      };
+    } else if (presetType === "converter") {
+      payload.converter = {
+        format: format.trim().toLowerCase(),
+        path: savePath.trim() || undefined,
+        video_quality: videoQuality || undefined,
+        video_codec: videoCodec || undefined,
+        video_bitrate: videoBitrate || undefined,
+        video_fps: videoFps || undefined,
+        audio_codec: audioCodec || undefined,
+        audio_bitrate: audioBitrate || undefined,
+        audio_sample_rate: audioSample || undefined,
+      };
+    } else if (presetType === "compressor") {
+      payload.compressor = {
+        mode: compressMode,
+        target_percent: compressMode === "percent" ? (typeof compressPercent === "number" ? compressPercent : undefined) : undefined,
         target_size: compressMode === "size" ? compressSize : undefined,
         crf: compressMode === "quality" ? parseInt(compressCrf) || undefined : undefined,
       };
@@ -295,6 +380,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const selectedFormatLower = format.toLowerCase().trim();
   const formatMap = presetType === "converter" ? formatData.converter : formatData.downloader;
   const currentFormatMeta = formatMap.find((item) => String(item.id).toLowerCase() === selectedFormatLower);
+  const isFormatValid = presetType === "compressor" || !!currentFormatMeta;
 
   const videoCodecOptions = [
     { value: "", label: t("presetCreator.select.auto", "Auto") },
@@ -527,10 +613,25 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                       <input
                         className="custom-input preset-compressor-percent-input"
                         type="number"
-                        min="1"
-                        max="100"
                         value={compressPercent}
-                        onChange={(e) => setCompressPercent(Math.min(100, Math.max(1, parseInt(e.target.value, 10) || 60)))}
+                        onChange={(e) => {
+                          if (e.target.value === "") {
+                            setCompressPercent("");
+                            return;
+                          }
+                          let val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val > 100) {
+                            val = 100;
+                          }
+                          setCompressPercent(val);
+                        }}
+                        onBlur={() => {
+                          let val = typeof compressPercent === "number" ? compressPercent : parseInt(String(compressPercent), 10);
+                          if (isNaN(val)) val = 60;
+                          if (val < 1) val = 1;
+                          if (val > 100) val = 100;
+                          setCompressPercent(val);
+                        }}
                       />
                       <span className="preset-compressor-percent-suffix">%</span>
                     </div>
@@ -569,61 +670,61 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
           )}
 
           {/* Misc Section */}
-          <div className="preset-advanced expanded">
-            <div className="preset-section">
-              <div className="preset-section-title">{t("presetCreator.sections.misc", "Misc")}</div>
-              <div className="preset-form-grid">
-                <div className="preset-field preset-path-field">
-                  <span>{t("presetCreator.fields.path", "Save path")}</span>
-                  <PathSelector
-                    className="preset-inline"
-                    inputClassName="custom-input"
-                    buttonClassName="anim-btn preset-browse-btn"
-                    value={savePath}
-                    onChange={setSavePath}
-                    placeholder={t("presetCreator.placeholders.path", "Optional")}
-                    pickerCommand="pick_download_directory"
-                    title={t("presetCreator.actions.browse", "Browse")}
-                  />
-                </div>
-              </div>
-
-              {/* Toggles */}
-              <div className="preset-toggle-grid">
-                {presetType === "downloader" && (
-                  <div className="preset-toggle-line preset-toggle-line-subs">
-                    <div className="preset-toggle-item">
-                      <span>{t("presetCreator.toggles.downloadSubtitles", "Download subtitles")}</span>
-                      <ToggleSwitch
-                        checked={downloadSubs}
-                        onChange={setDownloadSubs}
-                      />
-                    </div>
-                    {downloadSubs && (
-                      <>
-                        <div className="preset-toggle-item preset-subs-extra">
-                          <span>{t("presetCreator.toggles.embedSubtitles", "Embed subtitles")}</span>
-                          <ToggleSwitch
-                            checked={embedSubs}
-                            onChange={setEmbedSubs}
-                          />
-                        </div>
-                        <div className="preset-toggle-item preset-toggle-code preset-subs-extra">
-                          <span>{t("presetCreator.toggles.subtitlesCode", "Code (optional)")}</span>
-                          <input
-                            className="custom-input"
-                            type="text"
-                            value={subsCode}
-                            onChange={(e) => setSubsCode(e.target.value)}
-                            placeholder="en"
-                          />
-                        </div>
-                      </>
-                    )}
+          {isFormatValid && (
+            <div className="preset-advanced expanded">
+              <div className="preset-section">
+                <div className="preset-section-title">{t("presetCreator.sections.misc", "Misc")}</div>
+                <div className="preset-form-grid">
+                  <div className="preset-field preset-path-field">
+                    <span>{t("presetCreator.fields.path", "Save path")}</span>
+                    <PathSelector
+                      className="preset-inline"
+                      inputClassName="custom-input"
+                      buttonClassName="anim-btn preset-browse-btn"
+                      value={savePath}
+                      onChange={setSavePath}
+                      placeholder={t("presetCreator.placeholders.path", "Optional")}
+                      pickerCommand="pick_download_directory"
+                      title={t("presetCreator.actions.browse", "Browse")}
+                    />
                   </div>
-                )}
+                </div>
 
-                <div className="preset-toggle-line">
+                {/* Toggles */}
+                <div className="preset-toggle-grid">
+                  {presetType === "downloader" && (
+                    <>
+                      <div className="preset-toggle-item">
+                        <span>{t("presetCreator.toggles.downloadSubtitles", "Download subtitles")}</span>
+                        <ToggleSwitch
+                          checked={downloadSubs}
+                          onChange={setDownloadSubs}
+                        />
+                      </div>
+                      {downloadSubs && (
+                        <>
+                          <div className="preset-toggle-item preset-subs-extra visible">
+                            <span>{t("presetCreator.toggles.embedSubtitles", "Embed subtitles")}</span>
+                            <ToggleSwitch
+                              checked={embedSubs}
+                              onChange={setEmbedSubs}
+                            />
+                          </div>
+                          <div className="preset-toggle-item preset-toggle-code preset-subs-extra visible">
+                            <span>{t("presetCreator.toggles.subtitlesCode", "Code (optional)")}</span>
+                            <input
+                              className="custom-input"
+                              type="text"
+                              value={subsCode}
+                              onChange={(e) => setSubsCode(e.target.value)}
+                              placeholder="en"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+
                   <div className="preset-toggle-item">
                     <span>{t("presetCreator.toggles.embedMetadata", "Embed metadata")}</span>
                     <ToggleSwitch
@@ -657,6 +758,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                 </div>
               </div>
             </div>
+          )}
 
             {/* Video & Audio Sections */}
             {presetType !== "compressor" && (
@@ -776,10 +878,20 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
               </div>
             )}
           </div>
-        </div>
 
         <div className="preset-modal-footer">
-          <button className="anim-btn preset-save-btn" onClick={handleSave}>
+          <button
+            className="anim-btn preset-export-btn"
+            onClick={handleExport}
+            disabled={!isFormValid()}
+          >
+            {t("presetCreator.actions.export", "Export Preset")}
+          </button>
+          <button
+            className="anim-btn preset-save-btn"
+            onClick={handleSave}
+            disabled={!isFormValid()}
+          >
             {t("presetCreator.actions.save", "Save Preset")}
           </button>
         </div>

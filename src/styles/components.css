@@ -104,7 +104,7 @@ body.theme-light select {
     pointer-events: none;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     transform: translateY(-10px);
-    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     min-width: 100%;
     width: max-content;
     box-sizing: border-box;

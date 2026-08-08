@@ -133,7 +133,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const [savePath, setSavePath] = useState("");
 
   const [selectedMode, setSelectedMode] = useState<"percent" | "size" | "quality">("percent");
-  const [percentValue, setPercentValue] = useState<number>(60);
+  const [percentValue, setPercentValue] = useState<number | "">(60);
   const [sizeInputValue, setSizeInputValue] = useState("");
   const [crfValue, setCrfValue] = useState("26");
 
@@ -213,7 +213,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     const baseSize = Number(metadata.size_bytes);
 
     if (selectedMode === "percent") {
-      const estimated = Math.round(baseSize * (percentValue / 100));
+      const pct = typeof percentValue === "number" ? percentValue : 60;
+      const estimated = Math.round(baseSize * (pct / 100));
       setEstimatedSize(formatBytes(estimated));
     } else if (selectedMode === "size") {
       const targetBytes = parseSizeInput(sizeInputValue);
@@ -456,7 +457,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const hasDuration = initialCategory === "video" || initialCategory === "audio";
   const targetCategory = metadata ? resolveSpecsCategory(metadata.category) : "other";
 
-  const percentFillRatio = (percentValue - 1) / (100 - 1);
+  const pctVal = typeof percentValue === "number" ? percentValue : 60;
+  const percentFillRatio = (pctVal - 1) / (100 - 1);
 
   const isValid = !!(metadata && (selectedMode !== "size" || Number.isFinite(parseSizeInput(sizeInputValue))));
 
@@ -734,13 +736,26 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       id="compress-percent-input"
                       className="custom-input compressor-percent-input"
                       type="number"
-                      min="1"
-                      max="100"
                       value={percentValue}
                       onChange={(e) => {
-                        const val = Math.max(1, Math.min(100, Number(e.target.value)));
+                        if (e.target.value === "") {
+                          setPercentValue("");
+                          clearActivePreset();
+                          return;
+                        }
+                        let val = parseInt(e.target.value, 10);
+                        if (!isNaN(val) && val > 100) {
+                          val = 100;
+                        }
                         setPercentValue(val);
                         clearActivePreset();
+                      }}
+                      onBlur={() => {
+                        let val = typeof percentValue === "number" ? percentValue : parseInt(String(percentValue), 10);
+                        if (isNaN(val)) val = 60;
+                        if (val < 1) val = 1;
+                        if (val > 100) val = 100;
+                        setPercentValue(val);
                       }}
                       autoComplete="off"
                     />

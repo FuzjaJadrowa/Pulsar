@@ -226,8 +226,8 @@ select.custom-select { display: none; }
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    min-height: 56px;
-    padding: 16px 12px;
+    min-height: 44px;
+    padding: 8px 8px;
     border-radius: 10px;
     border: 1px solid #3d3d3d;
     background: #252525;
@@ -256,7 +256,7 @@ select.custom-select { display: none; }
     content: attr(data-placeholder);
     color: rgba(224, 224, 224, 0.45);
     position: absolute;
-    left: 12px;
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -362,7 +362,7 @@ select.custom-select { display: none; }
 .title-pill {
     display: inline-flex;
     align-items: center;
-    padding: 7px 14px;
+    padding: 4px 10px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.22);
@@ -376,7 +376,7 @@ select.custom-select { display: none; }
     line-height: 1;
     user-select: none;
     -webkit-user-select: none;
-    margin: 2px 6px 2px 0;
+    margin: 2px 0;
     vertical-align: middle;
     gap: 5px;
 }

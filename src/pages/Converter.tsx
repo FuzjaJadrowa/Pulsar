@@ -68,7 +68,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const [imageWidth, setImageWidth] = useState<number | "">("");
   const [imageHeight, setImageHeight] = useState<number | "">("");
-  const [imageQuality, setImageQuality] = useState<number>(100);
+  const [imageQuality, setImageQuality] = useState<number | "">(100);
 
   const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
 
@@ -863,13 +863,30 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 id="convert-output-image-width"
                                 className="custom-input"
                                 type="number"
-                                min="1"
-                                max="5000"
                                 placeholder={t("converter.options.widthPlaceholder", "Width")}
                                 value={imageWidth}
                                 onChange={(e) => {
-                                  setImageWidth(e.target.value === "" ? "" : Number(e.target.value));
+                                  if (e.target.value === "") {
+                                    setImageWidth("");
+                                    clearActivePreset();
+                                    return;
+                                  }
+                                  let val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val) && val > 5000) {
+                                    val = 5000;
+                                  }
+                                  setImageWidth(val);
                                   clearActivePreset();
+                                }}
+                                onBlur={() => {
+                                  if (imageWidth !== "") {
+                                    let val = typeof imageWidth === "number" ? imageWidth : parseInt(String(imageWidth), 10);
+                                    if (!isNaN(val)) {
+                                      if (val < 1) val = 1;
+                                      if (val > 5000) val = 5000;
+                                      setImageWidth(val);
+                                    }
+                                  }
                                 }}
                                 autoComplete="off"
                               />
@@ -878,13 +895,30 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 id="convert-output-image-height"
                                 className="custom-input"
                                 type="number"
-                                min="1"
-                                max="5000"
                                 placeholder={t("converter.options.heightPlaceholder", "Height")}
                                 value={imageHeight}
                                 onChange={(e) => {
-                                  setImageHeight(e.target.value === "" ? "" : Number(e.target.value));
+                                  if (e.target.value === "") {
+                                    setImageHeight("");
+                                    clearActivePreset();
+                                    return;
+                                  }
+                                  let val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val) && val > 5000) {
+                                    val = 5000;
+                                  }
+                                  setImageHeight(val);
                                   clearActivePreset();
+                                }}
+                                onBlur={() => {
+                                  if (imageHeight !== "") {
+                                    let val = typeof imageHeight === "number" ? imageHeight : parseInt(String(imageHeight), 10);
+                                    if (!isNaN(val)) {
+                                      if (val < 1) val = 1;
+                                      if (val > 5000) val = 5000;
+                                      setImageHeight(val);
+                                    }
+                                  }
                                 }}
                                 autoComplete="off"
                               />
@@ -899,7 +933,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 type="range"
                                 min="1"
                                 max="100"
-                                value={imageQuality}
+                                value={imageQuality || 100}
                                 step="1"
                                 onChange={(e) => {
                                   setImageQuality(Number(e.target.value));
@@ -910,12 +944,26 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 id="convert-output-image-quality"
                                 className="custom-input"
                                 type="number"
-                                min="1"
-                                max="100"
                                 value={imageQuality}
                                 onChange={(e) => {
-                                  setImageQuality(Math.max(1, Math.min(100, Number(e.target.value))));
+                                  if (e.target.value === "") {
+                                    setImageQuality("");
+                                    clearActivePreset();
+                                    return;
+                                  }
+                                  let val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val) && val > 100) {
+                                    val = 100;
+                                  }
+                                  setImageQuality(val);
                                   clearActivePreset();
+                                }}
+                                onBlur={() => {
+                                  let val = typeof imageQuality === "number" ? imageQuality : parseInt(String(imageQuality), 10);
+                                  if (isNaN(val)) val = 100;
+                                  if (val < 1) val = 1;
+                                  if (val > 100) val = 100;
+                                  setImageQuality(val);
                                 }}
                                 autoComplete="off"
                               />

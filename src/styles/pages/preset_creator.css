@@ -354,11 +354,17 @@ body.preset-modal-open .page-scroll {
     display: none;
 }
 .preset-compressor-percent,
-.preset-compressor-size,
+.preset-compressor-size {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .preset-compressor-quality {
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
 }
 .preset-compressor-track {
@@ -421,9 +427,11 @@ body.preset-modal-open .page-scroll {
     font-size: 0.8rem;
     font-weight: 700;
 }
-.preset-compressor-size .custom-input,
-.preset-compressor-quality .custom-select {
+.preset-compressor-size .custom-input {
     width: 100%;
+}
+.preset-compressor-quality .custom-select {
+    width: 120px;
 }
 .preset-compressor-crf-label {
     font-weight: 700;

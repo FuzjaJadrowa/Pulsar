@@ -112,6 +112,12 @@ export const AppShell: React.FC = () => {
     };
   }, [queueVisible]);
 
+  useEffect(() => {
+    if (items.length === 0 && queueVisible) {
+      setQueueVisible(false);
+    }
+  }, [items.length, queueVisible]);
+
   const isQueueBtnVisible = items.length > 0;
 
   const renderPageContent = (pageName: string) => {

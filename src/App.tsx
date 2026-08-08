@@ -7,6 +7,15 @@ import "./styles/index.css";
 export const App: React.FC = () => {
   useEffect(() => {
     loadConfig();
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      window.removeEventListener("contextmenu", handleContextMenu);
+    };
   }, []);
 
   return (
