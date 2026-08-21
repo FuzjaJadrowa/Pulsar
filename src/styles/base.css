@@ -15,18 +15,30 @@ body {
 }
 
 body.theme-transition,
-body.theme-transition * {
+body.theme-transition .page-root,
+body.theme-transition .view-container,
+body.theme-transition #titlebar,
+body.theme-transition .nav-btn,
+body.theme-transition .window-controls,
+body.theme-transition .control-btn,
+body.theme-transition .search-box-row,
+body.theme-transition .search-box-row input,
+body.theme-transition .search-box-row button,
+body.theme-transition .preset-card,
+body.theme-transition .tile,
+body.theme-transition .switch-option,
+body.theme-transition input,
+body.theme-transition select,
+body.theme-transition #queue-panel,
+body.theme-transition .queue-item,
+body.theme-transition .queue-item::after,
+body.theme-transition .notification-toast {
     transition:
         background 0.35s ease,
-        background-image 0.35s ease,
         background-color 0.35s ease,
         color 0.35s ease,
         border-color 0.35s ease,
-        box-shadow 0.35s ease,
-        opacity 0.35s ease,
-        filter 0.35s ease,
-        fill 0.35s ease,
-        stroke 0.35s ease;
+        box-shadow 0.35s ease;
 }
 
 ::-webkit-scrollbar {
