@@ -17,7 +17,7 @@ body, body.theme-dark {
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
     --c-queue-primary: #00d2ff;
-    --titlebar-accent: #4c6fff;
+    --titlebar-accent: #8a2be2;
 }
 
 body.theme-light {
@@ -29,5 +29,5 @@ body.theme-light {
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
     --c-queue-primary: #00d2ff;
-    --titlebar-accent: #4c6fff;
+    --titlebar-accent: #7b2cbf;
 }

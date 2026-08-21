@@ -234,6 +234,31 @@
     margin-left: 10px;
 }
 
+#nav-settings {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+#nav-settings svg {
+    margin-right: 0 !important;
+    transition: transform 0.3s ease, color 0.2s ease;
+}
+#nav-settings:hover,
+#nav-settings.active {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--titlebar-accent) !important;
+}
+#nav-settings:hover svg {
+    transform: rotate(45deg);
+}
+
 #btn-queue {
     display: none;
     width: auto;

@@ -10,26 +10,6 @@ import { ToggleSwitch } from "../components/ToggleSwitch";
 import { invoke } from "../services/tauri";
 import { GEAR_ICON, TAG_ICON_SVG } from "../utils/icons";
 
-const TAG_LABELS: Record<string, string> = {
-  "%(title)s": "Title",
-  "%(id)s": "Video ID",
-  "%(resolution)s": "Resolution",
-  "%(duration_string)s": "Duration",
-  "%(fps)s": "FPS",
-  "%(upload_date)s": "Upload Date",
-  "%(view_count)s": "View Count",
-  "%(like_count)s": "Like Count",
-  "%(uploader)s": "Uploader",
-  "%(playlist)s": "Playlist Name",
-  "%(playlist_index)s": "Playlist Index",
-  "%(video_autonumber)s": "Queue Number",
-  "%(track)s": "Track",
-  "%(artist)s": "Artist",
-  "%(album)s": "Album",
-  "%(release_year)s": "Release Year",
-};
-
-
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
@@ -537,10 +517,32 @@ export const Settings: React.FC = () => {
                   const tokenRegex = /(%\(.*?\)(?:s|d))/g;
                   const parts = template.split(tokenRegex);
 
+                  const getTagName = (token: string) => {
+                    switch (token) {
+                      case "%(title)s": return t("settings.titleConstructorTags.title", "Title");
+                      case "%(id)s": return t("settings.titleConstructorTags.id", "Video ID");
+                      case "%(resolution)s": return t("settings.titleConstructorTags.resolution", "Resolution");
+                      case "%(duration_string)s": return t("settings.titleConstructorTags.durationString", "Duration");
+                      case "%(fps)s": return t("settings.titleConstructorTags.fps", "FPS");
+                      case "%(upload_date)s": return t("settings.titleConstructorTags.uploadDate", "Upload Date");
+                      case "%(view_count)s": return t("settings.titleConstructorTags.viewCount", "View Count");
+                      case "%(like_count)s": return t("settings.titleConstructorTags.likeCount", "Like Count");
+                      case "%(uploader)s": return t("settings.titleConstructorTags.uploader", "Uploader");
+                      case "%(playlist)s": return t("settings.titleConstructorTags.playlist", "Playlist Name");
+                      case "%(playlist_index)s": return t("settings.titleConstructorTags.playlistIndex", "Playlist Index");
+                      case "%(video_autonumber)s": return t("settings.titleConstructorTags.videoAutonumber", "Queue Number");
+                      case "%(track)s": return t("settings.titleConstructorTags.track", "Track");
+                      case "%(artist)s": return t("settings.titleConstructorTags.artist", "Artist");
+                      case "%(album)s": return t("settings.titleConstructorTags.album", "Album");
+                      case "%(release_year)s": return t("settings.titleConstructorTags.releaseYear", "Release Year");
+                      default: return token;
+                    }
+                  };
+
                   return parts.map((part, index) => {
                     const isToken = index % 2 === 1;
                     if (isToken) {
-                      const label = TAG_LABELS[part] || part;
+                      const label = getTagName(part);
                       return (
                         <div
                           key={`${part}-${index}`}
@@ -556,15 +558,15 @@ export const Settings: React.FC = () => {
                       const isFocused = focusedInputIndex === index;
                       let inputWidth;
                       if (part.length === 0) {
-                        if (isFocused) {
-                          inputWidth = 30;
-                        } else if (parts.length === 1) {
+                        if (parts.length === 1) {
                           inputWidth = 120;
+                        } else if (isFocused) {
+                          inputWidth = 12;
                         } else {
                           inputWidth = 2;
                         }
                       } else {
-                        inputWidth = Math.max(12, part.length * 8 + 10);
+                        inputWidth = Math.max(12, part.length * 8 + 6);
                       }
                       return (
                         <input
