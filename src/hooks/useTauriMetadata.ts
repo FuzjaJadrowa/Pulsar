@@ -12,6 +12,14 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
   const [isLoading, setIsLoading] = useState(false);
   const currentTaskIdRef = useRef<string | null>(null);
 
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  }, [onSuccess, onError]);
+
   const generateTaskId = () => {
     return `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
   };
@@ -27,15 +35,15 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
         if (payload.type === "finished" && payload.success === false) {
           setIsLoading(false);
           currentTaskIdRef.current = null;
-          if (onError) onError(payload.error || "Metadata fetch failed.");
+          if (onErrorRef.current) onErrorRef.current(payload.error || "Metadata fetch failed.");
         } else if (payload.type === "metadata") {
           setIsLoading(false);
           currentTaskIdRef.current = null;
           if (payload.success && payload.data) {
             setMetadata(payload.data);
-            if (onSuccess) onSuccess(payload.data);
+            if (onSuccessRef.current) onSuccessRef.current(payload.data);
           } else {
-            if (onError) onError("Invalid file or link.");
+            if (onErrorRef.current) onErrorRef.current("Invalid file or link.");
           }
         }
       }
@@ -45,25 +53,28 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
       active = false;
       unsubPromise.then((unsub) => unsub());
     };
-  }, [onSuccess, onError]);
+  }, []);
 
   const fetchMetadata = async (targetPathOrUrl: string) => {
     if (isLoading) return;
     setIsLoading(true);
     setMetadata(null);
     const clientTaskId = generateTaskId();
+    currentTaskIdRef.current = clientTaskId;
 
     try {
       const args = pickerCommand === "fetch_metadata_downloader" 
-        ? { url: targetPathOrUrl, clientTaskId }
-        : { path: targetPathOrUrl, clientTaskId };
+        ? { url: targetPathOrUrl, client_task_id: clientTaskId, clientTaskId }
+        : { path: targetPathOrUrl, client_task_id: clientTaskId, clientTaskId };
         
       const taskId = await invoke<string>(pickerCommand, args);
-      currentTaskIdRef.current = taskId;
+      if (taskId) {
+        currentTaskIdRef.current = taskId;
+      }
     } catch (error) {
       setIsLoading(false);
       currentTaskIdRef.current = null;
-      if (onError) onError(String(error));
+      if (onErrorRef.current) onErrorRef.current(String(error));
     }
   };
 
