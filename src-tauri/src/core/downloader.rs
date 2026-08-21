@@ -506,6 +506,9 @@ pub fn start_download(
         args.push(options.path.clone());
     }
 
+    args.push("--concurrent-fragments".to_string());
+    args.push("3".to_string());
+
     if config.cookies_browser != "None" {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());

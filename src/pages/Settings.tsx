@@ -13,7 +13,6 @@ import { GEAR_ICON, TAG_ICON_SVG } from "../utils/icons";
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
-  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(null);
   const [pendingFocus, setPendingFocus] = useState<{ index: number; offset: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -555,18 +554,15 @@ export const Settings: React.FC = () => {
                         </div>
                       );
                     } else {
-                      const isFocused = focusedInputIndex === index;
                       let inputWidth;
                       if (part.length === 0) {
                         if (parts.length === 1) {
                           inputWidth = 120;
-                        } else if (isFocused) {
-                          inputWidth = 12;
                         } else {
-                          inputWidth = 2;
+                          inputWidth = 8;
                         }
                       } else {
-                        inputWidth = Math.max(12, part.length * 8 + 6);
+                        inputWidth = part.length * 8;
                       }
                       return (
                         <input
@@ -582,15 +578,13 @@ export const Settings: React.FC = () => {
                             fontSize: "inherit",
                             fontFamily: "inherit",
                             outline: "none",
-                            padding: "2px 2px",
+                            padding: "0px",
                             maxWidth: "100%",
                             minWidth: "0px"
                           }}
                           placeholder={index === 0 && parts.length === 1 ? "%(x)s" : ""}
                           onChange={(e) => handlePartChange(index, e.target.value, parts)}
                           onKeyDown={(e) => handleKeyDown(e, index, parts)}
-                          onFocus={() => setFocusedInputIndex(index)}
-                          onBlur={() => setFocusedInputIndex(null)}
                         />
                       );
                     }

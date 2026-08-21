@@ -545,13 +545,73 @@ fn map_audio_codec(value: &str) -> String {
     }.to_string()
 }
 
+fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
+    let codec_lower = codec.to_lowercase();
+    let hw_lower = hwaccel.to_lowercase();
+
+    match codec_lower.as_str() {
+        "h264" => {
+            if hw_lower.contains("cuda") {
+                "h264_nvenc".to_string()
+            } else if hw_lower.contains("qsv") {
+                "h264_qsv".to_string()
+            } else if hw_lower.contains("amf") {
+                "h264_amf".to_string()
+            } else if hw_lower.contains("videotoolbox") {
+                "h264_videotoolbox".to_string()
+            } else if hw_lower.contains("vaapi") {
+                "h264_vaapi".to_string()
+            } else {
+                "libx264".to_string()
+            }
+        }
+        "h265" | "hevc" => {
+            if hw_lower.contains("cuda") {
+                "hevc_nvenc".to_string()
+            } else if hw_lower.contains("qsv") {
+                "hevc_qsv".to_string()
+            } else if hw_lower.contains("amf") {
+                "hevc_amf".to_string()
+            } else if hw_lower.contains("videotoolbox") {
+                "hevc_videotoolbox".to_string()
+            } else if hw_lower.contains("vaapi") {
+                "hevc_vaapi".to_string()
+            } else {
+                "libx265".to_string()
+            }
+        }
+        "av1" => {
+            if hw_lower.contains("cuda") {
+                "av1_nvenc".to_string()
+            } else if hw_lower.contains("qsv") {
+                "av1_qsv".to_string()
+            } else if hw_lower.contains("vaapi") {
+                "av1_vaapi".to_string()
+            } else {
+                "libaom-av1".to_string()
+            }
+        }
+        "vp9" => {
+            if hw_lower.contains("qsv") {
+                "vp9_qsv".to_string()
+            } else if hw_lower.contains("vaapi") {
+                "vp9_vaapi".to_string()
+            } else {
+                "libvpx-vp9".to_string()
+            }
+        }
+        "copy" => "copy".to_string(),
+        other => map_video_codec(other)
+    }
+}
+
 fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
     let mut args = vec![
         "-hide_banner".to_string(),
         "-y".to_string()
     ];
 
-    if let Some(accel) = hwaccel {
+    if let Some(accel) = hwaccel.clone() {
         args.push("-hwaccel".to_string());
         args.push(accel);
     }
@@ -574,7 +634,16 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     if category == "video" {
         if let Some(codec) = options.video_codec.as_deref().filter(|v| !v.trim().is_empty()) {
             args.push("-c:v".to_string());
-            args.push(map_video_codec(codec));
+            let mapped_codec = if let Some(ref accel) = hwaccel {
+                map_video_codec_hw(codec, accel)
+            } else {
+                map_video_codec(codec)
+            };
+            args.push(mapped_codec.clone());
+            if (mapped_codec == "libx264" || mapped_codec == "libx265") && codec.to_lowercase() != "copy" {
+                args.push("-preset".to_string());
+                args.push("veryfast".to_string());
+            }
         }
         if let Some(br) = parse_kbps_string(options.video_bitrate.as_deref()) {
             args.push("-b:v".to_string());
