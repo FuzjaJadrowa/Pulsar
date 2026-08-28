@@ -1,7 +1,7 @@
 {
   "name": "pulsar",
-  "version": "3.0.1",
-  "description": "High-performance, cross-platform utility designed to redefine how you acquire and manage digital media.",
+  "version": "3.1.0-test.1",
+  "description": "A fast, modern media manager built with Tauri and Rust.",
   "author": "Fuzja Jadrowa",
   "type": "module",
   "scripts": {
@@ -19,7 +19,7 @@
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/api": "~2.10.0",
     "@tauri-apps/plugin-opener": "^2"
   },
   "devDependencies": {
