@@ -73,19 +73,84 @@ impl BridgeState {
         }
 
         let mut cmd = Command::new(&bridge_path);
+        cmd.stdin(Stdio::piped())
+           .stdout(Stdio::piped())
+           .stderr(Stdio::piped());
+
         #[cfg(target_os = "windows")]
-        {
+        let mut child = {
             use std::os::windows::process::CommandExt;
+            use std::os::windows::io::AsRawHandle;
             const CREATE_NO_WINDOW: u32 = 0x08000000;
             cmd.creation_flags(CREATE_NO_WINDOW);
-        }
 
-        let mut child = cmd
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("Failed to spawn bridge: {}", e))?;
+            let spawned = cmd.spawn().map_err(|e| format!("Failed to spawn bridge: {}", e))?;
+
+            #[repr(C)]
+            struct JOBOBJECT_BASIC_LIMIT_INFORMATION {
+                per_process_user_time_limit: i64,
+                per_job_user_time_limit: i64,
+                limit_flags: u32,
+                minimum_working_set_size: usize,
+                maximum_working_set_size: usize,
+                active_process_limit: u32,
+                affinity: usize,
+                priority_class: u32,
+                scheduling_class: u32,
+            }
+
+            #[repr(C)]
+            struct IO_COUNTERS {
+                read_operation_count: u64,
+                write_operation_count: u64,
+                other_operation_count: u64,
+                read_transfer_count: u64,
+                write_transfer_count: u64,
+                other_transfer_count: u64,
+            }
+
+            #[repr(C)]
+            struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION {
+                basic_limit_information: JOBOBJECT_BASIC_LIMIT_INFORMATION,
+                io_info: IO_COUNTERS,
+                process_memory_limit: usize,
+                job_memory_limit: usize,
+                peak_process_memory_used: usize,
+                peak_job_memory_used: usize,
+            }
+
+            extern "system" {
+                fn CreateJobObjectW(lpJobAttributes: *const std::ffi::c_void, lpName: *const u16) -> *mut std::ffi::c_void;
+                fn SetInformationJobObject(
+                    hJob: *mut std::ffi::c_void,
+                    JobObjectInformationClass: u32,
+                    lpJobObjectInformation: *const std::ffi::c_void,
+                    cbJobObjectInformationLength: u32,
+                ) -> i32;
+                fn AssignProcessToJobObject(hJob: *mut std::ffi::c_void, hProcess: *mut std::ffi::c_void) -> i32;
+            }
+
+            unsafe {
+                let job = CreateJobObjectW(std::ptr::null(), std::ptr::null());
+                if !job.is_null() {
+                    let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
+                    info.basic_limit_information.limit_flags = 0x2000;
+                    if SetInformationJobObject(
+                        job,
+                        9,
+                        &info as *const _ as *const _,
+                        std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+                    ) != 0 {
+                        AssignProcessToJobObject(job, spawned.as_raw_handle() as *mut std::ffi::c_void);
+                    }
+                }
+            }
+
+            spawned
+        };
+
+        #[cfg(not(target_os = "windows"))]
+        let mut child = cmd.spawn().map_err(|e| format!("Failed to spawn bridge: {}", e))?;
 
         let stdin = child.stdin.take().ok_or("Failed to open stdin")?;
         let stdout = child.stdout.take().ok_or("Failed to open stdout")?;
