@@ -438,11 +438,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       source: autoStart ? "convert" : "queue"
     };
 
+    const sourceRect = e.currentTarget.getBoundingClientRect();
     try {
       await enqueue("convert", payload, meta, { autoStart, startReason: autoStart ? "convert" : undefined });
       const win = window as any;
       if (win.queueManager && win.queueManager.animateQueueOrb) {
-        win.queueManager.animateQueueOrb(e.currentTarget);
+        win.queueManager.animateQueueOrb(sourceRect);
       }
       setTimeout(() => {
         resetView();

@@ -1,8 +1,6 @@
 :root {
     --titlebar-height: 80px;
     --page-top-gap: 2px;
-    --nav-expand-duration: 1s;
-    --nav-collapse-duration: 0.4s;
     --search-bar-height: 50px;
     --search-section-centered-height: 80vh;
     --search-section-sticky-height: 80px;

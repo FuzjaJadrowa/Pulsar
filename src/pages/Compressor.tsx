@@ -454,11 +454,12 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       source: autoStart ? "compress" : "queue"
     };
 
+    const sourceRect = e.currentTarget.getBoundingClientRect();
     try {
       await enqueue("compress", payload, meta, { autoStart, startReason: autoStart ? "compress" : undefined });
       const win = window as any;
       if (win.queueManager && win.queueManager.animateQueueOrb) {
-        win.queueManager.animateQueueOrb(e.currentTarget);
+        win.queueManager.animateQueueOrb(sourceRect);
       }
       setTimeout(() => {
         resetView();

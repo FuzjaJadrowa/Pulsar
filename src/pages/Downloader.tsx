@@ -692,22 +692,22 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     };
   };
 
-  const triggerAnimationOrb = (btnEl: HTMLElement | null) => {
+  const triggerAnimationOrb = (sourceRect: DOMRect | null) => {
     const win = window as any;
-    if (btnEl && win.queueManager && win.queueManager.animateQueueOrb) {
-      win.queueManager.animateQueueOrb(btnEl);
+    if (sourceRect && win.queueManager && win.queueManager.animateQueueOrb) {
+      win.queueManager.animateQueueOrb(sourceRect);
     }
   };
 
   const handleDownload = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!isValid) return;
+    const sourceRect = e.currentTarget.getBoundingClientRect();
     const payload = buildDownloadPayload();
     const meta = currentMetaSnapshot();
-    const btnEl = e.currentTarget;
 
     try {
       await enqueue("download", payload, { ...meta, source: "download" }, { autoStart: true, startReason: "download" });
-      triggerAnimationOrb(btnEl);
+      triggerAnimationOrb(sourceRect);
       resetToZen();
     } catch (error) {
       console.error("Download fail:", error);
@@ -717,13 +717,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const handleAddToQueue = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!isValid) return;
+    const sourceRect = e.currentTarget.getBoundingClientRect();
     const payload = buildDownloadPayload();
     const meta = currentMetaSnapshot();
-    const btnEl = e.currentTarget;
 
     try {
       await enqueue("download", payload, { ...meta, source: "queue" }, { autoStart: false });
-      triggerAnimationOrb(btnEl);
+      triggerAnimationOrb(sourceRect);
       resetToZen();
     } catch (error) {
       console.error("Queue add fail:", error);
