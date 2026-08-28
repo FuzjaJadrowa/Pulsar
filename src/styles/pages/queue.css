@@ -472,16 +472,8 @@
     white-space: pre-wrap;
 }
 
-.nav-btn.expandable.queue-pulse,
-.nav-btn.expandable.force-open {
-    max-width: 320px !important;
-    border-color: var(--c-queue-primary);
-    box-shadow: 0 0 18px rgba(0, 210, 255, 0.46);
-}
-
-.nav-btn.expandable.queue-pulse span,
-.nav-btn.expandable.force-open span {
-    opacity: 1;
+#btn-queue.queue-pulse {
+    color: var(--c-queue-primary) !important;
 }
 
 body.theme-light {

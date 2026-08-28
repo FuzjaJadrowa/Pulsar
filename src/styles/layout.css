@@ -149,125 +149,67 @@
     background: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.7);
-    font-weight: bold;
-    font-size: 14px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
     height: 40px;
-    width: auto;
-    min-width: 105px;
-    max-width: 320px;
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 0;
     border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    transition:
-        color 0.2s ease,
-        background-color 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        max-width var(--nav-collapse-duration, 0.4s) cubic-bezier(0.22, 1, 0.36, 1);
-    border: 1px solid transparent;
-    overflow: hidden;
-    white-space: nowrap;
+    justify-content: center;
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .nav-btn svg {
     width: 24px;
     height: 24px;
     min-width: 24px;
-    margin-right: 10px;
+    margin-right: 0 !important;
     opacity: 0.7;
-    transition: opacity 0.2s;
+    transition: transform 0.3s ease, opacity 0.2s ease, color 0.2s ease;
 }
 
-.nav-btn span {
-    transition: opacity 0.28s ease;
-    opacity: 1;
-}
-
-.nav-btn:hover {
-    border-color: var(--titlebar-accent);
-    color: white;
-}
-.nav-btn:hover svg { opacity: 1; }
-
+.nav-btn:hover,
 .nav-btn.active {
-    background-color: var(--titlebar-accent);
-    border-color: var(--titlebar-accent);
-    color: white;
-}
-.nav-btn.active svg { opacity: 1; }
-
-.nav-btn.expandable {
-    width: auto;
-    min-width: 40px;
-    max-width: 40px;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--titlebar-accent) !important;
 }
 
-.nav-btn.expandable span {
-    opacity: 0;
-}
-
-.nav-btn.expandable:hover,
-.nav-btn.expandable.active {
-    max-width: 320px;
-}
-
-.nav-btn.expandable:hover,
-.nav-btn.expandable.active,
-.nav-btn.expandable.force-open {
-    transition:
-        color 0.2s ease,
-        background-color 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        max-width var(--nav-expand-duration, 1s) cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.nav-btn.expandable:hover span,
-.nav-btn.expandable.active span {
+.nav-btn:hover svg,
+.nav-btn.active svg {
     opacity: 1;
+}
+
+#nav-downloader:hover svg {
+    transform: translateY(2px);
+}
+#nav-converter:hover svg {
+    transform: rotate(90deg);
+}
+#nav-compressor:hover svg {
+    transform: scale(0.85);
+}
+#nav-settings:hover svg {
+    transform: rotate(45deg);
+}
+#btn-queue:hover svg {
+    transform: scale(1.12);
 }
 
 .nav-gap {
     margin-left: 10px;
 }
 
-#nav-settings {
-    width: 40px;
-    min-width: 40px;
-    max-width: 40px;
-    padding: 0;
-    justify-content: center;
-    border-color: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-}
-#nav-settings svg {
-    margin-right: 0 !important;
-    transition: transform 0.3s ease, color 0.2s ease;
-}
-#nav-settings:hover,
-#nav-settings.active {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    color: var(--titlebar-accent) !important;
-}
-#nav-settings:hover svg {
-    transform: rotate(45deg);
-}
-
 #btn-queue {
     display: none;
-    width: auto;
-    min-width: 40px;
-    max-width: 40px;
     margin-left: 10px;
-}
-#btn-queue:hover, #btn-queue.active, #btn-queue.force-open {
-    max-width: 320px;
 }
 
 .window-controls {

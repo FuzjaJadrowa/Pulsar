@@ -155,9 +155,10 @@ export const AppShell: React.FC = () => {
         </button>
 
         <button
-          className={`nav-btn expandable ${currentPage === "downloader" ? "active" : ""}`}
+          className={`nav-btn ${currentPage === "downloader" ? "active" : ""}`}
           onClick={() => navigateTo("downloader")}
           id="nav-downloader"
+          title={t("index.nav.download", "Download")}
         >
           <svg
             width="24"
@@ -174,13 +175,13 @@ export const AppShell: React.FC = () => {
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          <span>{t("index.nav.download", "Download")}</span>
         </button>
 
         <button
-          className={`nav-btn expandable nav-gap ${currentPage === "converter" ? "active" : ""}`}
+          className={`nav-btn nav-gap ${currentPage === "converter" ? "active" : ""}`}
           onClick={() => navigateTo("converter")}
           id="nav-converter"
+          title={t("index.nav.convert", "Convert")}
         >
           <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path
@@ -188,18 +189,17 @@ export const AppShell: React.FC = () => {
               transform="translate(1.407 1.407)scale(2.81)"
             />
           </svg>
-          <span>{t("index.nav.convert", "Convert")}</span>
         </button>
 
         <button
-          className={`nav-btn expandable nav-gap ${currentPage === "compressor" ? "active" : ""}`}
+          className={`nav-btn nav-gap ${currentPage === "compressor" ? "active" : ""}`}
           onClick={() => navigateTo("compressor")}
           id="nav-compressor"
+          title={t("index.nav.compress", "Compress")}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
           </svg>
-          <span>{t("index.nav.compress", "Compress")}</span>
         </button>
 
         <div style={{ flexGrow: 1 }} data-tauri-drag-region />
@@ -228,9 +228,10 @@ export const AppShell: React.FC = () => {
         </button>
 
         <button
-          className={`nav-btn expandable ${queueVisible ? "active" : ""}`}
+          className={`nav-btn ${queueVisible ? "active" : ""}`}
           onClick={() => setQueueVisible((v) => !v)}
           id="btn-queue"
+          title={t("index.nav.queue", "Queue")}
           style={{ display: isQueueBtnVisible ? "flex" : "none" }}
         >
           <svg
@@ -251,7 +252,6 @@ export const AppShell: React.FC = () => {
             <circle cx="4" cy="12" r="1"></circle>
             <circle cx="4" cy="18" r="1"></circle>
           </svg>
-          <span>{t("index.nav.queue", "Queue")}</span>
         </button>
 
         <div className="window-controls">
