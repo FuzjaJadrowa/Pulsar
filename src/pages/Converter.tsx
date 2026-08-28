@@ -40,7 +40,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       handleMetadataLoaded(data);
     },
     onError: (err) => {
-      showNotification(t("common.error", "Error"), err, "error");
+      showNotification(t("common.error"), err, "error");
     }
   });
 
@@ -428,12 +428,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     if (!selectedFormat || !metadata) return;
     const payload = buildConvertPayload();
     if (!payload) {
-      showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
+      showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
       return;
     }
 
     const meta = {
-      title: currentName || metadata.name || t("common.unknownTitle", "Unknown title"),
+      title: currentName || metadata.name || t("common.unknownTitle"),
       thumbnail: "",
       source: autoStart ? "convert" : "queue"
     };
@@ -450,7 +450,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       }, 40);
     } catch (err) {
       console.error("Convert enqueue error:", err);
-      showNotification(t("common.error", "Error"), t("common.errors.startPrefix", "Error: {error}", { error: String(err) }), "error");
+      showNotification(t("common.error"), t("common.errors.startPrefix",  { error: String(err) }), "error");
     }
   };
 
@@ -482,7 +482,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               type="text"
               id="convert-path-input"
               ref={pathInputRef}
-              placeholder={t("converter.path.placeholder", "Select a file to convert...")}
+              placeholder={t("converter.path.placeholder")}
               value={filePath}
               onChange={(e) => {
                 setFilePath(e.target.value);
@@ -502,7 +502,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
             <span
               id="convert-browse-btn"
               className="bar-icon"
-              title={t("common.browse", "Browse")}
+              title={t("common.browse")}
               role="button"
               tabIndex={0}
               onClick={openPicker}
@@ -537,7 +537,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" fillRule="evenodd" fill="currentColor"/>
                 </svg>
               </span>
-              <span className="drop-hint-text">{t("common.dropHint", "or just drop a file")}</span>
+              <span className="drop-hint-text">{t("common.dropHint")}</span>
               <span className="drop-hint-icon" aria-hidden="true">
                 <svg viewBox="0 0 512 512">
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" fillRule="evenodd" fill="currentColor"/>
@@ -556,13 +556,13 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                 {!isEditingName ? (
                   <>
                     <span className="converter-name-text">
-                      {currentName || t("converter.output.placeholder", "Output name")}
+                      {currentName || t("converter.output.placeholder")}
                     </span>
                     <button
                       type="button"
                       className="converter-rename-btn"
                       onClick={() => setIsEditingName(true)}
-                      title={t("converter.output.editTitle", "Edit name")}
+                      title={t("converter.output.editTitle")}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 20h9" />
@@ -599,18 +599,18 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               </div>
               <div className="converter-meta-row">
                 <div className="converter-meta-item converter-meta-location">
-                  <span className="converter-meta-label">{t("converter.meta.locationLabel", "Location")}</span>
+                  <span className="converter-meta-label">{t("converter.meta.locationLabel")}</span>
                   <span className="converter-meta-value converter-meta-location-value" title={extractFolderPath(metadata.path)}>
                     {extractFolderPath(metadata.path) || "-"}
                   </span>
                 </div>
                 <div className="converter-meta-item">
-                  <span className="converter-meta-label">{t("converter.meta.sizeLabel", "Size")}</span>
+                  <span className="converter-meta-label">{t("converter.meta.sizeLabel")}</span>
                   <span className="converter-meta-value">{formatBytes(metadata.size_bytes)}</span>
                 </div>
                 {metadata.duration_seconds && (
                   <div className="converter-meta-item converter-meta-duration">
-                    <span className="converter-meta-label">{t("converter.meta.durationLabel", "Duration")}</span>
+                    <span className="converter-meta-label">{t("converter.meta.durationLabel")}</span>
                     <span className="converter-meta-value">{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
                   </div>
                 )}
@@ -620,7 +620,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
             {/* Presets List */}
             {converterPresets.length > 0 && (
               <div className="preset-section fade-in" id="convert-preset-section">
-                <span className="option-label">{t("downloader.options.presets", "PRESETS")}</span>
+                <span className="option-label">{t("downloader.options.presets")}</span>
                 <div className="preset-grid" id="convert-preset-grid">
                   {converterPresets.map((pr) => (
                     <button
@@ -635,10 +635,10 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       />
                       <div className="preset-card-info">
                         <div className="preset-card-title">
-                          {pr.title || t("settings.presetsManager.untitled", "Untitled")}
+                          {pr.title || t("settings.presetsManager.untitled")}
                         </div>
                         <div className="preset-card-summary">
-                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary", "No summary")}
+                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
                         </div>
                       </div>
                     </button>
@@ -650,7 +650,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
             {/* Format Conversion grid */}
             <div className="converter-options-panel fade-in">
               <div className="converter-options-block">
-                <span className="option-label converter-options-title">{t("converter.options.convertTo", "CONVERT TO")}</span>
+                <span className="option-label converter-options-title">{t("converter.options.convertTo")}</span>
                 {showModeToggle && (
                   <div id="convert-media-toggle" className="converter-media-toggle" role="group">
                     <button
@@ -666,7 +666,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
                         <path d="M7 2v20M17 2v20M2 12h20" />
                       </svg>
-                      <span>{t("converter.mode.video", "VIDEO")}</span>
+                      <span>{t("converter.mode.video")}</span>
                     </button>
                     <button
                       type="button"
@@ -682,7 +682,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         <circle cx="6" cy="18" r="3" />
                         <circle cx="18" cy="16" r="3" />
                       </svg>
-                      <span>{t("converter.mode.audio", "AUDIO")}</span>
+                      <span>{t("converter.mode.audio")}</span>
                     </button>
                   </div>
                 )}
@@ -708,20 +708,20 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                 <div id="convert-specs-panel" className="converter-specs-card fade-in">
                   <div className="converter-specs-grid">
                     <div className="converter-specs-column" data-side="output">
-                      <span className="option-label converter-options-title">{t("converter.options.title", "OPTIONS")}</span>
+                      <span className="option-label converter-options-title">{t("converter.options.title")}</span>
 
                       {/* Custom save path */}
                       <PathSelector
                         className="converter-path-selector fade-in"
                         id="convert-save-path-input"
-                        placeholder={t("converter.path.pathPlaceholder", "Save path...")}
+                        placeholder={t("converter.path.pathPlaceholder")}
                         value={savePath}
                         onChange={(selected) => {
                           setSavePath(selected);
                           clearActivePreset();
                         }}
                         pickerCommand="pick_download_directory"
-                        title={t("common.browse", "Browse")}
+                        title={t("common.browse")}
                         buttonClassName="converter-small-btn"
                       />
 
@@ -729,15 +729,15 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {targetCategory === "video" && (
                         <div className="converter-specs-section" data-section="video">
                           <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.estimatedSize", "Estimated size")}</span>
+                            <span className="converter-specs-label">{t("converter.options.estimatedSize")}</span>
                             <span id="convert-output-video-size" className="converter-specs-value">{estimatedSize || "-"}</span>
                           </div>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.videoQuality", "Video quality")}</span>
+                            <span className="converter-specs-label">{t("converter.options.videoQuality")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "", label: t("presetCreator.select.auto") },
                                   { value: "2160p", label: "2160p" },
                                   { value: "1440p", label: "1440p" },
                                   { value: "1080p", label: "1080p" },
@@ -757,11 +757,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.videoCodec", "Video codec")}</span>
+                            <span className="converter-specs-label">{t("converter.options.videoCodec")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "", label: t("presetCreator.select.auto") },
                                   ...(selectedFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
                                 ]}
                                 value={videoCodec}
@@ -774,13 +774,13 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.videoBitrate", "Video bitrate")}</span>
+                            <span className="converter-specs-label">{t("converter.options.videoBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-video-bitrate"
                                 className="custom-input"
                                 type="text"
-                                placeholder={t("presetCreator.placeholders.bitrate", "Auto")}
+                                placeholder={t("presetCreator.placeholders.bitrate")}
                                 value={videoBitrate}
                                 onChange={(e) => {
                                   setVideoBitrate(e.target.value);
@@ -791,11 +791,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.fps", "FPS")}</span>
+                            <span className="converter-specs-label">{t("converter.options.fps")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "", label: t("presetCreator.select.auto") },
                                   { value: "60", label: "60" },
                                   { value: "30", label: "30" },
                                   { value: "24", label: "24" },
@@ -810,11 +810,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioCodec", "Audio codec")}</span>
+                            <span className="converter-specs-label">{t("converter.options.audioCodec")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "", label: t("presetCreator.select.auto") },
                                   ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
                                 ]}
                                 value={videoAudioCodec}
@@ -827,7 +827,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioBitrate", "Audio bitrate")}</span>
+                            <span className="converter-specs-label">{t("converter.options.audioBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-video-audio-bitrate"
@@ -850,15 +850,15 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {targetCategory === "audio" && (
                         <div className="converter-specs-section" data-section="audio">
                           <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.estimatedSize", "Estimated size")}</span>
+                            <span className="converter-specs-label">{t("converter.options.estimatedSize")}</span>
                             <span id="convert-output-audio-size" className="converter-specs-value">{estimatedSize || "-"}</span>
                           </div>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioCodec", "Audio codec")}</span>
+                            <span className="converter-specs-label">{t("converter.options.audioCodec")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                  { value: "", label: t("presetCreator.select.auto") },
                                   ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
                                 ]}
                                 value={audioCodec}
@@ -871,7 +871,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioBitrate", "Audio bitrate")}</span>
+                            <span className="converter-specs-label">{t("converter.options.audioBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-audio-bitrate"
@@ -894,17 +894,17 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {targetCategory === "image" && (
                         <div className="converter-specs-section" data-section="image">
                           <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.estimatedSize", "Estimated size")}</span>
+                            <span className="converter-specs-label">{t("converter.options.estimatedSize")}</span>
                             <span id="convert-output-image-size" className="converter-specs-value">{estimatedSize || "-"}</span>
                           </div>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.resolution", "Resolution")}</span>
+                            <span className="converter-specs-label">{t("converter.options.resolution")}</span>
                             <div className="converter-specs-control converter-resolution-inputs">
                               <input
                                 id="convert-output-image-width"
                                 className="custom-input"
                                 type="number"
-                                placeholder={t("converter.options.widthPlaceholder", "Width")}
+                                placeholder={t("converter.options.widthPlaceholder")}
                                 value={imageWidth}
                                 onChange={(e) => {
                                   if (e.target.value === "") {
@@ -936,7 +936,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 id="convert-output-image-height"
                                 className="custom-input"
                                 type="number"
-                                placeholder={t("converter.options.heightPlaceholder", "Height")}
+                                placeholder={t("converter.options.heightPlaceholder")}
                                 value={imageHeight}
                                 onChange={(e) => {
                                   if (e.target.value === "") {
@@ -966,7 +966,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.quality", "Quality")}</span>
+                            <span className="converter-specs-label">{t("converter.options.quality")}</span>
                             <div className="converter-specs-control converter-percent-input">
                               <input
                                 id="convert-output-image-quality-range"
@@ -1018,7 +1018,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {targetCategory === "other" && (
                         <div className="converter-specs-section" data-section="other">
                           <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.estimatedSize", "Estimated size")}</span>
+                            <span className="converter-specs-label">{t("converter.options.estimatedSize")}</span>
                             <span id="convert-output-other-size" className="converter-specs-value">{estimatedSize || "-"}</span>
                           </div>
                         </div>
@@ -1040,7 +1040,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
                     <path d="M7.288 48.34c.061.04.129.068.193.105.18.105.363.201.559.277.093.036.19.06.286.089.175.053.351.098.535.127.049.008.094.028.144.034q.238.027.476.028h.001q.401-.001.79-.08c.154-.031.297-.086.443-.134.101-.033.206-.054.304-.094.162-.067.31-.158.46-.245.075-.043.156-.075.228-.124a4 4 0 0 0 .604-.495l7.492-7.492a3.995 3.995 0 0 0-4.249-6.56c4.535-11.868 16.033-20.322 29.475-20.322 12.266 0 23.516 7.2 28.658 18.342a4 4 0 1 0 7.264-3.352C74.503 14.478 60.403 5.455 45.027 5.455c-17.837 0-32.947 11.873-37.859 28.129-1.224-1.611-3.48-2.084-5.247-1.008a4 4 0 0 0-1.338 5.496l5.481 9.007c.014.023.035.041.049.063q.189.291.424.545c.036.039.064.085.101.122q.297.3.65.531m82.128 3.589-5.48-9.008c-.014-.023-.035-.04-.049-.063a4 4 0 0 0-.424-.546c-.035-.039-.063-.084-.1-.121a4 4 0 0 0-.65-.531c-.061-.04-.129-.067-.192-.104a4 4 0 0 0-.56-.277c-.093-.036-.19-.06-.287-.089a4 4 0 0 0-.534-.127c-.049-.008-.095-.028-.144-.034-.07-.008-.138.003-.208-.001-.091-.007-.177-.028-.269-.028-.082 0-.159.019-.239.024q-.18.01-.36.036a4 4 0 0 0-.503.113c-.105.03-.209.058-.312.097a4 4 0 0 0-.509.243c-.082.045-.166.082-.245.133-.237.153-.46.326-.659.524l-.001.001-7.492 7.492a4 4 0 0 0 0 5.656 3.99 3.99 0 0 0 4.249.904c-4.535 11.868-16.033 20.321-29.475 20.321a31.505 31.505 0 0 1-29.068-19.268 4 4 0 0 0-7.368 3.117 39.49 39.49 0 0 0 36.436 24.151c17.831 0 32.937-11.864 37.854-28.111a4 4 0 0 0 3.176 1.574c.708 0 1.426-.188 2.075-.584a3.996 3.996 0 0 0 1.338-5.494" transform="translate(1.407 1.407)scale(2.81)"/>
                   </svg>
-                  <span>{t("converter.actions.convert", "CONVERT")}</span>
+                  <span>{t("converter.actions.convert")}</span>
                 </button>
                 <button
                   id="convert-queue-btn"
@@ -1052,7 +1052,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  <span>{t("common.addToQueue", "ADD TO QUEUE")}</span>
+                  <span>{t("common.addToQueue")}</span>
                 </button>
               </div>
             </div>
@@ -1068,7 +1068,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
             </svg>
           </div>
-          <div className="convert-drop-text">{t("converter.drop.text", "Drop file to convert")}</div>
+          <div className="convert-drop-text">{t("converter.drop.text")}</div>
         </div>
       </div>
 

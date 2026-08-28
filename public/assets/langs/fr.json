@@ -281,7 +281,8 @@
         "unavailable": "Cette action n'est pas encore disponible.",
         "importFailed": "Échec de l'importation du préréglage.",
         "exportFailed": "Échec de l'exportation du préréglage.",
-        "deleteFailed": "Échec de la suppression du préréglage."
+        "deleteFailed": "Échec de la suppression du préréglage.",
+        "deleted": "Préréglage supprimé."
       }
     },
     "titleConstructor": "Constructeur de titre",

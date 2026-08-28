@@ -104,14 +104,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     onSuccess: (data) => {
       const category = String(data.category || "").toLowerCase();
       if (!SUPPORTED_CATEGORIES.has(category)) {
-        showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
+        showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
         resetView();
         return;
       }
       if (category === "image") {
         const ext = normalizeFormatKey(data.extension || data.format || "");
         if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
-          showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
+          showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
           resetView();
           return;
         }
@@ -119,7 +119,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       handleMetadataLoaded(data);
     },
     onError: (err) => {
-      showNotification(t("common.error", "Error"), err, "error");
+      showNotification(t("common.error"), err, "error");
     }
   });
 
@@ -444,12 +444,12 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     if (!metadata) return;
     const payload = buildCompressPayload();
     if (!payload) {
-      showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
+      showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
       return;
     }
 
     const meta = {
-      title: currentName || metadata.name || t("common.unknownTitle", "Unknown title"),
+      title: currentName || metadata.name || t("common.unknownTitle"),
       thumbnail: "",
       source: autoStart ? "compress" : "queue"
     };
@@ -466,14 +466,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       }, 40);
     } catch (err) {
       console.error("Compress enqueue error:", err);
-      showNotification(t("common.error", "Error"), t("common.errors.startPrefix", "Error: {error}", { error: String(err) }), "error");
+      showNotification(t("common.error"), t("common.errors.startPrefix",  { error: String(err) }), "error");
     }
   };
 
   const getCrfLabel = (i: number) => {
-    if (i === 0) return t("compressor.crf.bestQuality", "0 - Best quality");
-    if (i === 26) return t("compressor.crf.balance", "26 - Balance");
-    if (i === 51) return t("compressor.crf.bestCompression", "51 - Best compression");
+    if (i === 0) return t("compressor.crf.bestQuality");
+    if (i === 26) return t("compressor.crf.balance");
+    if (i === 51) return t("compressor.crf.bestCompression");
     return String(i);
   };
 
@@ -503,7 +503,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               type="text"
               id="compress-path-input"
               ref={pathInputRef}
-              placeholder={t("compressor.path.placeholder", "Select file to compress...")}
+              placeholder={t("compressor.path.placeholder")}
               value={filePath}
               onChange={(e) => {
                 setFilePath(e.target.value);
@@ -521,7 +521,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
             <span
               id="compress-browse-btn"
               className="bar-icon"
-              title={t("common.browse", "Browse")}
+              title={t("common.browse")}
               onClick={openPicker}
               role="button"
               tabIndex={0}
@@ -562,7 +562,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
                 </svg>
               </span>
-              <span className="drop-hint-text">{t("common.dropHint", "or just drop a file")}</span>
+              <span className="drop-hint-text">{t("common.dropHint")}</span>
               <span className="drop-hint-icon" aria-hidden="true">
                 <svg viewBox="0 0 512 512">
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
@@ -582,7 +582,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     id="compress-file-name-input"
                     className="compressor-name-input"
                     type="text"
-                    placeholder={t("compressor.output.placeholder", "File name")}
+                    placeholder={t("compressor.output.placeholder")}
                     value={currentName}
                     onChange={(e) => setCurrentName(e.target.value)}
                     onBlur={() => setIsEditingName(false)}
@@ -604,14 +604,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     data-i18n-lock={currentName ? "true" : undefined}
                     onDoubleClick={() => setIsEditingName(true)}
                   >
-                    {currentName || t("compressor.output.placeholder", "File name")}
+                    {currentName || t("compressor.output.placeholder")}
                   </span>
                 )}
                 <button
                   type="button"
                   id="compress-rename-btn"
                   className="compressor-rename-btn"
-                  title={t("compressor.output.editTitle", "Edit file name")}
+                  title={t("compressor.output.editTitle")}
                   onClick={() => setIsEditingName(!isEditingName)}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -634,7 +634,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               </div>
               <div className="compressor-meta-row">
                 <div className="compressor-meta-item compressor-meta-location">
-                  <span className="compressor-meta-label">{t("compressor.meta.locationLabel", "Location")}</span>
+                  <span className="compressor-meta-label">{t("compressor.meta.locationLabel")}</span>
                   <span
                     id="compress-file-location"
                     className="compressor-meta-value compressor-meta-location-value"
@@ -644,14 +644,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   </span>
                 </div>
                 <div className="compressor-meta-item">
-                  <span className="compressor-meta-label">{t("compressor.meta.sizeLabel", "Size")}</span>
+                  <span className="compressor-meta-label">{t("compressor.meta.sizeLabel")}</span>
                   <span id="compress-file-size" className="compressor-meta-value">
                     {formatBytes(metadata.size_bytes)}
                   </span>
                 </div>
                 {hasDuration && (
                   <div className="compressor-meta-item compressor-meta-duration">
-                    <span className="compressor-meta-label">{t("compressor.meta.durationLabel", "Duration")}</span>
+                    <span className="compressor-meta-label">{t("compressor.meta.durationLabel")}</span>
                     <span id="compress-file-duration" className="compressor-meta-value">
                       {metadata.duration_string || formatDuration(metadata.duration_seconds)}
                     </span>
@@ -663,7 +663,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
             {/* Presets Grid */}
             {compressorPresets.length > 0 && (
               <div id="compress-preset-section" className="preset-section fade-in">
-                <span className="option-label">{t("downloader.options.presets", "PRESETS")}</span>
+                <span className="option-label">{t("downloader.options.presets")}</span>
                 <div className="preset-grid" id="compress-preset-grid">
                   {compressorPresets.map((pr) => (
                     <button
@@ -678,10 +678,10 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       />
                       <div className="preset-card-info">
                         <div className="preset-card-title">
-                          {pr.title || t("settings.presetsManager.untitled", "Untitled")}
+                          {pr.title || t("settings.presetsManager.untitled")}
                         </div>
                         <div className="preset-card-summary">
-                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary", "No summary")}
+                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
                         </div>
                       </div>
                     </button>
@@ -692,7 +692,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
             {/* Controls Panel */}
             <div className="compressor-controls-panel fade-in">
-              <span className="option-label compressor-options-title">{t("compressor.options.compressBy", "COMPRESS BY")}</span>
+              <span className="option-label compressor-options-title">{t("compressor.options.compressBy")}</span>
               <div id="compress-mode-toggle" className="compressor-mode-toggle mode-switcher" role="group" aria-label="Compression mode">
                 <button
                   type="button"
@@ -708,7 +708,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     <circle cx="7" cy="7" r="3" />
                     <circle cx="17" cy="17" r="3" />
                   </svg>
-                  <span>{t("compressor.mode.percent", "PERCENT")}</span>
+                  <span>{t("compressor.mode.percent")}</span>
                 </button>
                 <button
                   type="button"
@@ -724,7 +724,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     <path d="M3 6v6c0 1.66 4.03 3 9 3s9-1.34 9-3V6" />
                     <path d="M3 12v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6" />
                   </svg>
-                  <span>{t("compressor.mode.size", "SIZE")}</span>
+                  <span>{t("compressor.mode.size")}</span>
                 </button>
                 <button
                   type="button"
@@ -738,7 +738,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <path d="m12 3.76 2.74 5.55 6.19.41-4.47 4.35 1.06 6.18L12 17.7l-5.52 2.55 1.07-6.18-4.48-4.35 6.19-.41z" />
                   </svg>
-                  <span>{t("compressor.mode.quality", "QUALITY")}</span>
+                  <span>{t("compressor.mode.quality")}</span>
                 </button>
               </div>
 
@@ -805,7 +805,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       id="compress-size-input"
                       className="custom-input"
                       type="text"
-                      placeholder={t("compressor.size.placeholder", "Target size")}
+                      placeholder={t("compressor.size.placeholder")}
                       value={sizeInputValue}
                       onChange={(e) => {
                         setSizeInputValue(e.target.value);
@@ -839,20 +839,20 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
             {/* Options Panel */}
             <div className="compressor-options-panel fade-in">
-              <span className="option-label compressor-options-title">{t("compressor.options.title", "OPTIONS")}</span>
+              <span className="option-label compressor-options-title">{t("compressor.options.title")}</span>
 
               {/* Destination Save Path */}
               <PathSelector
                 className="compressor-path-selector fade-in"
                 id="compress-save-path-input"
-                placeholder={t("compressor.options.pathPlaceholder", "Save path...")}
+                placeholder={t("compressor.options.pathPlaceholder")}
                 value={savePath}
                 onChange={(selected) => {
                   setSavePath(selected);
                   clearActivePreset();
                 }}
                 pickerCommand="pick_download_directory"
-                title={t("common.browse", "Browse")}
+                title={t("common.browse")}
                 buttonClassName="compressor-small-btn"
               />
 
@@ -864,15 +864,15 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "video" && (
                       <div className="compressor-specs-section" data-section="video">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize", "Estimated size")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
                           <span id="compress-estimated-video-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.videoCodec", "Video codec")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.videoCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                { value: "", label: t("presetCreator.select.auto") },
                                 ...videoCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={videoCodec}
@@ -885,11 +885,11 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                           </div>
                         </label>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.audioCodec", "Audio codec")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.audioCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                { value: "", label: t("presetCreator.select.auto") },
                                 ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={videoAudioCodec}
@@ -908,15 +908,15 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "audio" && (
                       <div className="compressor-specs-section" data-section="audio">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize", "Estimated size")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
                           <span id="compress-estimated-audio-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.audioCodec", "Audio codec")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.audioCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto", "Auto") },
+                                { value: "", label: t("presetCreator.select.auto") },
                                 ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={audioCodec}
@@ -935,7 +935,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "image" && (
                       <div className="compressor-specs-section" data-section="image">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize", "Estimated size")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
                           <span id="compress-estimated-image-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                       </div>
@@ -945,7 +945,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "other" && (
                       <div className="compressor-specs-section" data-section="other">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize", "Estimated size")}</span>
+                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
                           <span id="compress-estimated-other-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                       </div>
@@ -966,7 +966,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
                 </svg>
-                <span>{t("compressor.actions.compress", "COMPRESS")}</span>
+                <span>{t("compressor.actions.compress")}</span>
               </button>
               <button
                 id="compress-queue-btn"
@@ -978,7 +978,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                <span>{t("common.addToQueue", "ADD TO QUEUE")}</span>
+                <span>{t("common.addToQueue")}</span>
               </button>
             </div>
           </div>
@@ -993,7 +993,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
             </svg>
           </div>
-          <div className="compress-drop-text">{t("compressor.drop.text", "Drop file to compress")}</div>
+          <div className="compress-drop-text">{t("compressor.drop.text")}</div>
         </div>
       </div>
     </div>

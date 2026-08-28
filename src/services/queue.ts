@@ -135,7 +135,7 @@ async function hydrate(): Promise<void> {
       ? data.items.map((raw: any) => ({
           id: String(raw.id || Math.random().toString(36).substring(2, 9)),
           itemType: (raw.item_type || raw.itemType || raw.type || "download") as any,
-          title: String(raw.title || t("common.unknownTitle", "Unknown title")),
+          title: String(raw.title || t("common.unknownTitle")),
           thumbnail: String(raw.thumbnail || ""),
           status: raw.status === "downloading" ? "pending" : (raw.status || "pending"),
           progress: raw.status === "downloading" ? 0 : (Number(raw.progress) || 0),
@@ -292,14 +292,14 @@ export function maybeStartNext() {
       state.startAllActive = false;
       if (state.startAllSuccess && state.startAllStarted > 0) {
         showNotification(
-          t("common.success", "Success"),
-          t("queue.notifications.queueCompleted", "Queue elements completed successfully."),
+          t("common.success"),
+          t("queue.notifications.queueCompleted"),
           "success"
         );
         playSuccessSound();
         sendSystemNotification(
-          t("queue.notifications.systemTitle", "Pulsar"),
-          t("queue.notifications.queueCompletedSystem", "Queue completed."),
+          t("queue.notifications.systemTitle"),
+          t("queue.notifications.queueCompletedSystem"),
           "success"
         );
       }
@@ -321,38 +321,38 @@ export function markCompleted(item: QueueItem) {
   if (["download", "queue-manual", "convert", "compress"].includes(item.startReason || "")) {
     if (item.itemType === "download") {
       showNotification(
-        t("common.success", "Success"),
-        t("queue.notifications.downloadCompleted", "Download completed successfully."),
+        t("common.success"),
+        t("queue.notifications.downloadCompleted"),
         "success"
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle", "Pulsar"),
-        t("queue.notifications.downloadCompletedSystem", "Download completed."),
+        t("queue.notifications.systemTitle"),
+        t("queue.notifications.downloadCompletedSystem"),
         "success"
       );
     } else if (item.itemType === "convert") {
       showNotification(
-        t("common.success", "Success"),
-        t("queue.notifications.convertCompleted", "Convert completed successfully."),
+        t("common.success"),
+        t("queue.notifications.convertCompleted"),
         "success"
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle", "Pulsar"),
-        t("queue.notifications.convertCompletedSystem", "Convert completed."),
+        t("queue.notifications.systemTitle"),
+        t("queue.notifications.convertCompletedSystem"),
         "success"
       );
     } else if (item.itemType === "compress") {
       showNotification(
-        t("common.success", "Success"),
-        t("queue.notifications.compressCompleted", "Compress completed successfully."),
+        t("common.success"),
+        t("queue.notifications.compressCompleted"),
         "success"
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle", "Pulsar"),
-        t("queue.notifications.compressCompletedSystem", "Compress completed."),
+        t("queue.notifications.systemTitle"),
+        t("queue.notifications.compressCompletedSystem"),
         "success"
       );
     }
@@ -388,15 +388,15 @@ export function markFailed(item: QueueItem, code: string) {
     state.startAllSuccess = false;
   }
 
-  const suffix = code ? t("queue.notifications.errorSuffix", " Error code: {code}", { code }) : "";
+  const suffix = code ? t("queue.notifications.errorSuffix",  { code }) : "";
   showNotification(
-    t("common.error", "Error"),
-    t("queue.notifications.downloadFailed", "Download failed.{suffix}", { suffix }),
+    t("common.error"),
+    t("queue.notifications.downloadFailed",  { suffix }),
     "error"
   );
   sendSystemNotification(
-    t("queue.notifications.systemTitle", "Pulsar"),
-    t("queue.notifications.downloadFailedSystem", "Download failed.{suffix}", { suffix }),
+    t("queue.notifications.systemTitle"),
+    t("queue.notifications.downloadFailedSystem",  { suffix }),
     "error"
   );
 
@@ -530,8 +530,8 @@ export function stopAll() {
 
   if (toCancel.length > 0) {
     showNotification(
-      t("common.info", "Info"),
-      t("queue.notifications.downloadStopped", "Download stopped by user."),
+      t("common.info"),
+      t("queue.notifications.downloadStopped"),
       "info"
     );
   }
@@ -559,7 +559,7 @@ export async function enqueue(
   const newItem: QueueItem = {
     id,
     itemType,
-    title: meta?.title ? String(meta.title) : t("common.unknownTitle", "Unknown title"),
+    title: meta?.title ? String(meta.title) : t("common.unknownTitle"),
     thumbnail: meta?.thumbnail ? String(meta.thumbnail) : "",
     status: "pending",
     progress: 0,

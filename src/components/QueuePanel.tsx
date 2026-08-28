@@ -109,8 +109,8 @@ export const QueuePanel: React.FC = () => {
         item.payload?.download_subs ||
         item.payload?.download_chat ||
         item.payload?.embed_subs
-          ? t("queue.subtitles.on", "ON")
-          : t("queue.subtitles.off", "OFF");
+          ? t("queue.subtitles.on")
+          : t("queue.subtitles.off");
       text = `${format} | ${quality} | SUB: ${subs}`;
     }
 
@@ -142,29 +142,29 @@ export const QueuePanel: React.FC = () => {
 
   return (
     <div className="queue-panel-inner">
-      <div className="queue-title">{t("queue.title", "Queue")}</div>
+      <div className="queue-title">{t("queue.title")}</div>
 
       <div className="queue-actions">
         <button
           className="queue-action queue-action-start"
           onClick={startAll}
         >
-          {t("queue.actions.startAll", "Start all")}
+          {t("queue.actions.startAll")}
         </button>
         <button
           className="queue-action queue-action-stop"
           onClick={stopAll}
         >
-          {t("queue.actions.stopAll", "Stop all")}
+          {t("queue.actions.stopAll")}
         </button>
         <button className="queue-action" onClick={clearQueue}>
-          {t("queue.actions.clearQueue", "Clear queue")}
+          {t("queue.actions.clearQueue")}
         </button>
       </div>
 
       <div className="queue-items" id="queue-items">
         {pageItems.length === 0 ? (
-          <div className="queue-empty">{t("queue.empty", "Queue is empty.")}</div>
+          <div className="queue-empty">{t("queue.empty")}</div>
         ) : (
           pageItems.map((item) => {
             const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
@@ -203,7 +203,7 @@ export const QueuePanel: React.FC = () => {
                         {item.listProgress ? ` (${item.listProgress})` : ""}
                       </span>
                       <span>
-                        {t("common.eta", "ETA")} {item.eta || "--"}
+                        {t("common.eta")} {item.eta || "--"}
                       </span>
                     </div>
                   </div>
@@ -215,14 +215,14 @@ export const QueuePanel: React.FC = () => {
                       <button
                         className="queue-icon-btn"
                         onClick={() => startItem(item.id, "queue-manual")}
-                        title={t("queue.itemActions.start", "Start")}
+                        title={t("queue.itemActions.start")}
                       >
                         {ICONS.play}
                       </button>
                       <button
                         className="queue-icon-btn"
                         onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove", "Remove")}
+                        title={t("queue.itemActions.remove")}
                       >
                         {ICONS.trash}
                       </button>
@@ -232,7 +232,7 @@ export const QueuePanel: React.FC = () => {
                     <button
                       className="queue-icon-btn"
                       onClick={() => cancelItem(item.id)}
-                      title={t("queue.itemActions.stop", "Stop")}
+                      title={t("queue.itemActions.stop")}
                     >
                       {ICONS.stop}
                     </button>
@@ -242,21 +242,21 @@ export const QueuePanel: React.FC = () => {
                       <button
                         className="queue-icon-btn"
                         onClick={() => startItem(item.id, "queue-manual", true)}
-                        title={t("queue.itemActions.retry", "Retry")}
+                        title={t("queue.itemActions.retry")}
                       >
                         {ICONS.retry}
                       </button>
                       <button
                         className="queue-icon-btn"
                         onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove", "Remove")}
+                        title={t("queue.itemActions.remove")}
                       >
                         {ICONS.trash}
                       </button>
                       <button
                         className="queue-icon-btn"
                         onClick={() => openInFileManager(item.path)}
-                        title={t("queue.itemActions.openLocation", "Open location")}
+                        title={t("queue.itemActions.openLocation")}
                       >
                         {ICONS.open}
                       </button>
@@ -267,14 +267,14 @@ export const QueuePanel: React.FC = () => {
                       <button
                         className="queue-icon-btn"
                         onClick={() => openInFileManager(item.path)}
-                        title={t("queue.itemActions.openLocation", "Open location")}
+                        title={t("queue.itemActions.openLocation")}
                       >
                         {ICONS.open}
                       </button>
                       <button
                         className="queue-icon-btn"
                         onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove", "Remove")}
+                        title={t("queue.itemActions.remove")}
                       >
                         {ICONS.trash}
                       </button>
@@ -285,7 +285,7 @@ export const QueuePanel: React.FC = () => {
                     <button
                       className="queue-icon-btn"
                       onClick={() => openConsole(item.id)}
-                      title={t("queue.itemActions.console", "Console")}
+                      title={t("queue.itemActions.console")}
                     >
                       {ICONS.console}
                     </button>
@@ -314,14 +314,14 @@ export const QueuePanel: React.FC = () => {
           className="queue-page-btn"
           onClick={handlePrevPage}
           disabled={activePage === 1}
-          aria-label={t("queue.pagination.previous", "Previous page")}
+          aria-label={t("queue.pagination.previous")}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
         <span id="queue-page-label">
-          {t("common.pageLabel", "Page {current}/{total}", {
+          {t("common.pageLabel",  {
             current: activePage,
             total: totalPages,
           })}
@@ -330,7 +330,7 @@ export const QueuePanel: React.FC = () => {
           className="queue-page-btn"
           onClick={handleNextPage}
           disabled={activePage === totalPages}
-          aria-label={t("queue.pagination.next", "Next page")}
+          aria-label={t("queue.pagination.next")}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 18 15 12 9 6"></polyline>

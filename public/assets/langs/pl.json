@@ -281,7 +281,8 @@
         "unavailable": "Ta akcja nie jest jeszcze dostępna.",
         "importFailed": "Nie udało się zaimportować presetu.",
         "exportFailed": "Nie udało się wyeksportować presetu.",
-        "deleteFailed": "Nie udało się usunąć presetu."
+        "deleteFailed": "Nie udało się usunąć presetu.",
+        "deleted": "Preset usunięty."
       }
     },
     "titleConstructor": "Konstruktor tytułu",

@@ -110,17 +110,17 @@ export const Settings: React.FC = () => {
       await exportPreset(id);
     } catch (err) {
       console.error("Export preset failed:", err);
-      showNotification(t("common.error", "Error"), "Failed to export preset.", "error");
+      showNotification(t("common.error"), t("settings.presetsManager.notifications.exportFailed"), "error");
     }
   };
 
   const handleDeletePreset = async (id: string) => {
     try {
       await deletePreset(id);
-      showNotification(t("common.success", "Success"), "Preset deleted.", "success");
+      showNotification(t("common.success"), t("settings.presetsManager.notifications.deleted"), "success");
     } catch (err) {
       console.error("Delete preset failed:", err);
-      showNotification(t("common.error", "Error"), "Failed to delete preset.", "error");
+      showNotification(t("common.error"), t("settings.presetsManager.notifications.deleteFailed"), "error");
     }
   };
 
@@ -129,7 +129,7 @@ export const Settings: React.FC = () => {
       await importPreset();
     } catch (err) {
       console.error("Import preset failed:", err);
-      showNotification(t("common.error", "Error"), "Failed to import preset.", "error");
+      showNotification(t("common.error"), t("settings.presetsManager.notifications.importFailed"), "error");
     }
   };
 
@@ -207,9 +207,9 @@ export const Settings: React.FC = () => {
   ];
 
   const themes = [
-    { value: "System", label: t("settings.themeOptions.system", "System") },
-    { value: "Dark", label: t("settings.themeOptions.dark", "Dark") },
-    { value: "Light", label: t("settings.themeOptions.light", "Light") },
+    { value: "System", label: t("settings.themeOptions.system") },
+    { value: "Dark", label: t("settings.themeOptions.dark") },
+    { value: "Light", label: t("settings.themeOptions.light") },
   ];
 
   const browsers = [
@@ -228,15 +228,15 @@ export const Settings: React.FC = () => {
   return (
     <div className="page-root page-scroll settings-page">
       <div className="settings-page-header">
-        <span className="settings-page-title">{t("settings.title", "Settings")}</span>
+        <span className="settings-page-title">{t("settings.title")}</span>
       </div>
 
       {/* General Settings */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.general", "General")}</div>
+        <div className="settings-section-title">{t("settings.general")}</div>
 
         <div className="form-row">
-          <span>{t("settings.language", "Language")}</span>
+          <span>{t("settings.language")}</span>
           <CustomSelect
             options={languages}
             value={config.language}
@@ -249,7 +249,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="settings-inline-group">
-          <div className="settings-inline-label">{t("settings.closeBehavior", "When I close Pulsar:")}</div>
+          <div className="settings-inline-label">{t("settings.closeBehavior")}</div>
           <div className="radio-group">
             <label className="custom-radio">
               <input
@@ -259,7 +259,7 @@ export const Settings: React.FC = () => {
                 checked={config.close_behavior === "hide"}
                 onChange={() => updateConfig({ close_behavior: "hide" })}
               />
-              <span>{t("settings.closeBehaviorOptions.hide", "Hide")}</span>
+              <span>{t("settings.closeBehaviorOptions.hide")}</span>
             </label>
             <label className="custom-radio">
               <input
@@ -269,13 +269,13 @@ export const Settings: React.FC = () => {
                 checked={config.close_behavior === "exit"}
                 onChange={() => updateConfig({ close_behavior: "exit" })}
               />
-              <span>{t("settings.closeBehaviorOptions.exit", "Exit")}</span>
+              <span>{t("settings.closeBehaviorOptions.exit")}</span>
             </label>
           </div>
         </div>
 
         <div className="form-row">
-          <span>{t("settings.systemNotifications", "System notifications")}</span>
+          <span>{t("settings.systemNotifications")}</span>
           <ToggleSwitch
             checked={!!config.system_notifications}
             onChange={(checked) => updateConfig({ system_notifications: checked })}
@@ -283,23 +283,23 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <span>{t("settings.advancedMode", "Advanced mode")}</span>
+          <span>{t("settings.advancedMode")}</span>
           <ToggleSwitch
             checked={!!config.advanced_mode}
             onChange={(checked) => updateConfig({ advanced_mode: checked })}
           />
         </div>
         <div className="settings-note">
-          {t("settings.advancedModeNote", "Shows advanced options and console access.")}
+          {t("settings.advancedModeNote")}
         </div>
       </section>
 
       {/* Appearance Settings */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.appearance", "Appearance")}</div>
+        <div className="settings-section-title">{t("settings.appearance")}</div>
 
         <div className="form-row">
-          <span>{t("settings.theme", "Theme")}</span>
+          <span>{t("settings.theme")}</span>
           <CustomSelect
             options={themes}
             value={config.theme}
@@ -309,7 +309,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <span>{t("settings.idleAnimation", "Idle animation")}</span>
+          <span>{t("settings.idleAnimation")}</span>
           <ToggleSwitch
             checked={!!config.idle_animation}
             onChange={(checked) => updateConfig({ idle_animation: checked })}
@@ -319,10 +319,10 @@ export const Settings: React.FC = () => {
 
       {/* Requirements Settings */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.requirements", "Requirements")}</div>
+        <div className="settings-section-title">{t("settings.requirements")}</div>
 
         <div className="form-row">
-          <span>{t("settings.autoUpdateApp", "Auto-update Pulsar")}</span>
+          <span>{t("settings.autoUpdateApp")}</span>
           <div className="update-actions">
             <button
               className="update-check-btn"
@@ -342,11 +342,11 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version: {version}", { version: pulsarVersion })}
+          {t("settings.currentVersion",  { version: pulsarVersion })}
         </div>
 
         <div className="form-row">
-          <span>{t("settings.autoUpdateBridge", "Auto-update Bridge")}</span>
+          <span>{t("settings.autoUpdateBridge")}</span>
           <div className="update-actions">
             <button
               className="update-check-btn"
@@ -366,11 +366,11 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version: {version}", { version: bridgeVersion })}
+          {t("settings.currentVersion",  { version: bridgeVersion })}
         </div>
 
         <div className="form-row">
-          <span>{t("settings.autoUpdateFfmpeg", "Auto-update FFmpeg")}</span>
+          <span>{t("settings.autoUpdateFfmpeg")}</span>
           <div className="update-actions">
             <button
               className="update-check-btn"
@@ -390,11 +390,11 @@ export const Settings: React.FC = () => {
           </div>
         </div>
         <div className="settings-note">
-          {t("settings.currentVersion", "Current version: {version}", { version: ffmpegVersion })}
+          {t("settings.currentVersion",  { version: ffmpegVersion })}
         </div>
 
         <div className="form-row">
-          <span>{t("settings.ffmpegHwAccel", "FFmpeg hardware acceleration")}</span>
+          <span>{t("settings.ffmpegHwAccel")}</span>
           <ToggleSwitch
             checked={config.ffmpeg_hwaccel === "auto"}
             onChange={(checked) => updateConfig({ ffmpeg_hwaccel: checked ? "auto" : "none" })}
@@ -402,7 +402,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <span>{t("settings.updateCooldown", "Update check cooldown (minutes)")}</span>
+          <span>{t("settings.updateCooldown")}</span>
           <input
             className="custom-input"
             type="number"
@@ -430,10 +430,10 @@ export const Settings: React.FC = () => {
 
       {/* Download settings */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.downloadSettings", "Download settings")}</div>
+        <div className="settings-section-title">{t("settings.downloadSettings")}</div>
 
         <div className="form-row">
-          <span>{t("settings.cookiesFromBrowser", "Cookies from browser")}</span>
+          <span>{t("settings.cookiesFromBrowser")}</span>
           <CustomSelect
             options={browsers}
             value={config.cookies_browser}
@@ -442,11 +442,11 @@ export const Settings: React.FC = () => {
           />
         </div>
         <div className="settings-note">
-          {t("settings.cookiesFromBrowserNote", "Allows using your browser cookies to download restricted videos.")}
+          {t("settings.cookiesFromBrowserNote")}
         </div>
 
         <div className="form-row">
-          <span>{t("settings.maximumConcurrentProcesses", "Maximum concurrent processes")}</span>
+          <span>{t("settings.maximumConcurrentProcesses")}</span>
           <input
             className="custom-input"
             type="number"
@@ -472,7 +472,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <span>{t("settings.maximumSearchResults", "Maximum search results")}</span>
+          <span>{t("settings.maximumSearchResults")}</span>
           <input
             className="custom-input"
             type="number"
@@ -499,7 +499,7 @@ export const Settings: React.FC = () => {
 
         {/* Title Constructor */}
         <div className="title-constructor">
-          <div className="title-constructor-title">{t("settings.titleConstructor", "Title Constructor")}</div>
+          <div className="title-constructor-title">{t("settings.titleConstructor")}</div>
           <div className="title-constructor-input-row">
             <div
               className="title-template-input"
@@ -518,22 +518,22 @@ export const Settings: React.FC = () => {
 
                   const getTagName = (token: string) => {
                     switch (token) {
-                      case "%(title)s": return t("settings.titleConstructorTags.title", "Title");
-                      case "%(id)s": return t("settings.titleConstructorTags.id", "Video ID");
-                      case "%(resolution)s": return t("settings.titleConstructorTags.resolution", "Resolution");
-                      case "%(duration_string)s": return t("settings.titleConstructorTags.durationString", "Duration");
-                      case "%(fps)s": return t("settings.titleConstructorTags.fps", "FPS");
-                      case "%(upload_date)s": return t("settings.titleConstructorTags.uploadDate", "Upload Date");
-                      case "%(view_count)s": return t("settings.titleConstructorTags.viewCount", "View Count");
-                      case "%(like_count)s": return t("settings.titleConstructorTags.likeCount", "Like Count");
-                      case "%(uploader)s": return t("settings.titleConstructorTags.uploader", "Uploader");
-                      case "%(playlist)s": return t("settings.titleConstructorTags.playlist", "Playlist Name");
-                      case "%(playlist_index)s": return t("settings.titleConstructorTags.playlistIndex", "Playlist Index");
-                      case "%(video_autonumber)s": return t("settings.titleConstructorTags.videoAutonumber", "Queue Number");
-                      case "%(track)s": return t("settings.titleConstructorTags.track", "Track");
-                      case "%(artist)s": return t("settings.titleConstructorTags.artist", "Artist");
-                      case "%(album)s": return t("settings.titleConstructorTags.album", "Album");
-                      case "%(release_year)s": return t("settings.titleConstructorTags.releaseYear", "Release Year");
+                      case "%(title)s": return t("settings.titleConstructorTags.title");
+                      case "%(id)s": return t("settings.titleConstructorTags.id");
+                      case "%(resolution)s": return t("settings.titleConstructorTags.resolution");
+                      case "%(duration_string)s": return t("settings.titleConstructorTags.durationString");
+                      case "%(fps)s": return t("settings.titleConstructorTags.fps");
+                      case "%(upload_date)s": return t("settings.titleConstructorTags.uploadDate");
+                      case "%(view_count)s": return t("settings.titleConstructorTags.viewCount");
+                      case "%(like_count)s": return t("settings.titleConstructorTags.likeCount");
+                      case "%(uploader)s": return t("settings.titleConstructorTags.uploader");
+                      case "%(playlist)s": return t("settings.titleConstructorTags.playlist");
+                      case "%(playlist_index)s": return t("settings.titleConstructorTags.playlistIndex");
+                      case "%(video_autonumber)s": return t("settings.titleConstructorTags.videoAutonumber");
+                      case "%(track)s": return t("settings.titleConstructorTags.track");
+                      case "%(artist)s": return t("settings.titleConstructorTags.artist");
+                      case "%(album)s": return t("settings.titleConstructorTags.album");
+                      case "%(release_year)s": return t("settings.titleConstructorTags.releaseYear");
                       default: return token;
                     }
                   };
@@ -547,7 +547,7 @@ export const Settings: React.FC = () => {
                           key={`${part}-${index}`}
                           className="title-pill pill-in"
                           onClick={() => handleRemovePart(index, parts)}
-                          title={t("settings.titleConstructor.removeTag", "Click to remove")}
+                          title={t("settings.titleConstructor.removeTag")}
                         >
                           {TAG_ICON_SVG}
                           <span>{label}</span>
@@ -594,19 +594,19 @@ export const Settings: React.FC = () => {
             </div>
           </div>
           <div className="title-constructor-note">
-            {t("settings.titleConstructorNote", "Not every tag is available for all media.")}
+            {t("settings.titleConstructorNote")}
           </div>
 
           <div id="title-canvas" className="title-canvas">
             <div className="title-canvas-group">
-              <div className="title-canvas-title">{t("settings.titleConstructorCategories.video", "Video")}</div>
+              <div className="title-canvas-title">{t("settings.titleConstructorCategories.video")}</div>
               <div className="title-canvas-tags">
                 {([
-                  ["%(title)s", t("settings.titleConstructorTags.title", "Title")],
-                  ["%(id)s", t("settings.titleConstructorTags.id", "Video ID")],
-                  ["%(resolution)s", t("settings.titleConstructorTags.resolution", "Resolution")],
-                  ["%(duration_string)s", t("settings.titleConstructorTags.durationString", "Duration")],
-                  ["%(fps)s", t("settings.titleConstructorTags.fps", "FPS")],
+                  ["%(title)s", t("settings.titleConstructorTags.title")],
+                  ["%(id)s", t("settings.titleConstructorTags.id")],
+                  ["%(resolution)s", t("settings.titleConstructorTags.resolution")],
+                  ["%(duration_string)s", t("settings.titleConstructorTags.durationString")],
+                  ["%(fps)s", t("settings.titleConstructorTags.fps")],
                 ] as const).map(([token, label]) => {
                   const isUsed = (config.title_template || "").includes(token);
                   return (
@@ -626,13 +626,13 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="title-canvas-group">
-              <div className="title-canvas-title">{t("settings.titleConstructorCategories.statsDates", "Stats & Dates")}</div>
+              <div className="title-canvas-title">{t("settings.titleConstructorCategories.statsDates")}</div>
               <div className="title-canvas-tags">
                 {([
-                  ["%(upload_date)s", t("settings.titleConstructorTags.uploadDate", "Upload Date")],
-                  ["%(view_count)s", t("settings.titleConstructorTags.viewCount", "View Count")],
-                  ["%(like_count)s", t("settings.titleConstructorTags.likeCount", "Like Count")],
-                  ["%(uploader)s", t("settings.titleConstructorTags.uploader", "Uploader")],
+                  ["%(upload_date)s", t("settings.titleConstructorTags.uploadDate")],
+                  ["%(view_count)s", t("settings.titleConstructorTags.viewCount")],
+                  ["%(like_count)s", t("settings.titleConstructorTags.likeCount")],
+                  ["%(uploader)s", t("settings.titleConstructorTags.uploader")],
                 ] as const).map(([token, label]) => {
                   const isUsed = (config.title_template || "").includes(token);
                   return (
@@ -652,12 +652,12 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="title-canvas-group">
-              <div className="title-canvas-title">{t("settings.titleConstructorCategories.playlist", "Playlist")}</div>
+              <div className="title-canvas-title">{t("settings.titleConstructorCategories.playlist")}</div>
               <div className="title-canvas-tags">
                 {([
-                  ["%(playlist)s", t("settings.titleConstructorTags.playlist", "Playlist Name")],
-                  ["%(playlist_index)s", t("settings.titleConstructorTags.playlistIndex", "Playlist Index")],
-                  ["%(video_autonumber)s", t("settings.titleConstructorTags.videoAutonumber", "Queue Number")],
+                  ["%(playlist)s", t("settings.titleConstructorTags.playlist")],
+                  ["%(playlist_index)s", t("settings.titleConstructorTags.playlistIndex")],
+                  ["%(video_autonumber)s", t("settings.titleConstructorTags.videoAutonumber")],
                 ] as const).map(([token, label]) => {
                   const isUsed = (config.title_template || "").includes(token);
                   return (
@@ -677,13 +677,13 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="title-canvas-group">
-              <div className="title-canvas-title">{t("settings.titleConstructorCategories.music", "Music")}</div>
+              <div className="title-canvas-title">{t("settings.titleConstructorCategories.music")}</div>
               <div className="title-canvas-tags">
                 {([
-                  ["%(track)s", t("settings.titleConstructorTags.track", "Track")],
-                  ["%(artist)s", t("settings.titleConstructorTags.artist", "Artist")],
-                  ["%(album)s", t("settings.titleConstructorTags.album", "Album")],
-                  ["%(release_year)s", t("settings.titleConstructorTags.releaseYear", "Release Year")],
+                  ["%(track)s", t("settings.titleConstructorTags.track")],
+                  ["%(artist)s", t("settings.titleConstructorTags.artist")],
+                  ["%(album)s", t("settings.titleConstructorTags.album")],
+                  ["%(release_year)s", t("settings.titleConstructorTags.releaseYear")],
                 ] as const).map(([token, label]) => {
                   const isUsed = (config.title_template || "").includes(token);
                   return (
@@ -707,25 +707,25 @@ export const Settings: React.FC = () => {
 
       {/* Presets Manager */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.presetsManager.title", "Presets Manager")}</div>
+        <div className="settings-section-title">{t("settings.presetsManager.title")}</div>
 
         <div className="presets-manager-toolbar">
           <div className="presets-manager-actions">
             <button className="anim-btn preset-action-btn preset-add-btn" onClick={handleOpenPresetCreate}>
-              {t("settings.presetsManager.actions.add", "New preset")}
+              {t("settings.presetsManager.actions.add")}
             </button>
             <button className="anim-btn preset-action-btn preset-secondary-btn" onClick={handleImportPreset}>
-              {t("settings.presetsManager.actions.import", "Import")}
+              {t("settings.presetsManager.actions.import")}
             </button>
           </div>
           <div className="presets-manager-meta">
-            {t("settings.presetsManager.count", "{count} presets", { count: presets.length })}
+            {t("settings.presetsManager.count",  { count: presets.length })}
           </div>
         </div>
 
         {presets.length === 0 ? (
           <div className="presets-manager-empty">
-            {t("settings.presetsManager.empty", "No presets yet.")}
+            {t("settings.presetsManager.empty")}
           </div>
         ) : (
           <div className="presets-manager-list">
@@ -751,31 +751,31 @@ export const Settings: React.FC = () => {
 
                   <div className="preset-item-info">
                     <div className="preset-item-title">
-                      {preset.title || t("settings.presetsManager.untitled", "Untitled")}
+                      {preset.title || t("settings.presetsManager.untitled")}
                       <span className="preset-badge">
                         {t(`settings.presetsManager.types.${presetType}`, typeLabel)}
                       </span>
                     </div>
                     <div className="preset-item-summary">
-                      {preset.summary || t("settings.presetsManager.noSummary", "No summary")}
+                      {preset.summary || t("settings.presetsManager.noSummary")}
                     </div>
                   </div>
 
                   <div className="preset-item-actions">
                     <div className="preset-item-action-row">
                       <button className="preset-item-btn" onClick={() => handleOpenPresetEdit(preset.id || "")}>
-                        {t("settings.presetsManager.actions.edit", "Edit")}
+                        {t("settings.presetsManager.actions.edit")}
                       </button>
                       <button className="preset-item-btn" onClick={() => handleExportPreset(preset.id || "")}>
-                        {t("settings.presetsManager.actions.export", "Export")}
+                        {t("settings.presetsManager.actions.export")}
                       </button>
                       <button className="preset-item-btn danger" onClick={() => handleDeletePreset(preset.id || "")}>
-                        {t("settings.presetsManager.actions.delete", "Delete")}
+                        {t("settings.presetsManager.actions.delete")}
                       </button>
                     </div>
 
                     <div className="preset-item-toggle">
-                      <span>{t("settings.presetsManager.actions.hide", "Hidden")}</span>
+                      <span>{t("settings.presetsManager.actions.hide")}</span>
                       <ToggleSwitch
                         checked={!!preset.hidden}
                         onChange={(checked) => setPresetHidden(preset.id || "", checked)}
@@ -791,15 +791,15 @@ export const Settings: React.FC = () => {
 
       {/* Support Section */}
       <section className="settings-section-card">
-        <div className="settings-section-title">{t("settings.support", "Support")}</div>
+        <div className="settings-section-title">{t("settings.support")}</div>
         <div className="form-row">
-          <span>{t("settings.supportText", "Show your support!")}</span>
+          <span>{t("settings.supportText")}</span>
           <button
             className="anim-btn"
             onClick={handleSupportClick}
             style={{ background: "#E91E63", color: "white", padding: "10px 20px" }}
           >
-            <span>{t("settings.supportButton", "Support Project")}</span>
+            <span>{t("settings.supportButton")}</span>
           </button>
         </div>
       </section>

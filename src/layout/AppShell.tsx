@@ -158,7 +158,7 @@ export const AppShell: React.FC = () => {
           className={`nav-btn ${currentPage === "downloader" ? "active" : ""}`}
           onClick={() => navigateTo("downloader")}
           id="nav-downloader"
-          title={t("index.nav.download", "Download")}
+          title={t("index.nav.download")}
         >
           <svg
             width="24"
@@ -181,7 +181,7 @@ export const AppShell: React.FC = () => {
           className={`nav-btn nav-gap ${currentPage === "converter" ? "active" : ""}`}
           onClick={() => navigateTo("converter")}
           id="nav-converter"
-          title={t("index.nav.convert", "Convert")}
+          title={t("index.nav.convert")}
         >
           <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path
@@ -195,7 +195,7 @@ export const AppShell: React.FC = () => {
           className={`nav-btn nav-gap ${currentPage === "compressor" ? "active" : ""}`}
           onClick={() => navigateTo("compressor")}
           id="nav-compressor"
-          title={t("index.nav.compress", "Compress")}
+          title={t("index.nav.compress")}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
@@ -208,7 +208,7 @@ export const AppShell: React.FC = () => {
           className={`nav-btn ${currentPage === "settings" ? "active" : ""}`}
           onClick={() => navigateTo("settings")}
           id="nav-settings"
-          title={t("index.nav.settings", "Settings")}
+          title={t("index.nav.settings")}
         >
           <svg
             width="24"
@@ -231,7 +231,7 @@ export const AppShell: React.FC = () => {
           className={`nav-btn ${queueVisible ? "active" : ""}`}
           onClick={() => setQueueVisible((v) => !v)}
           id="btn-queue"
-          title={t("index.nav.queue", "Queue")}
+          title={t("index.nav.queue")}
           style={{ display: isQueueBtnVisible ? "flex" : "none" }}
         >
           <svg

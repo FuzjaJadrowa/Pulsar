@@ -24,7 +24,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       <div className="home-page">
         <div className="home-hero">
           <h1 className="home-title">
-            {t("home.title", "What do you want to do today?")}
+            {t("home.title")}
           </h1>
 
           <div className="home-actions">
@@ -46,7 +46,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              <span>{t("index.nav.download", "Download")}</span>
+              <span>{t("index.nav.download")}</span>
             </button>
             <button
               type="button"
@@ -59,7 +59,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   transform="translate(1.407 1.407)scale(2.81)"
                 />
               </svg>
-              <span>{t("index.nav.convert", "Convert")}</span>
+              <span>{t("index.nav.convert")}</span>
             </button>
             <button
               type="button"
@@ -69,7 +69,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
                 <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
               </svg>
-              <span>{t("index.nav.compress", "Compress")}</span>
+              <span>{t("index.nav.compress")}</span>
             </button>
           </div>
 
@@ -94,7 +94,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 <circle cx="12" cy="12" r="3" fill="none"></circle>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 9.93 3.1V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
-              <span>{t("index.nav.settings", "Settings")}</span>
+              <span>{t("index.nav.settings")}</span>
             </button>
           </div>
         </div>

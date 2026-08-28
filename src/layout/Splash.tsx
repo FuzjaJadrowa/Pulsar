@@ -22,41 +22,41 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     const trimmed = raw.trim();
     if (trimmed === "") return raw;
 
-    if (trimmed === "Starting...") return t("index.splash.starting", "Starting...");
-    if (trimmed === "Checking...") return t("index.splash.checking", "Checking...");
-    if (trimmed === "Checking for updates...") return t("index.splash.checkingForUpdates", "Checking for updates...");
-    if (trimmed === "Extracting...") return t("index.splash.extracting", "Extracting...");
-    if (trimmed === "Update installed. Restarting...") return t("index.splash.updateInstalledRestarting", "Update installed. Restarting...");
-    if (trimmed === "Update available (auto-update disabled)") return t("index.splash.updateAvailableAutoDisabled", "Update available (auto-update disabled)");
+    if (trimmed === "Starting...") return t("index.splash.starting");
+    if (trimmed === "Checking...") return t("index.splash.checking");
+    if (trimmed === "Checking for updates...") return t("index.splash.checkingForUpdates");
+    if (trimmed === "Extracting...") return t("index.splash.extracting");
+    if (trimmed === "Update installed. Restarting...") return t("index.splash.updateInstalledRestarting");
+    if (trimmed === "Update available (auto-update disabled)") return t("index.splash.updateAvailableAutoDisabled");
 
     const updateCheckFailedPrefix = "Update check failed: ";
     if (trimmed.startsWith(updateCheckFailedPrefix)) {
       const error = trimmed.slice(updateCheckFailedPrefix.length);
-      return t("index.splash.updateCheckFailed", "Update check failed: {error}", { error });
+      return t("index.splash.updateCheckFailed",  { error });
     }
 
     const errorPrefix = "Error: ";
     if (trimmed.startsWith(errorPrefix)) {
       const error = trimmed.slice(errorPrefix.length);
-      return t("index.splash.errorPrefix", "Error: {error}", { error });
+      return t("index.splash.errorPrefix",  { error });
     }
 
     const checkingPrefix = "Checking ";
     if (trimmed.startsWith(checkingPrefix) && trimmed.endsWith("...")) {
       const component = trimmed.slice(checkingPrefix.length, -3);
-      return t("index.splash.checkingComponent", "Checking {component}...", { component });
+      return t("index.splash.checkingComponent",  { component });
     }
 
     const downloadingPrefix = "Downloading ";
     if (trimmed.startsWith(downloadingPrefix) && trimmed.endsWith("...")) {
       const component = trimmed.slice(downloadingPrefix.length, -3);
-      return t("index.splash.downloadingComponent", "Downloading {component}...", { component });
+      return t("index.splash.downloadingComponent",  { component });
     }
 
     const updatingToPrefix = "Updating to ";
     if (trimmed.startsWith(updatingToPrefix)) {
       const version = trimmed.slice(updatingToPrefix.length);
-      return t("index.splash.updatingTo", "Updating to {version}", { version });
+      return t("index.splash.updatingTo",  { version });
     }
 
     return raw;
@@ -82,7 +82,7 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     setIsHidden(false);
     setIsExiting(false);
     setIsEntering(true);
-    setStatus(t("index.splash.checking", "Checking..."));
+    setStatus(t("index.splash.checking"));
     setProgress("");
     setCanSkip(false);
 
@@ -160,7 +160,7 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
 
         {canSkip && (
           <button id="splash-skip-btn" className="skip-btn" onClick={handleSkip}>
-            {t("index.splash.skipUpdate", "Skip Update")}
+            {t("index.splash.skipUpdate")}
           </button>
         )}
       </div>

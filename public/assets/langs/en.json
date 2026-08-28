@@ -281,7 +281,8 @@
         "unavailable": "This action is not available yet.",
         "importFailed": "Failed to import preset.",
         "exportFailed": "Failed to export preset.",
-        "deleteFailed": "Failed to delete preset."
+        "deleteFailed": "Failed to delete preset.",
+        "deleted": "Preset deleted."
       }
     },
     "titleConstructor": "Title Constructor",

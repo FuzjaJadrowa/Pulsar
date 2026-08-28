@@ -43,7 +43,7 @@ export const ConsoleModal: React.FC = () => {
       <div className="queue-console-modal">
         <div className="queue-console-header">
           <div className="queue-console-title">
-            {t("queue.console.title", `Console - ${activeId}`, { id: activeId })}
+            {t("queue.console.title",  { id: activeId })}
           </div>
           <button
             className="queue-console-close"
@@ -56,7 +56,7 @@ export const ConsoleModal: React.FC = () => {
         <pre ref={bodyRef} className="queue-console-body">
           {lines.length > 0
             ? lines.join("\n")
-            : t("queue.console.empty", "No console output yet.")}
+            : t("queue.console.empty")}
         </pre>
       </div>
     </div>

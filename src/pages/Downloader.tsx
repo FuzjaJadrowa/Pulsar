@@ -48,7 +48,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       handleMetadataLoaded(data);
     },
     onError: (err) => {
-      showNotification(t("common.error", "Error"), err, "error");
+      showNotification(t("common.error"), err, "error");
     }
   });
 
@@ -199,7 +199,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
       if (payload.type === "finished" && payload.id === currentSearchIdRef.current && payload.success === false) {
         setIsSearching(false);
-        showNotification(t("common.error", "Error"), payload.error || t("downloader.errors.searchFailed", "Search failed."), "error");
+        showNotification(t("common.error"), payload.error || t("downloader.errors.searchFailed"), "error");
         setSearchResults([]);
         setIsSearchMode(true);
       }
@@ -303,7 +303,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         console.error("Search invocation failed:", error);
         setIsSearching(false);
         currentSearchIdRef.current = null;
-        showNotification(t("common.error", "Error"), t("downloader.errors.searchFailed", "Search failed."), "error");
+        showNotification(t("common.error"), t("downloader.errors.searchFailed"), "error");
       }
     }
   };
@@ -342,7 +342,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       return {
         code: cleanCode,
         languageName,
-        countryName: countryName || t("downloader.languages.global", "Global"),
+        countryName: countryName || t("downloader.languages.global"),
         flag
       };
     });
@@ -687,7 +687,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const currentMetaSnapshot = () => {
     return {
-      title: metadata?.title || t("common.unknownTitle", "Unknown title"),
+      title: metadata?.title || t("common.unknownTitle"),
       thumbnail: metadata?.thumbnail || ""
     };
   };
@@ -711,7 +711,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       resetToZen();
     } catch (error) {
       console.error("Download fail:", error);
-      showNotification(t("common.error", "Error"), String(error), "error");
+      showNotification(t("common.error"), String(error), "error");
     }
   };
 
@@ -727,7 +727,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       resetToZen();
     } catch (error) {
       console.error("Queue add fail:", error);
-      showNotification(t("common.error", "Error"), String(error), "error");
+      showNotification(t("common.error"), String(error), "error");
     }
   };
 
@@ -738,7 +738,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       await invoke("save_thumbnail_to_disk", { url: thumbUrl });
     } catch (e) {
       console.error("Failed to save thumbnail:", e);
-      showNotification(t("common.error", "Error"), "Failed to save thumbnail", "error");
+      showNotification(t("common.error"), t("downloader.thumbnail.saveFailed"), "error");
     }
   };
 
@@ -760,7 +760,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               type="text"
               id="url-input"
               ref={urlInputRef}
-              placeholder={t("downloader.search.urlPlaceholder", "Type something to download...")}
+              placeholder={t("downloader.search.urlPlaceholder")}
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);
@@ -780,7 +780,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
             <span
               id="paste-icon"
               className="paste-icon bar-icon"
-              title={t("downloader.search.pasteTitle", "Paste from clipboard")}
+              title={t("downloader.search.pasteTitle")}
               role="button"
               tabIndex={0}
               onClick={handlePaste}
@@ -816,7 +816,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
             className={`search-provider-panel ${!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url) ? "visible" : ""}`}
             aria-hidden={!(!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url))}
           >
-            <span className="provider-label">{t("downloader.search.providerLabel", "Search on")}</span>
+            <span className="provider-label">{t("downloader.search.providerLabel")}</span>
             <div className="provider-buttons">
               <button
                 type="button"
@@ -861,7 +861,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
             <>
               {/* Metadata Title/Uploader */}
               <div className="meta-info fade-in">
-                <h2 id="meta-title">{metadata.title || t("common.unknownTitle", "Unknown title")}</h2>
+                <h2 id="meta-title">{metadata.title || t("common.unknownTitle")}</h2>
                 <p className="meta-line">
                   <span
                     id="meta-author"
@@ -899,7 +899,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       </span>
                     )}
                     <span className="meta-author-name">
-                      {metadata.channel || metadata.uploader || t("common.unknownChannel", "Channel Name")}
+                      {metadata.channel || metadata.uploader || t("common.unknownChannel")}
                     </span>
                   </span>
                   <span className="meta-separator">-</span>
@@ -912,7 +912,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               {/* Presets List */}
               {downloaderPresets.length > 0 && (
                 <div className="preset-section fade-in" id="preset-section">
-                  <span className="option-label">{t("downloader.options.presets", "PRESETS")}</span>
+                  <span className="option-label">{t("downloader.options.presets")}</span>
                   <div className="preset-grid" id="preset-grid">
                     {downloaderPresets.map((pr: any) => (
                       <button
@@ -927,10 +927,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         />
                         <div className="preset-card-info">
                           <div className="preset-card-title">
-                            {pr.title || t("settings.presetsManager.untitled", "Untitled")}
+                            {pr.title || t("settings.presetsManager.untitled")}
                           </div>
                           <div className="preset-card-summary">
-                            {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary", "No summary")}
+                            {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
                           </div>
                         </div>
                       </button>
@@ -943,14 +943,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               <PathSelector
                 className="path-selector fade-in"
                 id="path-input"
-                placeholder={t("downloader.path.placeholder", "No save path selected...")}
+                placeholder={t("downloader.path.placeholder")}
                 value={savePath}
                 onChange={(selected) => {
                   setSavePath(selected);
                   clearActivePreset();
                 }}
                 pickerCommand="pick_download_directory"
-                title={t("common.browse", "Browse")}
+                title={t("common.browse")}
               />
 
               {/* Mode Switcher */}
@@ -971,7 +971,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
                     <path d="M7 2v20M17 2v20M2 12h20" />
                   </svg>
-                  <span>{t("downloader.mode.video", "VIDEO")}</span>
+                  <span>{t("downloader.mode.video")}</span>
                 </div>
                 <div
                   className={`switch-option ${mode === "audio" ? "active" : ""}`}
@@ -988,7 +988,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <circle cx="6" cy="18" r="3" />
                     <circle cx="18" cy="16" r="3" />
                   </svg>
-                  <span>{t("downloader.mode.audio", "AUDIO")}</span>
+                  <span>{t("downloader.mode.audio")}</span>
                 </div>
               </div>
 
@@ -996,7 +996,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               <div id="options-wrapper" className="content-transition">
                 <div className="options-grid fade-in">
                   <div className="grid-column">
-                    <label>{t("downloader.options.format", "FORMAT")}</label>
+                    <label>{t("downloader.options.format")}</label>
                     <div className="tiles-container" id="format-list">
                       {formatsToRender.map((fmt) => (
                         <button
@@ -1014,7 +1014,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     </div>
                   </div>
                   <div className="grid-column">
-                    <label>{t("downloader.options.quality", "QUALITY")}</label>
+                    <label>{t("downloader.options.quality")}</label>
                     <div className="tiles-container" id="quality-list">
                       {qualitiesToRender.map((q) => (
                         <button
@@ -1095,12 +1095,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               <div className="extras-section fade-in">
                 {/* Thumbnail Action */}
                 <div className="thumb-container">
-                  <span className="option-label">{t("downloader.options.thumbnail", "THUMBNAIL")}</span>
+                  <span className="option-label">{t("downloader.options.thumbnail")}</span>
                   <div className="thumb-preview">
                     {metadata.thumbnail ? (
-                      <img src={metadata.thumbnail} alt={t("downloader.thumbnail.alt", "Thumbnail")} />
+                      <img src={metadata.thumbnail} alt={t("downloader.thumbnail.alt")} />
                     ) : (
-                      <span className="placeholder">{t("downloader.thumbnail.noPreview", "NO PREVIEW")}</span>
+                      <span className="placeholder">{t("downloader.thumbnail.noPreview")}</span>
                     )}
                   </div>
                   <div className="thumb-actions">
@@ -1110,7 +1110,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         setThumbnailAction("none");
                         clearActivePreset();
                       }}
-                      title={t("downloader.thumbnail.none", "None")}
+                      title={t("downloader.thumbnail.none")}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -1120,7 +1120,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <button
                       className="icon-btn-small"
                       onClick={saveThumbnail}
-                      title={t("downloader.thumbnail.saveToFile", "Save to file")}
+                      title={t("downloader.thumbnail.saveToFile")}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1134,7 +1134,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         setThumbnailAction("embed");
                         clearActivePreset();
                       }}
-                      title={t("downloader.thumbnail.embedInVideo", "Embed in video")}
+                      title={t("downloader.thumbnail.embedInVideo")}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -1147,7 +1147,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
                 {/* Other settings */}
                 <div className="option-group">
-                  <span className="option-label">{t("downloader.options.other", "OTHER")}</span>
+                  <span className="option-label">{t("downloader.options.other")}</span>
                   <div className="form-row">
                     <input
                       type="checkbox"
@@ -1159,7 +1159,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("downloader.options.geoBypass", "Geo bypass")}</span>
+                    <span className="toggle-text">{t("downloader.options.geoBypass")}</span>
                   </div>
                   <div className="form-row">
                     <input
@@ -1172,7 +1172,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("downloader.options.embedMetadata", "Embed metadata")}</span>
+                    <span className="toggle-text">{t("downloader.options.embedMetadata")}</span>
                   </div>
                   {mode === "video" && (
                     <div className="form-row video-only">
@@ -1186,17 +1186,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           clearActivePreset();
                         }}
                       />
-                      <span className="toggle-text">{t("downloader.options.muteAudio", "Mute audio")}</span>
+                      <span className="toggle-text">{t("downloader.options.muteAudio")}</span>
                     </div>
                   )}
                   {!!config?.advanced_mode && (
                     <div className="form-row advanced-only">
-                      <span className="toggle-text">{t("downloader.options.customArgs", "Custom args")}</span>
+                      <span className="toggle-text">{t("downloader.options.customArgs")}</span>
                       <input
                         type="text"
                         id="custom-args-input"
                         className="custom-args-input"
-                        placeholder={t("downloader.options.customArgsPlaceholder", "Optional")}
+                        placeholder={t("downloader.options.customArgsPlaceholder")}
                         value={customArgs}
                         onChange={(e) => setCustomArgs(e.target.value)}
                         autoComplete="off"
@@ -1207,9 +1207,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
                 {/* Subtitles settings */}
                 <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-end" }}>
-                  <span className="option-label">{t("downloader.options.subtitles", "SUBTITLES")}</span>
+                  <span className="option-label">{t("downloader.options.subtitles")}</span>
                   <div className="form-row subtitles-row">
-                    <span className="toggle-text">{t("downloader.options.downloadSubtitles", "Download subtitles")}</span>
+                    <span className="toggle-text">{t("downloader.options.downloadSubtitles")}</span>
                     <input
                       type="checkbox"
                       id="subs-toggle"
@@ -1226,7 +1226,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   {/* Live Chat Download */}
                   {subtitleOptions.some((s) => s.code.toLowerCase() === "live_chat") && (
                     <div className={`form-row live-chat-row ${downloadSubs ? "" : "hidden"}`} id="live-chat-row">
-                      <span className="toggle-text">{t("downloader.options.downloadLiveChat", "Download live chat")}</span>
+                      <span className="toggle-text">{t("downloader.options.downloadLiveChat")}</span>
                       <input
                         type="checkbox"
                         id="chat-toggle"
@@ -1239,7 +1239,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
                   {/* Embed Subtitles */}
                   <div className={`form-row embed-subs-row ${downloadSubs ? "visible" : ""}`} id="embed-subs-row">
-                    <span className="toggle-text">{t("downloader.options.embedSubtitles", "Embed subtitles")}</span>
+                    <span className="toggle-text">{t("downloader.options.embedSubtitles")}</span>
                     <input
                       type="checkbox"
                       id="embed-subs-toggle"
@@ -1257,7 +1257,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <input
                       type="text"
                       className="lang-input"
-                      placeholder={t("downloader.options.codeOptional", "Code (optional)")}
+                      placeholder={t("downloader.options.codeOptional")}
                       value={subsLang}
                       onChange={(e) => setSubsLang(e.target.value)}
                       onFocus={() => setShowLangSuggestions(true)}
@@ -1300,7 +1300,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  <span>{t("downloader.actions.download", "DOWNLOAD")}</span>
+                  <span>{t("downloader.actions.download")}</span>
                 </button>
                 <button
                   id="queue-btn"
@@ -1312,7 +1312,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  <span>{t("common.addToQueue", "ADD TO QUEUE")}</span>
+                  <span>{t("common.addToQueue")}</span>
                 </button>
               </div>
             </>
@@ -1322,15 +1322,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         {/* Search Results Section */}
         <div id="search-results-section" className={`search-results-section ${isSearchMode ? "" : "hidden"} ${searchExiting ? "exiting" : ""}`}>
           <div className="search-results-header fade-in">
-            <h3 id="search-results-title">{t("downloader.search.resultsTitle", "SEARCH RESULTS")}</h3>
+            <h3 id="search-results-title">{t("downloader.search.resultsTitle")}</h3>
             <span id="search-results-count">
-              {searchResults.length > 0 ? t("downloader.search.resultsCount", "{count} results", { count: searchResults.length }) : ""}
+              {searchResults.length > 0 ? t("downloader.search.resultsCount",  { count: searchResults.length }) : ""}
             </span>
           </div>
 
           <div id="search-results-grid" className="search-results-grid">
             {searchResults.length === 0 ? (
-              <div className="search-results-empty">{t("downloader.search.empty", "No results.")}</div>
+              <div className="search-results-empty">{t("downloader.search.empty")}</div>
             ) : (
               searchResults.map((entry) => {
                 const isItemLoading = isAnalyzing && pendingMetadataUrl === resolveResultUrl(entry);
@@ -1359,10 +1359,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     </button>
                     <div className="search-result-content">
                       <div className="search-result-title">
-                        {entry.title || t("common.unknownTitle", "Unknown title")}
+                        {entry.title || t("common.unknownTitle")}
                       </div>
                       <div className="search-result-meta">
-                        {`${entry.uploader || entry.channel || entry.uploader_id || entry.channel_id || t("common.unknownChannel", "Unknown channel")} • ${entry.duration_string || entry.durationString || formatDuration(entry.duration)}`}
+                        {`${entry.uploader || entry.channel || entry.uploader_id || entry.channel_id || t("common.unknownChannel")} • ${entry.duration_string || entry.durationString || formatDuration(entry.duration)}`}
                       </div>
                     </div>
                   </div>
