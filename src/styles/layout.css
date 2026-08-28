@@ -368,6 +368,10 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     overflow: hidden;
     animation: slideInNotification 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
 }
 
 .notification-toast.hiding {
@@ -386,26 +390,39 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     background: linear-gradient(90deg, rgba(255, 23, 68, 0.1) 0%, rgba(30, 30, 40, 0.7) 100%);
 }
 
+.notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
 .notif-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 5px;
 }
 
 .notif-title {
     font-weight: bold;
     font-size: 14px;
-    margin-right: 10px;
 }
 
 .notif-message {
     font-size: 13px;
     color: rgba(255, 255, 255, 0.8);
     line-height: 1.4;
+    word-break: break-word;
 }
 
-.notif-close {
+.notif-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.notif-close,
+.notif-copy {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.5);
@@ -418,7 +435,8 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     transition: color 0.2s;
 }
 
-.notif-close:hover {
+.notif-close:hover,
+.notif-copy:hover {
     color: #fff;
 }
 

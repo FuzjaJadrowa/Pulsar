@@ -6,7 +6,30 @@
     "unknownTitle": "Unknown title",
     "unknownChannel": "Unknown channel",
     "pageLabel": "Page {current}/{total}",
-    "eta": "ETA"
+    "eta": "ETA",
+    "browse": "Browse",
+    "addToQueue": "ADD TO QUEUE",
+    "dropHint": "or just drop a file",
+    "output": {
+      "placeholder": "Output name",
+      "editTitle": "Edit output name"
+    },
+    "meta": {
+      "locationLabel": "Location",
+      "sizeLabel": "Size",
+      "durationLabel": "Duration",
+      "category": {
+        "video": "Video",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Font"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Unsupported format.",
+      "startPrefix": "Error: {error}"
+    }
   },
   "connection": {
     "noInternet": "No internet connection. Some app features may be unavailable.",
@@ -37,13 +60,7 @@
     }
   },
   "home": {
-    "title": "What do you want to do today?",
-    "actions": {
-      "downloader": "Download",
-      "converter": "Convert",
-      "compressor": "Compress",
-      "settings": "Settings"
-    }
+    "title": "What do you want to do today?"
   },
   "downloader": {
     "search": {
@@ -59,8 +76,7 @@
       "defaultAuthor": "Channel Name"
     },
     "path": {
-      "placeholder": "No save path selected...",
-      "browseTitle": "Browse"
+      "placeholder": "No save path selected..."
     },
     "mode": {
       "video": "VIDEO",
@@ -93,12 +109,10 @@
       "saveFailed": "Failed to save thumbnail. Check console for details."
     },
     "actions": {
-      "download": "DOWNLOAD",
-      "addToQueue": "ADD TO QUEUE"
+      "download": "DOWNLOAD"
     },
     "errors": {
       "invalidLink": "Invalid link.",
-      "startPrefix": "Error: {error}",
       "searchFailed": "Search failed."
     },
     "languages": {
@@ -109,11 +123,8 @@
     "path": {
       "placeholder": "Select a file to convert..."
     },
-    "dropHint": "or just drop a file",
     "actions": {
-      "browse": "Browse",
-      "convert": "CONVERT",
-      "addToQueue": "ADD TO QUEUE"
+      "convert": "CONVERT"
     },
     "options": {
       "compressBy": "COMPRESS BY",
@@ -136,29 +147,6 @@
       "video": "VIDEO",
       "audio": "AUDIO"
     },
-    "output": {
-      "placeholder": "Output name",
-      "editTitle": "Edit output name"
-    },
-    "meta": {
-      "locationLabel": "Location",
-      "sizeLabel": "Size",
-      "durationLabel": "Duration",
-      "category": {
-        "video": "Video",
-        "audio": "Audio",
-        "image": "Image",
-        "archive": "Archive",
-        "font": "Font"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Unsupported format.",
-      "startPrefix": "Error: {error}",
-      "metadataFailed": "Failed to read file.",
-      "fileNotFound": "File not found.",
-      "noPath": "No file selected."
-    },
     "drop": {
       "text": "Drop file to convert"
     }
@@ -167,11 +155,8 @@
     "path": {
       "placeholder": "Select file to compress..."
     },
-    "dropHint": "or just drop a file",
     "actions": {
-      "browse": "Browse",
-      "compress": "COMPRESS",
-      "addToQueue": "ADD TO QUEUE"
+      "compress": "COMPRESS"
     },
     "mode": {
       "percent": "PERCENT",
@@ -193,26 +178,6 @@
       "bestQuality": "0 - Best quality",
       "balance": "26 - Balance",
       "bestCompression": "51 - Best compression"
-    },
-    "output": {
-      "placeholder": "Output name",
-      "editTitle": "Edit output name"
-    },
-    "meta": {
-      "locationLabel": "Location",
-      "sizeLabel": "Size",
-      "durationLabel": "Duration",
-      "category": {
-        "video": "Video",
-        "audio": "Audio",
-        "image": "Image"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Unsupported format.",
-      "metadataFailed": "Failed to read file.",
-      "fileNotFound": "File not found.",
-      "noPath": "No file selected."
     },
     "drop": {
       "text": "Drop file to compress"
@@ -489,8 +454,7 @@
     "woff2": {
       "description": "Compressed web font."
     }
-  }
-  ,
+  },
   "presetCreator": {
     "title": {
       "new": "Create Preset",
@@ -528,15 +492,9 @@
       "subtitlesCode": "en",
       "bitrate": "Auto"
     },
-    "types": {
-      "downloader": "Downloader",
-      "converter": "Converter",
-      "compressor": "Compressor"
-    },
     "icon": {
       "title": "Drop icon here",
-      "hint": "1:1 ratio, PNG/JPG/SVG",
-      "browse": "Browse"
+      "hint": "1:1 ratio, PNG/JPG/SVG"
     },
     "toggles": {
       "downloadSubtitles": "Download subtitles",
@@ -548,7 +506,6 @@
       "muteAudio": "Mute audio"
     },
     "actions": {
-      "browse": "Browse",
       "save": "Save Preset",
       "export": "Export Preset",
       "close": "Close"

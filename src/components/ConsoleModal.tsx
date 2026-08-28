@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useConsoleLogs, useConsoleModal } from "../services/console";
 import { useTranslation } from "../services/i18n";
 
@@ -8,17 +8,34 @@ export const ConsoleModal: React.FC = () => {
   const lines = useConsoleLogs(openId);
   const bodyRef = useRef<HTMLPreElement | null>(null);
 
+  const [activeId, setActiveId] = useState<string | null>(openId);
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (openId) {
+      setActiveId(openId);
+      setIsClosing(false);
+    } else if (activeId) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setActiveId(null);
+        setIsClosing(false);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [openId, activeId]);
+
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
-  }, [lines, openId]);
+  }, [lines, activeId]);
 
-  if (!openId) return null;
+  if (!activeId) return null;
 
   return (
     <div
-      className="queue-console-overlay open"
+      className={`queue-console-overlay ${isClosing ? "closing" : "open"}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) closeConsole();
       }}
@@ -26,7 +43,7 @@ export const ConsoleModal: React.FC = () => {
       <div className="queue-console-modal">
         <div className="queue-console-header">
           <div className="queue-console-title">
-            {t("queue.console.title", `Console - ${openId}`, { id: openId })}
+            {t("queue.console.title", `Console - ${activeId}`, { id: activeId })}
           </div>
           <button
             className="queue-console-close"

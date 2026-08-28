@@ -743,18 +743,11 @@ export function animateQueueOrb(source: HTMLElement | DOMRect | { left: number; 
 
     a.onfinish = () => {
       orb.remove();
-      btn.classList.add("active");
       btn.classList.add("queue-pulse");
 
       setTimeout(() => {
-        btn.classList.remove("active");
         btn.classList.remove("queue-pulse");
       }, 700);
-
-      const w = window as any;
-      if (typeof w.setQueuePanelVisible === "function") {
-        w.setQueuePanelVisible(true);
-      }
     };
   }, 10);
 }

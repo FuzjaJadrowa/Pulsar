@@ -104,14 +104,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     onSuccess: (data) => {
       const category = String(data.category || "").toLowerCase();
       if (!SUPPORTED_CATEGORIES.has(category)) {
-        showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+        showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
         resetView();
         return;
       }
       if (category === "image") {
         const ext = normalizeFormatKey(data.extension || data.format || "");
         if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
-          showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+          showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
           resetView();
           return;
         }
@@ -444,7 +444,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     if (!metadata) return;
     const payload = buildCompressPayload();
     if (!payload) {
-      showNotification(t("common.error", "Error"), t("compressor.errors.unsupportedFormat", "Unsupported format."), "error");
+      showNotification(t("common.error", "Error"), t("common.errors.unsupportedFormat", "Unsupported format."), "error");
       return;
     }
 
@@ -466,7 +466,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       }, 40);
     } catch (err) {
       console.error("Compress enqueue error:", err);
-      showNotification(t("common.error", "Error"), t("compressor.errors.startPrefix", "Error: {error}", { error: String(err) }), "error");
+      showNotification(t("common.error", "Error"), t("common.errors.startPrefix", "Error: {error}", { error: String(err) }), "error");
     }
   };
 
@@ -521,7 +521,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
             <span
               id="compress-browse-btn"
               className="bar-icon"
-              title={t("compressor.actions.browse", "Browse")}
+              title={t("common.browse", "Browse")}
               onClick={openPicker}
               role="button"
               tabIndex={0}
@@ -562,7 +562,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
                 </svg>
               </span>
-              <span className="drop-hint-text">{t("compressor.dropHint", "or just drop a file")}</span>
+              <span className="drop-hint-text">{t("common.dropHint", "or just drop a file")}</span>
               <span className="drop-hint-icon" aria-hidden="true">
                 <svg viewBox="0 0 512 512">
                   <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
@@ -852,7 +852,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   clearActivePreset();
                 }}
                 pickerCommand="pick_download_directory"
-                title={t("compressor.actions.browse", "Browse")}
+                title={t("common.browse", "Browse")}
                 buttonClassName="compressor-small-btn"
               />
 
@@ -978,7 +978,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                <span>{t("compressor.actions.addToQueue", "ADD TO QUEUE")}</span>
+                <span>{t("common.addToQueue", "ADD TO QUEUE")}</span>
               </button>
             </div>
           </div>

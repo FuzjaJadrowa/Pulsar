@@ -6,7 +6,30 @@
     "unknownTitle": "Titre inconnu",
     "unknownChannel": "Chaîne inconnue",
     "pageLabel": "Page {current}/{total}",
-    "eta": "Temps restant"
+    "eta": "Temps restant",
+    "browse": "Parcourir",
+    "addToQueue": "AJOUTER À LA FILE",
+    "dropHint": "ou glissez-déposez simplement un fichier",
+    "output": {
+      "placeholder": "Nom du fichier de sortie",
+      "editTitle": "Modifier le nom de sortie"
+    },
+    "meta": {
+      "locationLabel": "Emplacement",
+      "sizeLabel": "Taille",
+      "durationLabel": "Durée",
+      "category": {
+        "video": "Vidéo",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Police"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Format non supporté.",
+      "startPrefix": "Erreur : {error}"
+    }
   },
   "connection": {
     "noInternet": "Pas de connexion internet. Certaines fonctionnalités de l'application peuvent être indisponibles.",
@@ -37,13 +60,7 @@
     }
   },
   "home": {
-    "title": "Que voulez-vous faire aujourd'hui ?",
-    "actions": {
-      "downloader": "Télécharger",
-      "converter": "Convertir",
-      "compressor": "Compresser",
-      "settings": "Paramètres"
-    }
+    "title": "Que voulez-vous faire aujourd'hui ?"
   },
   "downloader": {
     "search": {
@@ -59,8 +76,7 @@
       "defaultAuthor": "Nom de la chaîne"
     },
     "path": {
-      "placeholder": "Aucun dossier de sauvegarde sélectionné...",
-      "browseTitle": "Parcourir"
+      "placeholder": "Aucun dossier de sauvegarde sélectionné..."
     },
     "mode": {
       "video": "VIDÉO",
@@ -93,12 +109,10 @@
       "saveFailed": "Échec de l'enregistrement de la miniature. Vérifiez la console pour plus de détails."
     },
     "actions": {
-      "download": "TÉLÉCHARGER",
-      "addToQueue": "AJOUTER À LA FILE"
+      "download": "TÉLÉCHARGER"
     },
     "errors": {
       "invalidLink": "Lien invalide.",
-      "startPrefix": "Erreur : {error}",
       "searchFailed": "Échec de la recherche."
     },
     "languages": {
@@ -109,11 +123,8 @@
     "path": {
       "placeholder": "Sélectionnez un fichier à convertir..."
     },
-    "dropHint": "ou glissez-déposez simplement un fichier",
     "actions": {
-      "browse": "Parcourir",
-      "convert": "CONVERTIR",
-      "addToQueue": "AJOUTER À LA FILE"
+      "convert": "CONVERTIR"
     },
     "options": {
       "compressBy": "COMPRESSER PAR",
@@ -136,29 +147,6 @@
       "video": "VIDÉO",
       "audio": "AUDIO"
     },
-    "output": {
-      "placeholder": "Nom du fichier de sortie",
-      "editTitle": "Modifier le nom de sortie"
-    },
-    "meta": {
-      "locationLabel": "Emplacement",
-      "sizeLabel": "Taille",
-      "durationLabel": "Durée",
-      "category": {
-        "video": "Vidéo",
-        "audio": "Audio",
-        "image": "Image",
-        "archive": "Archive",
-        "font": "Police"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Format non supporté.",
-      "startPrefix": "Erreur : {error}",
-      "metadataFailed": "Échec de la lecture du fichier.",
-      "fileNotFound": "Fichier introuvable.",
-      "noPath": "Aucun fichier sélectionné."
-    },
     "drop": {
       "text": "Déposez le fichier à convertir"
     }
@@ -167,11 +155,8 @@
     "path": {
       "placeholder": "Sélectionnez un fichier à compresser..."
     },
-    "dropHint": "ou glissez-déposez simplement un fichier",
     "actions": {
-      "browse": "Parcourir",
-      "compress": "COMPRESSER",
-      "addToQueue": "AJOUTER À LA FILE"
+      "compress": "COMPRESSER"
     },
     "mode": {
       "percent": "POURCENTAGE",
@@ -193,26 +178,6 @@
       "bestQuality": "0 - Meilleure qualité",
       "balance": "26 - Équilibré",
       "bestCompression": "51 - Meilleure compression"
-    },
-    "output": {
-      "placeholder": "Nom du fichier de sortie",
-      "editTitle": "Modifier le nom de sortie"
-    },
-    "meta": {
-      "locationLabel": "Emplacement",
-      "sizeLabel": "Taille",
-      "durationLabel": "Durée",
-      "category": {
-        "video": "Vidéo",
-        "audio": "Audio",
-        "image": "Image"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Format non supporté.",
-      "metadataFailed": "Échec de la lecture du fichier.",
-      "fileNotFound": "Fichier introuvable.",
-      "noPath": "Aucun fichier sélectionné."
     },
     "drop": {
       "text": "Déposez le fichier à compresser"
@@ -527,15 +492,9 @@
       "subtitlesCode": "fr",
       "bitrate": "Auto"
     },
-    "types": {
-      "downloader": "Téléchargeur",
-      "converter": "Convertisseur",
-      "compressor": "Compresseur"
-    },
     "icon": {
       "title": "Déposez l'icône ici",
-      "hint": "Format 1:1, PNG/JPG/SVG",
-      "browse": "Parcourir"
+      "hint": "Format 1:1, PNG/JPG/SVG"
     },
     "toggles": {
       "downloadSubtitles": "Télécharger les sous-titres",
@@ -547,7 +506,6 @@
       "muteAudio": "Couper le son"
     },
     "actions": {
-      "browse": "Parcourir",
       "save": "Enregistrer le préréglage",
       "export": "Exporter le préréglage",
       "close": "Fermer"

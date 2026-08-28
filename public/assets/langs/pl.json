@@ -6,7 +6,30 @@
     "unknownTitle": "Nieznany tytuł",
     "unknownChannel": "Nieznany kanał",
     "pageLabel": "Strona {current}/{total}",
-    "eta": "Pozostały czas"
+    "eta": "Pozostały czas",
+    "browse": "Przeglądaj",
+    "addToQueue": "DODAJ DO KOLEJKI",
+    "dropHint": "lub po prostu upuść plik",
+    "output": {
+      "placeholder": "Nazwa wyjściowa",
+      "editTitle": "Edytuj nazwę wyjściową"
+    },
+    "meta": {
+      "locationLabel": "Lokalizacja",
+      "sizeLabel": "Rozmiar",
+      "durationLabel": "Czas trwania",
+      "category": {
+        "video": "Wideo",
+        "audio": "Audio",
+        "image": "Obraz",
+        "archive": "Archiwum",
+        "font": "Czcionka"
+      }
+    },
+    "errors": {
+      "unsupportedFormat": "Niewspierany format.",
+      "startPrefix": "Błąd: {error}"
+    }
   },
   "connection": {
     "noInternet": "Brak połączenia z internetem. Niektóre funkcje aplikacji mogą być niedostępne.",
@@ -37,13 +60,7 @@
     }
   },
   "home": {
-    "title": "Co chcesz dzisiaj zrobić?",
-    "actions": {
-      "downloader": "Pobieranie",
-      "converter": "Konwersja",
-      "compressor": "Kompresja",
-      "settings": "Ustawienia"
-    }
+    "title": "Co chcesz dzisiaj zrobić?"
   },
   "downloader": {
     "search": {
@@ -59,8 +76,7 @@
       "defaultAuthor": "Nazwa kanału"
     },
     "path": {
-      "placeholder": "Nie wybrano ścieżki zapisu...",
-      "browseTitle": "Przeglądaj"
+      "placeholder": "Nie wybrano ścieżki zapisu..."
     },
     "mode": {
       "video": "WIDEO",
@@ -93,12 +109,10 @@
       "saveFailed": "Nie udało się zapisać miniatury. Sprawdź konsolę."
     },
     "actions": {
-      "download": "POBIERZ",
-      "addToQueue": "DODAJ DO KOLEJKI"
+      "download": "POBIERZ"
     },
     "errors": {
       "invalidLink": "Nieprawidłowy link.",
-      "startPrefix": "Błąd: {error}",
       "searchFailed": "Wyszukiwanie nie powiodło się."
     },
     "languages": {
@@ -109,11 +123,8 @@
     "path": {
       "placeholder": "Wybierz plik do konwersji..."
     },
-    "dropHint": "lub po prostu upuść plik",
     "actions": {
-      "browse": "Przeglądaj",
-      "convert": "KONWERTUJ",
-      "addToQueue": "DODAJ DO KOLEJKI"
+      "convert": "KONWERTUJ"
     },
     "options": {
       "compressBy": "KOMPRESUJ WEDŁUG",
@@ -136,29 +147,6 @@
       "video": "WIDEO",
       "audio": "AUDIO"
     },
-    "output": {
-      "placeholder": "Nazwa wyjściowa",
-      "editTitle": "Edytuj nazwę wyjściową"
-    },
-    "meta": {
-      "locationLabel": "Lokalizacja",
-      "sizeLabel": "Rozmiar",
-      "durationLabel": "Czas trwania",
-      "category": {
-        "video": "Wideo",
-        "audio": "Audio",
-        "image": "Obraz",
-        "archive": "Archiwum",
-        "font": "Czcionka"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Niewspierany format.",
-      "startPrefix": "Błąd: {error}",
-      "metadataFailed": "Nie udało się odczytać pliku.",
-      "fileNotFound": "Nie znaleziono pliku.",
-      "noPath": "Nie wybrano pliku."
-    },
     "drop": {
       "text": "Upuść plik, aby go przekonwertować"
     }
@@ -167,11 +155,8 @@
     "path": {
       "placeholder": "Wybierz plik do kompresji..."
     },
-    "dropHint": "lub po prostu upuść plik",
     "actions": {
-      "browse": "Przeglądaj",
-      "compress": "KOMPRESUJ",
-      "addToQueue": "DODAJ DO KOLEJKI"
+      "compress": "KOMPRESUJ"
     },
     "mode": {
       "percent": "PROCENT",
@@ -193,26 +178,6 @@
       "bestQuality": "0 - Najlepsza jakość",
       "balance": "26 - Balans",
       "bestCompression": "51 - Najlepsza kompresja"
-    },
-    "output": {
-      "placeholder": "Nazwa wyjściowa",
-      "editTitle": "Edytuj nazwę wyjściową"
-    },
-    "meta": {
-      "locationLabel": "Lokalizacja",
-      "sizeLabel": "Rozmiar",
-      "durationLabel": "Czas trwania",
-      "category": {
-        "video": "Wideo",
-        "audio": "Audio",
-        "image": "Obraz"
-      }
-    },
-    "errors": {
-      "unsupportedFormat": "Niewspierany format.",
-      "metadataFailed": "Nie udało się odczytać pliku.",
-      "fileNotFound": "Nie znaleziono pliku.",
-      "noPath": "Nie wybrano pliku."
     },
     "drop": {
       "text": "Upuść plik, aby go skompresować"
@@ -527,15 +492,9 @@
       "subtitlesCode": "en",
       "bitrate": "Auto"
     },
-    "types": {
-      "downloader": "Pobieraj",
-      "converter": "Konwertuj",
-      "compressor": "Kompresuj"
-    },
     "icon": {
       "title": "Upuść ikonę tutaj",
-      "hint": "Proporcje 1:1, PNG/JPG/SVG",
-      "browse": "Przeglądaj"
+      "hint": "Proporcje 1:1, PNG/JPG/SVG"
     },
     "toggles": {
       "downloadSubtitles": "Pobierz napisy",
@@ -547,7 +506,6 @@
       "muteAudio": "Wycisz audio"
     },
     "actions": {
-      "browse": "Przeglądaj",
       "save": "Zapisz preset",
       "export": "Eksportuj preset",
       "close": "Zamknij"

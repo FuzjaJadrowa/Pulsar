@@ -400,13 +400,59 @@
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
     z-index: 3200;
 }
 
 .queue-console-overlay.open {
     opacity: 1;
     pointer-events: auto;
+    animation: consoleOverlayIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.queue-console-overlay.open .queue-console-modal {
+    animation: consoleModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.queue-console-overlay.closing {
+    opacity: 0;
+    pointer-events: none;
+    animation: consoleOverlayOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.queue-console-overlay.closing .queue-console-modal {
+    animation: consoleModalOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes consoleOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes consoleOverlayOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes consoleModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes consoleModalOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    }
 }
 
 .queue-console-modal {
@@ -418,12 +464,6 @@
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
     display: flex;
     flex-direction: column;
-    transform: translateY(14px) scale(0.98);
-    transition: transform 0.24s ease;
-}
-
-.queue-console-overlay.open .queue-console-modal {
-    transform: translateY(0) scale(1);
 }
 
 .queue-console-header {
@@ -473,7 +513,12 @@
 }
 
 #btn-queue.queue-pulse {
-    color: var(--c-queue-primary) !important;
+    color: var(--titlebar-accent) !important;
+}
+
+#btn-queue.queue-pulse svg {
+    opacity: 1 !important;
+    transform: scale(1.12) !important;
 }
 
 body.theme-light {

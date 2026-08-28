@@ -950,7 +950,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   clearActivePreset();
                 }}
                 pickerCommand="pick_download_directory"
-                title={t("downloader.path.browseTitle", "Browse")}
+                title={t("common.browse", "Browse")}
               />
 
               {/* Mode Switcher */}
@@ -1312,7 +1312,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  <span>{t("downloader.actions.addToQueue", "ADD TO QUEUE")}</span>
+                  <span>{t("common.addToQueue", "ADD TO QUEUE")}</span>
                 </button>
               </div>
             </>
