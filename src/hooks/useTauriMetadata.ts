@@ -59,18 +59,15 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
     if (isLoading) return;
     setIsLoading(true);
     setMetadata(null);
-    const clientTaskId = generateTaskId();
-    currentTaskIdRef.current = clientTaskId;
+    const taskId = generateTaskId();
+    currentTaskIdRef.current = taskId;
 
     try {
       const args = pickerCommand === "fetch_metadata_downloader" 
-        ? { url: targetPathOrUrl, clientTaskId }
-        : { path: targetPathOrUrl, clientTaskId };
+        ? { url: targetPathOrUrl, clientTaskId: taskId }
+        : { path: targetPathOrUrl, clientTaskId: taskId };
         
-      const taskId = await invoke<string>(pickerCommand, args);
-      if (taskId) {
-        currentTaskIdRef.current = taskId;
-      }
+      await invoke<string>(pickerCommand, args);
     } catch (error) {
       setIsLoading(false);
       currentTaskIdRef.current = null;

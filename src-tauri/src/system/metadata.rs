@@ -21,6 +21,16 @@ fn build_task_id() -> Result<String, String> {
     )
 }
 
+fn resolve_task_id(client_task_id: Option<String>) -> Result<String, String> {
+    if let Some(id) = client_task_id {
+        let trimmed = id.trim();
+        if !trimmed.is_empty() {
+            return Ok(trimmed.to_string());
+        }
+    }
+    build_task_id()
+}
+
 #[tauri::command]
 pub fn fetch_metadata_downloader(
     app_handle: AppHandle,
@@ -34,16 +44,7 @@ pub fn fetch_metadata_downloader(
         return Err("URL cannot be empty".to_string());
     }
 
-    let task_id = client_task_id
-        .and_then(|id| {
-            let trimmed = id.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        })
-        .unwrap_or(build_task_id()?);
+    let task_id = resolve_task_id(client_task_id)?;
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
@@ -78,16 +79,7 @@ pub fn fetch_metadata_converter(
         return Err("Path cannot be empty".to_string());
     }
 
-    let task_id = client_task_id
-        .and_then(|id| {
-            let trimmed = id.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        })
-        .unwrap_or(build_task_id()?);
+    let task_id = resolve_task_id(client_task_id)?;
 
     let cmd = BridgeCommand {
         command: "metadata_c".to_string(),
