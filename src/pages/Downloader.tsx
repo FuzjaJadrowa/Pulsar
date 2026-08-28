@@ -870,7 +870,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     tabIndex={metadata.uploader_url ? 0 : -1}
                     onClick={() => {
                       if (metadata.uploader_url) {
-                        invoke("open_url", { url: metadata.uploader_url }).catch(() => window.open(metadata.uploader_url, "_blank"));
+                        window.open(metadata.uploader_url, "_blank");
                       }
                     }}
                   >

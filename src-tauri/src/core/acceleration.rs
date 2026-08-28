@@ -196,7 +196,7 @@ pub fn refresh_acceleration_info(config_mgr: State<ConfigManager>) -> Result<Acc
 
 pub fn resolve_hwaccel(config_mgr: &ConfigManager) -> Option<String> {
     let config = config_mgr.config.lock().unwrap();
-    if !config.ffmpeg_hwaccel {
+    if config.ffmpeg_hwaccel == "none" || config.ffmpeg_hwaccel == "false" || config.ffmpeg_hwaccel.trim().is_empty() {
         return None;
     }
     if config.ffmpeg_hwaccel_preferred != "auto" {

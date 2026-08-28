@@ -116,7 +116,7 @@ function persistSoon() {
       current_page: 1,
     };
     try {
-      await invoke("save_queue_state", { queue_state: payload, queueState: payload });
+      await invoke("save_queue_state", { queueState: payload });
     } catch (e) {
       console.error("Queue persist failed:", e);
     }
@@ -219,7 +219,7 @@ export async function startItem(item: QueueItem, reason: string) {
     // Check if item has been cancelled in the meantime
     const current = state.items.find((i) => i.id === item.id);
     if (!current || current.status !== "downloading") {
-      if (tId) await invoke("cancel_download", { task_id: String(tId), taskId: String(tId) });
+      if (tId) await invoke("cancel_download", { taskId: String(tId) });
       return;
     }
 
@@ -419,7 +419,7 @@ export async function cancelItem(id: string) {
     
     if (tId) {
       try {
-        await invoke("cancel_download", { task_id: tId, taskId: tId });
+        await invoke("cancel_download", { taskId: tId });
       } catch (e) {
         console.error("Cancel task failed:", e);
       }

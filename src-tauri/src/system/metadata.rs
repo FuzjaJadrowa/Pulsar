@@ -48,7 +48,7 @@ pub fn fetch_metadata_downloader(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser != "None" {
+    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }
@@ -122,7 +122,7 @@ pub fn search(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser != "None" {
+    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }

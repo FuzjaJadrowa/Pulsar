@@ -20,7 +20,7 @@ pub struct AppConfig {
     pub update_ytdlp: bool,
     pub update_ffmpeg: bool,
     #[serde(default)]
-    pub ffmpeg_hwaccel: bool,
+    pub ffmpeg_hwaccel: String,
     #[serde(default)]
     pub ffmpeg_hwaccels: Vec<String>,
     #[serde(default)]
@@ -39,7 +39,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             theme: "System".to_string(),
-            language: "English".to_string(),
+            language: "en".to_string(),
             close_behavior: "hide".to_string(),
             advanced_mode: false,
             system_notifications: true,
@@ -48,10 +48,10 @@ impl Default for AppConfig {
             update_app_cooldown_minutes: 30,
             update_ytdlp: true,
             update_ffmpeg: true,
-            ffmpeg_hwaccel: false,
+            ffmpeg_hwaccel: "none".to_string(),
             ffmpeg_hwaccels: Vec::new(),
             ffmpeg_hwaccel_preferred: "auto".to_string(),
-            cookies_browser: "None".to_string(),
+            cookies_browser: "none".to_string(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
             title_template: "%(title)s [%(id)s]".to_string()
@@ -142,7 +142,15 @@ impl ConfigManager {
                     config.update_ffmpeg = section.get("update_ffmpeg").map(|v| v == "true").unwrap_or(true);
                 }
                 if let Some(section) = ini.section(Some("Acceleration")) {
-                    config.ffmpeg_hwaccel = section.get("ffmpeg_hwaccel").map(|v| v == "true").unwrap_or(false);
+                    if let Some(v) = section.get("ffmpeg_hwaccel") {
+                        if v == "true" {
+                            config.ffmpeg_hwaccel = "auto".to_string();
+                        } else if v == "false" {
+                            config.ffmpeg_hwaccel = "none".to_string();
+                        } else {
+                            config.ffmpeg_hwaccel = v.to_string();
+                        }
+                    }
                     if let Some(v) = section.get("ffmpeg_hwaccels") {
                         let parsed = v.split(',')
                             .map(|item| item.trim().to_string())
@@ -200,7 +208,7 @@ impl ConfigManager {
             .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
 
         ini.with_section(Some("Acceleration"))
-            .set("ffmpeg_hwaccel", if config.ffmpeg_hwaccel { "true" } else { "false" });
+            .set("ffmpeg_hwaccel", &config.ffmpeg_hwaccel);
         if !config.ffmpeg_hwaccels.is_empty() {
             ini.with_section(Some("Acceleration"))
                 .set("ffmpeg_hwaccels", config.ffmpeg_hwaccels.join(","));

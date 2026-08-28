@@ -64,8 +64,8 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
 
     try {
       const args = pickerCommand === "fetch_metadata_downloader" 
-        ? { url: targetPathOrUrl, client_task_id: clientTaskId, clientTaskId }
-        : { path: targetPathOrUrl, client_task_id: clientTaskId, clientTaskId };
+        ? { url: targetPathOrUrl, clientTaskId }
+        : { path: targetPathOrUrl, clientTaskId };
         
       const taskId = await invoke<string>(pickerCommand, args);
       if (taskId) {

@@ -509,7 +509,7 @@ pub fn start_download(
     args.push("--concurrent-fragments".to_string());
     args.push("3".to_string());
 
-    if config.cookies_browser != "None" {
+    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }

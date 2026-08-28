@@ -52,7 +52,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [videoBitrate, setVideoBitrate] = useState("");
   const [videoFps, setVideoFps] = useState("");
 
-  const [audioSample, setAudioSample] = useState("");
+  const [audioSampleRate, setAudioSampleRate] = useState("");
   const [audioCodec, setAudioCodec] = useState("");
   const [audioBitrate, setAudioBitrate] = useState("");
 
@@ -106,7 +106,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
               setVideoCodec(d.video_codec || "");
               setVideoBitrate(d.video_bitrate || "");
               setVideoFps(d.video_fps || "");
-              setAudioSample(d.audio_sample_rate || "");
+              setAudioSampleRate(d.audio_sample_rate || "");
               setAudioCodec(d.audio_codec || "");
               setAudioBitrate(d.audio_bitrate || "");
             } else if (preset.preset_type === "converter" && preset.converter) {
@@ -117,7 +117,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
               setVideoCodec(c.video_codec || "");
               setVideoBitrate(c.video_bitrate || "");
               setVideoFps(c.video_fps || "");
-              setAudioSample(c.audio_sample_rate || "");
+              setAudioSampleRate(c.audio_sample_rate || "");
               setAudioCodec(c.audio_codec || "");
               setAudioBitrate(c.audio_bitrate || "");
             } else if (preset.preset_type === "compressor" && preset.compressor) {
@@ -156,7 +156,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       setVideoCodec("");
       setVideoBitrate("");
       setVideoFps("");
-      setAudioSample("");
+      setAudioSampleRate("");
       setAudioCodec("");
       setAudioBitrate("");
     }
@@ -276,7 +276,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         video_bitrate: videoBitrate || undefined,
         audio_bitrate: audioBitrate || undefined,
         video_fps: videoFps || undefined,
-        audio_sample_rate: audioSample || undefined,
+        audio_sample_rate: audioSampleRate || undefined,
       };
     } else if (presetType === "converter") {
       payload.converter = {
@@ -288,7 +288,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         video_fps: videoFps || undefined,
         audio_codec: audioCodec || undefined,
         audio_bitrate: audioBitrate || undefined,
-        audio_sample_rate: audioSample || undefined,
+        audio_sample_rate: audioSampleRate || undefined,
       };
     } else if (presetType === "compressor") {
       payload.compressor = {
@@ -341,7 +341,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         video_bitrate: videoBitrate || undefined,
         audio_bitrate: audioBitrate || undefined,
         video_fps: videoFps || undefined,
-        audio_sample_rate: audioSample || undefined,
+        audio_sample_rate: audioSampleRate || undefined,
       };
     } else if (presetType === "converter") {
       payload.converter = {
@@ -353,7 +353,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         video_fps: videoFps || undefined,
         audio_codec: audioCodec || undefined,
         audio_bitrate: audioBitrate || undefined,
-        audio_sample_rate: audioSample || undefined,
+        audio_sample_rate: audioSampleRate || undefined,
       };
     } else if (presetType === "compressor") {
       payload.compressor = {
@@ -849,8 +849,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                             { value: "48000", label: "48000" },
                             { value: "96000", label: "96000" },
                           ]}
-                          value={audioSample}
-                          onChange={setAudioSample}
+                          value={audioSampleRate}
+                          onChange={setAudioSampleRate}
                         />
                       </label>
                       <label className="preset-field">

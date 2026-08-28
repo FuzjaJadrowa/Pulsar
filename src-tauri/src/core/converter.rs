@@ -712,7 +712,7 @@ pub fn start_convert(
     let ffmpeg_path = get_ffmpeg_path();
     {
         let config = config_mgr.config.lock().unwrap();
-        if config.ffmpeg_hwaccel && config.ffmpeg_hwaccels.is_empty() {
+        if config.ffmpeg_hwaccel != "none" && config.ffmpeg_hwaccel != "false" && config.ffmpeg_hwaccels.is_empty() {
             drop(config);
             let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
         }
