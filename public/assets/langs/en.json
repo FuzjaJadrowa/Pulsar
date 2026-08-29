@@ -123,6 +123,22 @@
     "path": {
       "placeholder": "Select a file to convert..."
     },
+    "output": {
+      "placeholder": "Output name",
+      "editTitle": "Edit output name"
+    },
+    "meta": {
+      "locationLabel": "Location",
+      "sizeLabel": "Size",
+      "durationLabel": "Duration",
+      "category": {
+        "video": "Video",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Font"
+      }
+    },
     "actions": {
       "convert": "CONVERT"
     },
@@ -154,6 +170,22 @@
   "compressor": {
     "path": {
       "placeholder": "Select file to compress..."
+    },
+    "output": {
+      "placeholder": "Output name",
+      "editTitle": "Edit output name"
+    },
+    "meta": {
+      "locationLabel": "Location",
+      "sizeLabel": "Size",
+      "durationLabel": "Duration",
+      "category": {
+        "video": "Video",
+        "audio": "Audio",
+        "image": "Image",
+        "archive": "Archive",
+        "font": "Font"
+      }
     },
     "actions": {
       "compress": "COMPRESS"
@@ -217,10 +249,18 @@
       "systemTitle": "Pulsar",
       "downloadCompleted": "Download completed successfully.",
       "downloadCompletedSystem": "Download completed.",
+      "convertCompleted": "Conversion completed successfully.",
+      "convertCompletedSystem": "Conversion completed.",
+      "compressCompleted": "Compression completed successfully.",
+      "compressCompletedSystem": "Compression completed.",
       "queueCompleted": "Queue elements completed successfully.",
       "queueCompletedSystem": "Queue elements completed.",
       "downloadFailed": "Download failed.{suffix}",
       "downloadFailedSystem": "Download failed.{suffix}",
+      "convertFailed": "Conversion failed.{suffix}",
+      "convertFailedSystem": "Conversion failed.{suffix}",
+      "compressFailed": "Compression failed.{suffix}",
+      "compressFailedSystem": "Compression failed.{suffix}",
       "errorSuffix": " Error code: {code}",
       "downloadStopped": "Download stopped by user."
     }

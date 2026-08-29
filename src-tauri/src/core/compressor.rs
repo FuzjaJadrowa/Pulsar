@@ -323,7 +323,9 @@ fn resolve_target_bytes(options: &CompressOptions, mode: &str) -> Option<u64> {
 fn build_ffmpeg_args(options: &CompressOptions, output_path: &str, hwaccel: Option<String>) -> Result<Vec<String>, String> {
     let mut args = vec![
         "-hide_banner".to_string(),
-        "-y".to_string()
+        "-y".to_string(),
+        "-threads".to_string(),
+        "0".to_string()
     ];
 
     if let Some(accel) = hwaccel.clone() {

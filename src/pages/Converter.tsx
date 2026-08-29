@@ -556,13 +556,13 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                 {!isEditingName ? (
                   <>
                     <span className="converter-name-text">
-                      {currentName || t("converter.output.placeholder")}
+                      {currentName || t("common.output.placeholder")}
                     </span>
                     <button
                       type="button"
                       className="converter-rename-btn"
                       onClick={() => setIsEditingName(true)}
-                      title={t("converter.output.editTitle")}
+                      title={t("common.output.editTitle")}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 20h9" />
@@ -594,23 +594,23 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
                 />
                 <span className="converter-category-label">
-                  {metadata.extension ? `${t(`converter.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${metadata.extension})` : t(`converter.meta.category.${initialCategory}`, initialCategory.toUpperCase())}
+                  {metadata.extension ? `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${metadata.extension})` : t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())}
                 </span>
               </div>
               <div className="converter-meta-row">
                 <div className="converter-meta-item converter-meta-location">
-                  <span className="converter-meta-label">{t("converter.meta.locationLabel")}</span>
+                  <span className="converter-meta-label">{t("common.meta.locationLabel")}</span>
                   <span className="converter-meta-value converter-meta-location-value" title={extractFolderPath(metadata.path)}>
                     {extractFolderPath(metadata.path) || "-"}
                   </span>
                 </div>
                 <div className="converter-meta-item">
-                  <span className="converter-meta-label">{t("converter.meta.sizeLabel")}</span>
+                  <span className="converter-meta-label">{t("common.meta.sizeLabel")}</span>
                   <span className="converter-meta-value">{formatBytes(metadata.size_bytes)}</span>
                 </div>
                 {metadata.duration_seconds && (
                   <div className="converter-meta-item converter-meta-duration">
-                    <span className="converter-meta-label">{t("converter.meta.durationLabel")}</span>
+                    <span className="converter-meta-label">{t("common.meta.durationLabel")}</span>
                     <span className="converter-meta-value">{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
                   </div>
                 )}

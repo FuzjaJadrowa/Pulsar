@@ -123,6 +123,22 @@
     "path": {
       "placeholder": "Wybierz plik do konwersji..."
     },
+    "output": {
+      "placeholder": "Nazwa wyjściowa",
+      "editTitle": "Edytuj nazwę wyjściową"
+    },
+    "meta": {
+      "locationLabel": "Lokalizacja",
+      "sizeLabel": "Rozmiar",
+      "durationLabel": "Czas trwania",
+      "category": {
+        "video": "Wideo",
+        "audio": "Audio",
+        "image": "Obraz",
+        "archive": "Archiwum",
+        "font": "Czcionka"
+      }
+    },
     "actions": {
       "convert": "KONWERTUJ"
     },
@@ -154,6 +170,22 @@
   "compressor": {
     "path": {
       "placeholder": "Wybierz plik do kompresji..."
+    },
+    "output": {
+      "placeholder": "Nazwa wyjściowa",
+      "editTitle": "Edytuj nazwę wyjściową"
+    },
+    "meta": {
+      "locationLabel": "Lokalizacja",
+      "sizeLabel": "Rozmiar",
+      "durationLabel": "Czas trwania",
+      "category": {
+        "video": "Wideo",
+        "audio": "Audio",
+        "image": "Obraz",
+        "archive": "Archiwum",
+        "font": "Czcionka"
+      }
     },
     "actions": {
       "compress": "KOMPRESUJ"
@@ -217,10 +249,18 @@
       "systemTitle": "Pulsar",
       "downloadCompleted": "Pobieranie zakończone pomyślnie.",
       "downloadCompletedSystem": "Pobieranie zakończone.",
+      "convertCompleted": "Konwersja zakończona pomyślnie.",
+      "convertCompletedSystem": "Konwersja zakończona.",
+      "compressCompleted": "Kompresja zakończona pomyślnie.",
+      "compressCompletedSystem": "Kompresja zakończona.",
       "queueCompleted": "Elementy kolejki zakończone pomyślnie.",
       "queueCompletedSystem": "Kolejka zakończona.",
       "downloadFailed": "Pobieranie nie powiodło się.{suffix}",
       "downloadFailedSystem": "Pobieranie nie powiodło się.{suffix}",
+      "convertFailed": "Konwersja nie powiodła się.{suffix}",
+      "convertFailedSystem": "Konwersja nie powiodła się.{suffix}",
+      "compressFailed": "Kompresja nie powiodła się.{suffix}",
+      "compressFailedSystem": "Kompresja nie powiodła się.{suffix}",
       "errorSuffix": " Kod błędu: {code}",
       "downloadStopped": "Pobieranie zatrzymane przez użytkownika."
     }

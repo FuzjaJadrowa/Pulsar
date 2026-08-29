@@ -388,15 +388,26 @@ export function markFailed(item: QueueItem, code: string) {
     state.startAllSuccess = false;
   }
 
-  const suffix = code ? t("queue.notifications.errorSuffix",  { code }) : "";
+  const suffix = code ? t("queue.notifications.errorSuffix", { code }) : "";
+  const failedKey = item.itemType === "convert"
+    ? "convertFailed"
+    : item.itemType === "compress"
+    ? "compressFailed"
+    : "downloadFailed";
+  const failedSysKey = item.itemType === "convert"
+    ? "convertFailedSystem"
+    : item.itemType === "compress"
+    ? "compressFailedSystem"
+    : "downloadFailedSystem";
+
   showNotification(
     t("common.error"),
-    t("queue.notifications.downloadFailed",  { suffix }),
+    t(`queue.notifications.${failedKey}`, { suffix }),
     "error"
   );
   sendSystemNotification(
     t("queue.notifications.systemTitle"),
-    t("queue.notifications.downloadFailedSystem",  { suffix }),
+    t(`queue.notifications.${failedSysKey}`, { suffix }),
     "error"
   );
 

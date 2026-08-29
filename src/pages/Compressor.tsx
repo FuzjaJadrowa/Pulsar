@@ -582,7 +582,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     id="compress-file-name-input"
                     className="compressor-name-input"
                     type="text"
-                    placeholder={t("compressor.output.placeholder")}
+                    placeholder={t("common.output.placeholder")}
                     value={currentName}
                     onChange={(e) => setCurrentName(e.target.value)}
                     onBlur={() => setIsEditingName(false)}
@@ -604,14 +604,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     data-i18n-lock={currentName ? "true" : undefined}
                     onDoubleClick={() => setIsEditingName(true)}
                   >
-                    {currentName || t("compressor.output.placeholder")}
+                    {currentName || t("common.output.placeholder")}
                   </span>
                 )}
                 <button
                   type="button"
                   id="compress-rename-btn"
                   className="compressor-rename-btn"
-                  title={t("compressor.output.editTitle")}
+                  title={t("common.output.editTitle")}
                   onClick={() => setIsEditingName(!isEditingName)}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -628,13 +628,13 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 />
                 <span id="compress-category-label" className="compressor-category-label">
                   {metadata.extension
-                    ? `${t(`compressor.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${metadata.extension})`
-                    : t(`compressor.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")}
+                    ? `${t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${metadata.extension})`
+                    : t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")}
                 </span>
               </div>
               <div className="compressor-meta-row">
                 <div className="compressor-meta-item compressor-meta-location">
-                  <span className="compressor-meta-label">{t("compressor.meta.locationLabel")}</span>
+                  <span className="compressor-meta-label">{t("common.meta.locationLabel")}</span>
                   <span
                     id="compress-file-location"
                     className="compressor-meta-value compressor-meta-location-value"
@@ -644,14 +644,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   </span>
                 </div>
                 <div className="compressor-meta-item">
-                  <span className="compressor-meta-label">{t("compressor.meta.sizeLabel")}</span>
+                  <span className="compressor-meta-label">{t("common.meta.sizeLabel")}</span>
                   <span id="compress-file-size" className="compressor-meta-value">
                     {formatBytes(metadata.size_bytes)}
                   </span>
                 </div>
                 {hasDuration && (
                   <div className="compressor-meta-item compressor-meta-duration">
-                    <span className="compressor-meta-label">{t("compressor.meta.durationLabel")}</span>
+                    <span className="compressor-meta-label">{t("common.meta.durationLabel")}</span>
                     <span id="compress-file-duration" className="compressor-meta-value">
                       {metadata.duration_string || formatDuration(metadata.duration_seconds)}
                     </span>

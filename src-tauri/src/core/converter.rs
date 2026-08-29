@@ -608,7 +608,9 @@ fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
 fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
     let mut args = vec![
         "-hide_banner".to_string(),
-        "-y".to_string()
+        "-y".to_string(),
+        "-threads".to_string(),
+        "0".to_string()
     ];
 
     if let Some(accel) = hwaccel.clone() {
