@@ -1,6 +1,6 @@
 {
   "name": "pulsar",
-  "version": "3.1.0-test.1",
+  "version": "3.1.0-test.2",
   "description": "A fast, modern media manager built with Tauri and Rust.",
   "author": "Fuzja Jadrowa",
   "type": "module",
