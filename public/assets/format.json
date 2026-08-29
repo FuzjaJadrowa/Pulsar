@@ -9,20 +9,20 @@
     {
       "id": "mkv",
       "type": "video",
-      "video_codecs": ["H264", "H265", "VP8", "VP9", "AV1"],
-      "audio_codecs": ["MP3", "AAC", "FLAC", "Opus", "AC3"]
+      "video_codecs": ["H264", "H265", "VP8", "VP9", "AV1", "ProRes"],
+      "audio_codecs": ["MP3", "AAC", "FLAC", "Opus", "Vorbis", "AC3"]
     },
     {
       "id": "mp4",
       "type": "video",
-      "video_codecs": ["H264", "H265", "AV1", "VP8", "VP9"],
-      "audio_codecs": ["AAC", "MP3", "AC3", "FLAC"]
+      "video_codecs": ["H264", "H265", "AV1", "VP9"],
+      "audio_codecs": ["AAC", "MP3", "AC3", "FLAC", "Opus"]
     },
     {
       "id": "mov",
       "type": "video",
-      "video_codecs": ["H264", "H265", "ProRes"],
-      "audio_codecs": ["AAC", "FLAC", "MP3"]
+      "video_codecs": ["H264", "H265", "ProRes", "AV1"],
+      "audio_codecs": ["AAC", "ALAC", "FLAC", "MP3"]
     },
     {
       "id": "avi",
@@ -58,7 +58,7 @@
       "id": "m4a",
       "type": "audio",
       "video_codecs": [],
-      "audio_codecs": ["AAC"]
+      "audio_codecs": ["AAC", "ALAC"]
     },
     {
       "id": "flac",
@@ -88,10 +88,10 @@
   "cformats": [
     { "id": "avi", "type": "video", "video_codecs": ["H264", "H265"], "audio_codecs": ["MP3", "AC3", "AAC"] },
     { "id": "flv", "type": "video", "video_codecs": ["H264", "VP6"], "audio_codecs": ["MP3", "AAC"] },
-    { "id": "m4v", "type": "video", "video_codecs": ["H264", "MPEG4"], "audio_codecs": ["AAC", "AC3"] },
-    { "id": "mkv", "type": "video", "video_codecs": ["H264", "H265", "VP8", "VP9", "AV1"], "audio_codecs": ["MP3", "AAC", "FLAC", "Opus", "AC3"] },
-    { "id": "mov", "type": "video", "video_codecs": ["H264", "H265", "ProRes"], "audio_codecs": ["AAC", "FLAC", "MP3"] },
-    { "id": "mp4", "type": "video", "video_codecs": ["H264", "H265", "AV1", "VP8", "VP9"], "audio_codecs": ["AAC", "MP3", "AC3", "FLAC"] },
+    { "id": "m4v", "type": "video", "video_codecs": ["H264", "H265", "MPEG4"], "audio_codecs": ["AAC", "AC3"] },
+    { "id": "mkv", "type": "video", "video_codecs": ["H264", "H265", "VP8", "VP9", "AV1", "ProRes"], "audio_codecs": ["MP3", "AAC", "FLAC", "Opus", "Vorbis", "AC3"] },
+    { "id": "mov", "type": "video", "video_codecs": ["H264", "H265", "ProRes", "AV1"], "audio_codecs": ["AAC", "ALAC", "FLAC", "MP3"] },
+    { "id": "mp4", "type": "video", "video_codecs": ["H264", "H265", "AV1", "VP9"], "audio_codecs": ["AAC", "MP3", "AC3", "FLAC", "Opus"] },
     { "id": "ogv", "type": "video", "video_codecs": ["Theora"], "audio_codecs": ["Vorbis", "Opus", "FLAC"] },
     { "id": "ts", "type": "video", "video_codecs": ["H264", "H265"], "audio_codecs": ["AAC", "AC3", "MP3", "MP2", "LPCM"] },
     { "id": "vob", "type": "video", "video_codecs": ["MPEG2"], "audio_codecs": ["AC3", "DTS", "MP2", "LPCM"] },
@@ -101,7 +101,7 @@
     { "id": "aac", "type": "audio", "video_codecs": [], "audio_codecs": ["AAC"] },
     { "id": "aiff", "type": "audio", "video_codecs": [], "audio_codecs": ["AIFF"] },
     { "id": "flac", "type": "audio", "video_codecs": [], "audio_codecs": ["FLAC"] },
-    { "id": "m4a", "type": "audio", "video_codecs": [], "audio_codecs": ["AAC"] },
+    { "id": "m4a", "type": "audio", "video_codecs": [], "audio_codecs": ["AAC", "ALAC"] },
     { "id": "mp3", "type": "audio", "video_codecs": [], "audio_codecs": ["MP3"] },
     { "id": "ogg", "type": "audio", "video_codecs": [], "audio_codecs": ["Vorbis", "Opus", "FLAC"] },
     { "id": "opus", "type": "audio", "video_codecs": [], "audio_codecs": ["Opus"] },
@@ -128,8 +128,8 @@
     { "id": "tar", "type": "archive" },
     { "id": "xz", "type": "archive" },
     { "id": "zip", "type": "archive" },
-    { "id": ".tar.gz", "type": "archive" },
-    { "id": ".tar.xz", "type": "archive" },
+    { "id": "tar.gz", "type": "archive" },
+    { "id": "tar.xz", "type": "archive" },
     { "id": "tar.bz2", "type": "archive" },
 
     { "id": "otf", "type": "font" },

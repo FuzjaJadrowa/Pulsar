@@ -762,6 +762,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                               <CustomSelect
                                 options={[
                                   { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "copy", label: "Copy (Pass-through)" },
                                   ...(selectedFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
                                 ]}
                                 value={videoCodec}
@@ -815,6 +816,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                               <CustomSelect
                                 options={[
                                   { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "copy", label: "Copy (Pass-through)" },
                                   ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
                                 ]}
                                 value={videoAudioCodec}

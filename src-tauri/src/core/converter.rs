@@ -509,7 +509,7 @@ fn map_video_codec(value: &str) -> String {
     match value.to_lowercase().as_str() {
         "h264" => "libx264",
         "h265" | "hevc" => "libx265",
-        "av1" => "libaom-av1",
+        "av1" => "libsvtav1",
         "vp9" => "libvpx-vp9",
         "vp8" => "libvpx",
         "mpeg2" => "mpeg2video",
@@ -615,7 +615,11 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
 
     if let Some(accel) = hwaccel.clone() {
         args.push("-hwaccel".to_string());
-        args.push(accel);
+        args.push(accel.clone());
+        if accel == "cuda" || accel == "qsv" || accel == "d3d11va" {
+            args.push("-hwaccel_output_format".to_string());
+            args.push(accel);
+        }
     }
 
     args.push("-i".to_string());
@@ -634,42 +638,55 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     }
 
     if category == "video" {
-        if let Some(codec) = options.video_codec.as_deref().filter(|v| !v.trim().is_empty()) {
+        let raw_codec = options.video_codec.as_deref().unwrap_or("").trim().to_lowercase();
+        let has_video_mods = parse_kbps_string(options.video_bitrate.as_deref()).is_some()
+            || parse_numeric_string(options.video_fps.as_deref()).is_some()
+            || options.video_quality.as_deref().map(|q| q.to_lowercase()).filter(|q| q.ends_with('p')).is_some();
+
+        if raw_codec == "copy" || (!has_video_mods && (raw_codec.is_empty() || raw_codec == "auto")) {
+            args.push("-c:v".to_string());
+            args.push("copy".to_string());
+        } else {
+            let codec_to_use = if raw_codec.is_empty() || raw_codec == "auto" { "h264" } else { &raw_codec };
             args.push("-c:v".to_string());
             let mapped_codec = if let Some(ref accel) = hwaccel {
-                map_video_codec_hw(codec, accel)
+                map_video_codec_hw(codec_to_use, accel)
             } else {
-                map_video_codec(codec)
+                map_video_codec(codec_to_use)
             };
             args.push(mapped_codec.clone());
-            if (mapped_codec == "libx264" || mapped_codec == "libx265") && codec.to_lowercase() != "copy" {
+            if (mapped_codec == "libx264" || mapped_codec == "libx265") && codec_to_use != "copy" {
                 args.push("-preset".to_string());
                 args.push("veryfast".to_string());
             }
-        }
-        if let Some(br) = parse_kbps_string(options.video_bitrate.as_deref()) {
-            args.push("-b:v".to_string());
-            args.push(format!("{}k", br));
-        }
-        if let Some(fps) = parse_numeric_string(options.video_fps.as_deref()) {
-            args.push("-r".to_string());
-            args.push(fps);
-        }
-        if let Some(quality) = options.video_quality.as_deref() {
-            let lowered = quality.to_lowercase();
-            if lowered.ends_with('p') {
-                let height = lowered.trim_end_matches('p');
-                if let Ok(_) = height.parse::<u32>() {
-                    args.push("-vf".to_string());
-                    args.push(format!("scale=-2:{}", height));
+
+            if let Some(br) = parse_kbps_string(options.video_bitrate.as_deref()) {
+                args.push("-b:v".to_string());
+                args.push(format!("{}k", br));
+            }
+            if let Some(fps) = parse_numeric_string(options.video_fps.as_deref()) {
+                args.push("-r".to_string());
+                args.push(fps);
+            }
+            if let Some(quality) = options.video_quality.as_deref() {
+                let lowered = quality.to_lowercase();
+                if lowered.ends_with('p') {
+                    let height = lowered.trim_end_matches('p');
+                    if let Ok(_) = height.parse::<u32>() {
+                        args.push("-vf".to_string());
+                        args.push(format!("scale=-2:{}", height));
+                    }
                 }
             }
         }
     }
 
-    if let Some(codec) = options.audio_codec.as_deref().filter(|v| !v.trim().is_empty()) {
+    if let Some(codec) = options.audio_codec.as_deref().filter(|v| !v.trim().is_empty() && v.trim().to_lowercase() != "auto") {
         args.push("-c:a".to_string());
         args.push(map_audio_codec(codec));
+    } else {
+        args.push("-c:a".to_string());
+        args.push("copy".to_string());
     }
     if let Some(br) = parse_kbps_string(options.audio_bitrate.as_deref()) {
         args.push("-b:a".to_string());

@@ -211,7 +211,7 @@ fn map_video_codec(value: &str) -> String {
     match value.to_lowercase().as_str() {
         "h264" => "libx264",
         "h265" | "hevc" => "libx265",
-        "av1" => "libaom-av1",
+        "av1" => "libsvtav1",
         "vp9" => "libvpx-vp9",
         "vp8" => "libvpx",
         "mpeg2" => "mpeg2video",
@@ -330,7 +330,11 @@ fn build_ffmpeg_args(options: &CompressOptions, output_path: &str, hwaccel: Opti
 
     if let Some(accel) = hwaccel.clone() {
         args.push("-hwaccel".to_string());
-        args.push(accel);
+        args.push(accel.clone());
+        if accel == "cuda" || accel == "qsv" || accel == "d3d11va" {
+            args.push("-hwaccel_output_format".to_string());
+            args.push(accel);
+        }
     }
 
     args.push("-i".to_string());
