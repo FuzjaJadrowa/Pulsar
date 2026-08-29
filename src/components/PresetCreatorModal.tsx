@@ -88,7 +88,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
           if (preset) {
             setTitle(preset.title || "");
             setSummary(preset.summary || "");
-            setIconDataUrl(preset.icon_data_url || preset.icon || DEFAULT_ICON);
+            setIconDataUrl(preset.icon_data_url || DEFAULT_ICON);
             setPresetType(preset.preset_type || "downloader");
             
             if (preset.preset_type === "downloader" && preset.downloader) {

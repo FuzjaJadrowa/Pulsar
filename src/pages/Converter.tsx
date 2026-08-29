@@ -631,7 +631,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                     >
                       <div
                         className="preset-card-icon"
-                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || pr.icon || DEFAULT_ICON) }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || DEFAULT_ICON) }}
                       />
                       <div className="preset-card-info">
                         <div className="preset-card-title">

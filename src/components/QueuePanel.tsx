@@ -51,7 +51,7 @@ export const QueuePanel: React.FC = () => {
   const getModeInfo = (item: QueueItem) => {
     const itemType = item.itemType;
     const payloadCategory = String(
-      item.payload?.category || item.payload?.target_category || ""
+      item.payload?.category || ""
     ).toLowerCase();
 
     const mode =
@@ -82,16 +82,13 @@ export const QueuePanel: React.FC = () => {
     let text = "";
     if (itemType === "compress") {
       const outputFormat = String(
-        item.payload?.output_format ||
-          item.payload?.format ||
-          item.payload?.source_format ||
-          "--"
+        item.payload?.output_format || "--"
       ).toUpperCase();
       const sourceSize = formatBytes(item.payload?.source_size_bytes);
       text = `${outputFormat} | ${sourceSize}`;
     } else if (itemType === "convert") {
       const outputFormat = String(
-        item.payload?.output_format || item.payload?.format || "--"
+        item.payload?.output_format || "--"
       ).toUpperCase();
       const sourceSize = formatBytes(item.payload?.source_size_bytes);
       text = `${outputFormat} | ${sourceSize}`;

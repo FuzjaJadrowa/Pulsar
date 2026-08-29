@@ -928,7 +928,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       >
                         <div
                           className="preset-card-icon"
-                          dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || pr.icon || DEFAULT_ICON) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || DEFAULT_ICON) }}
                         />
                         <div className="preset-card-info">
                           <div className="preset-card-title">
@@ -1367,7 +1367,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         {entry.title || t("common.unknownTitle")}
                       </div>
                       <div className="search-result-meta">
-                        {`${entry.uploader || entry.channel || entry.uploader_id || entry.channel_id || t("common.unknownChannel")} • ${entry.duration_string || entry.durationString || formatDuration(entry.duration)}`}
+                        {`${entry.uploader || entry.channel || t("common.unknownChannel")} • ${entry.duration_string || formatDuration(entry.duration)}`}
                       </div>
                     </div>
                   </div>

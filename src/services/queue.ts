@@ -134,27 +134,27 @@ async function hydrate(): Promise<void> {
     state.items = Array.isArray(data?.items)
       ? data.items.map((raw: any) => ({
           id: String(raw.id || Math.random().toString(36).substring(2, 9)),
-          itemType: (raw.item_type || raw.itemType || raw.type || "download") as any,
+          itemType: (raw.item_type || "download") as any,
           title: String(raw.title || t("common.unknownTitle")),
           thumbnail: String(raw.thumbnail || ""),
           status: raw.status === "downloading" ? "pending" : (raw.status || "pending"),
           progress: raw.status === "downloading" ? 0 : (Number(raw.progress) || 0),
           eta: String(raw.eta || "--"),
           listProgress: null,
-          addedAt: Number(raw.added_at || raw.addedAt) || Date.now(),
+          addedAt: Number(raw.added_at) || Date.now(),
           payload: raw.payload && typeof raw.payload === "object" ? raw.payload : {},
           path: String(raw.path || ""),
           taskId: null,
-          skippedByStop: Boolean(raw.skipped_by_stop || raw.skippedByStop),
+          skippedByStop: Boolean(raw.skipped_by_stop),
           startReason: null,
-          pendingStartReason: raw.pending_start_reason || raw.pendingStartReason || null,
+          pendingStartReason: raw.pending_start_reason || null,
           source: String(raw.source || "queue"),
         }))
       : [];
 
     state.activeItemIds = [];
-    state.priorityQueue = Array.isArray(data?.priority_queue || data?.priorityQueue)
-      ? (data.priority_queue || data.priorityQueue).filter((id: string) => state.items.some((i) => i.id === id))
+    state.priorityQueue = Array.isArray(data?.priority_queue)
+      ? data.priority_queue.filter((id: string) => state.items.some((i) => i.id === id))
       : [];
     state.startAllActive = false;
     state.startAllSuccess = true;
@@ -687,15 +687,11 @@ listen("download-event", (event: any) => {
     return;
   }
 
-  const finished = payload.type === "finished" || payload.status === "finished" || payload.event === "finished";
-  const success = payload.success === true || payload.status === "success" || payload.event === "success";
-  const failure = payload.success === false || payload.status === "error" || payload.event === "error";
-
-  if (finished || success || failure) {
-    if (success) {
+  if (payload.type === "finished") {
+    if (payload.success) {
       markCompleted(item);
     } else {
-      markFailed(item, payload.error || payload.code || payload.reason || "UNKNOWN");
+      markFailed(item, payload.error || "UNKNOWN");
     }
   }
 });
