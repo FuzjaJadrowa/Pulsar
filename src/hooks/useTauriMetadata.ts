@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke, listen } from "../services/tauri";
+import { t } from "../services/i18n";
 
 interface UseTauriMetadataOptions {
   pickerCommand: "fetch_metadata_downloader" | "fetch_metadata_converter";
@@ -43,7 +44,7 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
             setMetadata(payload.data);
             if (onSuccessRef.current) onSuccessRef.current(payload.data);
           } else {
-            if (onErrorRef.current) onErrorRef.current("Invalid file or link.");
+            if (onErrorRef.current) onErrorRef.current(t("common.errors.invalidFileOrLink"));
           }
         }
       }

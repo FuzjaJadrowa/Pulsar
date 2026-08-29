@@ -28,6 +28,7 @@
     },
     "errors": {
       "unsupportedFormat": "Unsupported format.",
+      "invalidFileOrLink": "Invalid file or link.",
       "startPrefix": "Error: {error}"
     }
   },
@@ -123,22 +124,6 @@
     "path": {
       "placeholder": "Select a file to convert..."
     },
-    "output": {
-      "placeholder": "Output name",
-      "editTitle": "Edit output name"
-    },
-    "meta": {
-      "locationLabel": "Location",
-      "sizeLabel": "Size",
-      "durationLabel": "Duration",
-      "category": {
-        "video": "Video",
-        "audio": "Audio",
-        "image": "Image",
-        "archive": "Archive",
-        "font": "Font"
-      }
-    },
     "actions": {
       "convert": "CONVERT"
     },
@@ -170,22 +155,6 @@
   "compressor": {
     "path": {
       "placeholder": "Select file to compress..."
-    },
-    "output": {
-      "placeholder": "Output name",
-      "editTitle": "Edit output name"
-    },
-    "meta": {
-      "locationLabel": "Location",
-      "sizeLabel": "Size",
-      "durationLabel": "Duration",
-      "category": {
-        "video": "Video",
-        "audio": "Audio",
-        "image": "Image",
-        "archive": "Archive",
-        "font": "Font"
-      }
     },
     "actions": {
       "compress": "COMPRESS"
@@ -327,6 +296,7 @@
     },
     "titleConstructor": "Title Constructor",
     "titleConstructorNote": "Not every tag is available for all media.",
+    "titleConstructorRemoveTag": "Click to remove tag",
     "titleConstructorCategories": {
       "video": "Video",
       "statsDates": "Stats & Dates",

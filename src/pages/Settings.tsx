@@ -547,7 +547,7 @@ export const Settings: React.FC = () => {
                           key={`${part}-${index}`}
                           className="title-pill pill-in"
                           onClick={() => handleRemovePart(index, parts)}
-                          title={t("settings.titleConstructor.removeTag")}
+                          title={t("settings.titleConstructorRemoveTag")}
                         >
                           {TAG_ICON_SVG}
                           <span>{label}</span>

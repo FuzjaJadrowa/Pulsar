@@ -374,6 +374,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const handleMetadataLoaded = (data: any) => {
     setMetadata(data);
+    if (data?.webpage_url && /^https?:\/\//i.test(data.webpage_url)) {
+      setUrl(data.webpage_url);
+    }
     const dur = Number(data.duration) || 0;
     setDuration(dur);
 
@@ -583,6 +586,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const handleSelectSearchResult = async (entry: any) => {
     const targetUrl = resolveResultUrl(entry);
     if (!targetUrl) return;
+    setUrl(targetUrl);
     setPendingMetadataUrl(targetUrl);
     triggerFetchMetadata(targetUrl);
   };
@@ -647,8 +651,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const buildDownloadPayload = () => {
     const isTimeRangeActive = !isPlaylist && (rangeStart > 0 || rangeEnd < 100);
     const parsedArgs = config?.advanced_mode ? parseCustomArgsString(customArgs) : [];
+    const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
     const payload: any = {
-      url: url.trim(),
+      url: targetUrl,
       path: savePath.trim(),
       mode: mode,
       video_format: mode === "video" ? selectedFormat : null,

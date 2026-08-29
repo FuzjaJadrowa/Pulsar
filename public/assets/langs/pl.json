@@ -28,6 +28,7 @@
     },
     "errors": {
       "unsupportedFormat": "Niewspierany format.",
+      "invalidFileOrLink": "Nieprawidłowy plik lub link.",
       "startPrefix": "Błąd: {error}"
     }
   },
@@ -123,22 +124,6 @@
     "path": {
       "placeholder": "Wybierz plik do konwersji..."
     },
-    "output": {
-      "placeholder": "Nazwa wyjściowa",
-      "editTitle": "Edytuj nazwę wyjściową"
-    },
-    "meta": {
-      "locationLabel": "Lokalizacja",
-      "sizeLabel": "Rozmiar",
-      "durationLabel": "Czas trwania",
-      "category": {
-        "video": "Wideo",
-        "audio": "Audio",
-        "image": "Obraz",
-        "archive": "Archiwum",
-        "font": "Czcionka"
-      }
-    },
     "actions": {
       "convert": "KONWERTUJ"
     },
@@ -170,22 +155,6 @@
   "compressor": {
     "path": {
       "placeholder": "Wybierz plik do kompresji..."
-    },
-    "output": {
-      "placeholder": "Nazwa wyjściowa",
-      "editTitle": "Edytuj nazwę wyjściową"
-    },
-    "meta": {
-      "locationLabel": "Lokalizacja",
-      "sizeLabel": "Rozmiar",
-      "durationLabel": "Czas trwania",
-      "category": {
-        "video": "Wideo",
-        "audio": "Audio",
-        "image": "Obraz",
-        "archive": "Archiwum",
-        "font": "Czcionka"
-      }
     },
     "actions": {
       "compress": "KOMPRESUJ"
@@ -327,6 +296,7 @@
     },
     "titleConstructor": "Konstruktor tytułu",
     "titleConstructorNote": "Nie każdy tag jest dostępny dla wszystkich mediów.",
+    "titleConstructorRemoveTag": "Kliknij, aby usunąć tag",
     "titleConstructorCategories": {
       "video": "Wideo",
       "statsDates": "Statystyki i daty",

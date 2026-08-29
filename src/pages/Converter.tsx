@@ -714,7 +714,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       <PathSelector
                         className="converter-path-selector fade-in"
                         id="convert-save-path-input"
-                        placeholder={t("converter.path.pathPlaceholder")}
+                        placeholder={t("converter.options.pathPlaceholder")}
                         value={savePath}
                         onChange={(selected) => {
                           setSavePath(selected);
