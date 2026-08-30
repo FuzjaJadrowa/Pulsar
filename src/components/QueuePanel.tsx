@@ -252,7 +252,15 @@ export const QueuePanel: React.FC = () => {
                       </button>
                       <button
                         className="queue-icon-btn"
-                        onClick={() => openInFileManager(item.path)}
+                        onClick={() =>
+                          openInFileManager(
+                            item.path ||
+                              item.payload?.path ||
+                              item.payload?.output_dir ||
+                              item.payload?.save_path ||
+                              ""
+                          )
+                        }
                         title={t("queue.itemActions.openLocation")}
                       >
                         {ICONS.open}
@@ -263,7 +271,15 @@ export const QueuePanel: React.FC = () => {
                     <>
                       <button
                         className="queue-icon-btn"
-                        onClick={() => openInFileManager(item.path)}
+                        onClick={() =>
+                          openInFileManager(
+                            item.path ||
+                              item.payload?.path ||
+                              item.payload?.output_dir ||
+                              item.payload?.save_path ||
+                              ""
+                          )
+                        }
                         title={t("queue.itemActions.openLocation")}
                       >
                         {ICONS.open}

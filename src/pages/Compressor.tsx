@@ -451,6 +451,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     const meta = {
       title: currentName || metadata.name || t("common.unknownTitle"),
       thumbnail: "",
+      path: payload.path || "",
       source: autoStart ? "compress" : "queue"
     };
 

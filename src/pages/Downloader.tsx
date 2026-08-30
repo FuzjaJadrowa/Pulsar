@@ -693,7 +693,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const currentMetaSnapshot = () => {
     return {
       title: metadata?.title || t("common.unknownTitle"),
-      thumbnail: metadata?.thumbnail || ""
+      thumbnail: metadata?.thumbnail || "",
+      path: savePath.trim()
     };
   };
 

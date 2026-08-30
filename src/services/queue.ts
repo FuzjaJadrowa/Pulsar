@@ -551,8 +551,13 @@ export function stopAll() {
 }
 
 export async function openInFileManager(path: string) {
+  const targetPath = String(path || "").trim();
+  if (!targetPath) {
+    console.warn("openInFileManager called with empty path");
+    return;
+  }
   try {
-    await invoke("open_in_file_manager", { path });
+    await invoke("open_in_file_manager", { path: targetPath });
   } catch (error) {
     console.error("Failed to open file manager:", error);
   }
@@ -578,7 +583,7 @@ export async function enqueue(
     listProgress: null,
     addedAt: Date.now(),
     payload: { ...payload },
-    path: meta?.path || "",
+    path: meta?.path || payload?.path || payload?.output_dir || payload?.save_path || "",
     taskId: null,
     skippedByStop: false,
     startReason: null,
@@ -636,6 +641,14 @@ listen("download-event", (event: any) => {
   const win = window as any;
   if (win.queueConsole && typeof win.queueConsole.log === "function") {
     win.queueConsole.log(item.id, payload);
+  }
+
+  const eventPath = payload.filepath || payload.path || payload.output_path || payload.filename;
+  if (eventPath && typeof eventPath === "string") {
+    const trimmedPath = eventPath.trim();
+    if (trimmedPath) {
+      item.path = trimmedPath;
+    }
   }
 
   if (
