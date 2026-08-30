@@ -210,7 +210,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     body.classList.toggle("zen-mode", !isDashboardVisible);
 
     return () => {
-      body.classList.remove("compressor-active", "zen-mode");
+      body.classList.remove("compressor-active");
     };
   }, [active, isDashboardVisible, config?.advanced_mode]);
 

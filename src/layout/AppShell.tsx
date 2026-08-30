@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { minimizeWindow, maximizeWindow, closeWindow } from "../services/tauri";
 import { useQueue } from "../services/queue";
@@ -30,6 +30,8 @@ export const AppShell: React.FC = () => {
   }>({ outgoing: null, direction: null });
   const [queueVisible, setQueueVisible] = useState<boolean>(false);
 
+  const transitionTimerRef = useRef<any>(null);
+
   useEffect(() => {
     const body = document.body;
     if (!body) return;
@@ -51,8 +53,11 @@ export const AppShell: React.FC = () => {
       body.classList.toggle("zen-mode", keepZen);
       body.classList.remove("search-mode");
     } else if (currentPage === "compressor") {
-      body.classList.add("zen-mode");
+      const keepZen = !body.classList.contains("compressor-active");
+      body.classList.toggle("zen-mode", keepZen);
       body.classList.remove("search-mode");
+    } else if (currentPage === "settings") {
+      body.classList.remove("zen-mode", "search-mode");
     }
   }, [currentPage]);
 
@@ -62,11 +67,17 @@ export const AppShell: React.FC = () => {
     const nextIdx = PAGE_INDICES[pageName] ?? 0;
     const dir = nextIdx > currentIdx ? "right" : "left";
 
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+
     setTransition({ outgoing: currentPage, direction: dir });
     setCurrentPage(pageName);
 
-    setTimeout(() => {
+    transitionTimerRef.current = setTimeout(() => {
       setTransition({ outgoing: null, direction: null });
+      transitionTimerRef.current = null;
     }, 300);
   };
 
@@ -89,6 +100,9 @@ export const AppShell: React.FC = () => {
       delete win.loadPage;
       delete win.toggleQueue;
       delete win.setQueuePanelVisible;
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+      }
     };
   }, [currentPage]);
 
@@ -120,7 +134,9 @@ export const AppShell: React.FC = () => {
 
   const isQueueBtnVisible = items.length > 0;
 
-  const renderPageContent = (pageName: string) => {
+  const ALL_PAGES = ["home", "downloader", "converter", "compressor", "settings"];
+
+  const renderSinglePage = (pageName: string) => {
     const isActive = pageName === currentPage;
     switch (pageName) {
       case "home":
@@ -274,14 +290,34 @@ export const AppShell: React.FC = () => {
       </div>
 
       <div id="content-area">
-        {transition.outgoing && transition.direction && (
-          <div className={`view-container ${transition.direction === "right" ? "slide-out-to-left" : "slide-out-to-right"}`}>
-            {renderPageContent(transition.outgoing)}
-          </div>
-        )}
-        <div className={`view-container active-view ${transition.direction ? (transition.direction === "right" ? "slide-in-from-right" : "slide-in-from-left") : ""}`}>
-          {renderPageContent(currentPage)}
-        </div>
+        {ALL_PAGES.map((pageName) => {
+          const isActive = pageName === currentPage;
+          const isOutgoing = pageName === transition.outgoing;
+
+          if (!isActive && !isOutgoing) {
+            return (
+              <div key={pageName} className="view-container" style={{ display: "none" }}>
+                {renderSinglePage(pageName)}
+              </div>
+            );
+          }
+
+          let animClass = "";
+          if (isActive && transition.direction) {
+            animClass = transition.direction === "right" ? "slide-in-from-right" : "slide-in-from-left";
+          } else if (isOutgoing && transition.direction) {
+            animClass = transition.direction === "right" ? "slide-out-to-left" : "slide-out-to-right";
+          }
+
+          return (
+            <div
+              key={pageName}
+              className={`view-container ${isActive ? "active-view" : ""} ${animClass}`}
+            >
+              {renderSinglePage(pageName)}
+            </div>
+          );
+        })}
       </div>
 
       <DataSeaCanvas currentPage={currentPage} />

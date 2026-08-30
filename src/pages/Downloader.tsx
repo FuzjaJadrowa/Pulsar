@@ -162,7 +162,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     body.classList.toggle("zen-mode", isZen);
 
     return () => {
-      body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio", "zen-mode");
+      body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio");
     };
   }, [active, isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
 
