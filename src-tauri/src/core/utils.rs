@@ -258,3 +258,76 @@ pub fn attach_process_to_job_object(child: &std::process::Child) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clamp_f64() {
+        assert_eq!(clamp_f64(5.0, 0.0, 10.0), 5.0);
+        assert_eq!(clamp_f64(-5.0, 0.0, 10.0), 0.0);
+        assert_eq!(clamp_f64(15.0, 0.0, 10.0), 10.0);
+        assert_eq!(clamp_f64(f64::NAN, 0.0, 10.0), 0.0);
+    }
+
+    #[test]
+    fn test_qscale_from_percent() {
+        assert_eq!(qscale_from_percent(100.0), 2);
+        assert_eq!(qscale_from_percent(1.0), 31);
+        assert!(qscale_from_percent(50.0) >= 2 && qscale_from_percent(50.0) <= 31);
+    }
+
+    #[test]
+    fn test_qscale_from_crf() {
+        assert_eq!(qscale_from_crf(0), 2);
+        assert_eq!(qscale_from_crf(51), 31);
+    }
+
+    #[test]
+    fn test_parse_kbps_string() {
+        assert_eq!(parse_kbps_string(Some(" 320 kbps ")), Some("320".to_string()));
+        assert_eq!(parse_kbps_string(Some("192k")), Some("192".to_string()));
+        assert_eq!(parse_kbps_string(None), None);
+        assert_eq!(parse_kbps_string(Some("  ")), None);
+    }
+
+    #[test]
+    fn test_parse_numeric_string() {
+        assert_eq!(parse_numeric_string(Some(" 29.97 fps ")), Some("29.97".to_string()));
+        assert_eq!(parse_numeric_string(Some("1080p")), Some("1080".to_string()));
+        assert_eq!(parse_numeric_string(None), None);
+    }
+
+    #[test]
+    fn test_map_video_codec() {
+        assert_eq!(map_video_codec("h264"), "libx264");
+        assert_eq!(map_video_codec("hevc"), "libx265");
+        assert_eq!(map_video_codec("av1"), "libsvtav1");
+        assert_eq!(map_video_codec("vp9"), "libvpx-vp9");
+        assert_eq!(map_video_codec("custom_codec"), "custom_codec");
+    }
+
+    #[test]
+    fn test_map_audio_codec() {
+        assert_eq!(map_audio_codec("aac"), "aac");
+        assert_eq!(map_audio_codec("mp3"), "libmp3lame");
+        assert_eq!(map_audio_codec("opus"), "libopus");
+        assert_eq!(map_audio_codec("wav"), "pcm_s16le");
+    }
+
+    #[test]
+    fn test_map_video_codec_hw() {
+        assert_eq!(map_video_codec_hw("h264", "cuda"), "h264_nvenc");
+        assert_eq!(map_video_codec_hw("h264", "qsv"), "h264_qsv");
+        assert_eq!(map_video_codec_hw("hevc", "cuda"), "hevc_nvenc");
+        assert_eq!(map_video_codec_hw("h264", "none"), "libx264");
+    }
+
+    #[test]
+    fn test_generate_task_id() {
+        let id1 = generate_task_id();
+        assert!(!id1.is_empty());
+        assert!(id1.parse::<u64>().is_ok());
+    }
+}

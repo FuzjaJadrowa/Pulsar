@@ -8,24 +8,26 @@ use std::fs;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
+    #[serde(default = "default_theme")]
     pub theme: String,
+    #[serde(default = "default_lang")]
     pub language: String,
-    #[serde(alias = "close_behavior")]
+    #[serde(default = "default_close", alias = "close_behavior")]
     pub close_behavior: String,
-    #[serde(alias = "advanced_mode")]
+    #[serde(default, alias = "advanced_mode")]
     pub advanced_mode: bool,
-    #[serde(alias = "system_notifications")]
+    #[serde(default, alias = "system_notifications")]
     pub system_notifications: bool,
     #[serde(default, alias = "idle_animation")]
     pub idle_animation: bool,
 
-    #[serde(alias = "update_app")]
+    #[serde(default, alias = "update_app")]
     pub update_app: bool,
-    #[serde(alias = "update_app_cooldown_minutes")]
+    #[serde(default, alias = "update_app_cooldown_minutes")]
     pub update_app_cooldown_minutes: u64,
-    #[serde(alias = "update_ytdlp")]
+    #[serde(default, alias = "update_ytdlp")]
     pub update_ytdlp: bool,
-    #[serde(alias = "update_ffmpeg")]
+    #[serde(default, alias = "update_ffmpeg")]
     pub update_ffmpeg: bool,
     #[serde(default, alias = "ffmpeg_hwaccel")]
     pub ffmpeg_hwaccel: String,
@@ -34,7 +36,7 @@ pub struct AppConfig {
     #[serde(default, alias = "ffmpeg_hwaccel_preferred")]
     pub ffmpeg_hwaccel_preferred: String,
 
-    #[serde(alias = "cookies_browser")]
+    #[serde(default, alias = "cookies_browser")]
     pub cookies_browser: String,
     #[serde(default, alias = "maximum_concurrent_processes")]
     pub maximum_concurrent_processes: u64,
@@ -43,6 +45,10 @@ pub struct AppConfig {
     #[serde(default, alias = "title_template")]
     pub title_template: String
 }
+
+fn default_theme() -> String { "System".to_string() }
+fn default_lang() -> String { "en".to_string() }
+fn default_close() -> String { "ask".to_string() }
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -246,4 +252,37 @@ fn clamp_range(value: u64, min: u64, max: u64, default_value: u64) -> u64 {
         return default_value;
     }
     value
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_config() {
+        let cfg = AppConfig::default();
+        assert_eq!(cfg.theme, "System");
+        assert_eq!(cfg.language, "en");
+        assert_eq!(cfg.maximum_concurrent_processes, 3);
+    }
+
+    #[test]
+    fn test_clamp_range() {
+        assert_eq!(clamp_range(5, 1, 10, 3), 5);
+        assert_eq!(clamp_range(0, 1, 10, 3), 3);
+        assert_eq!(clamp_range(15, 1, 10, 3), 3);
+    }
+
+    #[test]
+    fn test_serde_camel_case_and_aliases() {
+        let json = r#"{
+            "theme": "light",
+            "cookiesBrowser": "chrome",
+            "maximumConcurrentProcesses": 5
+        }"#;
+        let cfg: AppConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(cfg.theme, "light");
+        assert_eq!(cfg.cookies_browser, "chrome");
+        assert_eq!(cfg.maximum_concurrent_processes, 5);
+    }
 }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
-import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue, animateQueueOrb } from "../services/queue";
+import { useUiState } from "../services/uiState";
 import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
@@ -85,7 +85,6 @@ interface CompressorProps {
 
 export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const { t } = useTranslation();
-  const { config } = useConfig();
   const { presets, loadPreset } = usePresets();
 
   const [filePath, setFilePath] = useState("");
@@ -151,37 +150,20 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   // Format Data Map
   const [formatData, setFormatData] = useState<any[]>([]);
 
-  // Depth transitions for mode panels
-  const [panelTransitionClass, setPanelTransitionClass] = useState("depth-enter");
+
 
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
   const compressorPresets = presets.filter(p => p.preset_type === "compressor" && !p.hidden);
 
-  useEffect(() => {
-    // Sync panel enters
-    setPanelTransitionClass("depth-enter");
-    const timer = setTimeout(() => {
-      setPanelTransitionClass("");
-    }, 220);
-    return () => clearTimeout(timer);
-  }, [selectedMode]);
+  const { updateUiState } = useUiState();
 
   useEffect(() => {
     if (!active) return;
-
-    // Apply body classes
-    const body = document.body;
-    if (!body) return;
-
-    body.classList.toggle("compressor-active", isDashboardVisible);
-    body.classList.toggle("advanced-mode", !!config?.advanced_mode);
-    body.classList.toggle("zen-mode", !isDashboardVisible);
-
-    return () => {
-      body.classList.remove("compressor-active");
-    };
-  }, [active, isDashboardVisible, config?.advanced_mode]);
+    updateUiState({
+      compressorDashboardVisible: isDashboardVisible,
+    });
+  }, [active, isDashboardVisible, updateUiState]);
 
   useEffect(() => {
     // Load formats definition
@@ -704,7 +686,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
               <div className="compressor-mode-panels">
                 {/* PERCENT PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "percent" ? "" : "hidden"} ${panelTransitionClass}`} data-mode="percent">
+                <div className={`compressor-mode-panel ${selectedMode === "percent" ? "" : "hidden"}`} data-mode="percent">
                   <div className="compressor-percent-control">
                     <div className="compressor-slider-track">
                       <div className="track-bg"></div>
@@ -759,7 +741,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 </div>
 
                 {/* SIZE PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "size" ? "" : "hidden"} ${panelTransitionClass}`} data-mode="size">
+                <div className={`compressor-mode-panel ${selectedMode === "size" ? "" : "hidden"}`} data-mode="size">
                   <div className="compressor-size-control">
                     <input
                       id="compress-size-input"
@@ -777,7 +759,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 </div>
 
                 {/* QUALITY PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "quality" ? "" : "hidden"} ${panelTransitionClass}`} data-mode="quality">
+                <div className={`compressor-mode-panel ${selectedMode === "quality" ? "" : "hidden"}`} data-mode="quality">
                   <div className="compressor-quality-control">
                     <span className="compressor-crf-label">CRF</span>
                     <CustomSelect

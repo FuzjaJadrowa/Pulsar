@@ -11,6 +11,7 @@ import { Settings } from "../pages/Settings";
 import { Downloader } from "../pages/Downloader";
 import { Converter } from "../pages/Converter";
 import { Compressor } from "../pages/Compressor";
+import { useUiState } from "../services/uiState";
 
 const PAGE_INDICES: Record<string, number> = {
   home: 0,
@@ -32,34 +33,11 @@ export const AppShell: React.FC = () => {
 
   const transitionTimerRef = useRef<any>(null);
 
+  const { updateUiState } = useUiState();
+
   useEffect(() => {
-    const body = document.body;
-    if (!body) return;
-
-    const isWavePage = ["home", "downloader", "converter", "compressor"].includes(currentPage);
-
-    body.classList.toggle("page-home", currentPage === "home");
-    body.classList.toggle("page-downloader", currentPage === "downloader");
-    body.classList.toggle("page-settings", currentPage === "settings");
-    body.classList.toggle("page-converter", currentPage === "converter");
-    body.classList.toggle("page-compressor", currentPage === "compressor");
-    body.classList.toggle("wave-page", isWavePage);
-
-    if (currentPage === "home") {
-      body.classList.add("zen-mode");
-      body.classList.remove("search-mode");
-    } else if (currentPage === "converter") {
-      const keepZen = !body.classList.contains("converter-active");
-      body.classList.toggle("zen-mode", keepZen);
-      body.classList.remove("search-mode");
-    } else if (currentPage === "compressor") {
-      const keepZen = !body.classList.contains("compressor-active");
-      body.classList.toggle("zen-mode", keepZen);
-      body.classList.remove("search-mode");
-    } else if (currentPage === "settings") {
-      body.classList.remove("zen-mode", "search-mode");
-    }
-  }, [currentPage]);
+    updateUiState({ currentPage });
+  }, [currentPage, updateUiState]);
 
   const navigateTo = (pageName: string) => {
     if (pageName === currentPage) return;

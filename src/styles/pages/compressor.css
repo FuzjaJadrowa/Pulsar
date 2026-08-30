@@ -154,37 +154,6 @@ body.page-compressor.compressor-active::after {
     display: none;
 }
 
-.compressor-mode-panel.depth-enter {
-    animation: compressorPanelIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.compressor-mode-panel.depth-exit {
-    animation: compressorPanelOut 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
-}
-
-@keyframes compressorPanelIn {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes compressorPanelOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-}
-
 .compressor-percent-control {
     width: 100%;
     display: flex;

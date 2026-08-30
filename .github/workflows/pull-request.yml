@@ -28,8 +28,14 @@ jobs:
       - name: Install dependencies (Node)
         run: npm install
 
-      - name: Cargo check (Rust compile verification)
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Frontend check
+        run: npm run test:frontend
+
+      - name: Cargo check
         run: cargo check --manifest-path src-tauri/Cargo.toml
 
-      - name: Cargo test (Rust test suite)
+      - name: Cargo test
         run: cargo test --manifest-path src-tauri/Cargo.toml

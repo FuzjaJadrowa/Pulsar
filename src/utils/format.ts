@@ -1,6 +1,7 @@
 // Utility functions for formatting and URL parsing
 
 export function formatBytes(bytes: number | string | undefined | null): string {
+  if (bytes === null || bytes === undefined) return "--";
   const value = Number(bytes);
   if (!Number.isFinite(value)) return "--";
   if (value < 1024) return `${value} B`;
@@ -15,6 +16,7 @@ export function formatBytes(bytes: number | string | undefined | null): string {
 }
 
 export function formatDuration(seconds: number | string | undefined | null): string {
+  if (seconds === null || seconds === undefined) return "--:--:--";
   const total = Number(seconds);
   if (!Number.isFinite(total)) return "--:--:--";
   const safe = Math.max(0, Math.floor(total));

@@ -4,6 +4,7 @@ import { invoke, listen } from "../services/tauri";
 import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue, animateQueueOrb } from "../services/queue";
+import { useUiState } from "../services/uiState";
 import { showNotification } from "../services/notifications";
 import { formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
@@ -97,25 +98,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   }, [selectedFormat]);
 
+  const { updateUiState } = useUiState();
+
   useEffect(() => {
     if (!active) return;
-
-    const body = document.body;
-    if (!body) return;
-
-    const isZen = !isSearchMode && !isDashboardVisible;
-
-    body.classList.toggle("search-mode", isSearchMode);
-    body.classList.toggle("audio-only-source", isAudioOnlySource);
-    body.classList.toggle("mode-video", isDashboardVisible && mode === "video");
-    body.classList.toggle("mode-audio", isDashboardVisible && mode === "audio");
-    body.classList.toggle("advanced-mode", !!config?.advanced_mode);
-    body.classList.toggle("zen-mode", isZen);
-
-    return () => {
-      body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio");
-    };
-  }, [active, isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
+    updateUiState({
+      downloaderDashboardVisible: isDashboardVisible,
+      downloaderSearchMode: isSearchMode,
+      downloaderMode: mode,
+      downloaderAudioOnlySource: isAudioOnlySource,
+    });
+  }, [active, isDashboardVisible, isSearchMode, mode, isAudioOnlySource, updateUiState]);
 
   useEffect(() => {
     let isMounted = true;

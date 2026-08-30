@@ -4,6 +4,8 @@ import { Splash } from "./layout/Splash";
 import { loadConfig } from "./services/config";
 import "./styles/index.css";
 
+import { UiStateProvider } from "./services/uiState";
+
 export const App: React.FC = () => {
   useEffect(() => {
     loadConfig();
@@ -19,10 +21,10 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <UiStateProvider>
       <AppShell />
       <Splash />
-    </>
+    </UiStateProvider>
   );
 };
 

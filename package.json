@@ -1,6 +1,6 @@
 {
   "name": "pulsar",
-  "version": "3.1.0-test.2",
+  "version": "3.1.0-test.3",
   "description": "A fast, modern media manager built with Tauri and Rust.",
   "author": "Fuzja Jadrowa",
   "type": "module",
@@ -14,20 +14,24 @@
     "tauri:build": "tauri build",
     "tauri:sign": "tauri signer generate",
     "check:translations": "node scripts/check-translations.js",
-    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml"
+    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test:frontend": "vitest run",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "@tauri-apps/api": "~2.10.0",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/plugin-opener": "^2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "@tauri-apps/cli": "^2"
+    "vitest": "^4.1.11"
   }
 }

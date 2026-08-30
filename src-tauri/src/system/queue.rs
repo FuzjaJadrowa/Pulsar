@@ -11,23 +11,31 @@ pub struct QueueItemState {
     pub id: String,
     #[serde(default = "default_item_type", alias = "item_type")]
     pub item_type: String,
+    #[serde(default)]
     pub title: String,
+    #[serde(default)]
     pub thumbnail: String,
+    #[serde(default)]
     pub status: String,
+    #[serde(default)]
     pub progress: f64,
+    #[serde(default)]
     pub eta: String,
-    #[serde(alias = "added_at")]
+    #[serde(default, alias = "added_at")]
     pub added_at: u64,
+    #[serde(default)]
     pub payload: Value,
+    #[serde(default)]
     pub path: String,
-    #[serde(alias = "task_id")]
+    #[serde(default, alias = "task_id")]
     pub task_id: Option<String>,
-    #[serde(alias = "skipped_by_stop")]
+    #[serde(default, alias = "skipped_by_stop")]
     pub skipped_by_stop: bool,
-    #[serde(alias = "start_reason")]
+    #[serde(default, alias = "start_reason")]
     pub start_reason: Option<String>,
-    #[serde(alias = "pending_start_reason")]
+    #[serde(default, alias = "pending_start_reason")]
     pub pending_start_reason: Option<String>,
+    #[serde(default, alias = "source")]
     pub source: String,
 }
 
@@ -120,5 +128,40 @@ impl QueueManager {
         let _guard = self.write_guard.lock().unwrap();
         let serialized = serde_json::to_string_pretty(queue_state).map_err(|e| e.to_string())?;
         fs::write(&self.queue_path, serialized).map_err(|e| e.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_queue_state_serde_camel_case() {
+        let json = r#"{
+            "items": [
+                {
+                    "id": "test-1",
+                    "itemType": "download",
+                    "title": "Sample Video",
+                    "status": "pending",
+                    "progress": 50.0,
+                    "addedAt": 1700000000000
+                }
+            ],
+            "currentItemId": "test-1",
+            "activeItemIds": ["test-1"],
+            "priorityQueue": [],
+            "startAllActive": false,
+            "startAllSuccess": true,
+            "startAllStarted": 0,
+            "clearAfterCurrent": false,
+            "currentPage": 1
+        }"#;
+
+        let state: QueueState = serde_json::from_str(json).unwrap();
+        assert_eq!(state.items.len(), 1);
+        assert_eq!(state.items[0].id, "test-1");
+        assert_eq!(state.items[0].item_type, "download");
+        assert_eq!(state.items[0].progress, 50.0);
     }
 }

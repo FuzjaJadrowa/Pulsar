@@ -7,6 +7,7 @@ import { showNotification } from "../services/notifications";
 import { sanitizeSvg } from "../utils/security";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { PathSelector } from "./PathSelector";
+import { useUiState } from "../services/uiState";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -399,8 +400,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [renderModal, setRenderModal] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
+  const { updateUiState } = useUiState();
+
   useEffect(() => {
-    document.body.classList.toggle("preset-modal-open", isOpen);
+    updateUiState({ isPresetModalOpen: isOpen });
     if (isOpen) {
       setRenderModal(true);
       const timer = setTimeout(() => setIsVisible(true), 20);
@@ -410,7 +413,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       const timer = setTimeout(() => setRenderModal(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, updateUiState]);
 
   if (!renderModal) return null;
 

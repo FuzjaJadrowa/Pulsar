@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
-import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
 import { enqueue, animateQueueOrb } from "../services/queue";
+import { useUiState } from "../services/uiState";
 import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
@@ -20,7 +20,6 @@ interface ConverterProps {
 
 export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { t } = useTranslation();
-  const { config } = useConfig();
   const { presets } = usePresets();
 
   const [filePath, setFilePath] = useState("");
@@ -81,20 +80,14 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const converterPresets = presets.filter(p => p.preset_type === "converter" && !p.hidden);
 
+  const { updateUiState } = useUiState();
+
   useEffect(() => {
     if (!active) return;
-
-    const body = document.body;
-    if (!body) return;
-
-    body.classList.toggle("converter-active", isDashboardVisible);
-    body.classList.toggle("advanced-mode", !!config?.advanced_mode);
-    body.classList.toggle("zen-mode", !isDashboardVisible);
-
-    return () => {
-      body.classList.remove("converter-active", "zen-mode");
-    };
-  }, [active, isDashboardVisible, config?.advanced_mode]);
+    updateUiState({
+      converterDashboardVisible: isDashboardVisible,
+    });
+  }, [active, isDashboardVisible, updateUiState]);
 
   useEffect(() => {
     // Load formats definition
