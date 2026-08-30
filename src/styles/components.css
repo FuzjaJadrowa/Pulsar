@@ -98,38 +98,62 @@ body.theme-light select {
     border-bottom-right-radius: 8px;
     padding: 5px 0;
     z-index: 1200;
-    max-height: 0;
+    max-height: var(--select-max-height, 240px);
     opacity: 0;
+    visibility: hidden;
     overflow-y: auto;
     pointer-events: none;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-    transform: translateY(-10px);
-    transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     min-width: 100%;
     width: max-content;
     box-sizing: border-box;
+    transition: opacity 0.14s ease, visibility 0.14s ease;
 }
-.select-list.open {
-    max-height: var(--select-max-height, 240px);
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
+
 .select-list.open-up {
     top: auto;
     bottom: 100%;
     border-top: 1px solid #3d3d3d;
-    border-bottom: 1px solid #3d3d3d;
+    border-bottom: none;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    transform: translateY(10px);
 }
+
+.select-list.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    animation: selectOpenDown 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
 .select-list.open.open-up {
-    transform: translateY(0);
-    box-shadow: 0 -10px 20px rgba(0,0,0,0.5);
+    animation: selectOpenUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes selectOpenDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes selectOpenUp {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .select-item {

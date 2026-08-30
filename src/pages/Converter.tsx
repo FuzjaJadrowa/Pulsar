@@ -473,8 +473,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const isValid = !!(selectedFormat && (savePath.trim().length > 0 || metadata));
 
   return (
-    <div className={`page-container converter-page ${isDashboardVisible ? "dashboard-active" : ""}`} id="page-converter">
-      <div className="converter-content">
+    <div className="page-root converter-page">
+      <div className="page-scroll app-scroll">
         <div id="convert-search-section" className={`search-section ${!isDashboardVisible ? "centered converter-zen" : "sticky"}`}>
           <div className="search-box-row converter-bar" id="converter-bar">
             <input
