@@ -1,5 +1,4 @@
-use directories::BaseDirs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 use tauri::State;
 use serde::Serialize;
@@ -11,35 +10,7 @@ pub struct AccelerationInfo {
     pub preferred: String,
 }
 
-fn get_requirements_path() -> PathBuf {
-    if cfg!(target_os = "linux") {
-        let flatpak_channel = std::env::var("PULSAR_DIST")
-            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
-            .unwrap_or(false);
-        let in_flatpak = std::env::var("FLATPAK_ID")
-            .map(|v| !v.trim().is_empty())
-            .unwrap_or(false);
-        if flatpak_channel || in_flatpak {
-            if let Ok(dir) = std::env::var("PULSAR_REQUIREMENTS_DIR") {
-                let trimmed = dir.trim();
-                if !trimmed.is_empty() {
-                    return PathBuf::from(trimmed);
-                }
-            }
-            return PathBuf::from("/app/lib/pulsar/requirements");
-        }
-    }
-    if let Some(base_dirs) = BaseDirs::new() {
-        return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
-    }
-    PathBuf::from("Requirements")
-}
-
-fn get_ffmpeg_path() -> PathBuf {
-    let req_path = get_requirements_path();
-    let name = if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" };
-    req_path.join(name)
-}
+use crate::core::utils::get_ffmpeg_path;
 
 fn parse_hwaccels(output: &str) -> Vec<String> {
     let mut lines = output.lines();

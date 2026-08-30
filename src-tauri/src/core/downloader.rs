@@ -9,7 +9,6 @@ use std::thread;
 use std::fs::File;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use directories::BaseDirs;
 use crate::system::config::ConfigManager;
 
 #[derive(Serialize)]
@@ -80,72 +79,11 @@ impl BridgeState {
         #[cfg(target_os = "windows")]
         let mut child = {
             use std::os::windows::process::CommandExt;
-            use std::os::windows::io::AsRawHandle;
             const CREATE_NO_WINDOW: u32 = 0x08000000;
             cmd.creation_flags(CREATE_NO_WINDOW);
 
             let spawned = cmd.spawn().map_err(|e| format!("Failed to spawn bridge: {}", e))?;
-
-            #[repr(C)]
-            struct JOBOBJECT_BASIC_LIMIT_INFORMATION {
-                per_process_user_time_limit: i64,
-                per_job_user_time_limit: i64,
-                limit_flags: u32,
-                minimum_working_set_size: usize,
-                maximum_working_set_size: usize,
-                active_process_limit: u32,
-                affinity: usize,
-                priority_class: u32,
-                scheduling_class: u32,
-            }
-
-            #[repr(C)]
-            struct IO_COUNTERS {
-                read_operation_count: u64,
-                write_operation_count: u64,
-                other_operation_count: u64,
-                read_transfer_count: u64,
-                write_transfer_count: u64,
-                other_transfer_count: u64,
-            }
-
-            #[repr(C)]
-            struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION {
-                basic_limit_information: JOBOBJECT_BASIC_LIMIT_INFORMATION,
-                io_info: IO_COUNTERS,
-                process_memory_limit: usize,
-                job_memory_limit: usize,
-                peak_process_memory_used: usize,
-                peak_job_memory_used: usize,
-            }
-
-            extern "system" {
-                fn CreateJobObjectW(lpJobAttributes: *const std::ffi::c_void, lpName: *const u16) -> *mut std::ffi::c_void;
-                fn SetInformationJobObject(
-                    hJob: *mut std::ffi::c_void,
-                    JobObjectInformationClass: u32,
-                    lpJobObjectInformation: *const std::ffi::c_void,
-                    cbJobObjectInformationLength: u32,
-                ) -> i32;
-                fn AssignProcessToJobObject(hJob: *mut std::ffi::c_void, hProcess: *mut std::ffi::c_void) -> i32;
-            }
-
-            unsafe {
-                let job = CreateJobObjectW(std::ptr::null(), std::ptr::null());
-                if !job.is_null() {
-                    let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
-                    info.basic_limit_information.limit_flags = 0x2000;
-                    if SetInformationJobObject(
-                        job,
-                        9,
-                        &info as *const _ as *const _,
-                        std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
-                    ) != 0 {
-                        AssignProcessToJobObject(job, spawned.as_raw_handle() as *mut std::ffi::c_void);
-                    }
-                }
-            }
-
+            crate::core::utils::attach_process_to_job_object(&spawned);
             spawned
         };
 
@@ -251,44 +189,60 @@ struct FfmpegRange {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DownloadOptions {
     url: String,
     path: String,
     mode: String,
+    #[serde(alias = "video_format")]
     video_format: Option<String>,
+    #[serde(alias = "video_quality")]
     video_quality: Option<String>,
+    #[serde(alias = "audio_format")]
     audio_format: Option<String>,
+    #[serde(alias = "audio_quality")]
     audio_quality: Option<String>,
+    #[serde(default, alias = "is_time_range_active")]
     is_time_range_active: bool,
+    #[serde(default, alias = "start_time")]
     start_time: String,
+    #[serde(default, alias = "end_time")]
     end_time: String,
+    #[serde(default, alias = "geo_bypass")]
     geo_bypass: bool,
+    #[serde(default, alias = "embed_tags")]
     embed_tags: bool,
+    #[serde(default, alias = "embed_thumbnail")]
     embed_thumbnail: bool,
-    #[serde(default)]
+    #[serde(default, alias = "mute_audio")]
     mute_audio: bool,
+    #[serde(default, alias = "download_subs")]
     download_subs: bool,
+    #[serde(default, alias = "download_chat")]
     download_chat: bool,
+    #[serde(default, alias = "subs_code")]
     subs_code: String,
-    #[serde(default)]
+    #[serde(default, alias = "embed_subs")]
     embed_subs: bool,
-    #[serde(default)]
+    #[serde(default, alias = "meta_sub_langs")]
     meta_sub_langs: Vec<String>,
-    #[serde(default)]
+    #[serde(default, alias = "meta_auto_langs")]
     meta_auto_langs: Vec<String>,
-    #[serde(default)]
+    #[serde(default, alias = "video_codec")]
     video_codec: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "audio_codec")]
     audio_codec: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "video_bitrate")]
     video_bitrate: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "audio_bitrate")]
     audio_bitrate: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "video_fps")]
     video_fps: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "audio_sample_rate")]
     audio_sample_rate: Option<String>,
+    #[serde(default, alias = "custom_args")]
     custom_args: Option<Vec<String>>,
+    #[serde(default, alias = "client_task_id")]
     client_task_id: Option<String>,
 }
 
@@ -532,13 +486,7 @@ fn guess_thumbnail_extension(content_type: &str, url: &str) -> Option<String> {
     None
 }
 
-fn generate_task_id() -> String {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
-    now.to_string()
-}
+
 
 #[tauri::command]
 pub fn start_download(
@@ -812,29 +760,7 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
     Ok(())
 }
 
-fn get_requirements_path() -> PathBuf {
-    if cfg!(target_os = "linux") {
-        let flatpak_channel = std::env::var("PULSAR_DIST")
-            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
-            .unwrap_or(false);
-        let in_flatpak = std::env::var("FLATPAK_ID")
-            .map(|v| !v.trim().is_empty())
-            .unwrap_or(false);
-        if flatpak_channel || in_flatpak {
-            if let Ok(dir) = std::env::var("PULSAR_REQUIREMENTS_DIR") {
-                let trimmed = dir.trim();
-                if !trimmed.is_empty() {
-                    return PathBuf::from(trimmed);
-                }
-            }
-            return PathBuf::from("/app/lib/pulsar/requirements");
-        }
-    }
-    if let Some(base_dirs) = BaseDirs::new() {
-        return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
-    }
-    PathBuf::from("Requirements")
-}
+use crate::core::utils::{get_requirements_path, generate_task_id};
 
 fn parse_time_to_seconds(input: &str) -> Option<f64> {
     let parts: Vec<&str> = input.trim().split(':').collect();

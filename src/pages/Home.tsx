@@ -9,14 +9,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const { t } = useTranslation();
 
   const handleNavigate = (pageName: string, index: number) => {
-    if (onNavigate) {
-      onNavigate(pageName, index);
-    } else {
-      const win = window as any;
-      if (typeof win.loadPage === "function") {
-        win.loadPage(pageName, index);
-      }
-    }
+    onNavigate?.(pageName, index);
   };
 
   return (

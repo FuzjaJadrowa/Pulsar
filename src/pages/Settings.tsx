@@ -83,14 +83,9 @@ export const Settings: React.FC = () => {
   }, []);
 
   const handleUpdateCheck = (component: string) => {
-    const win = window as any;
-    if (typeof win.runRequirementCheck === "function") {
-      win.runRequirementCheck(component);
-    } else {
-      invoke("run_requirement_check", { component }).catch((err) => {
-        console.error(`Check update failed for ${component}:`, err);
-      });
-    }
+    invoke("run_requirement_check", { component }).catch((err) => {
+      console.error(`Check update failed for ${component}:`, err);
+    });
   };
 
   const handleOpenPresetCreate = () => {

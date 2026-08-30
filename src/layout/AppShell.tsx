@@ -82,29 +82,12 @@ export const AppShell: React.FC = () => {
   };
 
   useEffect(() => {
-    const win = window as any;
-
-    win.loadPage = (pageName: string, _index: number) => {
-      navigateTo(pageName);
-    };
-
-    win.toggleQueue = () => {
-      setQueueVisible((prev) => !prev);
-    };
-
-    win.setQueuePanelVisible = (visible: boolean) => {
-      setQueueVisible(visible);
-    };
-
     return () => {
-      delete win.loadPage;
-      delete win.toggleQueue;
-      delete win.setQueuePanelVisible;
       if (transitionTimerRef.current) {
         clearTimeout(transitionTimerRef.current);
       }
     };
-  }, [currentPage]);
+  }, []);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {

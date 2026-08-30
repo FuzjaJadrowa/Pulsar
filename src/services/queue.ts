@@ -89,31 +89,15 @@ function persistSoon() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     const payload = {
-      items: state.items.map((i) => ({
-        id: i.id,
-        item_type: i.itemType,
-        title: i.title,
-        thumbnail: i.thumbnail,
-        status: i.status,
-        progress: i.progress,
-        eta: i.eta,
-        added_at: i.addedAt,
-        payload: i.payload,
-        path: i.path,
-        task_id: i.taskId,
-        skipped_by_stop: !!i.skippedByStop,
-        start_reason: i.startReason,
-        pending_start_reason: i.pendingStartReason,
-        source: i.source,
-      })),
-      current_item_id: state.activeItemIds.length ? state.activeItemIds[0] : null,
-      active_item_ids: [...state.activeItemIds],
-      priority_queue: [...state.priorityQueue],
-      start_all_active: state.startAllActive,
-      start_all_success: state.startAllSuccess,
-      start_all_started: state.startAllStarted,
-      clear_after_current: state.clearAfterCurrent,
-      current_page: 1,
+      items: state.items,
+      currentItemId: state.activeItemIds.length ? state.activeItemIds[0] : null,
+      activeItemIds: state.activeItemIds,
+      priorityQueue: state.priorityQueue,
+      startAllActive: state.startAllActive,
+      startAllSuccess: state.startAllSuccess,
+      startAllStarted: state.startAllStarted,
+      clearAfterCurrent: state.clearAfterCurrent,
+      currentPage: 1,
     };
     try {
       await invoke("save_queue_state", { queueState: payload });
@@ -134,27 +118,27 @@ async function hydrate(): Promise<void> {
     state.items = Array.isArray(data?.items)
       ? data.items.map((raw: any) => ({
           id: String(raw.id || Math.random().toString(36).substring(2, 9)),
-          itemType: (raw.item_type || "download") as any,
+          itemType: (raw.itemType || raw.item_type || "download") as any,
           title: String(raw.title || t("common.unknownTitle")),
           thumbnail: String(raw.thumbnail || ""),
           status: raw.status === "downloading" ? "pending" : (raw.status || "pending"),
           progress: raw.status === "downloading" ? 0 : (Number(raw.progress) || 0),
           eta: String(raw.eta || "--"),
           listProgress: null,
-          addedAt: Number(raw.added_at) || Date.now(),
+          addedAt: Number(raw.addedAt ?? raw.added_at) || Date.now(),
           payload: raw.payload && typeof raw.payload === "object" ? raw.payload : {},
           path: String(raw.path || ""),
           taskId: null,
-          skippedByStop: Boolean(raw.skipped_by_stop),
+          skippedByStop: Boolean(raw.skippedByStop ?? raw.skipped_by_stop),
           startReason: null,
-          pendingStartReason: raw.pending_start_reason || null,
+          pendingStartReason: raw.pendingStartReason || raw.pending_start_reason || null,
           source: String(raw.source || "queue"),
         }))
       : [];
 
     state.activeItemIds = [];
-    state.priorityQueue = Array.isArray(data?.priority_queue)
-      ? data.priority_queue.filter((id: string) => state.items.some((i) => i.id === id))
+    state.priorityQueue = Array.isArray(data?.priorityQueue || data?.priority_queue)
+      ? (data.priorityQueue || data.priority_queue).filter((id: string) => state.items.some((i) => i.id === id))
       : [];
     state.startAllActive = false;
     state.startAllSuccess = true;
@@ -771,17 +755,4 @@ export function animateQueueOrb(source: HTMLElement | DOMRect | { left: number; 
     };
   }, 10);
 }
-
-const win = window as any;
-win.queueManager = {
-  enqueue,
-  refreshConfig,
-  clearQueue,
-  startAll,
-  stopAll,
-  startItem: startItemById,
-  cancelItem,
-  removeItem,
-  animateQueueOrb,
-};
-win.refreshConfig = refreshConfig;
+

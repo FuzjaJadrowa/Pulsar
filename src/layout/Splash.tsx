@@ -14,7 +14,6 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   const [canSkip, setCanSkip] = useState<boolean>(false);
   const [isExiting, setIsExiting] = useState<boolean>(false);
   const [isHidden, setIsHidden] = useState<boolean>(false);
-  const [isEntering, setIsEntering] = useState<boolean>(false);
 
   const translateSplashStatus = (val: any): string => {
     if (val === null || typeof val === "undefined") return "";
@@ -78,41 +77,17 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     }, 520);
   };
 
-  const showSplashOverlay = () => {
-    setIsHidden(false);
-    setIsExiting(false);
-    setIsEntering(true);
-    setStatus(t("index.splash.checking"));
-    setProgress("");
-    setCanSkip(false);
-
-    setTimeout(() => {
-      setIsEntering(false);
-    }, 500);
-  };
-
   useEffect(() => {
     let unlistStatus: any = null;
     let unlistProgress: any = null;
     let unlistFinished: any = null;
 
-    const win = window as any;
-    win.showSplashOverlay = showSplashOverlay;
-    win.runRequirementCheck = async (component: string) => {
-      if (!component) return;
-      showSplashOverlay();
-      try {
-        await invoke("run_requirement_check", { component });
-      } catch (error) {
-        console.error("Failed to run requirement check:", error);
-        finish(false);
-      }
-    };
-
     const setupListeners = async () => {
       unlistStatus = await listen<{ status: string; can_skip: boolean; is_downloading: boolean }>(
         "splash-status",
         (event) => {
+          setIsHidden(false);
+          setIsExiting(false);
           setStatus(translateSplashStatus(event.payload.status));
           setCanSkip(event.payload.can_skip);
           if (!event.payload.is_downloading) {
@@ -122,6 +97,8 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
       );
 
       unlistProgress = await listen<{ progress: string }>("splash-progress", (event) => {
+        setIsHidden(false);
+        setIsExiting(false);
         setProgress(translateSplashStatus(event.payload.progress));
       });
 
@@ -141,15 +118,13 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
       if (unlistStatus) unlistStatus();
       if (unlistProgress) unlistProgress();
       if (unlistFinished) unlistFinished();
-      delete win.showSplashOverlay;
-      delete win.runRequirementCheck;
     };
   }, []);
 
   if (isHidden) return null;
 
   return (
-    <div id="splash-screen" className={`${isExiting ? "exiting" : ""} ${isEntering ? "entering" : ""}`}>
+    <div id="splash-screen" className={isExiting ? "exiting" : ""}>
       <div className="splash-content">
         <div className="spinner-container">
           <div className="spinner"></div>

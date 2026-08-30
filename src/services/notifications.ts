@@ -61,21 +61,3 @@ export function useNotifications() {
 
   return { toasts, dismissNotification };
 }
-
-// Global window adapter for backward compatibility (e.g. from Rust callbacks or legacy JS)
-interface WindowWithNotifier extends Window {
-  notifier?: {
-    show: (title: string, message: string, type?: any, isPermanent?: boolean) => void;
-  };
-}
-
-const win = window as unknown as WindowWithNotifier;
-win.notifier = {
-  show: (title: string, message: string, type: any = "info", isPermanent = false) => {
-    let finalType: "info" | "success" | "error" = "info";
-    if (type === "success" || type === "error" || type === "info") {
-      finalType = type;
-    }
-    showNotification(title, message, finalType, isPermanent);
-  },
-};

@@ -6,21 +6,27 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueueItemState {
     pub id: String,
-    #[serde(default = "default_item_type")]
+    #[serde(default = "default_item_type", alias = "item_type")]
     pub item_type: String,
     pub title: String,
     pub thumbnail: String,
     pub status: String,
     pub progress: f64,
     pub eta: String,
+    #[serde(alias = "added_at")]
     pub added_at: u64,
     pub payload: Value,
     pub path: String,
+    #[serde(alias = "task_id")]
     pub task_id: Option<String>,
+    #[serde(alias = "skipped_by_stop")]
     pub skipped_by_stop: bool,
+    #[serde(alias = "start_reason")]
     pub start_reason: Option<String>,
+    #[serde(alias = "pending_start_reason")]
     pub pending_start_reason: Option<String>,
     pub source: String,
 }
@@ -30,16 +36,24 @@ fn default_item_type() -> String {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueueState {
     pub items: Vec<QueueItemState>,
+    #[serde(alias = "current_item_id")]
     pub current_item_id: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "active_item_ids")]
     pub active_item_ids: Vec<String>,
+    #[serde(alias = "priority_queue")]
     pub priority_queue: Vec<String>,
+    #[serde(alias = "start_all_active")]
     pub start_all_active: bool,
+    #[serde(alias = "start_all_success")]
     pub start_all_success: bool,
+    #[serde(alias = "start_all_started")]
     pub start_all_started: u64,
+    #[serde(alias = "clear_after_current")]
     pub clear_after_current: bool,
+    #[serde(alias = "current_page")]
     pub current_page: usize,
 }
 

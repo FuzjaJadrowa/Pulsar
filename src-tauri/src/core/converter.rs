@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use directories::BaseDirs;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 use std::path::{Path, PathBuf};
@@ -351,22 +350,38 @@ pub fn estimate_convert_size(payload: EstimatePayload) -> Result<Option<u64>, St
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ConvertOptions {
+    #[serde(alias = "input_path")]
     input_path: String,
+    #[serde(default, alias = "output_dir")]
     output_dir: Option<String>,
+    #[serde(default, alias = "output_name")]
     output_name: Option<String>,
+    #[serde(alias = "output_format")]
     output_format: String,
     category: Option<String>,
+    #[serde(default, alias = "video_quality")]
     video_quality: Option<String>,
+    #[serde(default, alias = "video_codec")]
     video_codec: Option<String>,
+    #[serde(default, alias = "video_bitrate")]
     video_bitrate: Option<String>,
+    #[serde(default, alias = "video_fps")]
     video_fps: Option<String>,
+    #[serde(default, alias = "audio_codec")]
     audio_codec: Option<String>,
+    #[serde(default, alias = "audio_bitrate")]
     audio_bitrate: Option<String>,
+    #[serde(default, alias = "image_width")]
     image_width: Option<u32>,
+    #[serde(default, alias = "image_height")]
     image_height: Option<u32>,
+    #[serde(default, alias = "image_quality")]
     image_quality: Option<u32>,
+    #[serde(default, alias = "source_duration_seconds")]
     source_duration_seconds: Option<f64>,
+    #[serde(default, alias = "client_task_id")]
     client_task_id: Option<String>,
 }
 
@@ -449,161 +464,7 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     Ok(output_dir.join(file_name).to_string_lossy().to_string())
 }
 
-fn get_requirements_path() -> PathBuf {
-    if cfg!(target_os = "linux") {
-        let flatpak_channel = std::env::var("PULSAR_DIST")
-            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
-            .unwrap_or(false);
-        let in_flatpak = std::env::var("FLATPAK_ID")
-            .map(|v| !v.trim().is_empty())
-            .unwrap_or(false);
-        if flatpak_channel || in_flatpak {
-            if let Ok(dir) = std::env::var("PULSAR_REQUIREMENTS_DIR") {
-                let trimmed = dir.trim();
-                if !trimmed.is_empty() {
-                    return PathBuf::from(trimmed);
-                }
-            }
-            return PathBuf::from("/app/lib/pulsar/requirements");
-        }
-    }
-    if let Some(base_dirs) = BaseDirs::new() {
-        return base_dirs.data_local_dir().join("Pulsar").join("Requirements");
-    }
-    PathBuf::from("Requirements")
-}
-
-fn get_ffmpeg_path() -> PathBuf {
-    let req_path = get_requirements_path();
-    let ffmpeg_name = if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" };
-    req_path.join(ffmpeg_name)
-}
-
-fn parse_kbps_string(raw: Option<&str>) -> Option<String> {
-    let raw = raw?.trim();
-    if raw.is_empty() {
-        return None;
-    }
-    let digits: String = raw.chars().filter(|ch| ch.is_ascii_digit()).collect();
-    if digits.is_empty() {
-        return None;
-    }
-    Some(digits)
-}
-
-fn parse_numeric_string(raw: Option<&str>) -> Option<String> {
-    let raw = raw?.trim();
-    if raw.is_empty() {
-        return None;
-    }
-    let mut out = String::new();
-    for ch in raw.chars() {
-        if ch.is_ascii_digit() || ch == '.' {
-            out.push(ch);
-        }
-    }
-    if out.is_empty() { None } else { Some(out) }
-}
-
-fn map_video_codec(value: &str) -> String {
-    match value.to_lowercase().as_str() {
-        "h264" => "libx264",
-        "h265" | "hevc" => "libx265",
-        "av1" => "libsvtav1",
-        "vp9" => "libvpx-vp9",
-        "vp8" => "libvpx",
-        "mpeg2" => "mpeg2video",
-        "mpeg4" => "mpeg4",
-        "h263" => "h263",
-        "theora" => "libtheora",
-        "wmv" => "wmv2",
-        "prores" => "prores_ks",
-        "gif" => "gif",
-        other => other
-    }.to_string()
-}
-
-fn map_audio_codec(value: &str) -> String {
-    match value.to_lowercase().as_str() {
-        "aac" => "aac",
-        "mp3" => "libmp3lame",
-        "opus" => "libopus",
-        "vorbis" => "libvorbis",
-        "flac" => "flac",
-        "alac" => "alac",
-        "wav" => "pcm_s16le",
-        "aiff" => "pcm_s16be",
-        "ac3" => "ac3",
-        "wma" => "wmav2",
-        "dts" => "dca",
-        "lpcm" => "pcm_s16le",
-        "midi" => "copy",
-        "amr" => "libopencore_amrnb",
-        "amr-wb" => "libopencore_amrwb",
-        "he-aac" => "aac",
-        other => other
-    }.to_string()
-}
-
-fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
-    let codec_lower = codec.to_lowercase();
-    let hw_lower = hwaccel.to_lowercase();
-
-    match codec_lower.as_str() {
-        "h264" => {
-            if hw_lower.contains("cuda") {
-                "h264_nvenc".to_string()
-            } else if hw_lower.contains("qsv") {
-                "h264_qsv".to_string()
-            } else if hw_lower.contains("amf") {
-                "h264_amf".to_string()
-            } else if hw_lower.contains("videotoolbox") {
-                "h264_videotoolbox".to_string()
-            } else if hw_lower.contains("vaapi") {
-                "h264_vaapi".to_string()
-            } else {
-                "libx264".to_string()
-            }
-        }
-        "h265" | "hevc" => {
-            if hw_lower.contains("cuda") {
-                "hevc_nvenc".to_string()
-            } else if hw_lower.contains("qsv") {
-                "hevc_qsv".to_string()
-            } else if hw_lower.contains("amf") {
-                "hevc_amf".to_string()
-            } else if hw_lower.contains("videotoolbox") {
-                "hevc_videotoolbox".to_string()
-            } else if hw_lower.contains("vaapi") {
-                "hevc_vaapi".to_string()
-            } else {
-                "libx265".to_string()
-            }
-        }
-        "av1" => {
-            if hw_lower.contains("cuda") {
-                "av1_nvenc".to_string()
-            } else if hw_lower.contains("qsv") {
-                "av1_qsv".to_string()
-            } else if hw_lower.contains("vaapi") {
-                "av1_vaapi".to_string()
-            } else {
-                "libaom-av1".to_string()
-            }
-        }
-        "vp9" => {
-            if hw_lower.contains("qsv") {
-                "vp9_qsv".to_string()
-            } else if hw_lower.contains("vaapi") {
-                "vp9_vaapi".to_string()
-            } else {
-                "libvpx-vp9".to_string()
-            }
-        }
-        "copy" => "copy".to_string(),
-        other => map_video_codec(other)
-    }
-}
+use crate::core::utils::{get_ffmpeg_path, parse_kbps_string, parse_numeric_string, map_video_codec, map_audio_codec, map_video_codec_hw, generate_task_id};
 
 fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
     let mut args = vec![
@@ -697,13 +558,7 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     args
 }
 
-fn generate_task_id() -> String {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
-    now.to_string()
-}
+
 
 #[tauri::command]
 pub fn start_convert(

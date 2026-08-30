@@ -3,7 +3,7 @@ import { useTranslation } from "../services/i18n";
 import { invoke, listen } from "../services/tauri";
 import { useConfig } from "../services/config";
 import { usePresets } from "../services/presets";
-import { enqueue } from "../services/queue";
+import { enqueue, animateQueueOrb } from "../services/queue";
 import { showNotification } from "../services/notifications";
 import { formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
@@ -20,21 +20,19 @@ interface DownloaderProps {
   active?: boolean;
 }
 
-let cachedDownloaderState: any = null;
-
 export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
 
-  const [url, setUrl] = useState(() => cachedDownloaderState?.url ?? "");
-  const [isSearching, setIsSearching] = useState(() => cachedDownloaderState?.isSearching ?? false);
-  const [isSearchMode, setIsSearchMode] = useState(() => cachedDownloaderState?.isSearchMode ?? false);
-  const [isDashboardVisible, setIsDashboardVisible] = useState(() => cachedDownloaderState?.isDashboardVisible ?? false);
-  const [searchResults, setSearchResults] = useState<any[]>(() => cachedDownloaderState?.searchResults ?? []);
-  const [searchExiting, setSearchExiting] = useState(() => cachedDownloaderState?.searchExiting ?? false);
-  const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">(() => cachedDownloaderState?.provider ?? "ytsearch");
-  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(() => cachedDownloaderState?.pendingMetadataUrl ?? null);
+  const [url, setUrl] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchExiting, setSearchExiting] = useState(false);
+  const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
+  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
 
   const {
     metadata,
@@ -52,39 +50,39 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   });
 
-  const [duration, setDuration] = useState(() => cachedDownloaderState?.duration ?? 0);
-  const [mode, setMode] = useState<"video" | "audio">(() => cachedDownloaderState?.mode ?? "video");
-  const [selectedFormat, setSelectedFormat] = useState<string | null>(() => cachedDownloaderState?.selectedFormat ?? null);
-  const [selectedQuality, setSelectedQuality] = useState<string | null>(() => cachedDownloaderState?.selectedQuality ?? null);
-  const [savePath, setSavePath] = useState(() => cachedDownloaderState?.savePath ?? "");
+  const [duration, setDuration] = useState(0);
+  const [mode, setMode] = useState<"video" | "audio">("video");
+  const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
+  const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
+  const [savePath, setSavePath] = useState("");
 
-  const [rangeStart, setRangeStart] = useState<number>(() => cachedDownloaderState?.rangeStart ?? 0);
-  const [rangeEnd, setRangeEnd] = useState<number>(() => cachedDownloaderState?.rangeEnd ?? 100);
-  const [timeStart, setTimeStart] = useState<string>(() => cachedDownloaderState?.timeStart ?? "00:00:00");
-  const [timeEnd, setTimeEnd] = useState<string>(() => cachedDownloaderState?.timeEnd ?? "00:00:00");
+  const [rangeStart, setRangeStart] = useState<number>(0);
+  const [rangeEnd, setRangeEnd] = useState<number>(100);
+  const [timeStart, setTimeStart] = useState<string>("00:00:00");
+  const [timeEnd, setTimeEnd] = useState<string>("00:00:00");
 
-  const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">((() => cachedDownloaderState?.thumbnailAction ?? "none"));
-  const [geoBypass, setGeoBypass] = useState(() => cachedDownloaderState?.geoBypass ?? false);
-  const [embedMetadata, setEmbedMetadata] = useState(() => cachedDownloaderState?.embedMetadata ?? false);
-  const [muteAudio, setMuteAudio] = useState(() => cachedDownloaderState?.muteAudio ?? false);
-  const [customArgs, setCustomArgs] = useState(() => cachedDownloaderState?.customArgs ?? "");
+  const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">("none");
+  const [geoBypass, setGeoBypass] = useState(false);
+  const [embedMetadata, setEmbedMetadata] = useState(false);
+  const [muteAudio, setMuteAudio] = useState(false);
+  const [customArgs, setCustomArgs] = useState("");
 
-  const [subtitlesAvailable, setSubtitlesAvailable] = useState(() => cachedDownloaderState?.subtitlesAvailable ?? true);
-  const [downloadSubs, setDownloadSubs] = useState(() => cachedDownloaderState?.downloadSubs ?? false);
-  const [downloadChat, setDownloadChat] = useState(() => cachedDownloaderState?.downloadChat ?? false);
-  const [embedSubs, setEmbedSubs] = useState(() => cachedDownloaderState?.embedSubs ?? false);
-  const [subsLang, setSubsLang] = useState(() => cachedDownloaderState?.subsLang ?? "");
-  const [subtitleOptions, setSubtitleOptions] = useState<any[]>(() => cachedDownloaderState?.subtitleOptions ?? []);
-  const [metaSubLangs, setMetaSubLangs] = useState<string[]>(() => cachedDownloaderState?.metaSubLangs ?? []);
-  const [metaAutoLangs, setMetaAutoLangs] = useState<string[]>(() => cachedDownloaderState?.metaAutoLangs ?? []);
-  const [showLangSuggestions, setShowLangSuggestions] = useState(() => cachedDownloaderState?.showLangSuggestions ?? false);
-  const [langSuggestions, setLangSuggestions] = useState<any[]>(() => cachedDownloaderState?.langSuggestions ?? []);
+  const [subtitlesAvailable, setSubtitlesAvailable] = useState(true);
+  const [downloadSubs, setDownloadSubs] = useState(false);
+  const [downloadChat, setDownloadChat] = useState(false);
+  const [embedSubs, setEmbedSubs] = useState(false);
+  const [subsLang, setSubsLang] = useState("");
+  const [subtitleOptions, setSubtitleOptions] = useState<any[]>([]);
+  const [metaSubLangs, setMetaSubLangs] = useState<string[]>([]);
+  const [metaAutoLangs, setMetaAutoLangs] = useState<string[]>([]);
+  const [showLangSuggestions, setShowLangSuggestions] = useState(false);
+  const [langSuggestions, setLangSuggestions] = useState<any[]>([]);
 
-  const [activePresetId, setActivePresetId] = useState<string | null>(() => cachedDownloaderState?.activePresetId ?? null);
-  const [presetOverrides, setPresetOverrides] = useState<any | null>(() => cachedDownloaderState?.presetOverrides ?? null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [presetOverrides, setPresetOverrides] = useState<any | null>(null);
 
-  const [isAudioOnlySource, setIsAudioOnlySource] = useState(() => cachedDownloaderState?.isAudioOnlySource ?? false);
-  const [isPlaylist, setIsPlaylist] = useState(() => cachedDownloaderState?.isPlaylist ?? false);
+  const [isAudioOnlySource, setIsAudioOnlySource] = useState(false);
+  const [isPlaylist, setIsPlaylist] = useState(false);
 
   const currentSearchIdRef = useRef<string | null>(null);
   const searchRevealTimerRef = useRef<any>(null);
@@ -94,58 +92,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const downloaderPresets = presets.filter(p => p.preset_type === "downloader" && !p.hidden);
 
   useEffect(() => {
-    if (cachedDownloaderState && cachedDownloaderState.metadata) {
-      setMetadata(cachedDownloaderState.metadata);
-    }
-  }, []);
-
-  useEffect(() => {
     if (selectedFormat && selectedFormat.toLowerCase() === "gif") {
       setMuteAudio(true);
     }
   }, [selectedFormat]);
-
-  useEffect(() => {
-    cachedDownloaderState = {
-      url,
-      isSearching,
-      isSearchMode,
-      isDashboardVisible,
-      searchResults,
-      searchExiting,
-      provider,
-      pendingMetadataUrl,
-      duration,
-      mode,
-      selectedFormat,
-      selectedQuality,
-      savePath,
-      rangeStart,
-      rangeEnd,
-      timeStart,
-      timeEnd,
-      thumbnailAction,
-      geoBypass,
-      embedMetadata,
-      muteAudio,
-      customArgs,
-      subtitlesAvailable,
-      downloadSubs,
-      downloadChat,
-      embedSubs,
-      subsLang,
-      subtitleOptions,
-      metaSubLangs,
-      metaAutoLangs,
-      showLangSuggestions,
-      langSuggestions,
-      activePresetId,
-      presetOverrides,
-      isAudioOnlySource,
-      isPlaylist,
-      metadata,
-    };
-  });
 
   useEffect(() => {
     if (!active) return;
@@ -168,25 +118,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   }, [active, isSearchMode, isAudioOnlySource, mode, config?.advanced_mode, isDashboardVisible]);
 
   useEffect(() => {
-    // Expose window.downloaderUi
-    (window as any).downloaderUi = {
-      startMetadataForUrl: async (targetUrl: string) => {
-        setUrl(targetUrl);
-        setPendingMetadataUrl(targetUrl);
-        triggerFetchMetadata(targetUrl);
-        return "";
-      },
-      setFetchLoading: () => {
-        // Handled by hook
-      },
-      triggerShake: () => {
-        triggerShakeInput();
-      }
-    };
-
-    let active = true;
+    let isMounted = true;
     const unsubPromise = listen<any>("download-event", (event) => {
-      if (!active) return;
+      if (!isMounted) return;
       const payload = event.payload;
       if (!payload || !payload.type) return;
 
@@ -214,12 +148,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     });
 
     return () => {
-      active = false;
+      isMounted = false;
       unsubPromise.then((unsub) => unsub());
       if (searchRevealTimerRef.current) {
         clearTimeout(searchRevealTimerRef.current);
       }
-      delete (window as any).downloaderUi;
     };
   }, [provider]);
 
@@ -714,9 +647,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   };
 
   const triggerAnimationOrb = (sourceRect: DOMRect | null) => {
-    const win = window as any;
-    if (sourceRect && win.queueManager && win.queueManager.animateQueueOrb) {
-      win.queueManager.animateQueueOrb(sourceRect);
+    if (sourceRect) {
+      animateQueueOrb(sourceRect);
     }
   };
 

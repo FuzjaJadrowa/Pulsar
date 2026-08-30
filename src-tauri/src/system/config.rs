@@ -6,32 +6,41 @@ use directories::BaseDirs;
 use std::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppConfig {
     pub theme: String,
     pub language: String,
+    #[serde(alias = "close_behavior")]
     pub close_behavior: String,
+    #[serde(alias = "advanced_mode")]
     pub advanced_mode: bool,
+    #[serde(alias = "system_notifications")]
     pub system_notifications: bool,
-    #[serde(default)]
+    #[serde(default, alias = "idle_animation")]
     pub idle_animation: bool,
 
+    #[serde(alias = "update_app")]
     pub update_app: bool,
+    #[serde(alias = "update_app_cooldown_minutes")]
     pub update_app_cooldown_minutes: u64,
+    #[serde(alias = "update_ytdlp")]
     pub update_ytdlp: bool,
+    #[serde(alias = "update_ffmpeg")]
     pub update_ffmpeg: bool,
-    #[serde(default)]
+    #[serde(default, alias = "ffmpeg_hwaccel")]
     pub ffmpeg_hwaccel: String,
-    #[serde(default)]
+    #[serde(default, alias = "ffmpeg_hwaccels")]
     pub ffmpeg_hwaccels: Vec<String>,
-    #[serde(default)]
+    #[serde(default, alias = "ffmpeg_hwaccel_preferred")]
     pub ffmpeg_hwaccel_preferred: String,
 
+    #[serde(alias = "cookies_browser")]
     pub cookies_browser: String,
-    #[serde(default)]
+    #[serde(default, alias = "maximum_concurrent_processes")]
     pub maximum_concurrent_processes: u64,
-    #[serde(default)]
+    #[serde(default, alias = "maximum_search_results")]
     pub maximum_search_results: u64,
-    #[serde(default)]
+    #[serde(default, alias = "title_template")]
     pub title_template: String
 }
 
@@ -225,7 +234,9 @@ impl ConfigManager {
             .set("maximum_search_results", config.maximum_search_results.to_string())
             .set("title_template", &config.title_template);
 
-        let _ = ini.write_to_file(path);
+        if let Err(e) = ini.write_to_file(path) {
+            eprintln!("Failed to write config.ini to {:?}: {}", path, e);
+        }
     }
 }
 
