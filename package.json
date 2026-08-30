@@ -20,7 +20,7 @@
     "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
-    "@tauri-apps/api": "~2.10.0",
+    "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-opener": "^2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
