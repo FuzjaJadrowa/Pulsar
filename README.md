@@ -96,6 +96,7 @@ If you just want to run the app in development mode, use:
   </tr>
 </table>
 
-# License
+# License and credits
 This project is licensed under the terms described in the **LICENSE** file.
+French translation is created by Zetsukae.
 Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://ffmpeg.org/).
