@@ -87,6 +87,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [isPlaylist, setIsPlaylist] = useState(() => cachedDownloaderState?.isPlaylist ?? false);
 
   const currentSearchIdRef = useRef<string | null>(null);
+  const searchRevealTimerRef = useRef<any>(null);
 
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -191,10 +192,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
       if (payload.type === "search_results" && payload.id === currentSearchIdRef.current) {
         setIsSearching(false);
-        setSearchResults(payload.data || []);
-        setIsSearchMode(true);
         setIsDashboardVisible(false);
         resetMetadataState();
+        setIsSearchMode(true);
+
+        if (searchRevealTimerRef.current) {
+          clearTimeout(searchRevealTimerRef.current);
+        }
+        searchRevealTimerRef.current = setTimeout(() => {
+          setSearchResults(payload.data || []);
+          searchRevealTimerRef.current = null;
+        }, 120);
       }
 
       if (payload.type === "finished" && payload.id === currentSearchIdRef.current && payload.success === false) {
@@ -208,6 +216,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return () => {
       active = false;
       unsubPromise.then((unsub) => unsub());
+      if (searchRevealTimerRef.current) {
+        clearTimeout(searchRevealTimerRef.current);
+      }
       delete (window as any).downloaderUi;
     };
   }, [provider]);
@@ -290,6 +301,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       triggerFetchMetadata(raw);
     } else {
       if (isSearching) return;
+      if (searchRevealTimerRef.current) {
+        clearTimeout(searchRevealTimerRef.current);
+        searchRevealTimerRef.current = null;
+      }
       setIsSearching(true);
       setIsSearchMode(false);
       setIsDashboardVisible(false);
@@ -1327,7 +1342,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
         {/* Search Results Section */}
         <div id="search-results-section" className={`search-results-section ${isSearchMode ? "" : "hidden"} ${searchExiting ? "exiting" : ""}`}>
-          <div className="search-results-header fade-in">
+          <div className="search-results-header fade-in" style={{ animationDelay: "0.1s" }}>
             <h3 id="search-results-title">{t("downloader.search.resultsTitle")}</h3>
             <span id="search-results-count">
               {searchResults.length > 0 ? t("downloader.search.resultsCount",  { count: searchResults.length }) : ""}
@@ -1338,13 +1353,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
             {searchResults.length === 0 ? (
               <div className="search-results-empty">{t("downloader.search.empty")}</div>
             ) : (
-              searchResults.map((entry) => {
+              searchResults.map((entry, idx) => {
                 const isItemLoading = isAnalyzing && pendingMetadataUrl === resolveResultUrl(entry);
                 return (
                   <div
                     key={entry.url || entry.id}
                     className="search-result-card fade-in"
-                    style={{ "--thumb-url": `url('${entry.thumbnail || ""}')` } as React.CSSProperties}
+                    style={{
+                      "--thumb-url": `url('${entry.thumbnail || ""}')`,
+                      animationDelay: `${0.12 + idx * 0.05}s`
+                    } as React.CSSProperties}
                   >
                     <button
                       type="button"
