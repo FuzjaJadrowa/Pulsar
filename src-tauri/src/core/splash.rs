@@ -243,7 +243,7 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
         return Ok(());
     }
 
-    emit_status(&window, "Starting...", false, false);
+    let _ = bridge_state.init(&app);
 
     let _ = window.emit("splash-finished", SplashFinishedPayload {
         prewarm_bridge: true,

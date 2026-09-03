@@ -397,7 +397,6 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const crfOptions = Array.from({ length: 52 }, (_, i) => ({ value: String(i), label: String(i) }));
 
-  const [renderModal, setRenderModal] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
   const { updateUiState } = useUiState();
@@ -405,17 +404,20 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   useEffect(() => {
     updateUiState({ isPresetModalOpen: isOpen });
     if (isOpen) {
-      setRenderModal(true);
-      const timer = setTimeout(() => setIsVisible(true), 20);
-      return () => clearTimeout(timer);
+      const raf = requestAnimationFrame(() => setIsVisible(true));
+      return () => cancelAnimationFrame(raf);
     } else {
       setIsVisible(false);
-      const timer = setTimeout(() => setRenderModal(false), 300);
-      return () => clearTimeout(timer);
     }
   }, [isOpen, updateUiState]);
 
-  if (!renderModal) return null;
+  useEffect(() => {
+    return () => {
+      updateUiState({ isPresetModalOpen: false });
+    };
+  }, [updateUiState]);
+
+  if (!isOpen && !isVisible) return null;
 
   return (
     <div className={`preset-modal-overlay ${isVisible ? "visible" : ""}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>

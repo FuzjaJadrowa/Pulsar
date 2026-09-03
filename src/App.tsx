@@ -6,6 +6,8 @@ import "./styles/index.css";
 
 import { UiStateProvider } from "./services/uiState";
 
+import { invoke } from "./services/tauri";
+
 export const App: React.FC = () => {
   useEffect(() => {
     loadConfig();
@@ -23,7 +25,15 @@ export const App: React.FC = () => {
   return (
     <UiStateProvider>
       <AppShell />
-      <Splash />
+      <Splash
+        onFinished={(prewarm) => {
+          if (prewarm) {
+            invoke("init_bridge").catch((err) => {
+              console.error("Failed to prewarm pulsar bridge:", err);
+            });
+          }
+        }}
+      />
     </UiStateProvider>
   );
 };

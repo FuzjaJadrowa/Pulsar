@@ -9,4 +9,5 @@
 - Optimized FFmpeg and Pulsar-Bridge process spawning and communication.
 - Deduplicated and refactored stylesheets, many unnecessary animations are changed or removed.
 - Redesigned style of the titlebar icons.
+- Converter and compressor now use intelligent codec coping management.
 ## Fixed
