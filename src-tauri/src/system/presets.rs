@@ -125,34 +125,58 @@ fn preset_path(dir: &Path, id: &str) -> PathBuf {
 }
 
 fn encode_icon(icon: &PresetIcon) -> String {
+    if icon.data.is_empty() {
+        return String::new();
+    }
+    let mime = if icon.mime.is_empty() {
+        "image/svg+xml"
+    } else {
+        &icon.mime
+    };
     let encoded = BASE64_ENGINE.encode(&icon.data);
-    format!("data:{};base64,{}", icon.mime, encoded)
+    format!("data:{};base64,{}", mime, encoded)
 }
 
 fn decode_icon(data_url: &str) -> Result<PresetIcon, String> {
     let trimmed = data_url.trim();
-    if !trimmed.starts_with("data:") {
-        return Err("Icon must be a data URL.".to_string());
+    if trimmed.is_empty() {
+        return Ok(PresetIcon {
+            mime: "image/svg+xml".to_string(),
+            data: Vec::new(),
+        });
     }
-    let parts: Vec<&str> = trimmed.splitn(2, ',').collect();
-    if parts.len() != 2 {
-        return Err("Invalid icon data URL.".to_string());
+
+    if let Some(rest) = trimmed.strip_prefix("data:") {
+        let parts: Vec<&str> = rest.splitn(2, ',').collect();
+        if parts.len() == 2 {
+            let header = parts[0];
+            let payload = parts[1];
+            let mime = header
+                .trim_start_matches("data:")
+                .split(';')
+                .next()
+                .unwrap_or("image/svg+xml")
+                .to_string();
+
+            if header.contains(";base64") {
+                let data = BASE64_ENGINE
+                    .decode(payload.trim())
+                    .map_err(|e| format!("Failed to decode base64 icon: {}", e))?;
+                return Ok(PresetIcon { mime, data });
+            } else {
+                let raw_data = payload.trim();
+                return Ok(PresetIcon {
+                    mime,
+                    data: raw_data.as_bytes().to_vec(),
+                });
+            }
+        }
     }
-    let header = parts[0];
-    let payload = parts[1];
-    if !header.contains(";base64") {
-        return Err("Icon data URL must be base64 encoded.".to_string());
-    }
-    let mime = header
-        .trim_start_matches("data:")
-        .split(';')
-        .next()
-        .unwrap_or("application/octet-stream")
-        .to_string();
-    let data = BASE64_ENGINE
-        .decode(payload)
-        .map_err(|e| format!("Failed to decode icon: {}", e))?;
-    Ok(PresetIcon { mime, data })
+
+    Ok(PresetIcon {
+        mime: "image/svg+xml".to_string(),
+        data: trimmed.as_bytes().to_vec(),
+    })
 }
 
 fn read_preset(path: &Path) -> Result<PulsarPreset, String> {
@@ -433,4 +457,23 @@ pub fn export_preset(app_handle: AppHandle, id: String) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode_encode_icon_utf8_and_base64() {
+        let utf8_icon = "data:image/svg+xml;utf8,<svg><path d=\"M0 0\"/></svg>";
+        let decoded = decode_icon(utf8_icon).expect("Should decode utf8 icon");
+        assert_eq!(decoded.mime, "image/svg+xml");
+        assert!(!decoded.data.is_empty());
+
+        let re_encoded = encode_icon(&decoded);
+        assert!(re_encoded.starts_with("data:image/svg+xml;base64,"));
+        
+        let decoded_again = decode_icon(&re_encoded).expect("Should decode base64 icon");
+        assert_eq!(decoded_again.data, decoded.data);
+    }
 }

@@ -337,12 +337,6 @@ body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .ze
     to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 #notification-container {
     position: fixed;
     top: calc(var(--titlebar-height) + 10px);

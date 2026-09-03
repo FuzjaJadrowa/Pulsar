@@ -885,18 +885,18 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
         <div className="preset-modal-footer">
           <button
-            className="anim-btn preset-export-btn"
-            onClick={handleExport}
-            disabled={!isFormValid()}
-          >
-            {t("presetCreator.actions.export")}
-          </button>
-          <button
             className="anim-btn preset-save-btn"
             onClick={handleSave}
             disabled={!isFormValid()}
           >
             {t("presetCreator.actions.save")}
+          </button>
+          <button
+            className="anim-btn preset-export-btn"
+            onClick={handleExport}
+            disabled={!isFormValid()}
+          >
+            {t("presetCreator.actions.export")}
           </button>
         </div>
       </div>

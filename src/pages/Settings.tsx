@@ -10,6 +10,18 @@ import { ToggleSwitch } from "../components/ToggleSwitch";
 import { invoke } from "../services/tauri";
 import { GEAR_ICON, TAG_ICON_SVG } from "../utils/icons";
 
+let textMeasureCanvas: HTMLCanvasElement | null = null;
+function getTextWidth(text: string): number {
+  if (!text) return 0;
+  if (!textMeasureCanvas) {
+    textMeasureCanvas = document.createElement("canvas");
+  }
+  const ctx = textMeasureCanvas.getContext("2d");
+  if (!ctx) return text.length * 7;
+  ctx.font = '13px "Manrope", "Montserrat", "Roboto", sans-serif';
+  return ctx.measureText(text).width;
+}
+
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
@@ -549,15 +561,14 @@ export const Settings: React.FC = () => {
                         </div>
                       );
                     } else {
-                      let inputWidth;
-                      if (part.length === 0) {
-                        if (parts.length === 1) {
-                          inputWidth = 120;
-                        } else {
-                          inputWidth = 8;
-                        }
+                      const isOnlyInput = parts.length === 1;
+                      const isZeroLength = part.length === 0;
+                      let inputWidthStyle: string;
+                      if (isZeroLength) {
+                        inputWidthStyle = isOnlyInput ? "120px" : "0px";
                       } else {
-                        inputWidth = part.length * 8;
+                        const measured = Math.ceil(getTextWidth(part));
+                        inputWidthStyle = `${measured + 2}px`;
                       }
                       return (
                         <input
@@ -566,18 +577,22 @@ export const Settings: React.FC = () => {
                           className="title-template-text-input"
                           value={part}
                           style={{
-                            width: `${inputWidth}px`,
+                            width: inputWidthStyle,
                             border: "none",
                             background: "transparent",
                             color: "inherit",
-                            fontSize: "inherit",
+                            fontSize: "13px",
                             fontFamily: "inherit",
+                            height: "26px",
+                            lineHeight: "26px",
                             outline: "none",
                             padding: "0px",
+                            margin: "0px",
                             maxWidth: "100%",
-                            minWidth: "0px"
+                            minWidth: isZeroLength && !isOnlyInput ? "0px" : "12px",
+                            boxSizing: "border-box",
                           }}
-                          placeholder={index === 0 && parts.length === 1 ? "%(x)s" : ""}
+                          placeholder={index === 0 && isOnlyInput ? "%(x)s" : ""}
                           onChange={(e) => handlePartChange(index, e.target.value, parts)}
                           onKeyDown={(e) => handleKeyDown(e, index, parts)}
                         />
