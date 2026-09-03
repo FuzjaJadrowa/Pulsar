@@ -134,6 +134,97 @@ pub fn map_audio_codec(value: &str) -> String {
     }.to_string()
 }
 
+pub fn default_video_codec_for_format(format: &str) -> String {
+    let fmt = format.trim().trim_start_matches('.').to_lowercase();
+    match fmt.as_str() {
+        "webm" => "libvpx-vp9".to_string(),
+        "ogv" => "libtheora".to_string(),
+        "gif" => "gif".to_string(),
+        "vob" => "mpeg2video".to_string(),
+        "wmv" => "wmv2".to_string(),
+        "prores" => "prores_ks".to_string(),
+        _ => "libx264".to_string(),
+    }
+}
+
+pub fn default_audio_codec_for_format(format: &str) -> String {
+    let fmt = format.trim().trim_start_matches('.').to_lowercase();
+    match fmt.as_str() {
+        "mp3" => "libmp3lame".to_string(),
+        "aac" | "m4a" => "aac".to_string(),
+        "flac" => "flac".to_string(),
+        "wav" => "pcm_s16le".to_string(),
+        "aiff" => "pcm_s16be".to_string(),
+        "ogg" => "libvorbis".to_string(),
+        "opus" => "libopus".to_string(),
+        "wma" => "wmav2".to_string(),
+        "ac3" => "ac3".to_string(),
+        "alac" => "alac".to_string(),
+        "webm" | "ogv" => "libopus".to_string(),
+        _ => "aac".to_string(),
+    }
+}
+
+pub fn extract_file_extension(path: &str) -> String {
+    std::path::Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("")
+        .trim_start_matches('.')
+        .to_lowercase()
+}
+
+pub fn is_audio_copy_compatible(source_ext: &str, target_ext: &str) -> bool {
+    let src = source_ext.trim().trim_start_matches('.').to_lowercase();
+    let tgt = target_ext.trim().trim_start_matches('.').to_lowercase();
+
+    if src.is_empty() || tgt.is_empty() {
+        return false;
+    }
+
+    if src == tgt {
+        return true;
+    }
+
+    match tgt.as_str() {
+        "mp3" => src == "mp3",
+        "wav" => src == "wav",
+        "flac" => src == "flac",
+        "aac" => src == "aac" || src == "m4a",
+        "m4a" => src == "m4a" || src == "aac" || src == "mp4",
+        "ogg" | "opus" => src == "ogg" || src == "opus" || src == "webm",
+        "webm" | "ogv" => src == "webm" || src == "ogg" || src == "opus",
+        "mp4" | "mov" | "m4v" => src == "mp4" || src == "mov" || src == "m4v" || src == "m4a" || src == "aac" || src == "mp3" || src == "flac",
+        "mkv" => src != "wav",
+        _ => false,
+    }
+}
+
+pub fn is_video_copy_compatible(source_ext: &str, target_ext: &str) -> bool {
+    let src = source_ext.trim().trim_start_matches('.').to_lowercase();
+    let tgt = target_ext.trim().trim_start_matches('.').to_lowercase();
+
+    if src.is_empty() || tgt.is_empty() {
+        return false;
+    }
+
+    if tgt == "gif" {
+        return src == "gif";
+    }
+
+    if src == tgt {
+        return true;
+    }
+
+    match tgt.as_str() {
+        "mp4" | "mov" | "m4v" => src == "mp4" || src == "mov" || src == "m4v" || src == "mkv" || src == "avi" || src == "flv" || src == "ts",
+        "webm" => src == "webm" || src == "ogv",
+        "mkv" => src != "gif",
+        "avi" => src == "avi" || src == "mp4" || src == "mov",
+        _ => false,
+    }
+}
+
 pub fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
     let codec_lower = codec.to_lowercase();
     let hw_lower = hwaccel.to_lowercase();
@@ -322,6 +413,37 @@ mod tests {
         assert_eq!(map_video_codec_hw("h264", "qsv"), "h264_qsv");
         assert_eq!(map_video_codec_hw("hevc", "cuda"), "hevc_nvenc");
         assert_eq!(map_video_codec_hw("h264", "none"), "libx264");
+    }
+
+    #[test]
+    fn test_default_codecs_for_format() {
+        assert_eq!(default_video_codec_for_format("mp4"), "libx264");
+        assert_eq!(default_video_codec_for_format("webm"), "libvpx-vp9");
+        assert_eq!(default_video_codec_for_format(".gif"), "gif");
+
+        assert_eq!(default_audio_codec_for_format("mp3"), "libmp3lame");
+        assert_eq!(default_audio_codec_for_format("flac"), "flac");
+        assert_eq!(default_audio_codec_for_format("wav"), "pcm_s16le");
+        assert_eq!(default_audio_codec_for_format("m4a"), "aac");
+        assert_eq!(default_audio_codec_for_format("webm"), "libopus");
+    }
+
+    #[test]
+    fn test_copy_compatibility() {
+        assert_eq!(extract_file_extension("C:/path/file.ogg"), "ogg");
+        assert_eq!(extract_file_extension("C:/path/file.MP4"), "mp4");
+
+        assert!(is_audio_copy_compatible("ogg", "ogg"));
+        assert!(is_audio_copy_compatible("mp3", "mp3"));
+        assert!(!is_audio_copy_compatible("ogg", "mp3"));
+        assert!(!is_audio_copy_compatible("flac", "mp3"));
+        assert!(!is_audio_copy_compatible("wav", "mp3"));
+        assert!(is_audio_copy_compatible("m4a", "mp4"));
+
+        assert!(is_video_copy_compatible("mp4", "mp4"));
+        assert!(!is_video_copy_compatible("mp4", "gif"));
+        assert!(!is_video_copy_compatible("webm", "mp4"));
+        assert!(is_video_copy_compatible("mp4", "mkv"));
     }
 
     #[test]

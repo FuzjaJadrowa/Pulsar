@@ -464,7 +464,11 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     Ok(output_dir.join(file_name).to_string_lossy().to_string())
 }
 
-use crate::core::utils::{get_ffmpeg_path, parse_kbps_string, parse_numeric_string, map_video_codec, map_audio_codec, map_video_codec_hw, generate_task_id};
+use crate::core::utils::{
+    get_ffmpeg_path, parse_kbps_string, parse_numeric_string, map_video_codec, map_audio_codec,
+    map_video_codec_hw, default_video_codec_for_format, default_audio_codec_for_format,
+    extract_file_extension, is_audio_copy_compatible, is_video_copy_compatible, generate_task_id
+};
 
 fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
     let mut args = vec![
@@ -487,6 +491,9 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     args.push(options.input_path.clone());
 
     let category = options.category.as_deref().unwrap_or("video");
+    let output_format = normalize_output_format(&options.output_format);
+    let source_ext = extract_file_extension(&options.input_path);
+
     if category == "audio" {
         args.push("-map".to_string());
         args.push("0:a?".to_string());
@@ -504,19 +511,31 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
             || parse_numeric_string(options.video_fps.as_deref()).is_some()
             || options.video_quality.as_deref().map(|q| q.to_lowercase()).filter(|q| q.ends_with('p')).is_some();
 
-        if raw_codec == "copy" || (!has_video_mods && (raw_codec.is_empty() || raw_codec == "auto")) {
+        let can_copy_video = !has_video_mods && is_video_copy_compatible(&source_ext, &output_format);
+
+        if raw_codec == "copy" || (can_copy_video && (raw_codec.is_empty() || raw_codec == "auto")) {
             args.push("-c:v".to_string());
             args.push("copy".to_string());
         } else {
-            let codec_to_use = if raw_codec.is_empty() || raw_codec == "auto" { "h264" } else { &raw_codec };
+            let codec_to_use = if raw_codec.is_empty() || raw_codec == "auto" {
+                default_video_codec_for_format(&output_format)
+            } else {
+                map_video_codec(&raw_codec)
+            };
+
             args.push("-c:v".to_string());
             let mapped_codec = if let Some(ref accel) = hwaccel {
-                map_video_codec_hw(codec_to_use, accel)
+                if raw_codec.is_empty() || raw_codec == "auto" {
+                    map_video_codec_hw("h264", accel)
+                } else {
+                    map_video_codec_hw(&raw_codec, accel)
+                }
             } else {
-                map_video_codec(codec_to_use)
+                codec_to_use.clone()
             };
             args.push(mapped_codec.clone());
-            if (mapped_codec == "libx264" || mapped_codec == "libx265") && codec_to_use != "copy" {
+
+            if (mapped_codec == "libx264" || mapped_codec == "libx265") && raw_codec != "copy" {
                 args.push("-preset".to_string());
                 args.push("veryfast".to_string());
             }
@@ -542,13 +561,23 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
         }
     }
 
-    if let Some(codec) = options.audio_codec.as_deref().filter(|v| !v.trim().is_empty() && v.trim().to_lowercase() != "auto") {
-        args.push("-c:a".to_string());
-        args.push(map_audio_codec(codec));
-    } else {
+    let raw_audio_codec = options.audio_codec.as_deref().unwrap_or("").trim().to_lowercase();
+    let has_audio_mods = parse_kbps_string(options.audio_bitrate.as_deref()).is_some();
+    let can_copy_audio = !has_audio_mods && is_audio_copy_compatible(&source_ext, &output_format);
+
+    if raw_audio_codec == "copy" || (can_copy_audio && (raw_audio_codec.is_empty() || raw_audio_codec == "auto")) {
         args.push("-c:a".to_string());
         args.push("copy".to_string());
+    } else {
+        let codec_to_use = if raw_audio_codec.is_empty() || raw_audio_codec == "auto" {
+            default_audio_codec_for_format(&output_format)
+        } else {
+            map_audio_codec(&raw_audio_codec)
+        };
+        args.push("-c:a".to_string());
+        args.push(codec_to_use);
     }
+
     if let Some(br) = parse_kbps_string(options.audio_bitrate.as_deref()) {
         args.push("-b:a".to_string());
         args.push(format!("{}k", br));
