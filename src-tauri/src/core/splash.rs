@@ -130,7 +130,6 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let req_path = get_requirements_path();
     let mut versions = load_versions(&req_path);
     let app_tag = normalize_app_tag(&app.package_info().version.to_string());
-    // Persist current app version in the same registry as external requirements.
     versions.local_versions.insert("pulsar".to_string(), app_tag);
     if is_flatpak {
         let app_ver = versions.local_versions.get("pulsar").cloned().unwrap_or_default();
@@ -175,7 +174,6 @@ pub async fn run_splash_checks(app: AppHandle, window: Window, splash_state: Sta
     let bridge_needs_check = if is_flatpak {
         false
     } else if bridge_update_enabled {
-        // With auto-update on, check periodically; without it, only ensure presence.
         !bridge_exists || now - versions.bridge_last_check > update_interval_secs
     } else {
         !bridge_exists
@@ -531,7 +529,6 @@ async fn update_component(
 
     let mut remote_ver = json["published_at"].as_str().unwrap_or("").to_string();
     if name == "ffmpeg" || name == "pulsar-bridge" {
-        // Prefer release tag/name, then fallback to checksum for FFmpeg if needed.
         let version_hint = build_release_version(release_tag, release_name);
         if !version_hint.is_empty() {
             remote_ver = version_hint;
@@ -754,7 +751,7 @@ fn ensure_ffmpeg_permissions(dest_dir: &Path) {
             }
         }
     }
-    #[cfg(not(target_family = "unix"))] // to prevent warning
+    #[cfg(not(target_family = "unix"))]
     {
         let _ = dest_dir;
     }

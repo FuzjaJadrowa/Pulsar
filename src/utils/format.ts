@@ -1,5 +1,3 @@
-// Utility functions for formatting and URL parsing
-
 export function formatBytes(bytes: number | string | undefined | null): string {
   if (bytes === null || bytes === undefined) return "--";
   const value = Number(bytes);

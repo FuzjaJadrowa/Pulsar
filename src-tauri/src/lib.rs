@@ -22,7 +22,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            // Re-focus the existing window instead of spawning a second instance.
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.unminimize();
@@ -44,12 +43,10 @@ pub fn run() {
                 let config = config_state.config.lock().unwrap();
                 let behavior = config.close_behavior.to_lowercase();
                 if behavior == "hide" {
-                    // Keep the app running in tray mode when hide on close is enabled.
                     api.prevent_close();
                     let _ = window.hide();
                     return;
                 }
-                // Ensure the sidecar process is stopped on real app exit.
                 let bridge_state = window.state::<BridgeState>();
                 bridge_state.shutdown();
             }

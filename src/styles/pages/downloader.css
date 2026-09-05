@@ -458,7 +458,7 @@ body.mode-audio .tile.active { color: #a9f5c6; }
     padding: 8px 10px;
     width: 90px;
     text-align: center;
-    font-family: inherit;
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
     font-size: 14px;
     color: var(--input-text);
     outline: none;

@@ -92,7 +92,6 @@ export const UiStateProvider = ({ children }: { children: ReactNode }) => {
     body.classList.toggle("advanced-mode", !!config?.advanced_mode);
     body.classList.toggle("preset-modal-open", isPresetModalOpen);
 
-    // Compute zen mode
     let isZen = false;
     if (currentPage === "home") {
       isZen = true;

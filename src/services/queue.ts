@@ -53,7 +53,6 @@ const listeners = new Set<(items: QueueItem[]) => void>();
 
 function notifyListeners() {
   listeners.forEach((l) => l([...state.items]));
-  // Trigger config/buttons updates if needed
   window.dispatchEvent(new CustomEvent("pulsar-queue-updated", { detail: { count: state.items.length } }));
 }
 
@@ -83,7 +82,6 @@ function parseProgressValue(p: any, _payload: any): number {
   return 0;
 }
 
-// Persist state back to Tauri
 let saveTimer: any = null;
 function persistSoon() {
   clearTimeout(saveTimer);
@@ -107,7 +105,6 @@ function persistSoon() {
   }, 120);
 }
 
-// Hydrate state from Tauri
 let hydratePromise: Promise<void> | null = null;
 async function hydrate(): Promise<void> {
   try {
@@ -170,7 +167,6 @@ function getNextItemId(): string {
   return String(id);
 }
 
-// Queue Processing Engines
 export async function startItem(item: QueueItem, reason: string) {
   if (item.status === "downloading") return;
   item.status = "downloading";
@@ -200,7 +196,6 @@ export async function startItem(item: QueueItem, reason: string) {
       tId = await invoke("start_download", { options: cleanPayload });
     }
 
-    // Check if item has been cancelled in the meantime
     const current = state.items.find((i) => i.id === item.id);
     if (!current || current.status !== "downloading") {
       if (tId) await invoke("cancel_download", { taskId: String(tId) });
@@ -587,7 +582,6 @@ export async function enqueue(
   return id;
 }
 
-// React hooks wrapper
 export function useQueue() {
   const [items, setItems] = useState<QueueItem[]>(state.items);
 
@@ -614,14 +608,12 @@ export function useQueue() {
   };
 }
 
-// Listeners for backend events
 listen("download-event", (event: any) => {
   const payload = event.payload;
   if (!payload || payload.type === "metadata" || !payload.id) return;
   const item = state.items.find((i) => i.id === String(payload.id));
   if (!item) return;
 
-  // Sync log output with console if needed (via window)
   const win = window as any;
   if (win.queueConsole && typeof win.queueConsole.log === "function") {
     win.queueConsole.log(item.id, payload);
@@ -755,4 +747,3 @@ export function animateQueueOrb(source: HTMLElement | DOMRect | { left: number; 
     };
   }, 10);
 }
-

@@ -1,4 +1,5 @@
-input[type="text"], select {
+input[type="text"], input[type="number"], select, textarea {
+    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
     background: var(--input-bg);
     border: 1px solid var(--input-border);
     color: var(--input-text);

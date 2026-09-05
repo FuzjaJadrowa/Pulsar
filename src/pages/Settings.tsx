@@ -189,11 +189,7 @@ export const Settings: React.FC = () => {
 
   const handleRemovePart = (index: number, parts: string[]) => {
     const newParts = [...parts];
-    // Usuń tag z nieparzystego indeksu
     newParts.splice(index, 1);
-    
-    // Jeśli usunęliśmy tag, to po lewej i po prawej stronie były elementy tekstowe (np. parts[index-1] i parts[index+1]).
-    // Ponieważ splikowaliśmy tag, musimy połączyć pusty string lub tekst, co join() i tak zrobi automatycznie.
     const combined = newParts.join("");
     updateConfig({ title_template: combined });
   };

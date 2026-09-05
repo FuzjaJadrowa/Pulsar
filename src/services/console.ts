@@ -137,7 +137,6 @@ export function useConsoleModal() {
   };
 }
 
-// To remove
 const win = window as any;
 win.queueConsole = {
   open: openConsole,

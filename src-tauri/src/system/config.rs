@@ -149,7 +149,7 @@ impl ConfigManager {
                 }
 
                 if let Some(section) = ini.section(Some("General")) {
-                    // Backward compatibility for configs that still keep theme in "General".
+                    // Backward compatibility.
                     if !theme_loaded {
                         if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
                     }
@@ -268,7 +268,6 @@ impl ConfigManager {
 }
 
 fn clamp_range(value: u64, min: u64, max: u64, default_value: u64) -> u64 {
-    // Invalid persisted values are reset to a safe default.
     if value < min || value > max {
         return default_value;
     }

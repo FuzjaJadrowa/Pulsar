@@ -41,7 +41,6 @@ export function dismissNotification(id: string) {
   toastsList = toastsList.map((t) => (t.id === id ? { ...t, isHiding: true } : t));
   notifyListeners();
 
-  // Wait for exit animation to complete before removing from list
   setTimeout(() => {
     toastsList = toastsList.filter((t) => t.id !== id);
     notifyListeners();
