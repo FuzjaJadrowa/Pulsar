@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useQueue, QueueItem } from "../services/queue";
 import { useTranslation } from "../services/i18n";
 import { formatBytes, detectSourceFromUrl } from "../utils/format";
@@ -21,27 +21,6 @@ export const QueuePanel: React.FC = () => {
     openInFileManager,
   } = useQueue();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(3);
-
-  // Re-calculate perPage on resize
-  useEffect(() => {
-    const handleResize = () => {
-      const h = window.innerHeight || 800;
-      const w = window.innerWidth || 1000;
-      if (h < 760 || w < 900) setPerPage(2);
-      else if (h < 900 || w < 1100) setPerPage(3);
-      else setPerPage(4);
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   const getThumbnailStyle = (thumb?: string) => {
     const clean = String(thumb || "").trim().replace(/\\/g, "/");
     if (!clean) {
@@ -54,12 +33,8 @@ export const QueuePanel: React.FC = () => {
     };
   };
 
-  const totalPages = Math.max(1, Math.ceil(items.length / perPage));
-  const activePage = Math.min(currentPage, totalPages);
-  const startIndex = (activePage - 1) * perPage;
-  const pageItems = items.slice(startIndex, startIndex + perPage);
+  const displayItems = [...items].reverse();
 
-  // Mode helpers
   const getModeInfo = (item: QueueItem) => {
     const itemType = item.itemType;
     const payloadCategory = String(
@@ -141,14 +116,6 @@ export const QueuePanel: React.FC = () => {
     };
   };
 
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-  };
-
   return (
     <div className="queue-panel-inner">
       <div className="queue-title">{t("queue.title")}</div>
@@ -172,10 +139,10 @@ export const QueuePanel: React.FC = () => {
       </div>
 
       <div className="queue-items" id="queue-items">
-        {pageItems.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="queue-empty">{t("queue.empty")}</div>
         ) : (
-          pageItems.map((item) => {
+          displayItems.map((item) => {
             if (!item || !item.id) return null;
             const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
 
@@ -331,37 +298,6 @@ export const QueuePanel: React.FC = () => {
             );
           })
         )}
-      </div>
-
-      <div
-        className={`queue-pagination ${items.length <= perPage ? "hidden" : ""}`}
-      >
-        <button
-          className="queue-page-btn"
-          onClick={handlePrevPage}
-          disabled={activePage === 1}
-          aria-label={t("queue.pagination.previous")}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <span id="queue-page-label">
-          {t("common.pageLabel",  {
-            current: activePage,
-            total: totalPages,
-          })}
-        </span>
-        <button
-          className="queue-page-btn"
-          onClick={handleNextPage}
-          disabled={activePage === totalPages}
-          aria-label={t("queue.pagination.next")}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
       </div>
     </div>
   );

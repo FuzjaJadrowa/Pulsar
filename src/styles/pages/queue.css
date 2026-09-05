@@ -13,7 +13,9 @@
     top: 88px;
     right: 20px;
     width: 560px;
-    max-height: calc(100vh - 104px);
+    max-height: calc(100vh - 108px);
+    display: flex;
+    flex-direction: column;
     background: var(--queue-panel-bg);
     backdrop-filter: blur(20px) saturate(130%);
     -webkit-backdrop-filter: blur(20px) saturate(130%);
@@ -25,7 +27,7 @@
     opacity: 0;
     transform: translateY(-12px) scale(0.98);
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #queue-panel.visible {
@@ -39,6 +41,9 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: calc(100vh - 108px);
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .queue-title {
@@ -97,6 +102,29 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
+    max-height: calc(100vh - 210px);
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2)) var(--scrollbar-track, rgba(255, 255, 255, 0.05));
+}
+
+.queue-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.queue-items::-webkit-scrollbar-track {
+    background: var(--scrollbar-track, rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+}
+
+.queue-items::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2));
+    border-radius: 4px;
+}
+
+.queue-items::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.3));
 }
 
 .queue-empty {
