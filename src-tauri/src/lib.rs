@@ -90,5 +90,5 @@ pub fn run() {
             core::downloader::open_in_file_manager
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("Error while running Pulsar");
 }

@@ -1264,7 +1264,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                               setShowLangSuggestions(false);
                             }}
                           >
-                            {`${entry.flag} ${entry.countryName} - ${entry.languageName} - ${entry.code}`}
+                            {`${entry.countryName} - ${entry.languageName} - ${entry.code}`}
                           </div>
                         ))}
                       </div>

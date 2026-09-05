@@ -452,13 +452,25 @@ body.mode-audio .tile.active { color: #a9f5c6; }
 .timeline-section { margin-bottom: 2.5rem; animation-delay: 0.4s; }
 .time-inputs { display: flex; align-items: center; gap: 15px; }
 .time-box {
-    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 6px; padding: 8px; width: 90px;
-    text-align: center; font-family: "Roboto", "Manrope", "Montserrat", sans-serif; font-size: 1rem; color: #fff;
-    outline: none; transition: 0.2s;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    width: 90px;
+    text-align: center;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--input-text);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
 }
-.time-box:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); }
-.time-box:focus { border-color: var(--active-color); background: rgba(0,0,0,0.6); }
+.time-box:hover {
+    background: var(--select-head-hover);
+    border-color: var(--select-head-border-hover);
+}
+.time-box:focus {
+    border-color: var(--active-color);
+}
 .slider-track-container { position: relative; flex-grow: 1; height: 12px; margin: 0 10px; }
 .track-bg { width: 100%; height: 100%; background: #333; border-radius: 6px; position: absolute; }
 .track-fill {
@@ -586,7 +598,7 @@ body.audio-only-source .extras-section .form-row.video-only {
 }
 .lang-suggestions {
     position: absolute;
-    top: calc(100% + 6px);
+    bottom: calc(100% + 6px);
     left: 0;
     right: 0;
     max-height: 170px;
@@ -680,15 +692,6 @@ body.theme-light .tile.active {
     box-shadow: 0 6px 16px rgba(31, 44, 77, 0.18);
 }
 
-body.theme-light .time-box {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.12);
-    color: #1d2330;
-}
-body.theme-light .time-box:hover {
-    background: rgba(255, 255, 255, 1);
-    border-color: rgba(0, 0, 0, 0.22);
-}
 body.theme-light .track-bg { background: rgba(0, 0, 0, 0.12); }
 body.theme-light .slider-track-container input[type="range"]::-webkit-slider-thumb {
     background: #ffffff;

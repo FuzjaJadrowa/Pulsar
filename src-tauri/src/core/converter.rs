@@ -621,8 +621,8 @@ pub fn start_convert(
         .unwrap_or_else(|| "image".to_string());
 
     let ffmpeg_path = get_ffmpeg_path();
-    let config = config_mgr.config.lock().unwrap();
     let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
+    let config = config_mgr.config.lock().unwrap();
     let ffmpeg_args = if category == "video" || category == "audio" {
         Some(build_ffmpeg_args(&options, &output_path, hwaccel, &config))
     } else {

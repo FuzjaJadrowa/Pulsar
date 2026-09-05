@@ -116,9 +116,29 @@ themeMedia.addEventListener("change", () => {
 
 export async function loadConfig(): Promise<PulsarConfig> {
   try {
-    const config = await invoke<PulsarConfig>("get_config");
-    if (config) {
-      globalConfig = { ...DEFAULT_CONFIG, ...config };
+    const raw = await invoke<any>("get_config");
+    if (raw && typeof raw === "object") {
+      const normalized: PulsarConfig = {
+        theme: String(raw.theme ?? DEFAULT_CONFIG.theme),
+        language: String(raw.language ?? DEFAULT_CONFIG.language),
+        system_notifications: Boolean(raw.system_notifications ?? raw.systemNotifications ?? DEFAULT_CONFIG.system_notifications),
+        advanced_mode: Boolean(raw.advanced_mode ?? raw.advancedMode ?? DEFAULT_CONFIG.advanced_mode),
+        idle_animation: Boolean(raw.idle_animation ?? raw.idleAnimation ?? DEFAULT_CONFIG.idle_animation),
+        update_app: Boolean(raw.update_app ?? raw.updateApp ?? DEFAULT_CONFIG.update_app),
+        update_app_cooldown_minutes: Number(raw.update_app_cooldown_minutes ?? raw.updateAppCooldownMinutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),
+        update_ytdlp: Boolean(raw.update_ytdlp ?? raw.updateYtdlp ?? DEFAULT_CONFIG.update_ytdlp),
+        update_ffmpeg: Boolean(raw.update_ffmpeg ?? raw.updateFfmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
+        ffmpeg_hwaccel: String(raw.ffmpeg_hwaccel ?? raw.ffmpegHwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
+        cookies_browser: String(raw.cookies_browser ?? raw.cookiesBrowser ?? DEFAULT_CONFIG.cookies_browser),
+        maximum_concurrent_processes: Number(raw.maximum_concurrent_processes ?? raw.maximumConcurrentProcesses ?? DEFAULT_CONFIG.maximum_concurrent_processes),
+        maximum_search_results: Number(raw.maximum_search_results ?? raw.maximumSearchResults ?? DEFAULT_CONFIG.maximum_search_results),
+        title_template: String(raw.title_template ?? raw.titleTemplate ?? DEFAULT_CONFIG.title_template),
+        close_behavior: String(raw.close_behavior ?? raw.closeBehavior ?? DEFAULT_CONFIG.close_behavior),
+        copy_codec_if_possible: Boolean(raw.copy_codec_if_possible ?? raw.copyCodecIfPossible ?? DEFAULT_CONFIG.copy_codec_if_possible),
+        default_video_codec: String(raw.default_video_codec ?? raw.defaultVideoCodec ?? DEFAULT_CONFIG.default_video_codec),
+        default_audio_codec: String(raw.default_audio_codec ?? raw.defaultAudioCodec ?? DEFAULT_CONFIG.default_audio_codec),
+      };
+      globalConfig = normalized;
       applyTheme(globalConfig.theme, false);
       setIdleAnimationClass(globalConfig.idle_animation);
       await initI18n(globalConfig.language);
@@ -131,7 +151,27 @@ export async function loadConfig(): Promise<PulsarConfig> {
 }
 
 export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<PulsarConfig> {
-  const updated = { ...globalConfig, ...newConfig };
+  const merged = { ...globalConfig, ...newConfig };
+  const updated: PulsarConfig = {
+    theme: String(merged.theme ?? DEFAULT_CONFIG.theme),
+    language: String(merged.language ?? DEFAULT_CONFIG.language),
+    system_notifications: Boolean(merged.system_notifications ?? DEFAULT_CONFIG.system_notifications),
+    advanced_mode: Boolean(merged.advanced_mode ?? DEFAULT_CONFIG.advanced_mode),
+    idle_animation: Boolean(merged.idle_animation ?? DEFAULT_CONFIG.idle_animation),
+    update_app: Boolean(merged.update_app ?? DEFAULT_CONFIG.update_app),
+    update_app_cooldown_minutes: Number(merged.update_app_cooldown_minutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),
+    update_ytdlp: Boolean(merged.update_ytdlp ?? DEFAULT_CONFIG.update_ytdlp),
+    update_ffmpeg: Boolean(merged.update_ffmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
+    ffmpeg_hwaccel: String(merged.ffmpeg_hwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
+    cookies_browser: String(merged.cookies_browser ?? DEFAULT_CONFIG.cookies_browser),
+    maximum_concurrent_processes: Number(merged.maximum_concurrent_processes ?? DEFAULT_CONFIG.maximum_concurrent_processes),
+    maximum_search_results: Number(merged.maximum_search_results ?? DEFAULT_CONFIG.maximum_search_results),
+    title_template: String(merged.title_template ?? DEFAULT_CONFIG.title_template),
+    close_behavior: String(merged.close_behavior ?? DEFAULT_CONFIG.close_behavior),
+    copy_codec_if_possible: Boolean(merged.copy_codec_if_possible ?? DEFAULT_CONFIG.copy_codec_if_possible),
+    default_video_codec: String(merged.default_video_codec ?? DEFAULT_CONFIG.default_video_codec),
+    default_audio_codec: String(merged.default_audio_codec ?? DEFAULT_CONFIG.default_audio_codec),
+  };
   globalConfig = updated;
 
   applyTheme(updated.theme, true);

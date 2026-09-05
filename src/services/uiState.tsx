@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext, ReactNode } from "react";
+import { useEffect, useState, useCallback, createContext, useContext, ReactNode } from "react";
 import { useConfig } from "./config";
 
 export interface UiPageState {
@@ -39,9 +39,19 @@ export const UiStateProvider = ({ children }: { children: ReactNode }) => {
   const [uiState, setUiState] = useState<UiPageState>(defaultUiState);
   const { config } = useConfig();
 
-  const updateUiState = (partial: Partial<UiPageState>) => {
-    setUiState((prev) => ({ ...prev, ...partial }));
-  };
+  const updateUiState = useCallback((partial: Partial<UiPageState>) => {
+    setUiState((prev) => {
+      let changed = false;
+      for (const key of Object.keys(partial) as (keyof UiPageState)[]) {
+        if (prev[key] !== partial[key]) {
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) return prev;
+      return { ...prev, ...partial };
+    });
+  }, []);
 
   useEffect(() => {
     const body = document.body;

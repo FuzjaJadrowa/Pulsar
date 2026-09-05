@@ -464,6 +464,12 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   useEffect(() => {
     updateUiState({ isPresetModalOpen: isOpen });
+    return () => {
+      updateUiState({ isPresetModalOpen: false });
+    };
+  }, [isOpen, updateUiState]);
+
+  useEffect(() => {
     if (isOpen) {
       setActiveModal(true);
       setIsClosing(false);
@@ -475,13 +481,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       }, 200);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, activeModal, updateUiState]);
-
-  useEffect(() => {
-    return () => {
-      updateUiState({ isPresetModalOpen: false });
-    };
-  }, [updateUiState]);
+  }, [isOpen, activeModal]);
 
   if (!activeModal) return null;
 

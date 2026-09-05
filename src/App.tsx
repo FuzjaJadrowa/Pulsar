@@ -13,6 +13,9 @@ export const App: React.FC = () => {
     loadConfig();
 
     const handleContextMenu = (e: MouseEvent) => {
+      if (import.meta.env.DEV) {
+        return;
+      }
       e.preventDefault();
     };
     window.addEventListener("contextmenu", handleContextMenu);

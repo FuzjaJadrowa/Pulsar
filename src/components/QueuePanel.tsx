@@ -42,6 +42,18 @@ export const QueuePanel: React.FC = () => {
     };
   }, []);
 
+  const getThumbnailStyle = (thumb?: string) => {
+    const clean = String(thumb || "").trim().replace(/\\/g, "/");
+    if (!clean) {
+      return {
+        background: "#242730",
+      };
+    }
+    return {
+      backgroundImage: `url("${clean.replace(/"/g, '\\"')}")`,
+    };
+  };
+
   const totalPages = Math.max(1, Math.ceil(items.length / perPage));
   const activePage = Math.min(currentPage, totalPages);
   const startIndex = (activePage - 1) * perPage;
@@ -164,21 +176,18 @@ export const QueuePanel: React.FC = () => {
           <div className="queue-empty">{t("queue.empty")}</div>
         ) : (
           pageItems.map((item) => {
+            if (!item || !item.id) return null;
             const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
 
             return (
               <div
                 key={item.id}
-                className={`queue-item status-${item.status}`}
+                className={`queue-item status-${item.status || "pending"} ${item.thumbnail ? "has-thumbnail" : "no-thumbnail"}`}
                 data-id={item.id}
               >
                 <div
                   className="queue-item-bg"
-                  style={{
-                    backgroundImage: item.thumbnail
-                      ? `url('${item.thumbnail}')`
-                      : "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.45))",
-                  }}
+                  style={getThumbnailStyle(item.thumbnail)}
                 ></div>
                 <div className="queue-item-content">
                   <div className="queue-item-title-row">

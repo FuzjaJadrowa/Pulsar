@@ -145,6 +145,10 @@
     z-index: 1;
 }
 
+.queue-item.no-thumbnail::after {
+    background: rgba(0, 0, 0, 0.2);
+}
+
 .queue-item.status-pending::before,
 .queue-item.status-downloading::before {
     content: "";

@@ -11,6 +11,8 @@
     "core:window:allow-toggle-maximize",
     "core:window:default",
     "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:default",
     "opener:default",
     "opener:allow-open-path",
     "updater:default",
