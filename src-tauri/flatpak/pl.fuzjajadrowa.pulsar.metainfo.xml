@@ -15,7 +15,7 @@
       <li>Download video and audio from yt-dlp supported services with advanced options.</li>
       <li>Convert media and files between multiple formats.</li>
       <li>Compress output with quality and size controls.</li>
-      <li>Manage multiple jobs in a queue.</li>
+      <li>Manage multiple processes in a queue.</li>
     </ul>
   </description>
   <content_rating type="oars-1.1"/>

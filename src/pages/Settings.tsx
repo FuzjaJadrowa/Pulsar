@@ -264,7 +264,7 @@ export const Settings: React.FC = () => {
   const videoCodecSelectOptions = [
     { value: "auto", label: t("presetCreator.select.auto") },
     { value: "h264", label: "H264" },
-    { value: "h265", label: "H265 / HEVC" },
+    { value: "h265", label: "H265" },
     { value: "av1", label: "AV1" },
     { value: "vp9", label: "VP9" },
     { value: "vp8", label: "VP8" },

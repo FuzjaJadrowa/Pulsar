@@ -256,6 +256,8 @@ export const QueuePanel: React.FC = () => {
                           openInFileManager(
                             item.path ||
                               item.payload?.path ||
+                              item.payload?.output_path ||
+                              item.payload?.filepath ||
                               item.payload?.output_dir ||
                               item.payload?.save_path ||
                               ""
@@ -275,6 +277,8 @@ export const QueuePanel: React.FC = () => {
                           openInFileManager(
                             item.path ||
                               item.payload?.path ||
+                              item.payload?.output_path ||
+                              item.payload?.filepath ||
                               item.payload?.output_dir ||
                               item.payload?.save_path ||
                               ""

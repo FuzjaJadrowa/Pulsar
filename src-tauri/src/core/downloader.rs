@@ -740,16 +740,31 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
         return Err("Path cannot be empty.".to_string());
     }
 
-    let path_buf = PathBuf::from(trimmed);
+    #[cfg(target_os = "windows")]
+    let clean_path_str = trimmed.replace('/', "\\");
+
+    #[cfg(not(target_os = "windows"))]
+    let clean_path_str = trimmed.to_string();
+
+    let mut path_buf = PathBuf::from(&clean_path_str);
+
+    if !path_buf.exists() {
+        if let Some(existing_ancestor) = path_buf.ancestors().skip(1).find(|p| p.exists()) {
+            path_buf = existing_ancestor.to_path_buf();
+        } else {
+            return Err("Target path and its parent directories do not exist.".to_string());
+        }
+    }
 
     #[cfg(target_os = "windows")]
     {
         let mut cmd = Command::new("explorer");
+        let win_path = path_buf.to_string_lossy().replace('/', "\\");
         if path_buf.is_file() {
-            let arg = format!("/select,{}", path_buf.to_string_lossy());
+            let arg = format!("/select,{}", win_path);
             cmd.arg(arg);
         } else {
-            cmd.arg(path_buf);
+            cmd.arg(win_path);
         }
         cmd.spawn().map_err(|e| e.to_string())?;
     }
@@ -758,9 +773,9 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
     {
         let mut cmd = Command::new("open");
         if path_buf.is_file() {
-            cmd.arg("-R").arg(path_buf);
+            cmd.arg("-R").arg(&path_buf);
         } else {
-            cmd.arg(path_buf);
+            cmd.arg(&path_buf);
         }
         cmd.spawn().map_err(|e| e.to_string())?;
     }
@@ -768,7 +783,15 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
     #[cfg(target_os = "linux")]
     {
         let mut cmd = Command::new("xdg-open");
-        cmd.arg(path_buf);
+        if path_buf.is_file() {
+            if let Some(parent) = path_buf.parent() {
+                cmd.arg(parent);
+            } else {
+                cmd.arg(&path_buf);
+            }
+        } else {
+            cmd.arg(&path_buf);
+        }
         cmd.spawn().map_err(|e| e.to_string())?;
     }
 
