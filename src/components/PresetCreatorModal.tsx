@@ -857,6 +857,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           ]}
                           value={videoQuality}
                           onChange={setVideoQuality}
+                          direction="up"
                         />
                       </label>
                       <label className="preset-field">
@@ -865,6 +866,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           options={videoCodecOptions}
                           value={videoCodec}
                           onChange={setVideoCodec}
+                          direction="up"
                         />
                       </label>
                       <label className="preset-field">
@@ -888,6 +890,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           ]}
                           value={videoFps}
                           onChange={setVideoFps}
+                          direction="up"
                         />
                       </label>
                     </div>
@@ -916,6 +919,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           ]}
                           value={audioSampleRate}
                           onChange={setAudioSampleRate}
+                          direction="up"
                         />
                       </label>
                       <label className="preset-field">
@@ -924,6 +928,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           options={audioCodecOptions}
                           value={audioCodec}
                           onChange={setAudioCodec}
+                          direction="up"
                         />
                       </label>
                       <label className="preset-field">

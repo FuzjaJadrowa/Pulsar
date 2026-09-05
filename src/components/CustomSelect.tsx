@@ -12,7 +12,21 @@ interface CustomSelectProps {
   disabled?: boolean;
   width?: string;
   className?: string;
+  direction?: "up" | "down" | "auto";
 }
+
+const getScrollParent = (node: HTMLElement | null): HTMLElement | null => {
+  if (!node) return null;
+  let parent = node.parentElement;
+  while (parent && parent !== document.body) {
+    const { overflowY } = window.getComputedStyle(parent);
+    if (overflowY === "auto" || overflowY === "scroll" || parent.classList.contains("preset-modal-body")) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+};
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
   options,
@@ -21,6 +35,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   disabled = false,
   width,
   className = "",
+  direction = "auto",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
@@ -35,21 +50,27 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     if (disabled) return;
 
     if (!isOpen && headRef.current) {
-      const headRect = headRef.current.getBoundingClientRect();
-      const estimatedHeight = Math.min(options.length * 40, 240);
+      if (direction === "up") {
+        setOpenUp(true);
+      } else if (direction === "down") {
+        setOpenUp(false);
+      } else {
+        const headRect = headRef.current.getBoundingClientRect();
+        const estimatedHeight = Math.min(options.length * 40, 240);
 
-      let spaceAbove = headRect.top;
-      let spaceBelow = window.innerHeight - headRect.bottom;
+        let spaceAbove = headRect.top;
+        let spaceBelow = window.innerHeight - headRect.bottom;
 
-      const modalBody = wrapperRef.current?.closest(".preset-modal-body");
-      if (modalBody) {
-        const modalRect = modalBody.getBoundingClientRect();
-        spaceAbove = headRect.top - modalRect.top;
-        spaceBelow = modalRect.bottom - headRect.bottom;
+        const scrollParent = getScrollParent(wrapperRef.current);
+        if (scrollParent) {
+          const parentRect = scrollParent.getBoundingClientRect();
+          spaceBelow = Math.min(spaceBelow, parentRect.bottom - headRect.bottom);
+          spaceAbove = Math.min(spaceAbove, headRect.top - parentRect.top);
+        }
+
+        const shouldOpenUp = spaceBelow < estimatedHeight && spaceAbove > 40;
+        setOpenUp(shouldOpenUp);
       }
-
-      const shouldOpenUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
-      setOpenUp(shouldOpenUp);
     }
 
     setIsOpen((prev) => !prev);
