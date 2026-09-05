@@ -109,16 +109,9 @@ body.preset-modal-open .page-scroll {
     flex-direction: column;
     gap: 18px;
     min-height: 0;
-    scrollbar-width: none;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.preset-modal-body::-webkit-scrollbar {
-    display: none;
-}
-.preset-modal-body::-webkit-scrollbar-thumb {
-    background: transparent;
 }
 .preset-modal-footer {
     display: flex;
@@ -589,11 +582,11 @@ body.preset-modal-open .page-scroll {
     transition: none;
 }
 .preset-advanced.expanded {
-    max-height: 1200px;
+    max-height: 520px;
     opacity: 1;
     transform: translateY(0);
     overflow: visible;
-    transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, transform 0.3s ease;
 }
 .preset-advanced .preset-section {
     opacity: 0;
@@ -613,16 +606,6 @@ body.preset-modal-open .page-scroll {
 .preset-advanced.expanded .preset-section:nth-child(2) {
     transition-delay: 0.1s;
 }
-.preset-inline {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-}
-.preset-inline input {
-    flex: 1 1 auto;
-    min-width: 0;
-}
 .preset-path-field {
     grid-column: 1 / -1;
 }
@@ -631,6 +614,7 @@ body.preset-modal-open .page-scroll {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 10px 14px;
     margin-top: 4px;
 }

@@ -744,9 +744,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   <div className="preset-field preset-path-field">
                     <span>{t("presetCreator.fields.path")}</span>
                     <PathSelector
-                      className="preset-inline"
-                      inputClassName="custom-input"
-                      buttonClassName="anim-btn preset-browse-btn"
+                      className="path-selector"
                       value={savePath}
                       onChange={setSavePath}
                       placeholder={t("presetCreator.placeholders.path")}
@@ -827,7 +825,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
           )}
 
             {}
-            {presetType !== "compressor" && isFormatValid && (
+            {presetType !== "compressor" && isFormatValid && (showVideoSettings || showAudioSettings) && (
               <div className="preset-section preset-media-section anim-section-in">
                 <div className="preset-section-title">{t("presetCreator.sections.videoAudio")}</div>
 
