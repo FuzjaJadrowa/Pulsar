@@ -22,6 +22,8 @@ pub struct BridgeState {
     process: Mutex<Option<Child>>,
     stdin: Mutex<Option<ChildStdin>>,
     ffmpeg_ranges: Arc<Mutex<HashMap<String, FfmpegRange>>>,
+    sub_listeners: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<Value>>>>,
+    batch_cancels: Arc<Mutex<HashMap<String, Arc<std::sync::atomic::AtomicBool>>>>,
 }
 
 #[tauri::command]
@@ -35,6 +37,8 @@ impl BridgeState {
             process: Mutex::new(None),
             stdin: Mutex::new(None),
             ffmpeg_ranges: Arc::new(Mutex::new(HashMap::new())),
+            sub_listeners: Arc::new(Mutex::new(HashMap::new())),
+            batch_cancels: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -54,6 +58,36 @@ impl BridgeState {
             }
         }
         *self.stdin.lock().unwrap() = None;
+    }
+
+    pub fn register_sub_listener(&self, sub_id: String) -> std::sync::mpsc::Receiver<Value> {
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.sub_listeners.lock().unwrap().insert(sub_id, tx);
+        rx
+    }
+
+    pub fn unregister_sub_listener(&self, sub_id: &str) {
+        self.sub_listeners.lock().unwrap().remove(sub_id);
+    }
+
+    pub fn register_batch_cancel(&self, task_id: String) -> Arc<std::sync::atomic::AtomicBool> {
+        let flag = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        self.batch_cancels.lock().unwrap().insert(task_id, flag.clone());
+        flag
+    }
+
+    pub fn cancel_batch(&self, task_id: &str) -> bool {
+        let mut guard = self.batch_cancels.lock().unwrap();
+        if let Some(flag) = guard.remove(task_id) {
+            flag.store(true, std::sync::atomic::Ordering::SeqCst);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn unregister_batch_cancel(&self, task_id: &str) {
+        self.batch_cancels.lock().unwrap().remove(task_id);
     }
 
     pub fn init(&self, app_handle: &AppHandle) -> Result<(), String> {
@@ -96,6 +130,7 @@ impl BridgeState {
 
         let app_handle_clone = app_handle.clone();
         let ffmpeg_ranges = self.ffmpeg_ranges.clone();
+        let sub_listeners = self.sub_listeners.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
@@ -119,6 +154,12 @@ impl BridgeState {
                                 }
                             }
                             if let Some(id) = json_val.get("id").and_then(|v| v.as_str()) {
+                                {
+                                    let listeners_guard = sub_listeners.lock().unwrap();
+                                    if let Some(tx) = listeners_guard.get(id) {
+                                        let _ = tx.send(json_val.clone());
+                                    }
+                                }
                                 if is_terminal_event(&json_val) {
                                     ffmpeg_ranges.lock().unwrap().remove(id);
                                 }
@@ -722,6 +763,8 @@ pub fn cancel_download(app_handle: AppHandle, state: State<BridgeState>, task_id
     }
 
     let trimmed = task_id.trim().to_string();
+    state.cancel_batch(&trimmed);
+
     let cmd = BridgeCommand {
         command: "cancel".to_string(),
         id: trimmed.clone(),
@@ -849,7 +892,7 @@ fn extract_ffmpeg_elapsed_seconds(payload: &Value) -> Option<f64> {
     None
 }
 
-fn is_terminal_event(payload: &Value) -> bool {
+pub fn is_terminal_event(payload: &Value) -> bool {
     let type_val = payload.get("type").and_then(|v| v.as_str()).unwrap_or("");
     if matches!(type_val, "finished" | "cancelled") {
         return true;

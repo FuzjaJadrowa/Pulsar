@@ -90,3 +90,73 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
     setMetadata
   };
 }
+
+export function fetchSingleFileMetadata(filePath: string): Promise<any> {
+  return new Promise((resolve) => {
+    const taskId = `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    let unsub: (() => void) | null = null;
+    let resolved = false;
+
+    const cleanup = () => {
+      if (unsub) {
+        unsub();
+        unsub = null;
+      }
+    };
+
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        resolve(null);
+      }
+    }, 15000);
+
+    listen<any>("download-event", (event) => {
+      const payload = event.payload;
+      if (!payload || payload.id !== taskId) return;
+
+      if (payload.type === "finished" && payload.success === false) {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          cleanup();
+          resolve(null);
+        }
+      } else if (payload.type === "metadata") {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          cleanup();
+          if (payload.success && payload.data) {
+            resolve(payload.data);
+          } else {
+            resolve(null);
+          }
+        }
+      }
+    }).then((u) => {
+      unsub = u;
+      if (resolved) {
+        cleanup();
+        return;
+      }
+      invoke<string>("fetch_metadata_converter", { path: filePath, clientTaskId: taskId }).catch((err) => {
+        console.error("fetch_metadata_converter error:", err);
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          cleanup();
+          resolve(null);
+        }
+      });
+    }).catch((err) => {
+      console.error("listen error:", err);
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        resolve(null);
+      }
+    });
+  });
+}

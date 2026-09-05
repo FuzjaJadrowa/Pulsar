@@ -8,7 +8,7 @@ import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
-import { useTauriMetadata } from "../hooks/useTauriMetadata";
+import { useTauriMetadata, fetchSingleFileMetadata } from "../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../hooks/useFileDragDrop";
 import { CustomSelect } from "../components/CustomSelect";
 
@@ -89,6 +89,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const [filePath, setFilePath] = useState("");
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [loadedFiles, setLoadedFiles] = useState<any[]>([]);
 
   const {
     metadata,
@@ -120,13 +121,61 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }
   });
 
+  const handleFilesSelected = async (inputPaths: string | string[]) => {
+    const rawPaths = Array.isArray(inputPaths) ? inputPaths : [inputPaths];
+    const cleanPaths = rawPaths.map(p => String(p || "").trim()).filter(Boolean);
+    if (cleanPaths.length === 0) return;
+
+    if (cleanPaths.length === 1) {
+      setLoadedFiles([]);
+      setFilePath(cleanPaths[0]);
+      triggerFetchMetadata(cleanPaths[0]);
+      return;
+    }
+
+    // Multiple files (Bulk Mode)
+    try {
+      const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
+      const results = await Promise.all(metaPromises);
+      const validMeta = results.filter(m => {
+        if (!m || !m.path || !m.category) return false;
+        const category = String(m.category || "").toLowerCase();
+        if (!SUPPORTED_CATEGORIES.has(category)) return false;
+        if (category === "image") {
+          const ext = normalizeFormatKey(m.extension || m.format || "");
+          if (!SUPPORTED_IMAGE_FORMATS.has(ext)) return false;
+        }
+        return true;
+      });
+
+      if (validMeta.length === 0) {
+        showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
+        return;
+      }
+
+      // Category Consistency Check
+      const categories = new Set(validMeta.map(m => String(m.category || "").toLowerCase()));
+      if (categories.size > 1) {
+        showNotification(t("common.info"), t("compressor.bulk.mixedCategoryError"), "info");
+        return;
+      }
+
+      setLoadedFiles(validMeta);
+      setFilePath(validMeta.map(m => m.path).join("; "));
+      handleMetadataLoaded(validMeta[0]);
+    } catch (e) {
+      console.error("Bulk fetch metadata failed:", e);
+      showNotification(t("common.error"), String(e), "error");
+    }
+  };
+
   const { showDropOverlay } = useFileDragDrop({
     pageClass: "page-compressor",
-    onFileDrop: (path) => {
-      setFilePath(path);
-      triggerFetchMetadata(path);
+    onFileDrop: (paths) => {
+      handleFilesSelected(paths);
     }
   });
+
   const [currentName, setCurrentName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [savePath, setSavePath] = useState("");
@@ -149,8 +198,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   // Format Data Map
   const [formatData, setFormatData] = useState<any[]>([]);
-
-
 
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -205,8 +252,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     crfValue
   ]);
 
-
-
   const handleMetadataLoaded = (data: any) => {
     setMetadata(data);
     const defaultName = data.name || extractFileName(data.path || "");
@@ -232,7 +277,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       triggerShakeInput();
       return;
     }
-    triggerFetchMetadata(raw);
+    const paths = raw.split(";").map(s => s.trim()).filter(Boolean);
+    handleFilesSelected(paths);
   };
 
   const triggerShakeInput = () => {
@@ -245,16 +291,29 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const openPicker = async () => {
     try {
-      const selected = await invoke<string>("pick_convert_file");
-      if (selected) {
-        setFilePath(selected);
+      const selected = await invoke<string[]>("pick_convert_files");
+      if (selected && selected.length > 0) {
+        handleFilesSelected(selected);
       }
     } catch (e) {
-      console.error("Pick compressor file failed:", e);
+      console.error("Pick compressor files failed:", e);
     }
   };
 
-
+  const removeFileFromBatch = (indexToRemove: number) => {
+    const updated = loadedFiles.filter((_, idx) => idx !== indexToRemove);
+    if (updated.length === 0) {
+      resetView();
+    } else if (updated.length === 1) {
+      setLoadedFiles([]);
+      handleMetadataLoaded(updated[0]);
+      setFilePath(updated[0].path);
+    } else {
+      setLoadedFiles(updated);
+      setMetadata(updated[0]);
+      setFilePath(updated.map(m => m.path).join("; "));
+    }
+  };
 
   const clearActivePreset = () => {
     setActivePresetId(null);
@@ -262,14 +321,13 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const resetView = () => {
     setFilePath("");
+    setLoadedFiles([]);
     setIsDashboardVisible(false);
     resetMetadataState();
     setCurrentName("");
     setSavePath("");
     clearActivePreset();
   };
-
-
 
   const estimateFromCrf = (sizeBytes: number, crf: number) => {
     if (!Number.isFinite(sizeBytes) || !Number.isFinite(crf)) return null;
@@ -319,8 +377,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
     const outputDir = savePath.trim() || extractFolderPath(metadata.path);
     const rawName = currentName.trim() || metadata.name || "output";
-    const defaultName = metadata.name || "";
-    const currentNormalized = currentName.trim();
     const inputFormat = normalizeFormatKey(metadata.extension || metadata.format || "");
 
     let baseName = rawName;
@@ -332,24 +388,12 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }
     if (!baseName) baseName = "output";
 
-    const isDefaultName = !currentNormalized || currentNormalized.toLowerCase() === defaultName.toLowerCase();
-    if (isDefaultName) {
-      baseName = `${baseName}-processed`;
-    }
-
-    let outputName = baseName;
     const joinPath = (dir: string, file: string) => {
       const sep = dir.includes("/") ? "/" : "\\";
       return dir.endsWith(sep) ? `${dir}${file}` : `${dir}${sep}${file}`;
     };
 
-    let outputPath = inputFormat ? joinPath(outputDir, `${outputName}.${inputFormat}`) : joinPath(outputDir, outputName);
-    if (outputPath && metadata.path && outputPath.toLowerCase() === metadata.path.toLowerCase()) {
-      outputName = `${baseName}-processed`;
-      outputPath = inputFormat
-        ? joinPath(outputDir, `${outputName}.${inputFormat}`)
-        : joinPath(outputDir, outputName);
-    }
+    let outputPath = inputFormat ? joinPath(outputDir, `${baseName}.${inputFormat}`) : joinPath(outputDir, baseName);
 
     const targetPercent = selectedMode === "percent" ? percentValue : null;
     const targetSize = selectedMode === "size" ? parseSizeInput(sizeInputValue) : null;
@@ -362,7 +406,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     return {
       input_path: metadata.path,
       output_dir: outputDir,
-      output_name: outputName,
+      output_name: baseName,
       output_format: inputFormat,
       category,
       compress_mode: selectedMode,
@@ -384,6 +428,74 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const handleStartCompress = async (autoStart: boolean, e: React.MouseEvent<HTMLButtonElement>) => {
     if (!metadata) return;
+
+    if (loadedFiles.length > 1) {
+      // Bulk compressor
+      const payloads = loadedFiles.map(file => {
+        const category = String(file.category || "").toLowerCase();
+        const outputDir = savePath.trim() || extractFolderPath(file.path);
+        const rawName = extractFileName(file.path);
+        const inputFormat = normalizeFormatKey(file.extension || file.format || "");
+        let baseName = rawName;
+        if (inputFormat && baseName.toLowerCase().endsWith(`.${inputFormat}`)) {
+          baseName = baseName.slice(0, -(inputFormat.length + 1));
+        }
+        if (!baseName) baseName = "output";
+
+        const targetPercent = selectedMode === "percent" ? percentValue : null;
+        const targetSize = selectedMode === "size" ? parseSizeInput(sizeInputValue) : null;
+        const crfNum = selectedMode === "quality" ? Number(crfValue) : null;
+
+        return {
+          input_path: file.path,
+          output_dir: outputDir,
+          output_name: baseName,
+          output_format: inputFormat,
+          category,
+          compress_mode: selectedMode,
+          target_percent: Number.isFinite(targetPercent) ? targetPercent : null,
+          target_size_bytes: Number.isFinite(targetSize) ? targetSize : null,
+          crf: Number.isFinite(crfNum) ? crfNum : null,
+          video_codec: category === "video" ? videoCodec : "",
+          audio_codec: category === "audio"
+            ? audioCodec
+            : (category === "video" ? videoAudioCodec : ""),
+          source_duration_seconds: Number.isFinite(Number(file.duration_seconds)) ? Number(file.duration_seconds) : null,
+          source_size_bytes: Number.isFinite(Number(file.size_bytes)) ? Number(file.size_bytes) : null,
+          source_format: String(file.extension || "")
+        };
+      });
+
+      const firstCategory = String(loadedFiles[0].category || "").toLowerCase();
+      const batchPayload = {
+        is_batch: true,
+        category: firstCategory,
+        items: payloads
+      };
+
+      const meta = {
+        title: `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`,
+        thumbnail: "",
+        path: savePath.trim() || extractFolderPath(loadedFiles[0].path),
+        source: autoStart ? "compress" : "queue"
+      };
+
+      const sourceRect = e.currentTarget.getBoundingClientRect();
+      try {
+        await enqueue("compress", batchPayload, meta, { autoStart, startReason: autoStart ? "compress" : undefined });
+        if (sourceRect) {
+          animateQueueOrb(sourceRect);
+        }
+        setTimeout(() => {
+          resetView();
+        }, 40);
+      } catch (err) {
+        console.error("Bulk compress enqueue error:", err);
+        showNotification(t("common.error"), t("common.errors.startPrefix", { error: String(err) }), "error");
+      }
+      return;
+    }
+
     const payload = buildCompressPayload();
     if (!payload) {
       showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
@@ -517,90 +629,127 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
         {/* Dashboard area */}
         {isDashboardVisible && metadata && (
           <div id="compress-dashboard" className="compressor-dashboard">
-            <div className={`compressor-info-card fade-in ${!hasDuration ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
-              <div className="compressor-name-row">
-                {isEditingName ? (
-                  <input
-                    id="compress-file-name-input"
-                    className="compressor-name-input"
-                    type="text"
-                    placeholder={t("common.output.placeholder")}
-                    value={currentName}
-                    onChange={(e) => setCurrentName(e.target.value)}
-                    onBlur={() => setIsEditingName(false)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setIsEditingName(false);
-                      } else if (e.key === "Escape") {
-                        setCurrentName(metadata.name || extractFileName(metadata.path || ""));
-                        setIsEditingName(false);
-                      }
-                    }}
-                    autoFocus
-                    autoComplete="off"
-                  />
-                ) : (
-                  <span
-                    id="compress-file-name"
-                    className="compressor-name-text"
-                    data-i18n-lock={currentName ? "true" : undefined}
-                    onDoubleClick={() => setIsEditingName(true)}
-                  >
-                    {currentName || t("common.output.placeholder")}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  id="compress-rename-btn"
-                  className="compressor-rename-btn"
-                  title={t("common.output.editTitle")}
-                  onClick={() => setIsEditingName(!isEditingName)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="compressor-category-row">
-                <span
-                  id="compress-category-icon"
-                  className="compressor-category-icon"
-                  dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || DEFAULT_ICON }}
-                />
-                <span id="compress-category-label" className="compressor-category-label">
-                  {metadata.extension
-                    ? `${t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${metadata.extension})`
-                    : t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")}
-                </span>
-              </div>
-              <div className="compressor-meta-row">
-                <div className="compressor-meta-item compressor-meta-location">
-                  <span className="compressor-meta-label">{t("common.meta.locationLabel")}</span>
-                  <span
-                    id="compress-file-location"
-                    className="compressor-meta-value compressor-meta-location-value"
-                    title={extractFolderPath(metadata.path)}
-                  >
-                    {extractFolderPath(metadata.path) || "-"}
-                  </span>
-                </div>
-                <div className="compressor-meta-item">
-                  <span className="compressor-meta-label">{t("common.meta.sizeLabel")}</span>
-                  <span id="compress-file-size" className="compressor-meta-value">
-                    {formatBytes(metadata.size_bytes)}
-                  </span>
-                </div>
-                {hasDuration && (
-                  <div className="compressor-meta-item compressor-meta-duration">
-                    <span className="compressor-meta-label">{t("common.meta.durationLabel")}</span>
-                    <span id="compress-file-duration" className="compressor-meta-value">
-                      {metadata.duration_string || formatDuration(metadata.duration_seconds)}
+            {loadedFiles.length > 1 ? (
+              <div className="bulk-info-card fade-in">
+                <div className="bulk-header-row">
+                  <div className="bulk-header-title">
+                    <span
+                      className="compressor-category-icon"
+                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || DEFAULT_ICON }}
+                    />
+                    <span>
+                      {t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} ({loadedFiles.length})
                     </span>
                   </div>
-                )}
+                </div>
+                <div className="bulk-file-list">
+                  {loadedFiles.map((file, idx) => (
+                    <div key={file.path || idx} className="bulk-file-item">
+                      <span className="bulk-file-name" title={file.path}>
+                        {file.name || extractFileName(file.path)}
+                      </span>
+                      <span className="bulk-file-size">{formatBytes(file.size_bytes)}</span>
+                      <button
+                        type="button"
+                        className="bulk-remove-btn"
+                        title={t("compressor.bulk.removeFile")}
+                        onClick={() => removeFileFromBatch(idx)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={`compressor-info-card fade-in ${!hasDuration ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
+                <div className="compressor-name-row">
+                  {isEditingName ? (
+                    <input
+                      id="compress-file-name-input"
+                      className="compressor-name-input"
+                      type="text"
+                      placeholder={t("common.output.placeholder")}
+                      value={currentName}
+                      onChange={(e) => setCurrentName(e.target.value)}
+                      onBlur={() => setIsEditingName(false)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          setIsEditingName(false);
+                        } else if (e.key === "Escape") {
+                          setCurrentName(metadata.name || extractFileName(metadata.path || ""));
+                          setIsEditingName(false);
+                        }
+                      }}
+                      autoFocus
+                      autoComplete="off"
+                    />
+                  ) : (
+                    <span
+                      id="compress-file-name"
+                      className="compressor-name-text"
+                      data-i18n-lock={currentName ? "true" : undefined}
+                      onDoubleClick={() => setIsEditingName(true)}
+                    >
+                      {currentName || t("common.output.placeholder")}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    id="compress-rename-btn"
+                    className="compressor-rename-btn"
+                    title={t("common.output.editTitle")}
+                    onClick={() => setIsEditingName(!isEditingName)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="compressor-category-row">
+                  <span
+                    id="compress-category-icon"
+                    className="compressor-category-icon"
+                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || DEFAULT_ICON }}
+                  />
+                  <span id="compress-category-label" className="compressor-category-label">
+                    {metadata.extension
+                      ? `${t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${metadata.extension})`
+                      : t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")}
+                  </span>
+                </div>
+                <div className="compressor-meta-row">
+                  <div className="compressor-meta-item compressor-meta-location">
+                    <span className="compressor-meta-label">{t("common.meta.locationLabel")}</span>
+                    <span
+                      id="compress-file-location"
+                      className="compressor-meta-value compressor-meta-location-value"
+                      title={extractFolderPath(metadata.path)}
+                    >
+                      {extractFolderPath(metadata.path) || "-"}
+                    </span>
+                  </div>
+                  <div className="compressor-meta-item">
+                    <span className="compressor-meta-label">{t("common.meta.sizeLabel")}</span>
+                    <span id="compress-file-size" className="compressor-meta-value">
+                      {formatBytes(metadata.size_bytes)}
+                    </span>
+                  </div>
+                  {hasDuration && (
+                    <div className="compressor-meta-item compressor-meta-duration">
+                      <span className="compressor-meta-label">{t("common.meta.durationLabel")}</span>
+                      <span id="compress-file-duration" className="compressor-meta-value">
+                        {metadata.duration_string || formatDuration(metadata.duration_seconds)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Presets Grid */}
             {compressorPresets.length > 0 && (

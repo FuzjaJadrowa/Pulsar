@@ -130,6 +130,12 @@
     "actions": {
       "convert": "CONVERT"
     },
+    "bulk": {
+      "title": "Bulk Convert ({count} files)",
+      "filesHeader": "Batch files ({count})",
+      "removeFile": "Remove file from batch",
+      "mixedCategoryError": "All selected files must belong to the same category."
+    },
     "options": {
       "compressBy": "COMPRESS BY",
       "convertTo": "CONVERT TO",
@@ -152,7 +158,7 @@
       "audio": "AUDIO"
     },
     "drop": {
-      "text": "Drop file to convert"
+      "text": "Drop files to convert"
     }
   },
   "compressor": {
@@ -161,6 +167,12 @@
     },
     "actions": {
       "compress": "COMPRESS"
+    },
+    "bulk": {
+      "title": "Bulk Compress ({count} files)",
+      "filesHeader": "Batch files ({count})",
+      "removeFile": "Remove file from batch",
+      "mixedCategoryError": "Selection cancelled: all selected files must belong to the same category (Images, Video, or Audio)."
     },
     "mode": {
       "percent": "PERCENT",
@@ -184,7 +196,7 @@
       "bestCompression": "51 - Best compression"
     },
     "drop": {
-      "text": "Drop file to compress"
+      "text": "Drop files to compress"
     }
   },
   "queue": {

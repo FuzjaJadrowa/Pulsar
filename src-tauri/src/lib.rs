@@ -79,9 +79,12 @@ pub fn run() {
             core::downloader::init_bridge,
             core::downloader::pick_download_directory,
             core::converter::pick_convert_file,
+            core::converter::pick_convert_files,
             core::converter::estimate_convert_size,
             core::converter::start_convert,
+            core::converter::start_batch_convert,
             core::compressor::start_compress,
+            core::compressor::start_batch_compress,
             core::downloader::save_thumbnail_to_disk,
             core::downloader::read_clipboard_text,
             core::downloader::open_in_file_manager

@@ -329,6 +329,16 @@ pub async fn pick_convert_file(app_handle: AppHandle) -> Result<String, String> 
 }
 
 #[tauri::command]
+pub async fn pick_convert_files(app_handle: AppHandle) -> Result<Vec<String>, String> {
+    let file_paths = app_handle.dialog().file().blocking_pick_files();
+
+    match file_paths {
+        Some(paths) => Ok(paths.into_iter().map(|p| p.to_string()).collect()),
+        None => Ok(Vec::new()),
+    }
+}
+
+#[tauri::command]
 pub fn estimate_convert_size(payload: EstimatePayload) -> Result<Option<u64>, String> {
     let category = payload
         .category
@@ -349,40 +359,48 @@ pub fn estimate_convert_size(payload: EstimatePayload) -> Result<Option<u64>, St
     Ok(estimate)
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ConvertOptions {
     #[serde(alias = "input_path")]
-    input_path: String,
+    pub input_path: String,
     #[serde(default, alias = "output_dir")]
-    output_dir: Option<String>,
+    pub output_dir: Option<String>,
     #[serde(default, alias = "output_name")]
-    output_name: Option<String>,
+    pub output_name: Option<String>,
     #[serde(alias = "output_format")]
-    output_format: String,
-    category: Option<String>,
+    pub output_format: String,
+    pub category: Option<String>,
     #[serde(default, alias = "video_quality")]
-    video_quality: Option<String>,
+    pub video_quality: Option<String>,
     #[serde(default, alias = "video_codec")]
-    video_codec: Option<String>,
+    pub video_codec: Option<String>,
     #[serde(default, alias = "video_bitrate")]
-    video_bitrate: Option<String>,
+    pub video_bitrate: Option<String>,
     #[serde(default, alias = "video_fps")]
-    video_fps: Option<String>,
+    pub video_fps: Option<String>,
     #[serde(default, alias = "audio_codec")]
-    audio_codec: Option<String>,
+    pub audio_codec: Option<String>,
     #[serde(default, alias = "audio_bitrate")]
-    audio_bitrate: Option<String>,
+    pub audio_bitrate: Option<String>,
     #[serde(default, alias = "image_width")]
-    image_width: Option<u32>,
+    pub image_width: Option<u32>,
     #[serde(default, alias = "image_height")]
-    image_height: Option<u32>,
+    pub image_height: Option<u32>,
     #[serde(default, alias = "image_quality")]
-    image_quality: Option<u32>,
+    pub image_quality: Option<u32>,
     #[serde(default, alias = "source_duration_seconds")]
-    source_duration_seconds: Option<f64>,
+    pub source_duration_seconds: Option<f64>,
     #[serde(default, alias = "client_task_id")]
-    client_task_id: Option<String>,
+    pub client_task_id: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchConvertOptions {
+    #[serde(alias = "client_task_id")]
+    pub client_task_id: String,
+    pub items: Vec<ConvertOptions>,
 }
 
 #[derive(Serialize)]
@@ -456,12 +474,47 @@ fn resolve_output_name(input_path: &Path, output_name: Option<&str>) -> String {
         .unwrap_or(base)
 }
 
+pub fn resolve_unique_output_path(output_dir: &Path, base_name: &str, output_format: &str) -> String {
+    let fmt = output_format.trim().trim_start_matches('.');
+    let initial_filename = if fmt.is_empty() {
+        base_name.to_string()
+    } else {
+        format!("{}.{}", base_name, fmt)
+    };
+    let initial_path = output_dir.join(&initial_filename);
+    if !initial_path.exists() {
+        return initial_path.to_string_lossy().to_string();
+    }
+
+    let mut counter = 1;
+    loop {
+        let candidate_filename = if fmt.is_empty() {
+            format!("{}_{}", base_name, counter)
+        } else {
+            format!("{}_{}.{}", base_name, counter, fmt)
+        };
+        let candidate_path = output_dir.join(&candidate_filename);
+        if !candidate_path.exists() {
+            return candidate_path.to_string_lossy().to_string();
+        }
+        counter += 1;
+    }
+}
+
 fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<String, String> {
     let input_path = Path::new(options.input_path.trim());
     let output_dir = resolve_output_dir(input_path, options.output_dir.as_deref())?;
-    let name = resolve_output_name(input_path, options.output_name.as_deref());
-    let file_name = format!("{}.{}", if name.is_empty() { "output" } else { name.as_str() }, output_format);
-    Ok(output_dir.join(file_name).to_string_lossy().to_string())
+    let mut name = resolve_output_name(input_path, options.output_name.as_deref());
+    if !output_format.is_empty() {
+        let suffix = format!(".{}", output_format);
+        if name.to_lowercase().ends_with(&suffix) {
+            name = name[..name.len() - suffix.len()].to_string();
+        }
+    }
+    if name.trim().is_empty() {
+        name = "output".to_string();
+    }
+    Ok(resolve_unique_output_path(&output_dir, &name, output_format))
 }
 
 use crate::core::utils::{
@@ -469,6 +522,9 @@ use crate::core::utils::{
     map_video_codec_hw, default_video_codec_for_format, default_audio_codec_for_format,
     extract_file_extension, is_audio_copy_compatible, is_video_copy_compatible, generate_task_id
 };
+use crate::core::downloader::{cancel_download, is_terminal_event};
+use tauri::Emitter;
+use tauri::Manager;
 
 fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>, config: &crate::system::config::AppConfig) -> Vec<String> {
     let mut args = vec![
@@ -595,8 +651,6 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     args
 }
 
-
-
 #[tauri::command]
 pub fn start_convert(
     app_handle: AppHandle,
@@ -656,6 +710,177 @@ pub fn start_convert(
     };
 
     state.send_raw_command(&app_handle, &cmd)?;
+
+    Ok(task_id)
+}
+
+#[tauri::command]
+pub fn start_batch_convert(
+    app_handle: AppHandle,
+    state: State<BridgeState>,
+    config_mgr: State<ConfigManager>,
+    options: BatchConvertOptions,
+) -> Result<String, String> {
+    let task_id = options.client_task_id.trim().to_string();
+    if task_id.is_empty() {
+        return Err("Task ID cannot be empty.".to_string());
+    }
+    if options.items.is_empty() {
+        return Err("Batch items list cannot be empty.".to_string());
+    }
+
+    let items = options.items;
+    let cancel_flag = state.register_batch_cancel(task_id.clone());
+
+    let max_concurrent = {
+        let config = config_mgr.config.lock().unwrap();
+        (config.maximum_concurrent_processes as usize).max(1)
+    };
+
+    let app_handle_clone = app_handle.clone();
+    let task_id_clone = task_id.clone();
+
+    std::thread::spawn(move || {
+        let total = items.len();
+        let category = items[0]
+            .category
+            .as_deref()
+            .unwrap_or("image")
+            .trim()
+            .to_lowercase();
+
+        let emit_event = |payload: serde_json::Value| {
+            let _ = app_handle_clone.emit("download-event", payload);
+        };
+
+        if category == "video" || category == "audio" {
+            for (idx, mut item_opts) in items.into_iter().enumerate() {
+                if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
+                    emit_event(serde_json::json!({ "type": "cancelled", "id": task_id_clone }));
+                    let bridge_state = app_handle_clone.state::<BridgeState>();
+                    bridge_state.unregister_batch_cancel(&task_id_clone);
+                    return;
+                }
+
+                let sub_id = format!("{}_sub_{}", task_id_clone, idx);
+                item_opts.client_task_id = Some(sub_id.clone());
+
+                let bridge_state = app_handle_clone.state::<BridgeState>();
+                let config_mgr_state = app_handle_clone.state::<ConfigManager>();
+                let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
+
+                if let Ok(_) = start_convert(
+                    app_handle_clone.clone(),
+                    bridge_state.clone(),
+                    config_mgr_state.clone(),
+                    item_opts,
+                ) {
+                    while let Ok(msg) = sub_rx.recv() {
+                        if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
+                            let _ = cancel_download(app_handle_clone.clone(), bridge_state.clone(), sub_id.clone());
+                            break;
+                        }
+
+                        let sub_pct = msg.get("percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                        let overall_pct = (((idx as f64) + (sub_pct / 100.0)) / (total as f64) * 100.0).clamp(0.0, 100.0);
+                        emit_event(serde_json::json!({
+                            "type": "progress",
+                            "id": task_id_clone,
+                            "percent": overall_pct,
+                            "item_index": idx + 1,
+                            "item_count": total
+                        }));
+
+                        if is_terminal_event(&msg) {
+                            break;
+                        }
+                    }
+                }
+                bridge_state.unregister_sub_listener(&sub_id);
+            }
+        } else {
+            use std::sync::{Arc, Mutex};
+            use std::sync::atomic::{AtomicUsize, Ordering};
+
+            let completed = Arc::new(AtomicUsize::new(0));
+            let items_queue = Arc::new(Mutex::new(items.into_iter().enumerate().collect::<Vec<_>>()));
+
+            let mut threads = Vec::new();
+            for _ in 0..max_concurrent {
+                let queue = items_queue.clone();
+                let completed_ref = completed.clone();
+                let cancel_ref = cancel_flag.clone();
+                let app = app_handle_clone.clone();
+                let tid = task_id_clone.clone();
+
+                let handle = std::thread::spawn(move || {
+                    loop {
+                        if cancel_ref.load(Ordering::SeqCst) {
+                            break;
+                        }
+                        let next_item = {
+                            let mut q = queue.lock().unwrap();
+                            if q.is_empty() { None } else { Some(q.remove(0)) }
+                        };
+
+                        let (idx, mut item_opts) = match next_item {
+                            Some(item) => item,
+                            None => break,
+                        };
+
+                        let sub_id = format!("{}_sub_{}", tid, idx);
+                        item_opts.client_task_id = Some(sub_id.clone());
+
+                        let bridge_state = app.state::<BridgeState>();
+                        let config_mgr_state = app.state::<ConfigManager>();
+                        let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
+
+                        if let Ok(_) = start_convert(
+                            app.clone(),
+                            bridge_state.clone(),
+                            config_mgr_state.clone(),
+                            item_opts,
+                        ) {
+                            while let Ok(msg) = sub_rx.recv() {
+                                if cancel_ref.load(Ordering::SeqCst) {
+                                    let _ = cancel_download(app.clone(), bridge_state.clone(), sub_id.clone());
+                                    break;
+                                }
+                                if is_terminal_event(&msg) {
+                                    break;
+                                }
+                            }
+                        }
+                        bridge_state.unregister_sub_listener(&sub_id);
+
+                        let count = completed_ref.fetch_add(1, Ordering::SeqCst) + 1;
+                        let pct = ((count as f64) / (total as f64) * 100.0).clamp(0.0, 100.0);
+                        let _ = app.emit("download-event", serde_json::json!({
+                            "type": "progress",
+                            "id": tid,
+                            "percent": pct,
+                            "item_index": count,
+                            "item_count": total
+                        }));
+                    }
+                });
+                threads.push(handle);
+            }
+
+            for t in threads {
+                let _ = t.join();
+            }
+        }
+
+        if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
+            emit_event(serde_json::json!({ "type": "cancelled", "id": task_id_clone }));
+        } else {
+            emit_event(serde_json::json!({ "type": "finished", "id": task_id_clone, "success": true }));
+        }
+
+        let bridge_state = app_handle_clone.state::<BridgeState>();
+        bridge_state.unregister_batch_cancel(&task_id_clone);
+    });
 
     Ok(task_id)
 }

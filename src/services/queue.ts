@@ -186,12 +186,20 @@ export async function startItem(item: QueueItem, reason: string) {
 
   try {
     let tId: any = null;
-    const cleanPayload = { ...item.payload, client_task_id: String(item.id) };
+    const cleanPayload: any = { ...item.payload, client_task_id: String(item.id) };
 
     if (item.itemType === "convert") {
-      tId = await invoke("start_convert", { options: cleanPayload });
+      if (cleanPayload.is_batch && Array.isArray(cleanPayload.items)) {
+        tId = await invoke("start_batch_convert", { options: cleanPayload });
+      } else {
+        tId = await invoke("start_convert", { options: cleanPayload });
+      }
     } else if (item.itemType === "compress") {
-      tId = await invoke("start_compress", { options: cleanPayload });
+      if (cleanPayload.is_batch && Array.isArray(cleanPayload.items)) {
+        tId = await invoke("start_batch_compress", { options: cleanPayload });
+      } else {
+        tId = await invoke("start_compress", { options: cleanPayload });
+      }
     } else {
       tId = await invoke("start_download", { options: cleanPayload });
     }

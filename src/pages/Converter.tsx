@@ -8,7 +8,7 @@ import { showNotification } from "../services/notifications";
 import { formatBytes, formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
-import { useTauriMetadata } from "../hooks/useTauriMetadata";
+import { useTauriMetadata, fetchSingleFileMetadata } from "../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../hooks/useFileDragDrop";
 import { CustomSelect } from "../components/CustomSelect";
 
@@ -24,6 +24,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const [filePath, setFilePath] = useState("");
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
+  const [loadedFiles, setLoadedFiles] = useState<any[]>([]);
 
   const {
     metadata,
@@ -41,11 +42,48 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }
   });
 
+  const handleFilesSelected = async (inputPaths: string | string[]) => {
+    const rawPaths = Array.isArray(inputPaths) ? inputPaths : [inputPaths];
+    const cleanPaths = rawPaths.map(p => String(p || "").trim()).filter(Boolean);
+    if (cleanPaths.length === 0) return;
+
+    if (cleanPaths.length === 1) {
+      setLoadedFiles([]);
+      setFilePath(cleanPaths[0]);
+      triggerFetchMetadata(cleanPaths[0]);
+      return;
+    }
+
+    // Multiple files (Bulk Mode)
+    try {
+      const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
+      const results = await Promise.all(metaPromises);
+      const validMeta = results.filter(m => m && m.path && m.category);
+      if (validMeta.length === 0) {
+        showNotification(t("common.error"), t("common.errors.invalidFileOrLink"), "error");
+        return;
+      }
+
+      // Category Consistency Check
+      const categories = new Set(validMeta.map(m => String(m.category || "").toLowerCase()));
+      if (categories.size > 1) {
+        showNotification(t("common.info"), t("converter.bulk.mixedCategoryError"), "info");
+        return;
+      }
+
+      setLoadedFiles(validMeta);
+      setFilePath(validMeta.map(m => m.path).join("; "));
+      handleMetadataLoaded(validMeta[0]);
+    } catch (e) {
+      console.error("Bulk fetch metadata failed:", e);
+      showNotification(t("common.error"), String(e), "error");
+    }
+  };
+
   const { showDropOverlay } = useFileDragDrop({
     pageClass: "page-converter",
-    onFileDrop: (path) => {
-      setFilePath(path);
-      triggerFetchMetadata(path);
+    onFileDrop: (paths) => {
+      handleFilesSelected(paths);
     }
   });
 
@@ -165,7 +203,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       triggerShakeInput();
       return;
     }
-    triggerFetchMetadata(raw);
+    const paths = raw.split(";").map(s => s.trim()).filter(Boolean);
+    handleFilesSelected(paths);
   };
 
   const triggerShakeInput = () => {
@@ -178,16 +217,29 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const openPicker = async () => {
     try {
-      const selected = await invoke<string>("pick_convert_file");
-      if (selected) {
-        setFilePath(selected);
+      const selected = await invoke<string[]>("pick_convert_files");
+      if (selected && selected.length > 0) {
+        handleFilesSelected(selected);
       }
     } catch (e) {
-      console.error("Pick converter file failed:", e);
+      console.error("Pick converter files failed:", e);
     }
   };
 
-
+  const removeFileFromBatch = (indexToRemove: number) => {
+    const updated = loadedFiles.filter((_, idx) => idx !== indexToRemove);
+    if (updated.length === 0) {
+      resetView();
+    } else if (updated.length === 1) {
+      setLoadedFiles([]);
+      handleMetadataLoaded(updated[0]);
+      setFilePath(updated[0].path);
+    } else {
+      setLoadedFiles(updated);
+      setMetadata(updated[0]);
+      setFilePath(updated.map(m => m.path).join("; "));
+    }
+  };
 
   const clearActivePreset = () => {
     setActivePresetId(null);
@@ -195,6 +247,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const resetView = () => {
     setFilePath("");
+    setLoadedFiles([]);
     setIsDashboardVisible(false);
     resetMetadataState();
     setCurrentName("");
@@ -202,8 +255,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     setSavePath("");
     clearActivePreset();
   };
-
-
 
   const runEstimate = async () => {
     if (!selectedFormat || !metadata) {
@@ -321,6 +372,17 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     return trimmed.slice(0, lastSep);
   };
 
+  const extractFileName = (rawPath: string) => {
+    if (typeof rawPath !== "string") return "";
+    const trimmed = rawPath.trim();
+    if (!trimmed) return "";
+    const lastSlash = trimmed.lastIndexOf("/");
+    const lastBackslash = trimmed.lastIndexOf("\\");
+    const lastSep = Math.max(lastSlash, lastBackslash);
+    if (lastSep < 0) return trimmed;
+    return trimmed.slice(lastSep + 1);
+  };
+
   const buildConvertPayload = () => {
     if (!selectedFormat || !metadata) return null;
 
@@ -333,8 +395,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
     const outputDir = savePath.trim() || extractFolderPath(metadata.path);
     const rawName = sanitizeOutputName(currentName || metadata.name || "output");
-    const defaultName = sanitizeOutputName(metadata.name || "");
-    const currentNormalized = sanitizeOutputName(currentName || "");
 
     let baseName = rawName;
     const lowerName = rawName.toLowerCase();
@@ -343,12 +403,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       baseName = rawName.slice(0, -suffix.length);
     }
     if (!baseName) baseName = "output";
-
-    const inputFormat = normalizeOutputFormat(metadata.extension || "");
-    const isDefaultName = !currentNormalized || currentNormalized.toLowerCase() === defaultName.toLowerCase();
-    if (isDefaultName && inputFormat && inputFormat === outputFormat) {
-      baseName = `${baseName}-processed`;
-    }
 
     const outputPath = joinPath(outputDir, `${baseName}.${outputFormat}`);
 
@@ -376,6 +430,79 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const handleStartConvert = async (autoStart: boolean, e: React.MouseEvent<HTMLButtonElement>) => {
     if (!selectedFormat || !metadata) return;
+
+    if (loadedFiles.length > 1) {
+      // Bulk conversion
+      const formatMeta = formatData.find((f: any) => f.id.toLowerCase() === selectedFormat.toLowerCase());
+      const outputFormat = normalizeOutputFormat(selectedFormat);
+      if (!outputFormat) {
+        showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
+        return;
+      }
+
+      const payloads = loadedFiles.map(file => {
+        const targetCategory = formatMeta?.type || (file.category === "video" ? selectedMode : file.category);
+        const outputDir = savePath.trim() || extractFolderPath(file.path);
+        const rawName = sanitizeOutputName(file.name || extractFileName(file.path) || "output");
+
+        let baseName = rawName;
+        const suffix = `.${outputFormat}`;
+        if (baseName.toLowerCase().endsWith(suffix)) {
+          baseName = baseName.slice(0, -suffix.length);
+        }
+        if (!baseName) baseName = "output";
+
+        return {
+          input_path: file.path,
+          output_dir: outputDir,
+          output_name: baseName,
+          output_format: outputFormat,
+          category: targetCategory,
+          image_width: targetCategory === "image" ? (parseInt(String(imageWidth)) || null) : null,
+          image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
+          image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null,
+          video_quality: targetCategory === "video" ? videoQuality : "",
+          video_codec: targetCategory === "video" ? videoCodec : "",
+          video_bitrate: targetCategory === "video" ? videoBitrate : "",
+          video_fps: targetCategory === "video" ? videoFps : "",
+          audio_codec: targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
+          audio_bitrate: targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
+          source_duration_seconds: Number.isFinite(Number(file.duration_seconds)) ? Number(file.duration_seconds) : null,
+          source_size_bytes: Number.isFinite(Number(file.size_bytes)) ? Number(file.size_bytes) : null,
+          source_format: String(file.extension || "")
+        };
+      });
+
+      const firstCategory = formatMeta?.type || (loadedFiles[0].category === "video" ? selectedMode : loadedFiles[0].category);
+      const batchPayload = {
+        is_batch: true,
+        category: firstCategory,
+        items: payloads
+      };
+
+      const meta = {
+        title: `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`,
+        thumbnail: "",
+        path: savePath.trim() || extractFolderPath(loadedFiles[0].path),
+        source: autoStart ? "convert" : "queue"
+      };
+
+      const sourceRect = e.currentTarget.getBoundingClientRect();
+      try {
+        await enqueue("convert", batchPayload, meta, { autoStart, startReason: autoStart ? "convert" : undefined });
+        if (sourceRect) {
+          animateQueueOrb(sourceRect);
+        }
+        setTimeout(() => {
+          resetView();
+        }, 40);
+      } catch (err) {
+        console.error("Bulk convert enqueue error:", err);
+        showNotification(t("common.error"), t("common.errors.startPrefix", { error: String(err) }), "error");
+      }
+      return;
+    }
+
     const payload = buildConvertPayload();
     if (!payload) {
       showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
@@ -508,71 +635,108 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
         {isDashboardVisible && metadata && (
           <div id="convert-dashboard" className="converter-dashboard">
             {/* File info card */}
-            <div className={`converter-info-card fade-in ${!metadata.duration_seconds ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
-              <div className="converter-name-row">
-                {!isEditingName ? (
-                  <>
-                    <span className="converter-name-text">
-                      {currentName || t("common.output.placeholder")}
-                    </span>
-                    <button
-                      type="button"
-                      className="converter-rename-btn"
-                      onClick={() => setIsEditingName(true)}
-                      title={t("common.output.editTitle")}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                      </svg>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      className="converter-name-input"
-                      type="text"
-                      value={currentName}
-                      onChange={(e) => setCurrentName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          setIsEditingName(false);
-                        }
-                      }}
-                      onBlur={() => setIsEditingName(false)}
-                      autoFocus
+            {loadedFiles.length > 1 ? (
+              <div className="bulk-info-card fade-in">
+                <div className="bulk-header-row">
+                  <div className="bulk-header-title">
+                    <span
+                      className="converter-category-icon"
+                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
                     />
-                  </>
-                )}
+                    <span>
+                      {t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} ({loadedFiles.length})
+                    </span>
+                  </div>
+                </div>
+                <div className="bulk-file-list">
+                  {loadedFiles.map((file, idx) => (
+                    <div key={file.path || idx} className="bulk-file-item">
+                      <span className="bulk-file-name" title={file.path}>
+                        {file.name || extractFileName(file.path)}
+                      </span>
+                      <span className="bulk-file-size">{formatBytes(file.size_bytes)}</span>
+                      <button
+                        type="button"
+                        className="bulk-remove-btn"
+                        title={t("converter.bulk.removeFile")}
+                        onClick={() => removeFileFromBatch(idx)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="converter-category-row">
-                <span
-                  className="converter-category-icon"
-                  dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
-                />
-                <span className="converter-category-label">
-                  {metadata.extension ? `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${metadata.extension})` : t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())}
-                </span>
-              </div>
-              <div className="converter-meta-row">
-                <div className="converter-meta-item converter-meta-location">
-                  <span className="converter-meta-label">{t("common.meta.locationLabel")}</span>
-                  <span className="converter-meta-value converter-meta-location-value" title={extractFolderPath(metadata.path)}>
-                    {extractFolderPath(metadata.path) || "-"}
+            ) : (
+              <div className={`converter-info-card fade-in ${!metadata.duration_seconds ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
+                <div className="converter-name-row">
+                  {!isEditingName ? (
+                    <>
+                      <span className="converter-name-text">
+                        {currentName || t("common.output.placeholder")}
+                      </span>
+                      <button
+                        type="button"
+                        className="converter-rename-btn"
+                        onClick={() => setIsEditingName(true)}
+                        title={t("common.output.editTitle")}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        className="converter-name-input"
+                        type="text"
+                        value={currentName}
+                        onChange={(e) => setCurrentName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            setIsEditingName(false);
+                          }
+                        }}
+                        onBlur={() => setIsEditingName(false)}
+                        autoFocus
+                      />
+                    </>
+                  )}
+                </div>
+                <div className="converter-category-row">
+                  <span
+                    className="converter-category-icon"
+                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
+                  />
+                  <span className="converter-category-label">
+                    {metadata.extension ? `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${metadata.extension})` : t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())}
                   </span>
                 </div>
-                <div className="converter-meta-item">
-                  <span className="converter-meta-label">{t("common.meta.sizeLabel")}</span>
-                  <span className="converter-meta-value">{formatBytes(metadata.size_bytes)}</span>
-                </div>
-                {metadata.duration_seconds && (
-                  <div className="converter-meta-item converter-meta-duration">
-                    <span className="converter-meta-label">{t("common.meta.durationLabel")}</span>
-                    <span className="converter-meta-value">{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
+                <div className="converter-meta-row">
+                  <div className="converter-meta-item converter-meta-location">
+                    <span className="converter-meta-label">{t("common.meta.locationLabel")}</span>
+                    <span className="converter-meta-value converter-meta-location-value" title={extractFolderPath(metadata.path)}>
+                      {extractFolderPath(metadata.path) || "-"}
+                    </span>
                   </div>
-                )}
+                  <div className="converter-meta-item">
+                    <span className="converter-meta-label">{t("common.meta.sizeLabel")}</span>
+                    <span className="converter-meta-value">{formatBytes(metadata.size_bytes)}</span>
+                  </div>
+                  {metadata.duration_seconds && (
+                    <div className="converter-meta-item converter-meta-duration">
+                      <span className="converter-meta-label">{t("common.meta.durationLabel")}</span>
+                      <span className="converter-meta-value">{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Presets List */}
             {converterPresets.length > 0 && (

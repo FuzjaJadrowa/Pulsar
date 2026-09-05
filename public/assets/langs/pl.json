@@ -130,6 +130,12 @@
     "actions": {
       "convert": "KONWERTUJ"
     },
+    "bulk": {
+      "title": "Konwersja wsadowa ({count} plików)",
+      "filesHeader": "Pliki w paczce ({count})",
+      "removeFile": "Usuń plik z paczki",
+      "mixedCategoryError": "Wszystkie wybrane pliki muszą należeć do tej samej kategorii."
+    },
     "options": {
       "compressBy": "KOMPRESUJ WEDŁUG",
       "convertTo": "KONWERTUJ NA",
@@ -152,7 +158,7 @@
       "audio": "AUDIO"
     },
     "drop": {
-      "text": "Upuść plik, aby go przekonwertować"
+      "text": "Upuść pliki, aby je przekonwertować"
     }
   },
   "compressor": {
@@ -161,6 +167,12 @@
     },
     "actions": {
       "compress": "KOMPRESUJ"
+    },
+    "bulk": {
+      "title": "Kompresja wsadowa ({count} plików)",
+      "filesHeader": "Pliki w paczce ({count})",
+      "removeFile": "Usuń plik z paczki",
+      "mixedCategoryError": "Wycofano wybór: wszystkie wybrane pliki muszą należeć do tej samej kategorii (Obrazy, Wideo lub Audio)."
     },
     "mode": {
       "percent": "PROCENT",
@@ -184,7 +196,7 @@
       "bestCompression": "51 - Najlepsza kompresja"
     },
     "drop": {
-      "text": "Upuść plik, aby go skompresować"
+      "text": "Upuść pliki, aby je skompresować"
     }
   },
   "queue": {
