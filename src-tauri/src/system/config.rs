@@ -43,12 +43,20 @@ pub struct AppConfig {
     #[serde(default, alias = "maximum_search_results")]
     pub maximum_search_results: u64,
     #[serde(default, alias = "title_template")]
-    pub title_template: String
+    pub title_template: String,
+
+    #[serde(default, alias = "copy_codec_if_possible")]
+    pub copy_codec_if_possible: bool,
+    #[serde(default = "default_codec_auto", alias = "default_video_codec")]
+    pub default_video_codec: String,
+    #[serde(default = "default_codec_auto", alias = "default_audio_codec")]
+    pub default_audio_codec: String,
 }
 
 fn default_theme() -> String { "System".to_string() }
 fn default_lang() -> String { "en".to_string() }
 fn default_close() -> String { "ask".to_string() }
+fn default_codec_auto() -> String { "auto".to_string() }
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -69,7 +77,10 @@ impl Default for AppConfig {
             cookies_browser: "none".to_string(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
-            title_template: "%(title)s [%(id)s]".to_string()
+            title_template: "%(title)s [%(id)s]".to_string(),
+            copy_codec_if_possible: false,
+            default_video_codec: "auto".to_string(),
+            default_audio_codec: "auto".to_string(),
         }
     }
 }
@@ -189,6 +200,11 @@ impl ConfigManager {
                         .unwrap_or(10);
                     if let Some(v) = section.get("title_template") { config.title_template = v.to_string(); }
                 }
+                if let Some(section) = ini.section(Some("Codecs")) {
+                    config.copy_codec_if_possible = section.get("copy_codec_if_possible").map(|v| v == "true").unwrap_or(false);
+                    if let Some(v) = section.get("default_video_codec") { config.default_video_codec = v.to_string(); }
+                    if let Some(v) = section.get("default_audio_codec") { config.default_audio_codec = v.to_string(); }
+                }
             }
         } else {
             Self::save_to_disk_internal(&path, &config);
@@ -215,6 +231,11 @@ impl ConfigManager {
         ini.with_section(Some("Appearance"))
             .set("theme", &config.theme)
             .set("idle_animation", if config.idle_animation { "true" } else { "false" });
+
+        ini.with_section(Some("Codecs"))
+            .set("copy_codec_if_possible", if config.copy_codec_if_possible { "true" } else { "false" })
+            .set("default_video_codec", &config.default_video_codec)
+            .set("default_audio_codec", &config.default_audio_codec);
 
         ini.with_section(Some("Requirements"))
             .set("update_app", if config.update_app { "true" } else { "false" })

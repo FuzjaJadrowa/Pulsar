@@ -261,6 +261,33 @@ export const Settings: React.FC = () => {
     { value: "whale", label: "Whale" },
   ];
 
+  const videoCodecSelectOptions = [
+    { value: "auto", label: t("presetCreator.select.auto") },
+    { value: "h264", label: "H264" },
+    { value: "h265", label: "H265 / HEVC" },
+    { value: "av1", label: "AV1" },
+    { value: "vp9", label: "VP9" },
+    { value: "vp8", label: "VP8" },
+    { value: "prores", label: "ProRes" },
+    { value: "mpeg4", label: "MPEG4" },
+    { value: "theora", label: "Theora" },
+    { value: "wmv", label: "WMV" },
+  ];
+
+  const audioCodecSelectOptions = [
+    { value: "auto", label: t("presetCreator.select.auto") },
+    { value: "aac", label: "AAC" },
+    { value: "mp3", label: "MP3" },
+    { value: "flac", label: "FLAC" },
+    { value: "opus", label: "Opus" },
+    { value: "vorbis", label: "Vorbis" },
+    { value: "ac3", label: "AC3" },
+    { value: "alac", label: "ALAC" },
+    { value: "wav", label: "WAV" },
+    { value: "aiff", label: "AIFF" },
+    { value: "wma", label: "WMA" },
+  ];
+
   return (
     <div className="page-root page-scroll settings-page">
       <div className="settings-page-header">
@@ -349,6 +376,39 @@ export const Settings: React.FC = () => {
           <ToggleSwitch
             checked={!!config.idle_animation}
             onChange={(checked) => updateConfig({ idle_animation: checked })}
+          />
+        </div>
+      </section>
+
+      {/* Codecs Settings */}
+      <section className="settings-section-card">
+        <div className="settings-section-title">{t("settings.codecs.title")}</div>
+
+        <div className="form-row">
+          <span>{t("settings.codecs.copyCodecIfPossible")}</span>
+          <ToggleSwitch
+            checked={!!config.copy_codec_if_possible}
+            onChange={(checked) => updateConfig({ copy_codec_if_possible: checked })}
+          />
+        </div>
+
+        <div className="form-row">
+          <span>{t("settings.codecs.defaultVideoCodec")}</span>
+          <CustomSelect
+            options={videoCodecSelectOptions}
+            value={config.default_video_codec || "auto"}
+            onChange={(val) => updateConfig({ default_video_codec: val })}
+            width="150px"
+          />
+        </div>
+
+        <div className="form-row">
+          <span>{t("settings.codecs.defaultAudioCodec")}</span>
+          <CustomSelect
+            options={audioCodecSelectOptions}
+            value={config.default_audio_codec || "auto"}
+            onChange={(val) => updateConfig({ default_audio_codec: val })}
+            width="150px"
           />
         </div>
       </section>

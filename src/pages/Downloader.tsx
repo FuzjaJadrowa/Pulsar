@@ -9,6 +9,7 @@ import { showNotification } from "../services/notifications";
 import { formatDuration } from "../utils/format";
 import { sanitizeSvg } from "../utils/security";
 import { PathSelector } from "../components/PathSelector";
+import { CustomSelect } from "../components/CustomSelect";
 import { useTauriMetadata } from "../hooks/useTauriMetadata";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
@@ -16,6 +17,8 @@ const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
 import { DEFAULT_ICON } from "../utils/icons";
+
+import { getFormatEntrySync, loadFormatCatalog } from "../services/formats";
 
 interface DownloaderProps {
   active?: boolean;
@@ -25,6 +28,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
   const { presets } = usePresets();
+
+  useEffect(() => {
+    loadFormatCatalog().catch(() => {});
+  }, []);
 
   const [url, setUrl] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -55,6 +62,35 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [mode, setMode] = useState<"video" | "audio">("video");
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
+  const [videoCodec, setVideoCodec] = useState<string>("");
+  const [audioCodec, setAudioCodec] = useState<string>("");
+
+  const currentFormatEntry = selectedFormat ? getFormatEntrySync(selectedFormat, false) : null;
+
+  const downloaderVideoCodecOptions = [
+    { value: "", label: t("presetCreator.select.auto") },
+    ...(currentFormatEntry?.video_codecs || []).map((vc) => ({
+      value: vc.toLowerCase(),
+      label: vc,
+    })),
+  ];
+
+  const downloaderAudioCodecOptions = [
+    { value: "", label: t("presetCreator.select.auto") },
+    ...(currentFormatEntry?.audio_codecs || []).map((ac) => ({
+      value: ac.toLowerCase(),
+      label: ac,
+    })),
+  ];
+
+  useEffect(() => {
+    if (videoCodec && !downloaderVideoCodecOptions.some((opt) => opt.value === videoCodec)) {
+      setVideoCodec("");
+    }
+    if (audioCodec && !downloaderAudioCodecOptions.some((opt) => opt.value === audioCodec)) {
+      setAudioCodec("");
+    }
+  }, [selectedFormat, videoCodec, audioCodec]);
   const [savePath, setSavePath] = useState("");
 
   const [rangeStart, setRangeStart] = useState<number>(0);
@@ -382,6 +418,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setDuration(0);
     setSelectedFormat(null);
     setSelectedQuality(null);
+    setVideoCodec("");
+    setAudioCodec("");
     setSubtitleOptions([]);
     setMetaSubLangs([]);
     setMetaAutoLangs([]);
@@ -446,6 +484,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
         setSelectedFormat(d.format ? d.format.toUpperCase() : null);
         setSelectedQuality(newMode === "video" ? d.video_quality : d.audio_quality);
+        setVideoCodec(d.video_codec || "");
+        setAudioCodec(d.audio_codec || "");
 
         setGeoBypass(!!d.geo_bypass);
         setEmbedMetadata(!!d.embed_metadata);
@@ -521,8 +561,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
     clearActivePreset();
   };
-
-
 
   const handleSelectSearchResult = async (entry: any) => {
     const targetUrl = resolveResultUrl(entry);
@@ -601,6 +639,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       video_quality: mode === "video" ? selectedQuality : null,
       audio_format: mode === "audio" ? selectedFormat : null,
       audio_quality: mode === "audio" ? selectedQuality : null,
+      video_codec: mode === "video" ? (videoCodec || undefined) : undefined,
+      audio_codec: audioCodec || undefined,
       is_time_range_active: isTimeRangeActive,
       start_time: timeStart,
       end_time: timeEnd,
@@ -1152,7 +1192,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 </div>
 
                 {/* Subtitles settings */}
-                <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-end" }}>
+                <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-start" }}>
                   <span className="option-label">{t("downloader.options.subtitles")}</span>
                   <div className="form-row subtitles-row">
                     <span className="toggle-text">{t("downloader.options.downloadSubtitles")}</span>
@@ -1229,6 +1269,39 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         ))}
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Codecs settings */}
+                <div className="option-group codecs-group" style={{ alignItems: "flex-end" }}>
+                  <span className="option-label">{t("downloader.options.codecs")}</span>
+                  {mode === "video" && (
+                    <div className="form-row">
+                      <span className="toggle-text">{t("downloader.options.videoCodec")}</span>
+                      <CustomSelect
+                        options={downloaderVideoCodecOptions}
+                        value={videoCodec}
+                        onChange={(val) => {
+                          setVideoCodec(val);
+                          clearActivePreset();
+                        }}
+                        width="115px"
+                        direction="up"
+                      />
+                    </div>
+                  )}
+                  <div className="form-row">
+                    <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
+                    <CustomSelect
+                      options={downloaderAudioCodecOptions}
+                      value={audioCodec}
+                      onChange={(val) => {
+                        setAudioCodec(val);
+                        clearActivePreset();
+                      }}
+                      width="115px"
+                      direction="up"
+                    />
                   </div>
                 </div>
               </div>

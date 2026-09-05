@@ -99,7 +99,10 @@
       "downloadSubtitles": "Pobierz napisy",
       "embedSubtitles": "Osadź napisy",
       "downloadLiveChat": "Pobierz czat na żywo",
-      "codeOptional": "Kod (opcjonalnie)"
+      "codeOptional": "Kod (opcjonalnie)",
+      "codecs": "KODEKI",
+      "videoCodec": "Kodek wideo",
+      "audioCodec": "Kodek audio"
     },
     "thumbnail": {
       "none": "Brak",
@@ -254,6 +257,12 @@
     "advancedMode": "Tryb zaawansowany",
     "advancedModeNote": "Pokazuje zaawansowane opcje oraz dostęp do konsoli.",
     "idleAnimation": "Animacja bezczynności",
+    "codecs": {
+      "title": "Kodeki",
+      "copyCodecIfPossible": "Kopiuj kodek jeśli to możliwe",
+      "defaultVideoCodec": "Domyślny kodek wideo",
+      "defaultAudioCodec": "Domyślny kodek audio"
+    },
     "requirements": "Wymagania",
     "currentVersion": "Aktualna wersja: {version}",
     "autoUpdateApp": "Automatyczne aktualizacje Pulsara",

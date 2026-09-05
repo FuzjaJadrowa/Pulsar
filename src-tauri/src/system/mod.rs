@@ -1,4 +1,5 @@
 pub mod config;
+pub mod formats;
 pub mod metadata;
 pub mod notifications;
 pub mod presets;

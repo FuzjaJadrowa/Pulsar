@@ -99,7 +99,10 @@
       "downloadSubtitles": "Download subtitles",
       "embedSubtitles": "Embed subtitles",
       "downloadLiveChat": "Download live chat",
-      "codeOptional": "Code (optional)"
+      "codeOptional": "Code (optional)",
+      "codecs": "CODECS",
+      "videoCodec": "Video codec",
+      "audioCodec": "Audio codec"
     },
     "thumbnail": {
       "none": "None",
@@ -254,6 +257,12 @@
     "advancedMode": "Advanced mode",
     "advancedModeNote": "Shows advanced options and console access.",
     "idleAnimation": "Idle animation",
+    "codecs": {
+      "title": "Codecs",
+      "copyCodecIfPossible": "Copy codec if possible",
+      "defaultVideoCodec": "Default video codec",
+      "defaultAudioCodec": "Default audio codec"
+    },
     "requirements": "Requirements",
     "currentVersion": "Current version: {version}",
     "autoUpdateApp": "Auto-update Pulsar",

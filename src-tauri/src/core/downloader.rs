@@ -505,7 +505,22 @@ pub fn start_download(
         .filter(|s| !s.is_empty())
         .unwrap_or_else(generate_task_id);
     let config = config_mgr.config.lock().unwrap();
+    let mut effective_options = options;
+    let (eff_vcodec, eff_acodec) = crate::system::formats::resolve_effective_codecs(
+        if effective_options.mode == "audio" { effective_options.audio_format.as_deref() } else { effective_options.video_format.as_deref() },
+        effective_options.video_codec.as_deref(),
+        effective_options.audio_codec.as_deref(),
+        Some(&config.default_video_codec),
+        Some(&config.default_audio_codec),
+    );
+    if effective_options.video_codec.is_none() || effective_options.video_codec.as_deref() == Some("") || effective_options.video_codec.as_deref() == Some("auto") {
+        effective_options.video_codec = eff_vcodec;
+    }
+    if effective_options.audio_codec.is_none() || effective_options.audio_codec.as_deref() == Some("") || effective_options.audio_codec.as_deref() == Some("auto") {
+        effective_options.audio_codec = eff_acodec;
+    }
 
+    let options = effective_options;
     let mut args: Vec<String> = Vec::new();
 
     let req_path = get_requirements_path();

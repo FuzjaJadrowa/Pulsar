@@ -470,7 +470,7 @@ use crate::core::utils::{
     extract_file_extension, is_audio_copy_compatible, is_video_copy_compatible, generate_task_id
 };
 
-fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>) -> Vec<String> {
+fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Option<String>, config: &crate::system::config::AppConfig) -> Vec<String> {
     let mut args = vec![
         "-hide_banner".to_string(),
         "-y".to_string(),
@@ -494,6 +494,14 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     let output_format = normalize_output_format(&options.output_format);
     let source_ext = extract_file_extension(&options.input_path);
 
+    let (eff_vcodec, eff_acodec) = crate::system::formats::resolve_effective_codecs(
+        Some(&output_format),
+        options.video_codec.as_deref(),
+        options.audio_codec.as_deref(),
+        Some(&config.default_video_codec),
+        Some(&config.default_audio_codec),
+    );
+
     if category == "audio" {
         args.push("-map".to_string());
         args.push("0:a?".to_string());
@@ -506,12 +514,12 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
     }
 
     if category == "video" {
-        let raw_codec = options.video_codec.as_deref().unwrap_or("").trim().to_lowercase();
+        let raw_codec = eff_vcodec.unwrap_or_else(|| options.video_codec.as_deref().unwrap_or("").trim().to_string()).to_lowercase();
         let has_video_mods = parse_kbps_string(options.video_bitrate.as_deref()).is_some()
             || parse_numeric_string(options.video_fps.as_deref()).is_some()
             || options.video_quality.as_deref().map(|q| q.to_lowercase()).filter(|q| q.ends_with('p')).is_some();
 
-        let can_copy_video = !has_video_mods && is_video_copy_compatible(&source_ext, &output_format);
+        let can_copy_video = config.copy_codec_if_possible && !has_video_mods && is_video_copy_compatible(&source_ext, &output_format);
 
         if raw_codec == "copy" || (can_copy_video && (raw_codec.is_empty() || raw_codec == "auto")) {
             args.push("-c:v".to_string());
@@ -561,9 +569,9 @@ fn build_ffmpeg_args(options: &ConvertOptions, output_path: &str, hwaccel: Optio
         }
     }
 
-    let raw_audio_codec = options.audio_codec.as_deref().unwrap_or("").trim().to_lowercase();
+    let raw_audio_codec = eff_acodec.unwrap_or_else(|| options.audio_codec.as_deref().unwrap_or("").trim().to_string()).to_lowercase();
     let has_audio_mods = parse_kbps_string(options.audio_bitrate.as_deref()).is_some();
-    let can_copy_audio = !has_audio_mods && is_audio_copy_compatible(&source_ext, &output_format);
+    let can_copy_audio = config.copy_codec_if_possible && !has_audio_mods && is_audio_copy_compatible(&source_ext, &output_format);
 
     if raw_audio_codec == "copy" || (can_copy_audio && (raw_audio_codec.is_empty() || raw_audio_codec == "auto")) {
         args.push("-c:a".to_string());
@@ -613,16 +621,10 @@ pub fn start_convert(
         .unwrap_or_else(|| "image".to_string());
 
     let ffmpeg_path = get_ffmpeg_path();
-    {
-        let config = config_mgr.config.lock().unwrap();
-        if config.ffmpeg_hwaccel != "none" && config.ffmpeg_hwaccel != "false" && config.ffmpeg_hwaccels.is_empty() {
-            drop(config);
-            let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
-        }
-    }
+    let config = config_mgr.config.lock().unwrap();
     let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
     let ffmpeg_args = if category == "video" || category == "audio" {
-        Some(build_ffmpeg_args(&options, &output_path, hwaccel))
+        Some(build_ffmpeg_args(&options, &output_path, hwaccel, &config))
     } else {
         None
     };

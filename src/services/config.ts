@@ -18,6 +18,9 @@ export interface PulsarConfig {
   maximum_search_results: number;
   title_template: string;
   close_behavior: string;
+  copy_codec_if_possible: boolean;
+  default_video_codec: string;
+  default_audio_codec: string;
 }
 
 export const DEFAULT_CONFIG: PulsarConfig = {
@@ -36,6 +39,9 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   maximum_search_results: 10,
   title_template: "%(title)s [%(id)s]",
   close_behavior: "hide",
+  copy_codec_if_possible: false,
+  default_video_codec: "auto",
+  default_audio_codec: "auto",
 };
 
 let globalConfig: PulsarConfig = { ...DEFAULT_CONFIG };
