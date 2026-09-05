@@ -1,14 +1,14 @@
 {
   "version": "3.1.0",
   "notes": "Latest stable build.",
-  "pub_date": "2026-09-05T13:29:06.685Z",
+  "pub_date": "2026-09-05T14:06:58.067Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURHdtdXVlSkF6VXdqOTgrZVkwRDBIeUpGamhCYzAyUmVOK2dVaEhSSlpuTi9BY1pBRXd5bFhNZ2hnY0YrbGJCVFVTUmJMclUzNEJrOFdORDM2S2dKdGdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NjE3MTYzCWZpbGU6UHVsc2FyXzMuMS4wX3g2NC1zZXR1cC5leGUKb01VNjkyalBnNTM5bjZKSWJsdFNHZDFReWlCSHlqU1ZMNWtGL2Z1N2pkYjJ2K3lsTFZTQnJtanBhWk1RK3E1eHAvRlhXVGd3MEQwejExRVlJVW5ERFE9PQo=",
       "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v3.1.0/Pulsar-3.1.0-win64.exe"
     },
     "darwin-aarch64": {
-      "signature": "",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUMVp6MnU3WDBURDYvNUNGUTErUTZTWnRjTlhWZFA2TzhGK2VDUmowUFFhK2N6TVZWMmpEMWJTZVBjZlNJS0pLQWhVQkxxVTQydkJMQkxDcjNsazR1Z2Mrc1ByL1RPd2dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg4NjE3MDcxCWZpbGU6UHVsc2FyLmFwcC50YXIuZ3oKV25xLytmKy9yK0Vrdno5bE1DQVBBR3FzaXRhN2pTdmZhWTI0bVFQc0o1Nk9LL3BsTkM3TVVZZUkyOExrQlBHZEpYamt3YkRxdmFuWE95c3R3MERrQ0E9PQo=",
       "url": "https://github.com/FuzjaJadrowa/Pulsar/releases/download/v3.1.0/Pulsar-3.1.0-MacOS.app.tar.gz"
     }
   }
