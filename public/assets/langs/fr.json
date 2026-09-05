@@ -276,13 +276,6 @@
         "export": "Exporter",
         "delete": "Supprimer",
         "hide": "Masqué"
-      },
-      "notifications": {
-        "unavailable": "Cette action n'est pas encore disponible.",
-        "importFailed": "Échec de l'importation du préréglage.",
-        "exportFailed": "Échec de l'exportation du préréglage.",
-        "deleteFailed": "Échec de la suppression du préréglage.",
-        "deleted": "Préréglage supprimé."
       }
     },
     "titleConstructor": "Constructeur de titre",
@@ -513,14 +506,6 @@
     },
     "select": {
       "auto": "Auto"
-    },
-    "notifications": {
-      "invalidIcon": "Fichier d'icône invalide.",
-      "validation": "Le titre et le format sont requis.",
-      "saved": "Préréglage enregistré.",
-      "saveFailed": "Échec de l'enregistrement du préréglage.",
-      "exportFailed": "Échec de l'exportation du préréglage.",
-      "loadFailed": "Échec du chargement du préréglage."
     }
   }
 }

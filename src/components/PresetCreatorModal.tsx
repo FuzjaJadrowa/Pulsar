@@ -3,7 +3,6 @@ import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
 import { Preset, exportPreset } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
-import { showNotification } from "../services/notifications";
 import { sanitizeSvg } from "../utils/security";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { PathSelector } from "./PathSelector";
@@ -19,6 +18,40 @@ interface PresetCreatorModalProps {
 
 const DEFAULT_ICON = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:%23ffffff"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
 
+const renderPresetIconPreview = (src: string, alt: string = "preset") => {
+  if (!src) src = DEFAULT_ICON;
+  let svgText = "";
+  if (src.startsWith("data:image/svg+xml")) {
+    if (src.includes(";base64,")) {
+      try {
+        svgText = atob(src.split(";base64,")[1]);
+      } catch (e) {
+        svgText = "";
+      }
+    } else if (src.includes(",")) {
+      svgText = decodeURIComponent(src.split(",")[1]);
+    }
+  } else if (src.startsWith("<svg")) {
+    svgText = src;
+  }
+
+  if (svgText && svgText.includes("<svg")) {
+    if (!svgText.includes('fill=')) {
+      svgText = svgText.replace('<svg', '<svg fill="#ffffff"');
+    } else {
+      svgText = svgText.replace(/fill="currentColor"/g, 'fill="#ffffff"').replace(/fill='currentColor'/g, "fill='#ffffff'");
+    }
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgText) }}
+        style={{ width: "100%", height: "100%", color: "#ffffff", fill: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}
+      />
+    );
+  }
+
+  return <img src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
+};
+
 export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   isOpen,
   mode,
@@ -28,7 +61,6 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Form state
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [iconDataUrl, setIconDataUrl] = useState(DEFAULT_ICON);
@@ -57,18 +89,15 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [audioCodec, setAudioCodec] = useState("");
   const [audioBitrate, setAudioBitrate] = useState("");
 
-  // UI state
   const [formatSuggestions, setFormatSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Format definitions loaded from format.json
   const [formatData, setFormatData] = useState<{ downloader: any[]; converter: any[] }>({
     downloader: [],
     converter: [],
   });
 
-  // Load formatting configurations
   useEffect(() => {
     fetch("./assets/format.json")
       .then((res) => res.json())
@@ -81,7 +110,6 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       .catch((err) => console.error("Failed to load formats meta:", err));
   }, []);
 
-  // Hydrate preset when in edit mode
   useEffect(() => {
     if (isOpen && mode === "edit" && presetId) {
       invoke<Preset>("load_preset", { id: presetId })
@@ -132,10 +160,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         })
         .catch((err) => {
           console.error("Failed to load preset details:", err);
-          showNotification(t("common.error"), t("presetCreator.notifications.loadFailed"), "error");
         });
     } else if (isOpen && mode === "create") {
-      // Clear forms
       setTitle("");
       setSummary("");
       setIconDataUrl(DEFAULT_ICON);
@@ -163,7 +189,6 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     }
   }, [isOpen, mode, presetId]);
 
-  // Handle format auto-suggestions
   useEffect(() => {
     if (!format.trim()) {
       setFormatSuggestions([]);
@@ -177,11 +202,9 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     setFormatSuggestions(matches.slice(0, 5));
   }, [format, presetType, formatData]);
 
-  // Handle image conversion to Base64
   const processImageFile = (file: File) => {
     const isImg = file.type?.startsWith("image/") || /\.(svg|png|jpg|jpeg|webp|gif)$/i.test(file.name);
     if (!isImg) {
-      showNotification(t("common.error"), t("presetCreator.notifications.invalidIcon"), "error");
       return;
     }
     const reader = new FileReader();
@@ -223,12 +246,17 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   };
 
 
+  const selectedFormatLower = format.toLowerCase().trim();
+  const formatMap = presetType === "converter" ? formatData.converter : formatData.downloader;
+  const currentFormatMeta = formatMap.find((item) => String(item.id).toLowerCase() === selectedFormatLower);
+  const isFormatValid = presetType === "compressor" || (selectedFormatLower.length > 0 && !!currentFormatMeta);
 
   const isFormValid = () => {
     if (!title.trim()) return false;
     
     if (presetType === "downloader" || presetType === "converter") {
-      return format.trim().length > 0;
+      if (!selectedFormatLower) return false;
+      if (!isFormatValid) return false;
     }
     
     if (presetType === "compressor") {
@@ -307,11 +335,9 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       onClose();
     } catch (err) {
       console.error("Export preset failed:", err);
-      showNotification(t("common.error"), t("presetCreator.notifications.exportFailed"), "error");
     }
   };
 
-  // Submit preset payload
   const handleSave = async () => {
     if (!isFormValid()) return;
 
@@ -367,20 +393,13 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
     try {
       await invoke("save_preset", { preset: payload });
-      showNotification(t("common.success"), t("presetCreator.notifications.saved"), "success");
       onSaved();
       onClose();
     } catch (err) {
       console.error("Save preset failed:", err);
-      showNotification(t("common.error"), t("presetCreator.notifications.saveFailed"), "error");
     }
   };
 
-  // Determine formats details based on choice
-  const selectedFormatLower = format.toLowerCase().trim();
-  const formatMap = presetType === "converter" ? formatData.converter : formatData.downloader;
-  const currentFormatMeta = formatMap.find((item) => String(item.id).toLowerCase() === selectedFormatLower);
-  const isFormatValid = presetType === "compressor" || !!currentFormatMeta;
 
   const videoCodecOptions = [
     { value: "", label: t("presetCreator.select.auto") },
@@ -397,6 +416,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const crfOptions = Array.from({ length: 52 }, (_, i) => ({ value: String(i), label: String(i) }));
 
+  const [renderModal, setRenderModal] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
   const { updateUiState } = useUiState();
@@ -404,10 +424,13 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   useEffect(() => {
     updateUiState({ isPresetModalOpen: isOpen });
     if (isOpen) {
+      setRenderModal(true);
       const raf = requestAnimationFrame(() => setIsVisible(true));
       return () => cancelAnimationFrame(raf);
     } else {
       setIsVisible(false);
+      const timer = setTimeout(() => setRenderModal(false), 250);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, updateUiState]);
 
@@ -417,7 +440,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     };
   }, [updateUiState]);
 
-  if (!isOpen && !isVisible) return null;
+  if (!renderModal) return null;
 
   return (
     <div className={`preset-modal-overlay ${isVisible ? "visible" : ""}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -430,7 +453,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         </div>
 
         <div className="preset-modal-body">
-          {/* Preset details */}
+          {}
           <div className="preset-section">
             <div className="preset-section-title">{t("presetCreator.sections.basic")}</div>
             <div className="preset-form-grid">
@@ -458,7 +481,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
             </div>
 
             <div className="preset-detail-row">
-              {/* Icon Drop Area */}
+              {}
               <div className="preset-field preset-field-icon">
                 <span>{t("presetCreator.fields.icon")}</span>
                 <div
@@ -466,15 +489,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                 >
-                  <div
-                    className="preset-icon-preview"
-                    style={{
-                      backgroundImage: iconDataUrl.startsWith("<svg") ? "none" : `url('${iconDataUrl}')`,
-                    }}
-                  >
-                    {iconDataUrl.startsWith("<svg") && (
-                      <div dangerouslySetInnerHTML={{ __html: sanitizeSvg(iconDataUrl) }} style={{ width: "100%", height: "100%" }} />
-                    )}
+                  <div className="preset-icon-preview">
+                    {renderPresetIconPreview(iconDataUrl, title || "preset")}
                   </div>
                   <div className="preset-icon-meta">
                     <div className="preset-icon-title">{t("presetCreator.icon.title")}</div>
@@ -494,7 +510,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                 </div>
               </div>
 
-              {/* Type Switcher */}
+              {}
               <div className="preset-field preset-field-type">
                 <span>{t("presetCreator.sections.type")}</span>
                 <div className="preset-type-switcher">
@@ -535,7 +551,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
             </div>
           </div>
 
-          {/* Format Selection */}
+          {}
           {presetType !== "compressor" && (
             <div className="preset-section preset-format-section">
               <div className="preset-section-title">{t("presetCreator.sections.format")}</div>
@@ -569,7 +585,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
             </div>
           )}
 
-          {/* Compression options (only for compressor) */}
+          {}
           {presetType === "compressor" && (
             <div className="preset-section preset-compressor-section">
               <div className="preset-section-title">{t("presetCreator.sections.compression")}</div>
@@ -673,9 +689,9 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
             </div>
           )}
 
-          {/* Misc Section */}
+          {}
           {isFormatValid && (
-            <div className="preset-advanced expanded">
+            <div className="preset-advanced expanded anim-section-in">
               <div className="preset-section">
                 <div className="preset-section-title">{t("presetCreator.sections.misc")}</div>
                 <div className="preset-form-grid">
@@ -694,7 +710,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   </div>
                 </div>
 
-                {/* Toggles */}
+                {}
                 <div className="preset-toggle-grid">
                   {presetType === "downloader" && (
                     <>
@@ -764,9 +780,9 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
             </div>
           )}
 
-            {/* Video & Audio Sections */}
-            {presetType !== "compressor" && (
-              <div className="preset-section preset-media-section">
+            {}
+            {presetType !== "compressor" && isFormatValid && (
+              <div className="preset-section preset-media-section anim-section-in">
                 <div className="preset-section-title">{t("presetCreator.sections.videoAudio")}</div>
 
                 {showVideoSettings && (

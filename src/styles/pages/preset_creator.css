@@ -29,9 +29,9 @@ body.preset-modal-open .page-scroll {
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
     display: flex;
     flex-direction: column;
-    overflow: visible;
+    overflow: hidden;
     transform: translateY(12px) scale(0.98);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .preset-modal-overlay.visible .preset-modal {
     transform: translateY(0) scale(1);
@@ -65,7 +65,7 @@ body.preset-modal-open .page-scroll {
     transform: scale(1.05);
 }
 .preset-modal-body {
-    padding: 20px 22px 10px;
+    padding: 20px 22px 18px;
     overflow-y: auto;
     flex: 1 1 auto;
     display: flex;
@@ -75,7 +75,7 @@ body.preset-modal-open .page-scroll {
     scrollbar-width: none;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    scrollbar-gutter: stable;
+    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .preset-modal-body::-webkit-scrollbar {
     display: none;
@@ -458,51 +458,64 @@ body.preset-modal-open .page-scroll {
 }
 .preset-format-suggestions {
     position: absolute;
-    top: auto;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    right: auto;
-    width: min(420px, 90vw);
-    background: rgba(20, 22, 30, 0.98);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
-    max-height: 220px;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: #1a1c26;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    max-height: 200px;
     overflow-y: auto;
     opacity: 0;
     pointer-events: none;
-    transform: translateX(-50%) translateY(6px);
-    transform-origin: bottom center;
+    transform: translateY(-4px);
     transition: opacity 0.2s ease, transform 0.2s ease;
-    z-index: 10;
+    z-index: 100;
+    padding: 6px;
 }
-.preset-format-suggestions.visible {
+.preset-format-suggestions.visible,
+.preset-format-suggestions.open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
+}
+
+.anim-section-in {
+    animation: sectionIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sectionIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 .preset-format-item {
-    padding: 10px 14px;
+    padding: 9px 14px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-.preset-format-item:last-child {
-    border-bottom: none;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 .preset-format-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--accent-color, #8a2be2);
+    color: #ffffff;
 }
 .preset-format-label {
     font-weight: 700;
     font-size: 13px;
-    color: #fff;
+    letter-spacing: 0.5px;
+    color: inherit;
 }
 .preset-format-desc {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    display: none;
 }
 .preset-advanced {
     max-height: 0;
@@ -518,7 +531,7 @@ body.preset-modal-open .page-scroll {
     transition: none;
 }
 .preset-advanced.expanded {
-    max-height: 1200px;
+    max-height: none;
     opacity: 1;
     transform: translateY(0);
     overflow: visible;
@@ -556,8 +569,11 @@ body.preset-modal-open .page-scroll {
 }
 .preset-toggle-grid {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin-top: 4px;
 }
 .preset-toggle-grid.hidden {
     display: none;
@@ -575,9 +591,14 @@ body.preset-modal-open .page-scroll {
 .preset-toggle-item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
 }
 .preset-toggle-item input.custom-input {
     width: 90px;

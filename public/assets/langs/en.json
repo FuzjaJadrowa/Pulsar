@@ -285,13 +285,6 @@
         "export": "Export",
         "delete": "Delete",
         "hide": "Hidden"
-      },
-      "notifications": {
-        "unavailable": "This action is not available yet.",
-        "importFailed": "Failed to import preset.",
-        "exportFailed": "Failed to export preset.",
-        "deleteFailed": "Failed to delete preset.",
-        "deleted": "Preset deleted."
       }
     },
     "titleConstructor": "Title Constructor",
@@ -523,14 +516,6 @@
     },
     "select": {
       "auto": "Auto"
-    },
-    "notifications": {
-      "invalidIcon": "Invalid icon file.",
-      "validation": "Title and format are required.",
-      "saved": "Preset saved.",
-      "saveFailed": "Failed to save preset.",
-      "exportFailed": "Failed to export preset.",
-      "loadFailed": "Failed to load preset."
     }
   }
 }

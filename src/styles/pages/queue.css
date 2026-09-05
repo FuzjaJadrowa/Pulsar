@@ -451,7 +451,7 @@
     }
     to {
         opacity: 0;
-        transform: translateY(14px) scale(0.97);
+        transform: translateY(18px) scale(0.96);
     }
 }
 

@@ -85,7 +85,13 @@ export async function loadPreset(id: string): Promise<Preset> {
 }
 
 export async function deletePreset(id: string): Promise<void> {
-  await invoke("delete_preset", { id });
+  cachedPresets = cachedPresets.filter((p) => p.id !== id);
+  notifyListeners();
+  try {
+    await invoke("delete_preset", { id });
+  } catch (error) {
+    console.error("Failed to delete preset:", error);
+  }
   await listPresets();
 }
 
@@ -99,7 +105,13 @@ export async function importPreset(): Promise<void> {
 }
 
 export async function setPresetHidden(id: string, hidden: boolean): Promise<void> {
-  await invoke("set_preset_hidden", { id, hidden });
+  cachedPresets = cachedPresets.map((p) => (p.id === id ? { ...p, hidden } : p));
+  notifyListeners();
+  try {
+    await invoke("set_preset_hidden", { id, hidden });
+  } catch (error) {
+    console.error("Failed to set preset hidden:", error);
+  }
   await listPresets();
 }
 

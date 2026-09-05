@@ -285,13 +285,6 @@
         "export": "Eksportuj",
         "delete": "Usuń",
         "hide": "Ukryte"
-      },
-      "notifications": {
-        "unavailable": "Ta akcja nie jest jeszcze dostępna.",
-        "importFailed": "Nie udało się zaimportować presetu.",
-        "exportFailed": "Nie udało się wyeksportować presetu.",
-        "deleteFailed": "Nie udało się usunąć presetu.",
-        "deleted": "Preset usunięty."
       }
     },
     "titleConstructor": "Konstruktor tytułu",
@@ -523,14 +516,6 @@
     },
     "select": {
       "auto": "Auto"
-    },
-    "notifications": {
-      "invalidIcon": "Nieprawidłowy plik ikony.",
-      "validation": "Tytuł i format są wymagane.",
-      "saved": "Preset zapisany.",
-      "saveFailed": "Nie udało się zapisać presetu.",
-      "exportFailed": "Nie udało się wyeksportować presetu.",
-      "loadFailed": "Nie udało się wczytać presetu."
     }
   }
 }
