@@ -5,11 +5,10 @@
     "info": "Info",
     "unknownTitle": "Unknown title",
     "unknownChannel": "Unknown channel",
-    "pageLabel": "Page {current}/{total}",
     "eta": "ETA",
     "browse": "Browse",
     "addToQueue": "ADD TO QUEUE",
-    "dropHint": "or just drop a file",
+    "dropHint": "or just drop some files",
     "output": {
       "placeholder": "Output name",
       "editTitle": "Edit output name"
@@ -70,11 +69,7 @@
       "providerLabel": "Search on",
       "resultsTitle": "SEARCH RESULTS",
       "resultsCount": "{count} results",
-      "loading": "Searching...",
       "empty": "No results."
-    },
-    "meta": {
-      "defaultAuthor": "Channel Name"
     },
     "path": {
       "placeholder": "No save path selected..."
@@ -87,7 +82,6 @@
       "format": "FORMAT",
       "quality": "QUALITY",
       "thumbnail": "THUMBNAIL",
-      "preview": "PREVIEW",
       "presets": "PRESETS",
       "other": "OTHER",
       "geoBypass": "Geo bypass",
@@ -116,7 +110,6 @@
       "download": "DOWNLOAD"
     },
     "errors": {
-      "invalidLink": "Invalid link.",
       "searchFailed": "Search failed."
     },
     "languages": {
@@ -131,13 +124,10 @@
       "convert": "CONVERT"
     },
     "bulk": {
-      "title": "Bulk Convert ({count} files)",
-      "filesHeader": "Batch files ({count})",
       "removeFile": "Remove file from batch",
       "mixedCategoryError": "All selected files must belong to the same category."
     },
     "options": {
-      "compressBy": "COMPRESS BY",
       "convertTo": "CONVERT TO",
       "title": "OPTIONS",
       "pathPlaceholder": "Save path...",
@@ -169,8 +159,6 @@
       "compress": "COMPRESS"
     },
     "bulk": {
-      "title": "Bulk Compress ({count} files)",
-      "filesHeader": "Batch files ({count})",
       "removeFile": "Remove file from batch",
       "mixedCategoryError": "Selection cancelled: all selected files must belong to the same category (Images, Video, or Audio)."
     },
@@ -206,11 +194,6 @@
       "stopAll": "Stop all",
       "clearQueue": "Clear queue"
     },
-    "pagination": {
-      "previous": "Previous page",
-      "next": "Next page",
-      "label": "Page 1/1"
-    },
     "empty": "Queue is empty.",
     "itemActions": {
       "start": "Start",
@@ -225,7 +208,6 @@
       "empty": "No console output yet."
     },
     "subtitles": {
-      "label": "Subtitles",
       "on": "ON",
       "off": "OFF"
     },
@@ -290,7 +272,6 @@
     "presetsManager": {
       "title": "Presets Manager",
       "count": "{count} presets",
-      "countSingle": "1 preset",
       "empty": "No presets yet.",
       "untitled": "Untitled",
       "noSummary": "No summary",
@@ -326,7 +307,6 @@
       "uploadDate": "Upload Date",
       "viewCount": "View Count",
       "likeCount": "Like Count",
-      "dislikeCount": "Dislike Count",
       "uploader": "Uploader",
       "playlist": "Playlist Name",
       "playlistIndex": "Playlist Index",
@@ -340,146 +320,6 @@
     "supportText": "Show your support!",
     "supportButton": "Support Project"
   },
-  "formats": {
-    "flv": {
-      "description": "Legacy Flash format."
-    },
-    "mkv": {
-      "description": "Universal container that fits everything."
-    },
-    "mp4": {
-      "description": "Most popular video format."
-    },
-    "mov": {
-      "description": "Apple format with RGBA support."
-    },
-    "avi": {
-      "description": "Legacy but still popular."
-    },
-    "wav": {
-      "description": "Lossless Windows audio format."
-    },
-    "aiff": {
-      "description": "Lossless Apple audio format."
-    },
-    "m4a": {
-      "description": "Better quality and compression than MP3."
-    },
-    "flac": {
-      "description": "Lossless audio compression."
-    },
-    "mp3": {
-      "description": "Most popular audio format."
-    },
-    "ogg": {
-      "description": "Open audio container."
-    },
-    "opus": {
-      "description": "Open, efficient, lossy audio format."
-    },
-    "gif": {
-      "description": "Just image that can be animated."
-    },
-    "webm": {
-      "description": "Open video format created by Google for the web."
-    },
-    "m4v": {
-      "description": "Apple MPEG-4 video format."
-    },
-    "ogv": {
-      "description": "Ogg video container."
-    },
-    "ts": {
-      "description": "MPEG transport stream."
-    },
-    "vob": {
-      "description": "DVD video container."
-    },
-    "wmv": {
-      "description": "Windows Media Video."
-    },
-    "aac": {
-      "description": "Advanced Audio Coding."
-    },
-    "wma": {
-      "description": "Windows Media Audio."
-    },
-    "avif": {
-      "description": "High-efficiency image format."
-    },
-    "bmp": {
-      "description": "Uncompressed bitmap image."
-    },
-    "heic": {
-      "description": "High-efficiency image container."
-    },
-    "ico": {
-      "description": "Icon image format."
-    },
-    "jfif": {
-      "description": "JPEG File Interchange Format."
-    },
-    "jpg": {
-      "description": "JPEG image format."
-    },
-    "png": {
-      "description": "Lossless image format."
-    },
-    "svg": {
-      "description": "Scalable vector graphics."
-    },
-    "tga": {
-      "description": "Targa image format."
-    },
-    "tiff": {
-      "description": "High-quality image format."
-    },
-    "webp": {
-      "description": "Modern web image format."
-    },
-    "icns": {
-      "description": "Apple icon format."
-    },
-    "7z": {
-      "description": "7-Zip archive."
-    },
-    "bz2": {
-      "description": "Bzip2 compressed file."
-    },
-    "gz": {
-      "description": "Gzip compressed file."
-    },
-    "tar": {
-      "description": "Tape archive."
-    },
-    "xz": {
-      "description": "XZ compressed file."
-    },
-    "zip": {
-      "description": "Zip archive."
-    },
-    ".tar.gz": {
-      "description": "Tarball compressed with gzip."
-    },
-    ".tar.xz": {
-      "description": "Tarball compressed with xz."
-    },
-    "tar.bz2": {
-      "description": "Tarball compressed with bzip2."
-    },
-    "otf": {
-      "description": "OpenType font."
-    },
-    "ttf": {
-      "description": "TrueType font."
-    },
-    "woff": {
-      "description": "Web Open Font Format."
-    },
-    "woff2": {
-      "description": "Compressed web font."
-    }
-  },
   "presetCreator": {
     "title": {
       "new": "Create Preset",
@@ -492,8 +332,7 @@
       "compression": "Compression",
       "misc": "Misc",
       "videoAudio": "Video & Audio",
-      "video": "Video Options",
-      "audio": "Audio Options"
+      "video": "Video Options"
     },
     "fields": {
       "title": "Title",
@@ -514,7 +353,6 @@
       "summary": "Short description",
       "format": "Type format",
       "path": "Optional",
-      "subtitlesCode": "en",
       "bitrate": "Auto"
     },
     "icon": {
@@ -532,8 +370,7 @@
     },
     "actions": {
       "save": "Save Preset",
-      "export": "Export Preset",
-      "close": "Close"
+      "export": "Export Preset"
     },
     "select": {
       "auto": "Auto"

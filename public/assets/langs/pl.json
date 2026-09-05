@@ -5,11 +5,10 @@
     "info": "Informacja",
     "unknownTitle": "Nieznany tytuł",
     "unknownChannel": "Nieznany kanał",
-    "pageLabel": "Strona {current}/{total}",
     "eta": "Pozostały czas",
     "browse": "Przeglądaj",
     "addToQueue": "DODAJ DO KOLEJKI",
-    "dropHint": "lub po prostu upuść plik",
+    "dropHint": "lub po prostu upuść pliki",
     "output": {
       "placeholder": "Nazwa wyjściowa",
       "editTitle": "Edytuj nazwę wyjściową"
@@ -70,11 +69,7 @@
       "providerLabel": "Szukaj w",
       "resultsTitle": "WYNIKI WYSZUKIWANIA",
       "resultsCount": "Wyniki: {count}",
-      "loading": "Wyszukiwanie...",
       "empty": "Brak wyników."
-    },
-    "meta": {
-      "defaultAuthor": "Nazwa kanału"
     },
     "path": {
       "placeholder": "Nie wybrano ścieżki zapisu..."
@@ -87,7 +82,6 @@
       "format": "FORMAT",
       "quality": "JAKOŚĆ",
       "thumbnail": "MINIATURA",
-      "preview": "PODGLĄD",
       "presets": "PRESETY",
       "other": "INNE",
       "geoBypass": "Obejście geoblokady",
@@ -116,7 +110,6 @@
       "download": "POBIERZ"
     },
     "errors": {
-      "invalidLink": "Nieprawidłowy link.",
       "searchFailed": "Wyszukiwanie nie powiodło się."
     },
     "languages": {
@@ -131,13 +124,10 @@
       "convert": "KONWERTUJ"
     },
     "bulk": {
-      "title": "Konwersja wsadowa ({count} plików)",
-      "filesHeader": "Pliki w paczce ({count})",
       "removeFile": "Usuń plik z paczki",
       "mixedCategoryError": "Wszystkie wybrane pliki muszą należeć do tej samej kategorii."
     },
     "options": {
-      "compressBy": "KOMPRESUJ WEDŁUG",
       "convertTo": "KONWERTUJ NA",
       "title": "OPCJE",
       "pathPlaceholder": "Ścieżka zapisu...",
@@ -169,8 +159,6 @@
       "compress": "KOMPRESUJ"
     },
     "bulk": {
-      "title": "Kompresja wsadowa ({count} plików)",
-      "filesHeader": "Pliki w paczce ({count})",
       "removeFile": "Usuń plik z paczki",
       "mixedCategoryError": "Wycofano wybór: wszystkie wybrane pliki muszą należeć do tej samej kategorii (Obrazy, Wideo lub Audio)."
     },
@@ -206,11 +194,6 @@
       "stopAll": "Zatrzymaj wszystkie",
       "clearQueue": "Wyczyść kolejkę"
     },
-    "pagination": {
-      "previous": "Poprzednia strona",
-      "next": "Następna strona",
-      "label": "Strona 1/1"
-    },
     "empty": "Kolejka jest pusta.",
     "itemActions": {
       "start": "Uruchom",
@@ -225,7 +208,6 @@
       "empty": "Brak danych w konsoli."
     },
     "subtitles": {
-      "label": "Napisy",
       "on": "WŁ",
       "off": "WYŁ"
     },
@@ -290,7 +272,6 @@
     "presetsManager": {
       "title": "Menedżer presetów",
       "count": "{count} presetów",
-      "countSingle": "1 preset",
       "empty": "Brak presetów.",
       "untitled": "Bez tytułu",
       "noSummary": "Brak opisu",
@@ -326,7 +307,6 @@
       "uploadDate": "Data publikacji",
       "viewCount": "Liczba wyświetleń",
       "likeCount": "Liczba polubień",
-      "dislikeCount": "Liczba niepolubień",
       "uploader": "Autor",
       "playlist": "Nazwa playlisty",
       "playlistIndex": "Numer w playliście",
@@ -340,146 +320,6 @@
     "supportText": "Pokaż wsparcie!",
     "supportButton": "Wesprzyj projekt"
   },
-  "formats": {
-    "flv": {
-      "description": "Stary format Flash."
-    },
-    "mkv": {
-      "description": "Uniwersalny kontener, który mieści wszystko."
-    },
-    "mp4": {
-      "description": "Najpopularniejszy format wideo."
-    },
-    "mov": {
-      "description": "Format Apple z obsługą RGBA."
-    },
-    "avi": {
-      "description": "Stary, ale wciąż popularny."
-    },
-    "wav": {
-      "description": "Bezstratny format audio Windows."
-    },
-    "aiff": {
-      "description": "Bezstratny format audio Apple."
-    },
-    "m4a": {
-      "description": "Lepsza jakość i kompresja niż MP3."
-    },
-    "flac": {
-      "description": "Bezstratna kompresja audio."
-    },
-    "mp3": {
-      "description": "Najpopularniejszy format audio."
-    },
-    "ogg": {
-      "description": "Otwarty kontener audio."
-    },
-    "opus": {
-      "description": "Otwarty, wydajny, stratny format audio."
-    },
-    "gif": {
-      "description": "Po prostu obraz, który może być animowany."
-    },
-    "webm": {
-      "description": "Otwarty format wideo stworzony przez Google dla sieci."
-    },
-    "m4v": {
-      "description": "Format wideo Apple MPEG-4."
-    },
-    "ogv": {
-      "description": "Kontener wideo Ogg."
-    },
-    "ts": {
-      "description": "Strumień transportowy MPEG."
-    },
-    "vob": {
-      "description": "Kontener wideo DVD."
-    },
-    "wmv": {
-      "description": "Windows Media Video."
-    },
-    "aac": {
-      "description": "Zaawansowane kodowanie audio."
-    },
-    "wma": {
-      "description": "Windows Media Audio."
-    },
-    "avif": {
-      "description": "Wysokowydajny format obrazu."
-    },
-    "bmp": {
-      "description": "Nieskompresowany obraz bitmapowy."
-    },
-    "heic": {
-      "description": "Wysokowydajny kontener obrazu."
-    },
-    "ico": {
-      "description": "Format obrazów ikon."
-    },
-    "jfif": {
-      "description": "Format wymiany plików JPEG."
-    },
-    "jpg": {
-      "description": "Format obrazu JPEG."
-    },
-    "png": {
-      "description": "Bezstratny format obrazu."
-    },
-    "svg": {
-      "description": "Skalowalna grafika wektorowa."
-    },
-    "tga": {
-      "description": "Format obrazu Targa."
-    },
-    "tiff": {
-      "description": "Wysokiej jakości format obrazu."
-    },
-    "webp": {
-      "description": "Nowoczesny format obrazu dla sieci."
-    },
-    "icns": {
-      "description": "Format ikon Apple."
-    },
-    "7z": {
-      "description": "Archiwum 7-Zip."
-    },
-    "bz2": {
-      "description": "Plik skompresowany Bzip2."
-    },
-    "gz": {
-      "description": "Plik skompresowany Gzip."
-    },
-    "tar": {
-      "description": "Archiwum taśmowe."
-    },
-    "xz": {
-      "description": "Plik skompresowany XZ."
-    },
-    "zip": {
-      "description": "Archiwum ZIP."
-    },
-    ".tar.gz": {
-      "description": "Archiwum tar skompresowane gzipem."
-    },
-    ".tar.xz": {
-      "description": "Archiwum tar skompresowane xz."
-    },
-    "tar.bz2": {
-      "description": "Archiwum tar skompresowane bzip2."
-    },
-    "otf": {
-      "description": "Czcionka OpenType."
-    },
-    "ttf": {
-      "description": "Czcionka TrueType."
-    },
-    "woff": {
-      "description": "Format czcionek WOFF."
-    },
-    "woff2": {
-      "description": "Skompresowany format czcionek WOFF."
-    }
-  },
   "presetCreator": {
     "title": {
       "new": "Utwórz preset",
@@ -492,8 +332,7 @@
       "compression": "Kompresja",
       "misc": "Różne",
       "videoAudio": "Wideo i audio",
-      "video": "Opcje wideo",
-      "audio": "Opcje audio"
+      "video": "Opcje wideo"
     },
     "fields": {
       "title": "Tytuł",
@@ -514,7 +353,6 @@
       "summary": "Krótki opis",
       "format": "Typ formatu",
       "path": "Opcjonalnie",
-      "subtitlesCode": "en",
       "bitrate": "Auto"
     },
     "icon": {
@@ -532,8 +370,7 @@
     },
     "actions": {
       "save": "Zapisz preset",
-      "export": "Eksportuj preset",
-      "close": "Zamknij"
+      "export": "Eksportuj preset"
     },
     "select": {
       "auto": "Auto"

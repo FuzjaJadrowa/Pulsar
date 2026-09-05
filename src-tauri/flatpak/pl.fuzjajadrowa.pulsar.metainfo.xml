@@ -41,6 +41,40 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.1.0" date="2026-09-05">
+      <description>
+        <p>Added:</p>
+        <ul>
+          <li>Complete migration of frontend architecture to React and Vite.</li>
+          <li>Added French 🇫🇷 translation support by Zetsukae.</li>
+          <li>Added Rust and frontend tests.</li>
+          <li>Added copy button for notifications.</li>
+          <li>Added bulk converting and compressing.</li>
+          <li>Added codec selection for downloader.</li>
+          <li>Added codecs section in settings with default codec selection for downloader, converter and compressor.</li>
+          <li>Added test scripts for building and contributors.</li>
+          <li>And many other small features and improvements.</li>
+        </ul>
+        <p>Changed:</p>
+        <ul>
+          <li>Optimized FFmpeg and Pulsar-Bridge process spawning and communication.</li>
+          <li>Deduplicated and refactored stylesheets, many unnecessary animations are changed or removed.</li>
+          <li>Redesigned style of the titlebar icons.</li>
+          <li>Converter and compressor now use intelligent codec coping management.</li>
+          <li>Now elements from the queue are sorted by the lastest added element.</li>
+          <li>Removed pages from the queue panel, now using simple scrollable list.</li>
+          <li>Changed background color of queue element to gray.</li>
+        </ul>
+        <p>Fixed:</p>
+        <ul>
+          <li>Fixed some misc bugs and memory leaks.</li>
+          <li>Fixed scaling of queue panel.</li>
+          <li>Fixed no display of thumbnails.</li>
+          <li>Fixed some preset creator bugs.</li>
+          <li>Fixed some flatpak issues.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.0.1" date="2026-04-16"/>
   </releases>
 </component>

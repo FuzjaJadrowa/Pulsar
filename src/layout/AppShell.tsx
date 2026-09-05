@@ -12,6 +12,7 @@ import { Downloader } from "../pages/Downloader";
 import { Converter } from "../pages/Converter";
 import { Compressor } from "../pages/Compressor";
 import { useUiState } from "../services/uiState";
+import { showNotification } from "../services/notifications";
 
 const PAGE_INDICES: Record<string, number> = {
   home: 0,
@@ -38,6 +39,30 @@ export const AppShell: React.FC = () => {
   useEffect(() => {
     updateUiState({ currentPage });
   }, [currentPage, updateUiState]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!navigator.onLine) {
+      showNotification(t("common.info"), t("connection.noInternet"), "info");
+    }
+
+    const handleOffline = () => {
+      showNotification(t("common.info"), t("connection.lost"), "info");
+    };
+
+    const handleOnline = () => {
+      showNotification(t("common.success"), t("connection.restored"), "success");
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [t]);
 
   const navigateTo = (pageName: string) => {
     if (pageName === currentPage) return;

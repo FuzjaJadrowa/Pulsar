@@ -5,11 +5,9 @@
     "info": "Info",
     "unknownTitle": "Titre inconnu",
     "unknownChannel": "Chaîne inconnue",
-    "pageLabel": "Page {current}/{total}",
     "eta": "Temps restant",
     "browse": "Parcourir",
     "addToQueue": "AJOUTER À LA FILE",
-    "dropHint": "ou glissez-déposez simplement un fichier",
     "output": {
       "placeholder": "Nom du fichier de sortie",
       "editTitle": "Modifier le nom de sortie"
@@ -69,11 +67,7 @@
       "providerLabel": "Rechercher sur",
       "resultsTitle": "RÉSULTATS DE RECHERCHE",
       "resultsCount": "{count} résultats",
-      "loading": "Recherche en cours...",
       "empty": "Aucun résultat."
-    },
-    "meta": {
-      "defaultAuthor": "Nom de la chaîne"
     },
     "path": {
       "placeholder": "Aucun dossier de sauvegarde sélectionné..."
@@ -86,7 +80,6 @@
       "format": "FORMAT",
       "quality": "QUALITÉ",
       "thumbnail": "MINIATURE",
-      "preview": "APERÇU",
       "presets": "PRÉRÉGLAGES",
       "other": "AUTRE",
       "geoBypass": "Contournement géo",
@@ -112,7 +105,6 @@
       "download": "TÉLÉCHARGER"
     },
     "errors": {
-      "invalidLink": "Lien invalide.",
       "searchFailed": "Échec de la recherche."
     },
     "languages": {
@@ -127,7 +119,6 @@
       "convert": "CONVERTIR"
     },
     "options": {
-      "compressBy": "COMPRESSER PAR",
       "convertTo": "CONVERTIR EN",
       "title": "OPTIONS",
       "pathPlaceholder": "Dossier de sauvegarde...",
@@ -190,11 +181,6 @@
       "stopAll": "Tout arrêter",
       "clearQueue": "Vider la file"
     },
-    "pagination": {
-      "previous": "Page précédente",
-      "next": "Page suivante",
-      "label": "Page 1/1"
-    },
     "empty": "La file d'attente est vide.",
     "itemActions": {
       "start": "Lancer",
@@ -209,7 +195,6 @@
       "empty": "Aucune sortie console pour le moment."
     },
     "subtitles": {
-      "label": "Sous-titres",
       "on": "ACTIFS",
       "off": "INACTIFS"
     },
@@ -260,7 +245,6 @@
     "presetsManager": {
       "title": "Gestionnaire de préréglages",
       "count": "{count} préréglages",
-      "countSingle": "1 préréglage",
       "empty": "Aucun préréglage pour le moment.",
       "untitled": "Sans titre",
       "noSummary": "Aucun résumé",
@@ -295,7 +279,6 @@
       "uploadDate": "Date d'envoi",
       "viewCount": "Nombre de vues",
       "likeCount": "Nombre de j'aime",
-      "dislikeCount": "Nombre de je n'aime pas",
       "uploader": "Auteur du transfert",
       "playlist": "Nom de la playlist",
       "playlistIndex": "Index dans la playlist",
@@ -309,146 +292,6 @@
     "supportText": "Affichez votre soutien !",
     "supportButton": "Soutenir le projet"
   },
-  "formats": {
-    "flv": {
-      "description": "Format Flash hérité."
-    },
-    "mkv": {
-      "description": "Conteneur universel qui s'adapte à tout."
-    },
-    "mp4": {
-      "description": "Format vidéo le plus populaire."
-    },
-    "mov": {
-      "description": "Format Apple avec support RGBA."
-    },
-    "avi": {
-      "description": "Ancien mais toujours populaire."
-    },
-    "wav": {
-      "description": "Format audio Windows sans perte."
-    },
-    "aiff": {
-      "description": "Format audio Apple sans perte."
-    },
-    "m4a": {
-      "description": "Meilleure qualité et compression que le MP3."
-    },
-    "flac": {
-      "description": "Compression audio sans perte."
-    },
-    "mp3": {
-      "description": "Format audio le plus populaire."
-    },
-    "ogg": {
-      "description": "Conteneur audio ouvert."
-    },
-    "opus": {
-      "description": "Format audio ouvert, efficace avec perte."
-    },
-    "gif": {
-      "description": "Simple image pouvant être animée."
-    },
-    "webm": {
-      "description": "Format vidéo ouvert créé par Google pour le web."
-    },
-    "m4v": {
-      "description": "Format vidéo MPEG-4 d'Apple."
-    },
-    "ogv": {
-      "description": "Conteneur vidéo Ogg."
-    },
-    "ts": {
-      "description": "Flux de transport MPEG."
-    },
-    "vob": {
-      "description": "Conteneur vidéo DVD."
-    },
-    "wmv": {
-      "description": "Windows Media Video."
-    },
-    "aac": {
-      "description": "Advanced Audio Coding."
-    },
-    "wma": {
-      "description": "Windows Media Audio."
-    },
-    "avif": {
-      "description": "Format d'image à haute efficacité."
-    },
-    "bmp": {
-      "description": "Image bitmap non compressée."
-    },
-    "heic": {
-      "description": "Conteneur d'image à haute efficacité."
-    },
-    "ico": {
-      "description": "Format d'image d'icône."
-    },
-    "jfif": {
-      "description": "JPEG File Interchange Format."
-    },
-    "jpg": {
-      "description": "Format d'image JPEG."
-    },
-    "png": {
-      "description": "Format d'image sans perte."
-    },
-    "svg": {
-      "description": "Graphismes vectoriels adaptables."
-    },
-    "tga": {
-      "description": "Format d'image Targa."
-    },
-    "tiff": {
-      "description": "Format d'image de haute qualité."
-    },
-    "webp": {
-      "description": "Format d'image web moderne."
-    },
-    "icns": {
-      "description": "Format d'icône Apple."
-    },
-    "7z": {
-      "description": "Archive 7-Zip."
-    },
-    "bz2": {
-      "description": "Fichier compressé Bzip2."
-    },
-    "gz": {
-      "description": "Fichier compressé Gzip."
-    },
-    "tar": {
-      "description": "Archive Tape (tar)."
-    },
-    "xz": {
-      "description": "Fichier compressé XZ."
-    },
-    "zip": {
-      "description": "Archive Zip."
-    },
-    ".tar.gz": {
-      "description": "Fichier Tarball compressé avec gzip."
-    },
-    ".tar.xz": {
-      "description": "Fichier Tarball compressé avec xz."
-    },
-    "tar.bz2": {
-      "description": "Fichier Tarball compressé avec bzip2."
-    },
-    "otf": {
-      "description": "Police OpenType."
-    },
-    "ttf": {
-      "description": "Police TrueType."
-    },
-    "woff": {
-      "description": "Web Open Font Format."
-    },
-    "woff2": {
-      "description": "Police web compressée."
-    }
-  },
   "presetCreator": {
     "title": {
       "new": "Créer un préréglage",
@@ -461,8 +304,7 @@
       "compression": "Compression",
       "misc": "Divers",
       "videoAudio": "Vidéo & Audio",
-      "video": "Options vidéo",
-      "audio": "Options audio"
+      "video": "Options vidéo"
     },
     "fields": {
       "title": "Titre",
@@ -483,7 +325,6 @@
       "summary": "Brève description",
       "format": "Saisir le format",
       "path": "Optionnel",
-      "subtitlesCode": "fr",
       "bitrate": "Auto"
     },
     "icon": {
@@ -501,8 +342,7 @@
     },
     "actions": {
       "save": "Enregistrer le préréglage",
-      "export": "Exporter le préréglage",
-      "close": "Fermer"
+      "export": "Exporter le préréglage"
     },
     "select": {
       "auto": "Auto"
