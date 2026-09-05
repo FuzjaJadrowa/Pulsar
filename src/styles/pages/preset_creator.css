@@ -7,13 +7,54 @@
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease;
     z-index: 1800;
 }
-.preset-modal-overlay.visible {
+.preset-modal-overlay.open {
     opacity: 1;
     pointer-events: auto;
+    animation: presetOverlayIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.preset-modal-overlay.open .preset-modal {
+    animation: presetModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.preset-modal-overlay.closing {
+    opacity: 0;
+    pointer-events: none;
+    animation: presetOverlayOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.preset-modal-overlay.closing .preset-modal {
+    animation: presetModalOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes presetOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes presetOverlayOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+@keyframes presetModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+@keyframes presetModalOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+}
+
 body.preset-modal-open {
     overflow: hidden;
 }
@@ -30,11 +71,7 @@ body.preset-modal-open .page-scroll {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transform: translateY(12px) scale(0.98);
-    transition: transform 0.3s ease, height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.preset-modal-overlay.visible .preset-modal {
-    transform: translateY(0) scale(1);
+    transition: height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .preset-modal-header {
     display: flex;
@@ -451,26 +488,30 @@ body.preset-modal-open .page-scroll {
     max-width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    box-sizing: border-box;
 }
 .preset-format-input .custom-input {
     width: 100%;
+    box-sizing: border-box;
 }
 .preset-format-suggestions {
     position: absolute;
-    top: calc(100% + 6px);
+    bottom: calc(100% + 8px);
+    top: auto;
     left: 0;
     width: 100%;
+    box-sizing: border-box;
     background: #1a1c26;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 10px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    border-radius: 12px;
+    box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.65);
     max-height: 200px;
     overflow-y: auto;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-4px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateY(8px) scale(0.97);
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 100;
     padding: 6px;
 }
@@ -478,7 +519,24 @@ body.preset-modal-open .page-scroll {
 .preset-format-suggestions.open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+}
+.suggestion-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+.suggestion-item:hover {
+    background: var(--accent-color, #8a2be2);
+    color: #ffffff;
 }
 
 .anim-section-in {
@@ -522,7 +580,7 @@ body.preset-modal-open .page-scroll {
     opacity: 0;
     transform: translateY(-8px);
     overflow: hidden;
-    transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.35s ease;
+    transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;
 }
 .preset-advanced.hidden {
     display: none;
@@ -531,10 +589,11 @@ body.preset-modal-open .page-scroll {
     transition: none;
 }
 .preset-advanced.expanded {
-    max-height: none;
+    max-height: 1200px;
     opacity: 1;
     transform: translateY(0);
     overflow: visible;
+    transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;
 }
 .preset-advanced .preset-section {
     opacity: 0;

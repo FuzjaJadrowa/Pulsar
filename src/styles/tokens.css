@@ -10,22 +10,114 @@ body, body.theme-dark {
     --bg-start: #1a0b1c;
     --bg-end: #0d1b2a;
     --text-color: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.65);
     --accent-color: #8a2be2;
     --success-color: #00e676;
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
     --c-queue-primary: #00d2ff;
     --titlebar-accent: #8a2be2;
+
+    --input-bg: #252525;
+    --input-border: #3d3d3d;
+    --input-text: #e0e0e0;
+
+    --select-head-bg: #252525;
+    --select-head-hover: #2a2a2a;
+    --select-head-border: #3d3d3d;
+    --select-head-border-hover: #555555;
+    --select-list-bg: #252525;
+    --select-list-border: #3d3d3d;
+    --select-item-text: #c5c5c5;
+    --select-item-hover-bg: rgba(255, 255, 255, 0.08);
+
+    --search-bar-bg: rgba(0, 0, 0, 0.5);
+    --search-bar-border: rgba(255, 255, 255, 0.1);
+    --search-bar-icon-color: rgba(255, 255, 255, 0.55);
+    --search-bar-action-bg: rgba(255, 255, 255, 0.05);
+
+    --card-bg: var(--c-tile-bg, rgba(255, 255, 255, 0.05));
+    --card-hover-bg: var(--c-tile-hover, rgba(255, 255, 255, 0.08));
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-title: #f1f1f1;
+    --card-summary: rgba(255, 255, 255, 0.65);
+    --card-icon-color: rgba(255, 255, 255, 0.85);
+
+    --titlebar-bg: rgba(10, 10, 15, 0.15);
+    --titlebar-border: rgba(255, 255, 255, 0.06);
+    --nav-btn-color: rgba(255, 255, 255, 0.7);
+    --control-btn-color: #e0e0e0;
+    --control-btn-hover-bg: rgba(255, 255, 255, 0.15);
+    --win-controls-bg: rgba(255, 255, 255, 0.04);
+    --win-controls-border: rgba(255, 255, 255, 0.08);
+
+    --drop-hint-color: rgba(255, 255, 255, 0.35);
+    --drop-hint-hover-color: rgba(255, 255, 255, 0.6);
+
+    --notification-toast-bg: rgba(30, 30, 40, 0.7);
+    --notification-toast-text: #ffffff;
+    --notification-toast-msg: rgba(255, 255, 255, 0.8);
+    --notification-toast-close: rgba(255, 255, 255, 0.5);
+
+    --scrollbar-track: rgba(255, 255, 255, 0.05);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 }
 
 body.theme-light {
     --bg-start: #f4f6fb;
     --bg-end: #e8ecf5;
     --text-color: #1d2330;
+    --text-muted: rgba(29, 35, 48, 0.6);
     --accent-color: #4c6fff;
     --success-color: #19a86b;
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
     --c-queue-primary: #00d2ff;
     --titlebar-accent: #7b2cbf;
+
+    --input-bg: #f3f5f8;
+    --input-border: #cfd6e0;
+    --input-text: #1d2330;
+
+    --select-head-bg: #f3f5f8;
+    --select-head-hover: #eaedf3;
+    --select-head-border: #cfd6e0;
+    --select-head-border-hover: #b8c2d1;
+    --select-list-bg: #ffffff;
+    --select-list-border: #cfd6e0;
+    --select-item-text: #4f5a6e;
+    --select-item-hover-bg: rgba(0, 0, 0, 0.04);
+
+    --search-bar-bg: rgba(255, 255, 255, 0.74);
+    --search-bar-border: rgba(0, 0, 0, 0.08);
+    --search-bar-icon-color: rgba(29, 35, 48, 0.6);
+    --search-bar-action-bg: rgba(0, 0, 0, 0.04);
+
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-hover-bg: rgba(255, 255, 255, 0.95);
+    --card-border: rgba(0, 0, 0, 0.08);
+    --card-title: #1d2330;
+    --card-summary: rgba(29, 35, 48, 0.6);
+    --card-icon-color: #1d2330;
+
+    --titlebar-bg: rgba(255, 255, 255, 0.72);
+    --titlebar-border: rgba(0, 0, 0, 0.08);
+    --nav-btn-color: rgba(29, 35, 48, 0.65);
+    --control-btn-color: #3b3f4b;
+    --control-btn-hover-bg: rgba(0, 0, 0, 0.08);
+    --win-controls-bg: rgba(0, 0, 0, 0.04);
+    --win-controls-border: rgba(0, 0, 0, 0.08);
+
+    --drop-hint-color: rgba(29, 35, 48, 0.45);
+    --drop-hint-hover-color: rgba(29, 35, 48, 0.7);
+
+    --notification-toast-bg: rgba(255, 255, 255, 0.78);
+    --notification-toast-text: #1d2330;
+    --notification-toast-msg: rgba(29, 35, 48, 0.78);
+    --notification-toast-close: rgba(29, 35, 48, 0.5);
+
+    --scrollbar-track: rgba(0, 0, 0, 0.05);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.28);
 }

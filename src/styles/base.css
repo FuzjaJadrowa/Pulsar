@@ -45,22 +45,12 @@ body.theme-transition .notification-toast {
     width: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-body.theme-light ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-}
-body.theme-light ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.18);
-}
-body.theme-light ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.28);
+    background: var(--scrollbar-thumb-hover);
 }

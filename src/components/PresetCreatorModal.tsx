@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
-import { Preset, exportPreset } from "../services/presets";
+import { Preset, exportPreset, getPresetFromCache } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
 import { sanitizeSvg } from "../utils/security";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -52,6 +52,23 @@ const renderPresetIconPreview = (src: string, alt: string = "preset") => {
   return <img src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
 };
 
+let globalFormatData: { downloader: any[]; converter: any[] } = {
+  downloader: [],
+  converter: [],
+};
+
+fetch("./assets/format.json")
+  .then((res) => res.json())
+  .then((data) => {
+    if (data) {
+      globalFormatData = {
+        downloader: Array.isArray(data?.dformats) ? data.dformats : [],
+        converter: Array.isArray(data?.cformats) ? data.cformats : [],
+      };
+    }
+  })
+  .catch((err) => console.error("Failed to load formats meta:", err));
+
 export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   isOpen,
   mode,
@@ -93,75 +110,65 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [formatData, setFormatData] = useState<{ downloader: any[]; converter: any[] }>({
-    downloader: [],
-    converter: [],
-  });
+  const [formatData, setFormatData] = useState<{ downloader: any[]; converter: any[] }>(globalFormatData);
 
-  useEffect(() => {
-    fetch("./assets/format.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setFormatData({
-          downloader: Array.isArray(data?.dformats) ? data.dformats : [],
-          converter: Array.isArray(data?.cformats) ? data.cformats : [],
-        });
-      })
-      .catch((err) => console.error("Failed to load formats meta:", err));
-  }, []);
+  const [prevOpenState, setPrevOpenState] = useState({ isOpen: false, mode: "create", presetId: null as string | null });
 
-  useEffect(() => {
-    if (isOpen && mode === "edit" && presetId) {
-      invoke<Preset>("load_preset", { id: presetId })
-        .then((preset) => {
-          if (preset) {
-            setTitle(preset.title || "");
-            setSummary(preset.summary || "");
-            setIconDataUrl(preset.icon_data_url || DEFAULT_ICON);
-            setPresetType(preset.preset_type || "downloader");
-            
-            if (preset.preset_type === "downloader" && preset.downloader) {
-              const d = preset.downloader;
-              setFormat(d.format || "");
-              setSavePath(d.path || "");
-              setDownloadSubs(!!d.download_subtitles);
-              setEmbedSubs(!!d.embed_subtitles);
-              setSubsCode(d.subtitles_code || "");
-              setEmbedMetadata(!!d.embed_metadata);
-              setEmbedThumbnail(!!d.embed_thumbnail);
-              setGeoBypass(!!d.geo_bypass);
-              setMuteAudio(!!d.mute_audio);
-              setVideoQuality(d.video_quality || "");
-              setVideoCodec(d.video_codec || "");
-              setVideoBitrate(d.video_bitrate || "");
-              setVideoFps(d.video_fps || "");
-              setAudioSampleRate(d.audio_sample_rate || "");
-              setAudioCodec(d.audio_codec || "");
-              setAudioBitrate(d.audio_bitrate || "");
-            } else if (preset.preset_type === "converter" && preset.converter) {
-              const c = preset.converter;
-              setFormat(c.format || "");
-              setSavePath(c.path || "");
-              setVideoQuality(c.video_quality || "");
-              setVideoCodec(c.video_codec || "");
-              setVideoBitrate(c.video_bitrate || "");
-              setVideoFps(c.video_fps || "");
-              setAudioSampleRate(c.audio_sample_rate || "");
-              setAudioCodec(c.audio_codec || "");
-              setAudioBitrate(c.audio_bitrate || "");
-            } else if (preset.preset_type === "compressor" && preset.compressor) {
-              const c = preset.compressor;
-              setCompressMode(c.mode as any || "percent");
-              setCompressPercent(c.target_percent ?? 60);
-              setCompressSize(c.target_size || "");
-              setCompressCrf(c.crf ? String(c.crf) : "23");
-            }
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load preset details:", err);
-        });
-    } else if (isOpen && mode === "create") {
+  const applyPresetData = (preset: Preset) => {
+    setTitle(preset.title || "");
+    setSummary(preset.summary || "");
+    setIconDataUrl(preset.icon_data_url || DEFAULT_ICON);
+    setPresetType(preset.preset_type || "downloader");
+
+    if (preset.preset_type === "downloader" && preset.downloader) {
+      const d = preset.downloader;
+      setFormat(d.format || "");
+      setSavePath(d.path || "");
+      setDownloadSubs(!!d.download_subtitles);
+      setEmbedSubs(!!d.embed_subtitles);
+      setSubsCode(d.subtitles_code || "");
+      setEmbedMetadata(!!d.embed_metadata);
+      setEmbedThumbnail(!!d.embed_thumbnail);
+      setGeoBypass(!!d.geo_bypass);
+      setMuteAudio(!!d.mute_audio);
+      setVideoQuality(d.video_quality || "");
+      setVideoCodec(d.video_codec || "");
+      setVideoBitrate(d.video_bitrate || "");
+      setVideoFps(d.video_fps || "");
+      setAudioSampleRate(d.audio_sample_rate || "");
+      setAudioCodec(d.audio_codec || "");
+      setAudioBitrate(d.audio_bitrate || "");
+    } else if (preset.preset_type === "converter" && preset.converter) {
+      const c = preset.converter;
+      setFormat(c.format || "");
+      setSavePath(c.path || "");
+      setVideoQuality(c.video_quality || "");
+      setVideoCodec(c.video_codec || "");
+      setVideoBitrate(c.video_bitrate || "");
+      setVideoFps(c.video_fps || "");
+      setAudioSampleRate(c.audio_sample_rate || "");
+      setAudioCodec(c.audio_codec || "");
+      setAudioBitrate(c.audio_bitrate || "");
+    } else if (preset.preset_type === "compressor" && preset.compressor) {
+      const c = preset.compressor;
+      setCompressMode((c.mode as any) || "percent");
+      setCompressPercent(c.target_percent ?? 60);
+      setCompressSize(c.target_size || "");
+      setCompressCrf(c.crf ? String(c.crf) : "23");
+    }
+  };
+
+  if (isOpen && (!prevOpenState.isOpen || prevOpenState.mode !== mode || prevOpenState.presetId !== presetId)) {
+    setPrevOpenState({ isOpen, mode, presetId: presetId || null });
+    if (globalFormatData.downloader.length > 0 && formatData.downloader.length === 0) {
+      setFormatData(globalFormatData);
+    }
+    if (mode === "edit" && presetId) {
+      const cached = getPresetFromCache(presetId);
+      if (cached) {
+        applyPresetData(cached);
+      }
+    } else if (mode === "create") {
       setTitle("");
       setSummary("");
       setIconDataUrl(DEFAULT_ICON);
@@ -186,6 +193,40 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       setAudioSampleRate("");
       setAudioCodec("");
       setAudioBitrate("");
+    }
+  }
+
+  useEffect(() => {
+    if (globalFormatData.downloader.length > 0) {
+      setFormatData(globalFormatData);
+    } else {
+      fetch("./assets/format.json")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            const parsed = {
+              downloader: Array.isArray(data?.dformats) ? data.dformats : [],
+              converter: Array.isArray(data?.cformats) ? data.cformats : [],
+            };
+            globalFormatData = parsed;
+            setFormatData(parsed);
+          }
+        })
+        .catch((err) => console.error("Failed to load formats meta:", err));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && mode === "edit" && presetId) {
+      invoke<Preset>("load_preset", { id: presetId })
+        .then((preset) => {
+          if (preset) {
+            applyPresetData(preset);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load preset details:", err);
+        });
     }
   }, [isOpen, mode, presetId]);
 
@@ -416,23 +457,25 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const crfOptions = Array.from({ length: 52 }, (_, i) => ({ value: String(i), label: String(i) }));
 
-  const [renderModal, setRenderModal] = useState(isOpen);
-  const [isVisible, setIsVisible] = useState(false);
+  const [activeModal, setActiveModal] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
 
   const { updateUiState } = useUiState();
 
   useEffect(() => {
     updateUiState({ isPresetModalOpen: isOpen });
     if (isOpen) {
-      setRenderModal(true);
-      const raf = requestAnimationFrame(() => setIsVisible(true));
-      return () => cancelAnimationFrame(raf);
-    } else {
-      setIsVisible(false);
-      const timer = setTimeout(() => setRenderModal(false), 250);
+      setActiveModal(true);
+      setIsClosing(false);
+    } else if (activeModal) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setActiveModal(false);
+        setIsClosing(false);
+      }, 200);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, updateUiState]);
+  }, [isOpen, activeModal, updateUiState]);
 
   useEffect(() => {
     return () => {
@@ -440,10 +483,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     };
   }, [updateUiState]);
 
-  if (!renderModal) return null;
+  if (!activeModal) return null;
 
   return (
-    <div className={`preset-modal-overlay ${isVisible ? "visible" : ""}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={`preset-modal-overlay ${isClosing ? "closing" : "open"}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="preset-modal" role="dialog" aria-modal="true">
         <div className="preset-modal-header">
           <div className="preset-modal-title">
@@ -576,7 +619,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           setShowSuggestions(false);
                         }}
                       >
-                        {item.toUpperCase()}
+                        <span>{item.toUpperCase()}</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ opacity: 0.6 }}>
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                       </div>
                     ))}
                   </div>

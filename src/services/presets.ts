@@ -61,6 +61,10 @@ function notifyListeners() {
   listeners.forEach((l) => l([...cachedPresets]));
 }
 
+export function getPresetFromCache(id: string): Preset | undefined {
+  return cachedPresets.find((p) => p.id === id);
+}
+
 export async function listPresets(): Promise<Preset[]> {
   try {
     const list = await invoke<Preset[]>("list_presets");

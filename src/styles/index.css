@@ -3,7 +3,6 @@
 @import "./layout.css";
 @import "./components.css";
 
-/* TODO: Optimise and clean this files */
 @import "./pages/home.css";
 @import "./pages/downloader.css";
 @import "./pages/converter.css";
