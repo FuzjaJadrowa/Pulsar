@@ -19,6 +19,9 @@ pub fn get_config(state: State<ConfigManager>) -> AppConfig {
 
 #[tauri::command]
 pub fn get_distribution_channel() -> String {
+    if crate::core::utils::is_flatpak() {
+        return "flatpak".to_string();
+    }
     if let Ok(runtime_value) = std::env::var("PULSAR_DIST") {
         let trimmed = runtime_value.trim();
         if !trimmed.is_empty() {

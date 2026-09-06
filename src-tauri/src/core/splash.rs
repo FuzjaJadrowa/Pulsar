@@ -14,7 +14,7 @@ use crate::system::config::ConfigManager;
 
 const BRIDGE_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/FFbuilder/releases/latest";
-const FLATPAK_BRIDGE_VERSION: &str = "b19";
+const FLATPAK_BRIDGE_VERSION: &str = "b24";
 const FLATPAK_FFMPEG_VERSION: &str = "7.1";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -710,16 +710,7 @@ fn normalize_app_tag(version: &str) -> String {
 }
 
 fn is_flatpak_runtime() -> bool {
-    if cfg!(target_os = "linux") {
-        let flatpak_channel = std::env::var("PULSAR_DIST")
-            .map(|v| v.trim().eq_ignore_ascii_case("flatpak"))
-            .unwrap_or(false);
-        let in_flatpak = std::env::var("FLATPAK_ID")
-            .map(|v| !v.trim().is_empty())
-            .unwrap_or(false);
-        return flatpak_channel || in_flatpak;
-    }
-    false
+    crate::core::utils::is_flatpak()
 }
 
 fn populate_flatpak_versions(versions: &mut Versions, app_version: &str) {

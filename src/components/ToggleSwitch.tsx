@@ -16,12 +16,12 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   className = "",
 }) => {
   return (
-    <label className={`switch ${className} ${disabled ? "disabled" : ""}`}>
+    <label className={`switch ${className} ${disabled ? "is-disabled disabled" : ""}`}>
       <input
         type="checkbox"
         id={id}
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={(e) => !disabled && onChange(e.target.checked)}
         disabled={disabled}
       />
       <span className="slider"></span>

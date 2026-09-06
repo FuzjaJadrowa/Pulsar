@@ -136,11 +136,12 @@
 
 .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
 .switch input { opacity: 0; width: 0; height: 0; }
-.switch.is-disabled {
+.switch.is-disabled, .switch.disabled, input:disabled + .slider {
     opacity: 0.45;
     cursor: not-allowed;
+    pointer-events: none;
 }
-.switch.is-disabled .slider {
+.switch.is-disabled .slider, .switch.disabled .slider {
     cursor: not-allowed;
 }
 .slider {

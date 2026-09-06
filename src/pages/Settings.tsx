@@ -112,8 +112,17 @@ export const Settings: React.FC = () => {
   const [pulsarVersion, setPulsarVersion] = useState("-");
   const [bridgeVersion, setBridgeVersion] = useState("-");
   const [ffmpegVersion, setFfmpegVersion] = useState("-");
+  const [isFlatpak, setIsFlatpak] = useState(false);
 
   useEffect(() => {
+    invoke<string>("get_distribution_channel")
+      .then((channel) => {
+        if (channel === "flatpak") {
+          setIsFlatpak(true);
+        }
+      })
+      .catch(() => {});
+
     const fetchVersions = async () => {
       try {
         const reqVersions = await invoke<Record<string, string>>("get_requirements_versions").catch(() => ({} as Record<string, string>));
@@ -420,6 +429,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("pulsar")}
+              disabled={isFlatpak}
               aria-label="Check Pulsar update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -428,7 +438,8 @@ export const Settings: React.FC = () => {
               </svg>
             </button>
             <ToggleSwitch
-              checked={!!config.update_app}
+              checked={isFlatpak ? false : !!config.update_app}
+              disabled={isFlatpak}
               onChange={(checked) => updateConfig({ update_app: checked })}
             />
           </div>
@@ -444,6 +455,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("pulsar-bridge")}
+              disabled={isFlatpak}
               aria-label="Check Bridge update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -452,7 +464,8 @@ export const Settings: React.FC = () => {
               </svg>
             </button>
             <ToggleSwitch
-              checked={!!config.update_ytdlp}
+              checked={isFlatpak ? false : !!config.update_ytdlp}
+              disabled={isFlatpak}
               onChange={(checked) => updateConfig({ update_ytdlp: checked })}
             />
           </div>
@@ -468,6 +481,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("ffmpeg")}
+              disabled={isFlatpak}
               aria-label="Check FFmpeg update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -476,7 +490,8 @@ export const Settings: React.FC = () => {
               </svg>
             </button>
             <ToggleSwitch
-              checked={!!config.update_ffmpeg}
+              checked={isFlatpak ? false : !!config.update_ffmpeg}
+              disabled={isFlatpak}
               onChange={(checked) => updateConfig({ update_ffmpeg: checked })}
             />
           </div>
@@ -499,6 +514,7 @@ export const Settings: React.FC = () => {
             className="custom-input"
             type="number"
             value={localCooldown}
+            disabled={isFlatpak}
             onChange={(e) => {
               let valStr = e.target.value;
               let val = parseInt(valStr, 10);
