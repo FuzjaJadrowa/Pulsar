@@ -9,6 +9,10 @@
     <name>Fuzja Jadrowa</name>
   </developer>
   <launchable type="desktop-id">pl.fuzjajadrowa.pulsar.desktop</launchable>
+  <branding>
+    <color type="primary" scheme_preference="light">#764fdf</color>
+    <color type="primary" scheme_preference="dark">#2d123d</color>
+  </branding>
   <description>
     <p>Pulsar is a desktop app for downloading media, converting formats, and compressing files.</p>
     <ul>
@@ -22,6 +26,7 @@
   <url type="homepage">https://fuzjajadrowa.pl/projects/pulsar</url>
   <url type="bugtracker">https://github.com/fuzjajadrowa/Pulsar/issues</url>
   <url type="vcs-browser">https://github.com/fuzjajadrowa/Pulsar</url>
+  <url type="donation">https://ko-fi.com/fuzjajadrowa</url>
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/01-home.png</image>

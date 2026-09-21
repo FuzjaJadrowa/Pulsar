@@ -6,6 +6,7 @@ on:
       - 'v*'
 permissions:
   contents: write
+  issues: write
 
 jobs:
   create-release:
@@ -26,3 +27,41 @@ jobs:
           body_path: .github/changelog.md
           draft: true
           prerelease: false
+
+      - name: Close ready issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'status: ready';
+            const releaseTag = context.ref?.startsWith('refs/tags/')
+              ? context.ref.substring('refs/tags/'.length)
+              : context.sha;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+
+            for (const issue of issues) {
+              if (issue.pull_request) {
+                continue;
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Closed automatically after publishing ${releaseTag}.`,
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+            }
