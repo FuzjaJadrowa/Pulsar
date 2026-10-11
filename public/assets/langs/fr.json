@@ -8,6 +8,7 @@
     "eta": "Temps restant",
     "browse": "Parcourir",
     "addToQueue": "AJOUTER À LA FILE",
+    "dropHint": "ou simplement déposez des fichiers",
     "output": {
       "placeholder": "Nom du fichier de sortie",
       "editTitle": "Modifier le nom de sortie"
@@ -26,6 +27,7 @@
     },
     "errors": {
       "unsupportedFormat": "Format non supporté.",
+      "invalidFileOrLink": "Fichier ou lien invalide.",
       "startPrefix": "Erreur : {error}"
     }
   },
@@ -91,7 +93,10 @@
       "downloadSubtitles": "Télécharger les sous-titres",
       "embedSubtitles": "Intégrer les sous-titres",
       "downloadLiveChat": "Télécharger le chat en direct",
-      "codeOptional": "Code (optionnel)"
+      "codeOptional": "Code (optionnel)",
+      "codecs": "CODECS",
+      "videoCodec": "Codec vidéo",
+      "audioCodec": "Codec audio"
     },
     "thumbnail": {
       "none": "Aucune",
@@ -117,6 +122,10 @@
     },
     "actions": {
       "convert": "CONVERTIR"
+    },
+    "bulk": {
+      "removeFile": "Retirer le fichier du lot",
+      "mixedCategoryError": "Tous les fichiers sélectionnés doivent appartenir à la même catégorie."
     },
     "options": {
       "convertTo": "CONVERTIR EN",
@@ -148,6 +157,10 @@
     },
     "actions": {
       "compress": "COMPRESSER"
+    },
+    "bulk": {
+      "removeFile": "Retirer le fichier du lot",
+      "mixedCategoryError": "Sélection annulée : tous les fichiers sélectionnés doivent appartenir à la même catégorie (Images, Vidéo ou Audio)."
     },
     "mode": {
       "percent": "POURCENTAGE",
@@ -202,10 +215,18 @@
       "systemTitle": "Pulsar",
       "downloadCompleted": "Téléchargement terminé avec succès.",
       "downloadCompletedSystem": "Téléchargement terminé.",
+      "convertCompleted": "Conversion terminée avec succès.",
+      "convertCompletedSystem": "Conversion terminée.",
+      "compressCompleted": "Compression terminée avec succès.",
+      "compressCompletedSystem": "Compression terminée.",
       "queueCompleted": "Éléments de la file d'attente terminés avec succès.",
       "queueCompletedSystem": "Éléments de la file d'attente terminés.",
       "downloadFailed": "Échec du téléchargement.{suffix}",
       "downloadFailedSystem": "Échec du téléchargement.{suffix}",
+      "convertFailed": "Échec de la conversion.{suffix}",
+      "convertFailedSystem": "Échec de la conversion.{suffix}",
+      "compressFailed": "Échec de la compression.{suffix}",
+      "compressFailedSystem": "Échec de la compression.{suffix}",
       "errorSuffix": " Code d'erreur : {code}",
       "downloadStopped": "Téléchargement arrêté par l'utilisateur."
     }
@@ -230,6 +251,12 @@
     "advancedMode": "Mode avancé",
     "advancedModeNote": "Affiche les options avancées et l'accès à la console.",
     "idleAnimation": "Animation d'inactivité",
+    "codecs": {
+      "title": "Codecs",
+      "copyCodecIfPossible": "Copier le codec si possible",
+      "defaultVideoCodec": "Codec vidéo par défaut",
+      "defaultAudioCodec": "Codec audio par défaut"
+    },
     "requirements": "Prérequis",
     "currentVersion": "Version actuelle : {version}",
     "autoUpdateApp": "Mise à jour auto de Pulsar",
@@ -264,6 +291,7 @@
     },
     "titleConstructor": "Constructeur de titre",
     "titleConstructorNote": "Toutes les balises ne sont pas disponibles pour tous les médias.",
+    "titleConstructorRemoveTag": "Cliquez pour retirer la balise",
     "titleConstructorCategories": {
       "video": "Vidéo",
       "statsDates": "Stats & Dates",
