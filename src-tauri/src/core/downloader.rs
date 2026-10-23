@@ -578,9 +578,15 @@ pub fn start_download(
     args.push("--concurrent-fragments".to_string());
     args.push("3".to_string());
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
+    if config.cookies_file.trim().is_empty()
+        && config.cookies_browser.to_lowercase() != "none"
+        && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
+    }
+    if !config.cookies_file.trim().is_empty() {
+        args.push("--cookies".to_string());
+        args.push(config.cookies_file.trim().to_string());
     }
 
     if options.mode == "audio" {

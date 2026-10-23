@@ -329,6 +329,17 @@ pub async fn pick_convert_file(app_handle: AppHandle) -> Result<String, String> 
 }
 
 #[tauri::command]
+pub async fn pick_cookies_file(app_handle: AppHandle) -> Result<String, String> {
+    let file_path = app_handle.dialog().file()
+        .add_filter("Cookies file", &["txt", "cookies"])
+        .blocking_pick_file();
+    match file_path {
+        Some(path) => Ok(path.to_string()),
+        None => Ok(String::new()),
+    }
+}
+
+#[tauri::command]
 pub async fn pick_convert_files(app_handle: AppHandle) -> Result<Vec<String>, String> {
     let file_paths = app_handle.dialog().file().blocking_pick_files();
 

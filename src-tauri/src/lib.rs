@@ -79,6 +79,7 @@ pub fn run() {
             core::downloader::init_bridge,
             core::downloader::pick_download_directory,
             core::converter::pick_convert_file,
+            core::converter::pick_cookies_file,
             core::converter::pick_convert_files,
             core::converter::estimate_convert_size,
             core::converter::start_convert,

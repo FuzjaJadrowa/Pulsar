@@ -552,6 +552,23 @@ export const Settings: React.FC = () => {
         <div className="settings-note">
           {t("settings.cookiesFromBrowserNote")}
         </div>
+        <div className="form-row cookies-file-row">
+          <span>{t("settings.cookiesFile")}</span>
+          <div className="cookies-file-control">
+            <span className={`cookies-file-name${config.cookies_file ? " is-selected" : ""}`} title={config.cookies_file || undefined}>
+              {config.cookies_file ? config.cookies_file.split(/[\\/]/).pop() : t("settings.noCookiesFile")}
+            </span>
+            <button className="cookies-file-button" onClick={async () => {
+              const path = await invoke<string>("pick_cookies_file");
+              if (path) updateConfig({ cookies_file: path });
+            }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" /></svg>
+              {t("settings.chooseCookiesFile")}
+            </button>
+            {config.cookies_file && <button className="cookies-file-clear" onClick={() => updateConfig({ cookies_file: "" })}>{t("settings.clearCookiesFile")}</button>}
+          </div>
+        </div>
+        <div className="settings-note">{t("settings.cookiesFileNote")}</div>
 
         <div className="form-row">
           <span>{t("settings.maximumConcurrentProcesses")}</span>

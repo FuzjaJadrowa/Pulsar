@@ -14,6 +14,7 @@ export interface PulsarConfig {
   update_ffmpeg: boolean;
   ffmpeg_hwaccel: string;
   cookies_browser: string;
+  cookies_file: string;
   maximum_concurrent_processes: number;
   maximum_search_results: number;
   title_template: string;
@@ -35,6 +36,7 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   update_ffmpeg: true,
   ffmpeg_hwaccel: "none",
   cookies_browser: "none",
+  cookies_file: "",
   maximum_concurrent_processes: 3,
   maximum_search_results: 10,
   title_template: "%(title)s [%(id)s]",
@@ -130,6 +132,7 @@ export async function loadConfig(): Promise<PulsarConfig> {
         update_ffmpeg: Boolean(raw.update_ffmpeg ?? raw.updateFfmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
         ffmpeg_hwaccel: String(raw.ffmpeg_hwaccel ?? raw.ffmpegHwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
         cookies_browser: String(raw.cookies_browser ?? raw.cookiesBrowser ?? DEFAULT_CONFIG.cookies_browser),
+        cookies_file: String(raw.cookies_file ?? raw.cookiesFile ?? DEFAULT_CONFIG.cookies_file),
         maximum_concurrent_processes: Number(raw.maximum_concurrent_processes ?? raw.maximumConcurrentProcesses ?? DEFAULT_CONFIG.maximum_concurrent_processes),
         maximum_search_results: Number(raw.maximum_search_results ?? raw.maximumSearchResults ?? DEFAULT_CONFIG.maximum_search_results),
         title_template: String(raw.title_template ?? raw.titleTemplate ?? DEFAULT_CONFIG.title_template),
@@ -164,6 +167,7 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
     update_ffmpeg: Boolean(merged.update_ffmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
     ffmpeg_hwaccel: String(merged.ffmpeg_hwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
     cookies_browser: String(merged.cookies_browser ?? DEFAULT_CONFIG.cookies_browser),
+    cookies_file: String(merged.cookies_file ?? DEFAULT_CONFIG.cookies_file),
     maximum_concurrent_processes: Number(merged.maximum_concurrent_processes ?? DEFAULT_CONFIG.maximum_concurrent_processes),
     maximum_search_results: Number(merged.maximum_search_results ?? DEFAULT_CONFIG.maximum_search_results),
     title_template: String(merged.title_template ?? DEFAULT_CONFIG.title_template),

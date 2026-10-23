@@ -267,6 +267,11 @@
     "downloadSettings": "Download settings",
     "cookiesFromBrowser": "Cookies from browser",
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
+    "cookiesFile": "Cookies file",
+    "chooseCookiesFile": "Choose file",
+    "clearCookiesFile": "Clear",
+    "noCookiesFile": "No file selected",
+    "cookiesFileNote": "YouTube cookies exported in Netscape format can help with bot verification. Keep the file private and use a recent export.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
     "maximumSearchResults": "Maximum search results",
     "presetsManager": {

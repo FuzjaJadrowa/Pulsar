@@ -49,9 +49,15 @@ pub fn fetch_metadata_downloader(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
+    if config.cookies_file.trim().is_empty()
+        && config.cookies_browser.to_lowercase() != "none"
+        && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
+    }
+    if !config.cookies_file.trim().is_empty() {
+        args.push("--cookies".to_string());
+        args.push(config.cookies_file.trim().to_string());
     }
 
     args.push(trimmed_url.to_string());
@@ -114,9 +120,15 @@ pub fn search(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
+    if config.cookies_file.trim().is_empty()
+        && config.cookies_browser.to_lowercase() != "none"
+        && !config.cookies_browser.trim().is_empty() {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
+    }
+    if !config.cookies_file.trim().is_empty() {
+        args.push("--cookies".to_string());
+        args.push(config.cookies_file.trim().to_string());
     }
 
     let max_results = config.maximum_search_results.clamp(1, 50);

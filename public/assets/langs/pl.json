@@ -267,6 +267,11 @@
     "downloadSettings": "Ustawienia pobierania",
     "cookiesFromBrowser": "Ciasteczka z przeglądarki",
     "cookiesFromBrowserNote": "Pozwala używać ciasteczek z przeglądarki do pobierania ograniczonych filmów, do których masz dostęp.",
+    "cookiesFile": "Plik cookies",
+    "chooseCookiesFile": "Wybierz plik",
+    "clearCookiesFile": "Wyczyść",
+    "noCookiesFile": "Nie wybrano pliku",
+    "cookiesFileNote": "Plik cookies YouTube w formacie Netscape może pomóc przy weryfikacji bota. Chroń go i używaj aktualnego eksportu.",
     "maximumConcurrentProcesses": "Maksymalna liczba równoczesnych procesów",
     "maximumSearchResults": "Maksymalna liczba wyników wyszukiwania",
     "presetsManager": {

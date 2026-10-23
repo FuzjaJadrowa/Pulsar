@@ -38,6 +38,8 @@ pub struct AppConfig {
 
     #[serde(default, alias = "cookies_browser")]
     pub cookies_browser: String,
+    #[serde(default, alias = "cookies_file")]
+    pub cookies_file: String,
     #[serde(default, alias = "maximum_concurrent_processes")]
     pub maximum_concurrent_processes: u64,
     #[serde(default, alias = "maximum_search_results")]
@@ -75,6 +77,7 @@ impl Default for AppConfig {
             ffmpeg_hwaccels: Vec::new(),
             ffmpeg_hwaccel_preferred: "auto".to_string(),
             cookies_browser: "none".to_string(),
+            cookies_file: String::new(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
             title_template: "%(title)s [%(id)s]".to_string(),
@@ -190,6 +193,7 @@ impl ConfigManager {
                 }
                 if let Some(section) = ini.section(Some("Download")) {
                     if let Some(v) = section.get("cookies_browser") { config.cookies_browser = v.to_string(); }
+                    if let Some(v) = section.get("cookies_file") { config.cookies_file = v.to_string(); }
                     config.maximum_concurrent_processes = section
                         .get("maximum_concurrent_processes")
                         .and_then(|v| v.parse::<u64>().ok())
@@ -257,6 +261,7 @@ impl ConfigManager {
 
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)
+            .set("cookies_file", &config.cookies_file)
             .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string())
             .set("maximum_search_results", config.maximum_search_results.to_string())
             .set("title_template", &config.title_template);

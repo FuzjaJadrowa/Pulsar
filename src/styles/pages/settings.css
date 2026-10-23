@@ -120,6 +120,89 @@
     color: rgba(220, 220, 220, 0.6);
     margin: -6px 0 12px;
 }
+.settings-section-card .cookies-file-row {
+    align-items: flex-start;
+}
+.cookies-file-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+    max-width: 70%;
+}
+.cookies-file-name {
+    max-width: 240px;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cookies-file-name.is-selected {
+    color: var(--text-color);
+}
+.cookies-file-button,
+.cookies-file-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 9px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    font: inherit;
+    font-size: 12px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+.cookies-file-button:hover,
+.cookies-file-clear:hover {
+    border-color: var(--accent-color);
+    background: color-mix(in srgb, var(--accent-color) 12%, var(--input-bg));
+}
+.cookies-file-button:active,
+.cookies-file-clear:active {
+    transform: scale(0.97);
+}
+.cookies-file-button:focus-visible,
+.cookies-file-clear:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+.cookies-file-button svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+.cookies-file-clear {
+    min-height: 32px;
+    padding: 0 9px;
+    color: var(--text-muted);
+}
+@media (max-width: 640px) {
+    .settings-section-card .cookies-file-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .cookies-file-control {
+        justify-content: flex-start;
+        max-width: 100%;
+    }
+    .cookies-file-name {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
 .anim-btn {
     border: none;
     border-radius: 8px;
