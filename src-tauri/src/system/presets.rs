@@ -1,12 +1,12 @@
+use base64::engine::general_purpose::STANDARD as BASE64_ENGINE;
+use base64::Engine;
+use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager};
-use directories::BaseDirs;
 use tauri_plugin_dialog::DialogExt;
-use base64::engine::general_purpose::STANDARD as BASE64_ENGINE;
-use base64::Engine;
 
 const PRESET_VERSION: u32 = 1;
 const PRESET_EXTENSION: &str = "pulpreset";
@@ -218,7 +218,6 @@ fn generate_id(title: &str) -> String {
     format!("{}-{}", slug, timestamp)
 }
 
-
 #[tauri::command]
 pub fn list_presets(app_handle: AppHandle) -> Result<Vec<PresetSummary>, String> {
     let dir = presets_dir(&app_handle)?;
@@ -325,7 +324,11 @@ pub fn save_preset(app_handle: AppHandle, preset: PresetPayload) -> Result<Strin
                     }
                 }
                 "size" => {
-                    let size = compressor.target_size.as_ref().map(|v| v.trim()).unwrap_or("");
+                    let size = compressor
+                        .target_size
+                        .as_ref()
+                        .map(|v| v.trim())
+                        .unwrap_or("");
                     if size.is_empty() {
                         return Err("Target size is required.".to_string());
                     }
@@ -472,7 +475,7 @@ mod tests {
 
         let re_encoded = encode_icon(&decoded);
         assert!(re_encoded.starts_with("data:image/svg+xml;base64,"));
-        
+
         let decoded_again = decode_icon(&re_encoded).expect("Should decode base64 icon");
         assert_eq!(decoded_again.data, decoded.data);
     }

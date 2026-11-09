@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Manager};
 
 #[tauri::command]
 pub fn send_system_notification(
@@ -35,13 +35,13 @@ pub fn send_system_notification(
 
         // Fallback app ID improves delivery on systems without custom registration.
         if toast.show().is_err() {
-            let mut fallback = Toast::new(Toast::POWERSHELL_APP_ID).title(&title).text1(&body);
+            let mut fallback = Toast::new(Toast::POWERSHELL_APP_ID)
+                .title(&title)
+                .text1(&body);
             if let Some(ref icon) = icon_path {
                 fallback = fallback.icon(icon.as_path(), IconCrop::Circular, "Pulsar");
             }
-            fallback
-                .show()
-                .map_err(|error| format!("{error:?}"))?;
+            fallback.show().map_err(|error| format!("{error:?}"))?;
         }
 
         return Ok(());
@@ -82,7 +82,12 @@ fn resolve_icon_path(app: &AppHandle) -> Option<PathBuf> {
         candidates.push(path);
     }
     if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("public").join("assets").join("icons").join("icon.png"));
+        candidates.push(
+            cwd.join("public")
+                .join("assets")
+                .join("icons")
+                .join("icon.png"),
+        );
     }
 
     for path in candidates {

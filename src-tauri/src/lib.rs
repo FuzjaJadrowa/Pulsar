@@ -77,17 +77,17 @@ pub fn run() {
             core::downloader::start_download,
             core::downloader::cancel_download,
             core::downloader::init_bridge,
-            core::downloader::pick_download_directory,
+            core::downloader::file_ops::pick_download_directory,
             core::converter::pick_convert_file,
             core::converter::pick_convert_files,
             core::converter::estimate_convert_size,
             core::converter::start_convert,
-            core::converter::start_batch_convert,
+            core::converter::batch::start_batch_convert,
             core::compressor::start_compress,
             core::compressor::start_batch_compress,
-            core::downloader::save_thumbnail_to_disk,
-            core::downloader::read_clipboard_text,
-            core::downloader::open_in_file_manager
+            core::downloader::file_ops::save_thumbnail_to_disk,
+            core::downloader::file_ops::read_clipboard_text,
+            core::downloader::file_ops::open_in_file_manager
         ])
         .run(tauri::generate_context!())
         .expect("Error while running Pulsar");

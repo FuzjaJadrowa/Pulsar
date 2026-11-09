@@ -168,7 +168,7 @@
       "quality": "QUALITY"
     },
     "size": {
-      "placeholder": "Target size"
+      "placeholder": "Approx. target size"
     },
     "options": {
       "compressBy": "COMPRESS BY",

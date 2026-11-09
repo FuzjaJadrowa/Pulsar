@@ -95,7 +95,8 @@ impl QueueManager {
         if !queue_path.exists() {
             let _ = fs::write(
                 &queue_path,
-                serde_json::to_string_pretty(&QueueState::default()).unwrap_or_else(|_| "{}".to_string()),
+                serde_json::to_string_pretty(&QueueState::default())
+                    .unwrap_or_else(|_| "{}".to_string()),
             );
         }
 

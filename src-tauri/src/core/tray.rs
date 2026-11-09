@@ -7,24 +7,30 @@ use tauri::path::BaseDirectory;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
-pub fn build_tray_icon<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState) -> tauri::Result<()> {
+pub fn build_tray_icon<R: Runtime>(
+    app: &AppHandle<R>,
+    queue_state: &QueueState,
+) -> tauri::Result<()> {
     let menu = build_tray_menu(app, queue_state);
     let mut builder = TrayIconBuilder::with_id("main").menu(&menu);
     if let Some(icon) = load_tray_icon(app) {
         builder = builder.icon(icon);
     }
     builder
-        .on_menu_event(|app, event| {
-            match event.id().as_ref() {
-                "tray_clear_queue" => {
-                    let _ = app.emit("tray-clear-queue", ());
-                }
-                "tray_quit" => app.exit(0),
-                _ => {}
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "tray_clear_queue" => {
+                let _ = app.emit("tray-clear-queue", ());
             }
+            "tray_quit" => app.exit(0),
+            _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click { button, button_state, .. } = event {
+            if let TrayIconEvent::Click {
+                button,
+                button_state,
+                ..
+            } = event
+            {
                 if button == MouseButton::Left && button_state == MouseButtonState::Up {
                     if let Some(window) = tray.app_handle().get_webview_window("main") {
                         let _ = window.show();
@@ -51,8 +57,14 @@ fn build_tray_menu<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState) -> 
         .filter(|item| item.status == "downloading")
         .count();
 
-    let title = MenuItem::with_id(app, "tray_title", format!("Pulsar v{}", version), false, None::<&str>)
-        .expect("tray title menu item");
+    let title = MenuItem::with_id(
+        app,
+        "tray_title",
+        format!("Pulsar v{}", version),
+        false,
+        None::<&str>,
+    )
+    .expect("tray title menu item");
     let processing_item = MenuItem::with_id(
         app,
         "tray_processing",
@@ -73,8 +85,7 @@ fn build_tray_menu<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState) -> 
     let quit_item = MenuItem::with_id(app, "tray_quit", "Quit", true, None::<&str>)
         .expect("tray quit menu item");
 
-    Menu::with_items(app, &[&title, &processing_item, &clear_item, &quit_item])
-        .expect("tray menu")
+    Menu::with_items(app, &[&title, &processing_item, &clear_item, &quit_item]).expect("tray menu")
 }
 
 fn update_tray_menu<R: Runtime>(app: &AppHandle<R>, queue_state: &QueueState) {
@@ -90,7 +101,12 @@ fn load_tray_icon<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
         candidates.push(path);
     }
     if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("public").join("assets").join("icons").join("icon.png"));
+        candidates.push(
+            cwd.join("public")
+                .join("assets")
+                .join("icons")
+                .join("icon.png"),
+        );
     }
 
     for path in candidates {

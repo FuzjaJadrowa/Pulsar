@@ -1,8 +1,8 @@
+use crate::system::config::ConfigManager;
+use serde::Serialize;
 use std::path::Path;
 use std::process::Command;
 use tauri::State;
-use serde::Serialize;
-use crate::system::config::ConfigManager;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct AccelerationInfo {
@@ -22,7 +22,10 @@ fn parse_hwaccels(output: &str) -> Vec<String> {
             continue;
         }
         // Ignore preamble and start parsing only after the ffmpeg header line.
-        if trimmed.to_lowercase().contains("hardware acceleration methods:") {
+        if trimmed
+            .to_lowercase()
+            .contains("hardware acceleration methods:")
+        {
             found_header = true;
             continue;
         }
@@ -52,18 +55,30 @@ fn detect_gpu_vendor() -> Option<String> {
             .output()
             .ok()?;
         let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-        if stdout.contains("nvidia") { return Some("nvidia".to_string()); }
-        if stdout.contains("amd") || stdout.contains("radeon") { return Some("amd".to_string()); }
-        if stdout.contains("intel") { return Some("intel".to_string()); }
+        if stdout.contains("nvidia") {
+            return Some("nvidia".to_string());
+        }
+        if stdout.contains("amd") || stdout.contains("radeon") {
+            return Some("amd".to_string());
+        }
+        if stdout.contains("intel") {
+            return Some("intel".to_string());
+        }
     }
 
     #[cfg(target_os = "linux")]
     {
         if let Ok(output) = Command::new("lspci").output() {
             let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-            if stdout.contains("nvidia") { return Some("nvidia".to_string()); }
-            if stdout.contains("amd") || stdout.contains("radeon") { return Some("amd".to_string()); }
-            if stdout.contains("intel") { return Some("intel".to_string()); }
+            if stdout.contains("nvidia") {
+                return Some("nvidia".to_string());
+            }
+            if stdout.contains("amd") || stdout.contains("radeon") {
+                return Some("amd".to_string());
+            }
+            if stdout.contains("intel") {
+                return Some("intel".to_string());
+            }
         }
     }
 
@@ -74,10 +89,18 @@ fn detect_gpu_vendor() -> Option<String> {
             .output()
         {
             let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-            if stdout.contains("apple") { return Some("apple".to_string()); }
-            if stdout.contains("amd") || stdout.contains("radeon") { return Some("amd".to_string()); }
-            if stdout.contains("intel") { return Some("intel".to_string()); }
-            if stdout.contains("nvidia") { return Some("nvidia".to_string()); }
+            if stdout.contains("apple") {
+                return Some("apple".to_string());
+            }
+            if stdout.contains("amd") || stdout.contains("radeon") {
+                return Some("amd".to_string());
+            }
+            if stdout.contains("intel") {
+                return Some("intel".to_string());
+            }
+            if stdout.contains("nvidia") {
+                return Some("nvidia".to_string());
+            }
         }
     }
 
@@ -97,26 +120,44 @@ fn choose_preferred(accels: &[String], current: &str) -> String {
     #[cfg(target_os = "windows")]
     {
         if let Some(v) = vendor.as_deref() {
-            if v == "nvidia" && has_accel(accels, "cuda") { return "cuda".to_string(); }
-            if v == "intel" && has_accel(accels, "qsv") { return "qsv".to_string(); }
-            if v == "amd" && has_accel(accels, "amf") { return "amf".to_string(); }
+            if v == "nvidia" && has_accel(accels, "cuda") {
+                return "cuda".to_string();
+            }
+            if v == "intel" && has_accel(accels, "qsv") {
+                return "qsv".to_string();
+            }
+            if v == "amd" && has_accel(accels, "amf") {
+                return "amf".to_string();
+            }
         }
-        if has_accel(accels, "d3d11va") { return "d3d11va".to_string(); }
-        if has_accel(accels, "dxva2") { return "dxva2".to_string(); }
+        if has_accel(accels, "d3d11va") {
+            return "d3d11va".to_string();
+        }
+        if has_accel(accels, "dxva2") {
+            return "dxva2".to_string();
+        }
     }
 
     #[cfg(target_os = "linux")]
     {
         if let Some(v) = vendor.as_deref() {
-            if v == "nvidia" && has_accel(accels, "cuda") { return "cuda".to_string(); }
+            if v == "nvidia" && has_accel(accels, "cuda") {
+                return "cuda".to_string();
+            }
         }
-        if has_accel(accels, "vaapi") { return "vaapi".to_string(); }
-        if has_accel(accels, "vulkan") { return "vulkan".to_string(); }
+        if has_accel(accels, "vaapi") {
+            return "vaapi".to_string();
+        }
+        if has_accel(accels, "vulkan") {
+            return "vulkan".to_string();
+        }
     }
 
     #[cfg(target_os = "macos")]
     {
-        if has_accel(accels, "videotoolbox") { return "videotoolbox".to_string(); }
+        if has_accel(accels, "videotoolbox") {
+            return "videotoolbox".to_string();
+        }
     }
 
     // Prefer non-AMF fallback when vendor detection is uncertain.
@@ -151,23 +192,34 @@ fn detect_hwaccels(ffmpeg_path: &Path) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-pub fn refresh_acceleration_info(config_mgr: State<ConfigManager>) -> Result<AccelerationInfo, String> {
+pub fn refresh_acceleration_info(
+    config_mgr: State<ConfigManager>,
+) -> Result<AccelerationInfo, String> {
     let ffmpeg_path = get_ffmpeg_path();
     let accels = detect_hwaccels(&ffmpeg_path).unwrap_or_default();
     let mut config = config_mgr.config.lock().unwrap();
     config.ffmpeg_hwaccels = accels.clone();
-    config.ffmpeg_hwaccel_preferred = choose_preferred(&accels, config.ffmpeg_hwaccel_preferred.trim());
+    config.ffmpeg_hwaccel_preferred =
+        choose_preferred(&accels, config.ffmpeg_hwaccel_preferred.trim());
     drop(config);
     config_mgr.save();
     Ok(AccelerationInfo {
         hwaccels: accels,
-        preferred: config_mgr.config.lock().unwrap().ffmpeg_hwaccel_preferred.clone()
+        preferred: config_mgr
+            .config
+            .lock()
+            .unwrap()
+            .ffmpeg_hwaccel_preferred
+            .clone(),
     })
 }
 
 pub fn resolve_hwaccel(config_mgr: &ConfigManager) -> Option<String> {
     let config = config_mgr.config.lock().unwrap();
-    if config.ffmpeg_hwaccel == "none" || config.ffmpeg_hwaccel == "false" || config.ffmpeg_hwaccel.trim().is_empty() {
+    if config.ffmpeg_hwaccel == "none"
+        || config.ffmpeg_hwaccel == "false"
+        || config.ffmpeg_hwaccel.trim().is_empty()
+    {
         return None;
     }
     if config.ffmpeg_hwaccel_preferred != "auto" {

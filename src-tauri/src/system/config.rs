@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
-use ini::Ini;
-use std::sync::Mutex;
-use std::path::PathBuf;
 use directories::BaseDirs;
+use ini::Ini;
+use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::PathBuf;
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -53,10 +53,18 @@ pub struct AppConfig {
     pub default_audio_codec: String,
 }
 
-fn default_theme() -> String { "System".to_string() }
-fn default_lang() -> String { "en".to_string() }
-fn default_close() -> String { "ask".to_string() }
-fn default_codec_auto() -> String { "auto".to_string() }
+fn default_theme() -> String {
+    "System".to_string()
+}
+fn default_lang() -> String {
+    "en".to_string()
+}
+fn default_close() -> String {
+    "ask".to_string()
+}
+fn default_codec_auto() -> String {
+    "auto".to_string()
+}
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -87,8 +95,10 @@ impl Default for AppConfig {
 
 impl AppConfig {
     pub fn sanitize(&mut self) {
-        self.update_app_cooldown_minutes = clamp_range(self.update_app_cooldown_minutes, 10, 500, 30);
-        self.maximum_concurrent_processes = clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
+        self.update_app_cooldown_minutes =
+            clamp_range(self.update_app_cooldown_minutes, 10, 500, 30);
+        self.maximum_concurrent_processes =
+            clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
         self.maximum_search_results = clamp_range(self.maximum_search_results, 1, 50, 10);
         if self.title_template.trim().is_empty() {
             self.title_template = "%(title)s [%(id)s]".to_string();
@@ -97,7 +107,11 @@ impl AppConfig {
             self.ffmpeg_hwaccel_preferred = "auto".to_string();
         }
         if self.ffmpeg_hwaccel_preferred != "auto"
-            && !self.ffmpeg_hwaccels.iter().any(|accel| accel == &self.ffmpeg_hwaccel_preferred) {
+            && !self
+                .ffmpeg_hwaccels
+                .iter()
+                .any(|accel| accel == &self.ffmpeg_hwaccel_preferred)
+        {
             self.ffmpeg_hwaccel_preferred = "auto".to_string();
         }
     }
@@ -151,21 +165,42 @@ impl ConfigManager {
                 if let Some(section) = ini.section(Some("General")) {
                     // Backward compatibility.
                     if !theme_loaded {
-                        if let Some(v) = section.get("theme") { config.theme = v.to_string(); }
+                        if let Some(v) = section.get("theme") {
+                            config.theme = v.to_string();
+                        }
                     }
-                    if let Some(v) = section.get("language") { config.language = v.to_string(); }
-                    if let Some(v) = section.get("close_behavior") { config.close_behavior = v.to_string(); }
-                    config.advanced_mode = section.get("advanced_mode").map(|v| v == "true").unwrap_or(false);
-                    config.system_notifications = section.get("system_notifications").map(|v| v == "true").unwrap_or(true);
+                    if let Some(v) = section.get("language") {
+                        config.language = v.to_string();
+                    }
+                    if let Some(v) = section.get("close_behavior") {
+                        config.close_behavior = v.to_string();
+                    }
+                    config.advanced_mode = section
+                        .get("advanced_mode")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
+                    config.system_notifications = section
+                        .get("system_notifications")
+                        .map(|v| v == "true")
+                        .unwrap_or(true);
                 }
                 if let Some(section) = ini.section(Some("Requirements")) {
-                    config.update_app = section.get("update_app").map(|v| v == "true").unwrap_or(true);
+                    config.update_app = section
+                        .get("update_app")
+                        .map(|v| v == "true")
+                        .unwrap_or(true);
                     config.update_app_cooldown_minutes = section
                         .get("update_app_cooldown_minutes")
                         .and_then(|v| v.parse::<u64>().ok())
                         .unwrap_or(30);
-                    config.update_ytdlp = section.get("update_ytdlp").map(|v| v == "true").unwrap_or(true);
-                    config.update_ffmpeg = section.get("update_ffmpeg").map(|v| v == "true").unwrap_or(true);
+                    config.update_ytdlp = section
+                        .get("update_ytdlp")
+                        .map(|v| v == "true")
+                        .unwrap_or(true);
+                    config.update_ffmpeg = section
+                        .get("update_ffmpeg")
+                        .map(|v| v == "true")
+                        .unwrap_or(true);
                 }
                 if let Some(section) = ini.section(Some("Acceleration")) {
                     if let Some(v) = section.get("ffmpeg_hwaccel") {
@@ -178,7 +213,8 @@ impl ConfigManager {
                         }
                     }
                     if let Some(v) = section.get("ffmpeg_hwaccels") {
-                        let parsed = v.split(',')
+                        let parsed = v
+                            .split(',')
                             .map(|item| item.trim().to_string())
                             .filter(|item| !item.is_empty())
                             .collect::<Vec<_>>();
@@ -189,7 +225,9 @@ impl ConfigManager {
                     }
                 }
                 if let Some(section) = ini.section(Some("Download")) {
-                    if let Some(v) = section.get("cookies_browser") { config.cookies_browser = v.to_string(); }
+                    if let Some(v) = section.get("cookies_browser") {
+                        config.cookies_browser = v.to_string();
+                    }
                     config.maximum_concurrent_processes = section
                         .get("maximum_concurrent_processes")
                         .and_then(|v| v.parse::<u64>().ok())
@@ -198,12 +236,21 @@ impl ConfigManager {
                         .get("maximum_search_results")
                         .and_then(|v| v.parse::<u64>().ok())
                         .unwrap_or(10);
-                    if let Some(v) = section.get("title_template") { config.title_template = v.to_string(); }
+                    if let Some(v) = section.get("title_template") {
+                        config.title_template = v.to_string();
+                    }
                 }
                 if let Some(section) = ini.section(Some("Codecs")) {
-                    config.copy_codec_if_possible = section.get("copy_codec_if_possible").map(|v| v == "true").unwrap_or(false);
-                    if let Some(v) = section.get("default_video_codec") { config.default_video_codec = v.to_string(); }
-                    if let Some(v) = section.get("default_audio_codec") { config.default_audio_codec = v.to_string(); }
+                    config.copy_codec_if_possible = section
+                        .get("copy_codec_if_possible")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
+                    if let Some(v) = section.get("default_video_codec") {
+                        config.default_video_codec = v.to_string();
+                    }
+                    if let Some(v) = section.get("default_audio_codec") {
+                        config.default_audio_codec = v.to_string();
+                    }
                 }
             }
         } else {
@@ -225,23 +272,67 @@ impl ConfigManager {
         ini.with_section(Some("General"))
             .set("language", &config.language)
             .set("close_behavior", &config.close_behavior)
-            .set("advanced_mode", if config.advanced_mode { "true" } else { "false" })
-            .set("system_notifications", if config.system_notifications { "true" } else { "false" });
+            .set(
+                "advanced_mode",
+                if config.advanced_mode {
+                    "true"
+                } else {
+                    "false"
+                },
+            )
+            .set(
+                "system_notifications",
+                if config.system_notifications {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
 
         ini.with_section(Some("Appearance"))
             .set("theme", &config.theme)
-            .set("idle_animation", if config.idle_animation { "true" } else { "false" });
+            .set(
+                "idle_animation",
+                if config.idle_animation {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
 
         ini.with_section(Some("Codecs"))
-            .set("copy_codec_if_possible", if config.copy_codec_if_possible { "true" } else { "false" })
+            .set(
+                "copy_codec_if_possible",
+                if config.copy_codec_if_possible {
+                    "true"
+                } else {
+                    "false"
+                },
+            )
             .set("default_video_codec", &config.default_video_codec)
             .set("default_audio_codec", &config.default_audio_codec);
 
         ini.with_section(Some("Requirements"))
-            .set("update_app", if config.update_app { "true" } else { "false" })
-            .set("update_app_cooldown_minutes", config.update_app_cooldown_minutes.to_string())
-            .set("update_ytdlp", if config.update_ytdlp { "true" } else { "false" })
-            .set("update_ffmpeg", if config.update_ffmpeg { "true" } else { "false" });
+            .set(
+                "update_app",
+                if config.update_app { "true" } else { "false" },
+            )
+            .set(
+                "update_app_cooldown_minutes",
+                config.update_app_cooldown_minutes.to_string(),
+            )
+            .set(
+                "update_ytdlp",
+                if config.update_ytdlp { "true" } else { "false" },
+            )
+            .set(
+                "update_ffmpeg",
+                if config.update_ffmpeg {
+                    "true"
+                } else {
+                    "false"
+                },
+            );
 
         ini.with_section(Some("Acceleration"))
             .set("ffmpeg_hwaccel", &config.ffmpeg_hwaccel);
@@ -257,8 +348,14 @@ impl ConfigManager {
 
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)
-            .set("maximum_concurrent_processes", config.maximum_concurrent_processes.to_string())
-            .set("maximum_search_results", config.maximum_search_results.to_string())
+            .set(
+                "maximum_concurrent_processes",
+                config.maximum_concurrent_processes.to_string(),
+            )
+            .set(
+                "maximum_search_results",
+                config.maximum_search_results.to_string(),
+            )
             .set("title_template", &config.title_template);
 
         if let Err(e) = ini.write_to_file(path) {

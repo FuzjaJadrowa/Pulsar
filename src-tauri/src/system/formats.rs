@@ -25,7 +25,10 @@ static FORMAT_CATALOG: OnceLock<FormatCatalog> = OnceLock::new();
 
 pub fn get_format_catalog() -> &'static FormatCatalog {
     FORMAT_CATALOG.get_or_init(|| {
-        let raw = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../public/assets/format.json"));
+        let raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../public/assets/format.json"
+        ));
         serde_json::from_str::<FormatCatalog>(raw).unwrap_or_else(|_| FormatCatalog {
             dformats: Vec::new(),
             cformats: Vec::new(),
@@ -34,19 +37,29 @@ pub fn get_format_catalog() -> &'static FormatCatalog {
 }
 
 pub fn find_format_info(format_id: &str) -> Option<FormatItem> {
+    find_in_formats(format_id, true)
+}
+
+pub fn find_convert_format_info(format_id: &str) -> Option<FormatItem> {
+    find_in_formats(format_id, false)
+}
+
+fn find_in_formats(format_id: &str, download: bool) -> Option<FormatItem> {
     let clean = format_id.trim().trim_start_matches('.').to_lowercase();
     if clean.is_empty() {
         return None;
     }
 
     let catalog = get_format_catalog();
-    if let Some(item) = catalog.dformats.iter().find(|f| f.id.to_lowercase() == clean) {
-        return Some(item.clone());
-    }
-    if let Some(item) = catalog.cformats.iter().find(|f| f.id.to_lowercase() == clean) {
-        return Some(item.clone());
-    }
-    None
+    let formats = if download {
+        &catalog.dformats
+    } else {
+        &catalog.cformats
+    };
+    formats
+        .iter()
+        .find(|f| f.id.eq_ignore_ascii_case(&clean))
+        .cloned()
 }
 
 pub fn normalize_codec_name(raw: &str) -> String {
@@ -83,7 +96,40 @@ pub fn is_codec_supported_by_format(format_item: &FormatItem, codec: &str, is_vi
         &format_item.audio_codecs
     };
 
-    target_list.iter().any(|c| normalize_codec_name(c) == norm_req)
+    target_list
+        .iter()
+        .any(|c| normalize_codec_name(c) == norm_req)
+}
+
+pub fn validate_codec_support(
+    format_id: &str,
+    codec: Option<&str>,
+    is_video: bool,
+    conversion: bool,
+) -> Result<(), String> {
+    let Some(codec) = codec
+        .map(str::trim)
+        .filter(|codec| !codec.is_empty() && *codec != "auto" && *codec != "copy")
+    else {
+        return Ok(());
+    };
+    let info = if conversion {
+        find_convert_format_info(format_id)
+    } else {
+        find_format_info(format_id)
+    };
+    let Some(info) = info else { return Ok(()) };
+    let codecs = if is_video {
+        &info.video_codecs
+    } else {
+        &info.audio_codecs
+    };
+    if codecs.is_empty() || is_codec_supported_by_format(&info, codec, is_video) {
+        return Ok(());
+    }
+    Err(format!(
+        "Codec '{codec}' is not listed as supported for the '{format_id}' format."
+    ))
 }
 
 pub fn resolve_effective_codecs(
@@ -92,6 +138,41 @@ pub fn resolve_effective_codecs(
     req_acodec: Option<&str>,
     default_vcodec: Option<&str>,
     default_acodec: Option<&str>,
+) -> (Option<String>, Option<String>) {
+    resolve_codecs_with_lookup(
+        format_id,
+        req_vcodec,
+        req_acodec,
+        default_vcodec,
+        default_acodec,
+        find_format_info,
+    )
+}
+
+pub fn resolve_effective_convert_codecs(
+    format_id: Option<&str>,
+    req_vcodec: Option<&str>,
+    req_acodec: Option<&str>,
+    default_vcodec: Option<&str>,
+    default_acodec: Option<&str>,
+) -> (Option<String>, Option<String>) {
+    resolve_codecs_with_lookup(
+        format_id,
+        req_vcodec,
+        req_acodec,
+        default_vcodec,
+        default_acodec,
+        find_convert_format_info,
+    )
+}
+
+fn resolve_codecs_with_lookup(
+    format_id: Option<&str>,
+    req_vcodec: Option<&str>,
+    req_acodec: Option<&str>,
+    default_vcodec: Option<&str>,
+    default_acodec: Option<&str>,
+    lookup: fn(&str) -> Option<FormatItem>,
 ) -> (Option<String>, Option<String>) {
     let cand_v = req_vcodec
         .map(|s| s.trim())
@@ -111,7 +192,7 @@ pub fn resolve_effective_codecs(
                 .filter(|s| !s.is_empty() && s.to_lowercase() != "auto")
         });
 
-    let fmt_info = format_id.and_then(find_format_info);
+    let fmt_info = format_id.and_then(lookup);
 
     let final_v = match (cand_v, &fmt_info) {
         (Some(c), Some(fmt)) => {
@@ -155,6 +236,21 @@ mod tests {
         assert!(info.is_some());
         let info = info.unwrap();
         assert!(info.video_codecs.contains(&"H264".to_string()));
+    }
+
+    #[test]
+    fn download_and_conversion_catalogs_are_resolved_separately() {
+        assert_eq!(find_format_info("gif").unwrap().format_type, "video");
+        assert_eq!(
+            find_convert_format_info("gif").unwrap().format_type,
+            "image"
+        );
+    }
+
+    #[test]
+    fn incompatible_conversion_codec_is_rejected() {
+        assert!(validate_codec_support("webm", Some("h264"), true, true).is_err());
+        assert!(validate_codec_support("mp4", Some("h264"), true, true).is_ok());
     }
 
     #[test]

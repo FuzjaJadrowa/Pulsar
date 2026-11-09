@@ -5,12 +5,12 @@ pub mod notifications;
 pub mod presets;
 pub mod queue;
 
+use self::config::{AppConfig, ConfigManager};
+use self::queue::{QueueManager, QueueState};
+use crate::sync_tray_from_queue;
 use base64::{engine::general_purpose, Engine as _};
 use std::path::Path;
 use tauri::{AppHandle, State};
-use self::config::{ConfigManager, AppConfig};
-use self::queue::{QueueManager, QueueState};
-use crate::sync_tray_from_queue;
 
 #[tauri::command]
 pub fn get_config(state: State<ConfigManager>) -> AppConfig {
@@ -46,7 +46,11 @@ pub fn get_queue_state(state: State<QueueManager>) -> QueueState {
 }
 
 #[tauri::command]
-pub fn save_queue_state(app_handle: AppHandle, state: State<QueueManager>, queue_state: QueueState) -> Result<(), String> {
+pub fn save_queue_state(
+    app_handle: AppHandle,
+    state: State<QueueManager>,
+    queue_state: QueueState,
+) -> Result<(), String> {
     state.save(&queue_state)?;
     // Keep tray counters in sync with persisted queue state.
     sync_tray_from_queue(&app_handle, &queue_state);
@@ -65,7 +69,7 @@ pub fn read_file_base64(path: String) -> Result<String, String> {
             "webp" => "image/webp",
             "gif" => "image/gif",
             "svg" => "image/svg+xml",
-            _ => "application/octet-stream"
+            _ => "application/octet-stream",
         })
         .unwrap_or("application/octet-stream");
     let encoded = general_purpose::STANDARD.encode(bytes);

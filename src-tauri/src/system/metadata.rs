@@ -12,13 +12,11 @@ struct BridgeCommand {
 }
 
 fn build_task_id() -> Result<String, String> {
-    Ok(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_err(|e| e.to_string())?
-            .as_millis()
-            .to_string()
-    )
+    Ok(std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_millis()
+        .to_string())
 }
 
 fn resolve_task_id(client_task_id: Option<String>) -> Result<String, String> {
@@ -49,7 +47,8 @@ pub fn fetch_metadata_downloader(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
+    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
+    {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }
@@ -114,7 +113,8 @@ pub fn search(
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty() {
+    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
+    {
         args.push("--cookies-from-browser".to_string());
         args.push(config.cookies_browser.to_lowercase());
     }

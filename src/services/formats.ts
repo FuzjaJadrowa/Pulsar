@@ -43,11 +43,5 @@ export function getFormatEntrySync(formatId: string | null | undefined, isConver
   if (!clean) return null;
 
   const list = isConverter ? cachedCatalog.cformats : cachedCatalog.dformats;
-  const found = list.find((item) => item.id.toLowerCase() === clean);
-  if (found) return found;
-
-  const alt = (isConverter ? cachedCatalog.dformats : cachedCatalog.cformats).find(
-    (item) => item.id.toLowerCase() === clean
-  );
-  return alt || null;
+  return list.find((item) => item.id.toLowerCase() === clean) || null;
 }

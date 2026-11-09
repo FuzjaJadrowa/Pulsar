@@ -1,9 +1,11 @@
-use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
-use tauri::{AppHandle, State};
+mod args;
+use self::args::build_ffmpeg_args;
 use crate::core::acceleration;
 use crate::core::downloader::BridgeState;
 use crate::system::config::ConfigManager;
+use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
+use tauri::{AppHandle, State};
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -74,7 +76,11 @@ fn normalize_format(value: &str) -> String {
 }
 
 fn sanitize_output_name(value: &str) -> String {
-    value.replace('\\', " ").replace('/', " ").trim().to_string()
+    value
+        .replace('\\', " ")
+        .replace('/', " ")
+        .trim()
+        .to_string()
 }
 
 fn resolve_output_dir(input_path: &Path, output_dir: Option<&str>) -> Result<PathBuf, String> {
@@ -148,224 +154,24 @@ fn build_output_path(options: &CompressOptions, output_format: &str) -> Result<S
     if name.trim().is_empty() {
         name = "output".to_string();
     }
-    Ok(crate::core::converter::resolve_unique_output_path(&output_dir, &name, output_format))
+    Ok(crate::core::converter::resolve_unique_output_path(
+        &output_dir,
+        &name,
+        output_format,
+    ))
 }
 
-use crate::core::utils::{get_ffmpeg_path, map_video_codec, map_audio_codec, map_video_codec_hw, clamp_f64, qscale_from_percent, qscale_from_crf, generate_task_id};
-use crate::core::downloader::{cancel_download, is_terminal_event};
+use crate::core::downloader::{cancel_download, is_terminal_event, terminal_event_succeeded};
+use crate::core::utils::{generate_task_id, get_ffmpeg_path};
 use tauri::Emitter;
 use tauri::Manager;
-
-fn resolve_target_bytes(options: &CompressOptions, mode: &str) -> Option<u64> {
-    match mode {
-        "size" => options.target_size_bytes,
-        "percent" => {
-            let percent = options.target_percent.unwrap_or(60.0).clamp(1.0, 100.0);
-            options
-                .source_size_bytes
-                .map(|s| ((s as f64) * (percent / 100.0)).round() as u64)
-        }
-        _ => None
-    }
-}
-
-fn build_ffmpeg_args(options: &CompressOptions, output_path: &str, hwaccel: Option<String>) -> Result<Vec<String>, String> {
-    let mut args = vec![
-        "-hide_banner".to_string(),
-        "-y".to_string(),
-        "-threads".to_string(),
-        "0".to_string()
-    ];
-
-    if let Some(accel) = hwaccel.clone() {
-        args.push("-hwaccel".to_string());
-        args.push(accel.clone());
-        if accel == "cuda" || accel == "qsv" || accel == "d3d11va" {
-            args.push("-hwaccel_output_format".to_string());
-            args.push(accel);
-        }
-    }
-
-    args.push("-i".to_string());
-    args.push(options.input_path.clone());
-
-    let category = options
-        .category
-        .as_deref()
-        .unwrap_or("video")
-        .trim()
-        .to_lowercase();
-
-    if category == "audio" {
-        args.push("-map".to_string());
-        args.push("0:a?".to_string());
-        args.push("-vn".to_string());
-    } else if category == "image" {
-        args.push("-map".to_string());
-        args.push("0:v?".to_string());
-        args.push("-frames:v".to_string());
-        args.push("1".to_string());
-    } else {
-        args.push("-map".to_string());
-        args.push("0:v?".to_string());
-        args.push("-map".to_string());
-        args.push("0:a?".to_string());
-    }
-
-    let mode = options
-        .compress_mode
-        .as_deref()
-        .unwrap_or("percent")
-        .trim()
-        .to_lowercase();
-
-    if category == "video" {
-        let requested_video_codec = options
-            .video_codec
-            .as_deref()
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(|c| {
-                if let Some(ref accel) = hwaccel {
-                    map_video_codec_hw(c, accel)
-                } else {
-                    map_video_codec(c)
-                }
-            });
-        if let Some(codec) = requested_video_codec {
-            args.push("-c:v".to_string());
-            args.push(codec.clone());
-            if (codec == "libx264" || codec == "libx265") && options.video_codec.as_deref().unwrap_or("").to_lowercase() != "copy" {
-                args.push("-preset".to_string());
-                args.push("veryfast".to_string());
-            }
-        } else if mode == "quality" {
-            args.push("-c:v".to_string());
-            let default_codec = if let Some(ref accel) = hwaccel {
-                map_video_codec_hw("h264", accel)
-            } else {
-                "libx264".to_string()
-            };
-            args.push(default_codec.clone());
-            if default_codec == "libx264" {
-                args.push("-preset".to_string());
-                args.push("veryfast".to_string());
-            }
-        }
-
-        let requested_audio_codec = options
-            .audio_codec
-            .as_deref()
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(map_audio_codec);
-        if let Some(codec) = requested_audio_codec {
-            args.push("-c:a".to_string());
-            args.push(codec);
-        }
-    } else {
-        let requested_audio_codec = options
-            .audio_codec
-            .as_deref()
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(map_audio_codec);
-        if let Some(codec) = requested_audio_codec {
-            args.push("-c:a".to_string());
-            args.push(codec);
-        }
-    }
-
-    if category == "image" {
-        let mut quality_percent = options.target_percent.unwrap_or(60.0);
-        if mode == "size" {
-            if let (Some(target), Some(source)) = (options.target_size_bytes, options.source_size_bytes) {
-                if source > 0 {
-                    quality_percent = (target as f64 / source as f64) * 100.0;
-                }
-            }
-        } else if mode == "quality" {
-            let crf = options.crf.unwrap_or(26);
-            let qscale = qscale_from_crf(crf);
-            args.push("-q:v".to_string());
-            args.push(qscale.to_string());
-            args.push(output_path.to_string());
-            return Ok(args);
-        }
-
-        let qscale = qscale_from_percent(quality_percent);
-        args.push("-q:v".to_string());
-        args.push(qscale.to_string());
-        args.push(output_path.to_string());
-        return Ok(args);
-    }
-
-    let duration = options.source_duration_seconds.unwrap_or(0.0);
-    let target_bytes = resolve_target_bytes(options, mode.as_str());
-    let total_kbps = if let (Some(bytes), true) = (target_bytes, duration > 0.0) {
-        Some((bytes as f64 * 8.0) / (duration * 1000.0))
-    } else {
-        None
-    };
-
-    if mode == "quality" {
-        let crf = options.crf.unwrap_or(26).min(51);
-        if category == "video" {
-            args.push("-crf".to_string());
-            args.push(crf.to_string());
-            args.push("-b:a".to_string());
-            args.push("192k".to_string());
-        } else {
-            let source_kbps = if duration > 0.0 {
-                options
-                    .source_size_bytes
-                    .map(|s| (s as f64 * 8.0) / (duration * 1000.0))
-                    .unwrap_or(192.0)
-            } else {
-                192.0
-            };
-            let factor = 1.0 - (crf as f64 / 51.0) * 0.7;
-            let target_kbps = clamp_f64(source_kbps * factor, 48.0, 320.0);
-            args.push("-b:a".to_string());
-            args.push(format!("{}k", target_kbps.round().max(24.0)));
-        }
-    } else if let Some(kbps) = total_kbps {
-        if category == "audio" {
-            let target_kbps = clamp_f64(kbps, 32.0, 320.0);
-            args.push("-b:a".to_string());
-            args.push(format!("{}k", target_kbps.round().max(24.0)));
-        } else {
-            let mut audio_kbps = clamp_f64(kbps * 0.1, 64.0, 192.0);
-            let mut video_kbps = kbps - audio_kbps;
-            // Keep a safe floor for video bitrate in constrained-size mode.
-            if video_kbps < 200.0 {
-                video_kbps = 200.0;
-                audio_kbps = (kbps - video_kbps).max(32.0);
-            }
-            args.push("-b:v".to_string());
-            args.push(format!("{}k", video_kbps.round().max(100.0)));
-            if audio_kbps > 0.0 {
-                args.push("-b:a".to_string());
-                args.push(format!("{}k", audio_kbps.round().max(24.0)));
-            }
-        }
-    } else if let Some(bytes) = target_bytes {
-        args.push("-fs".to_string());
-        args.push(bytes.to_string());
-    } else {
-        return Err("Target size could not be resolved.".to_string());
-    }
-
-    args.push(output_path.to_string());
-    Ok(args)
-}
 
 #[tauri::command]
 pub fn start_compress(
     app_handle: AppHandle,
     state: State<BridgeState>,
     config_mgr: State<ConfigManager>,
-    options: CompressOptions
+    options: CompressOptions,
 ) -> Result<String, String> {
     let input_path = options.input_path.trim();
     if input_path.is_empty() {
@@ -392,13 +198,17 @@ pub fn start_compress(
     let ffmpeg_path = get_ffmpeg_path();
     {
         let config = config_mgr.config.lock().unwrap();
-        if config.ffmpeg_hwaccel != "none" && config.ffmpeg_hwaccel != "false" && config.ffmpeg_hwaccels.is_empty() {
+        if config.ffmpeg_hwaccel != "none"
+            && config.ffmpeg_hwaccel != "false"
+            && config.ffmpeg_hwaccels.is_empty()
+        {
             drop(config);
             let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
         }
     }
     let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
     let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel)?;
+    crate::core::media::validate_ffmpeg_encoders(&ffmpeg_path, &ffmpeg_args)?;
 
     let task_id = options
         .client_task_id
@@ -461,6 +271,8 @@ pub fn start_batch_compress(
     let task_id_clone = task_id.clone();
 
     std::thread::spawn(move || {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let failed = std::sync::Arc::new(AtomicBool::new(false));
         let total = items.len();
         let category = items[0]
             .category
@@ -489,41 +301,61 @@ pub fn start_batch_compress(
                 let config_mgr_state = app_handle_clone.state::<ConfigManager>();
                 let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                if let Ok(_) = start_compress(
+                let result = start_compress(
                     app_handle_clone.clone(),
                     bridge_state.clone(),
                     config_mgr_state.clone(),
                     item_opts,
-                ) {
-                    while let Ok(msg) = sub_rx.recv() {
-                        if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
-                            let _ = cancel_download(app_handle_clone.clone(), bridge_state.clone(), sub_id.clone());
-                            break;
-                        }
+                );
+                let mut item_succeeded = false;
+                match result {
+                    Ok(_) => {
+                        while let Ok(msg) = sub_rx.recv() {
+                            if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
+                                let _ = cancel_download(
+                                    app_handle_clone.clone(),
+                                    bridge_state.clone(),
+                                    sub_id.clone(),
+                                );
+                                break;
+                            }
 
-                        let sub_pct = msg.get("percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
-                        let overall_pct = (((idx as f64) + (sub_pct / 100.0)) / (total as f64) * 100.0).clamp(0.0, 100.0);
-                        emit_event(serde_json::json!({
-                            "type": "progress",
-                            "id": task_id_clone,
-                            "percent": overall_pct,
-                            "item_index": idx + 1,
-                            "item_count": total
-                        }));
+                            let sub_pct =
+                                msg.get("percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                            let overall_pct = (((idx as f64) + (sub_pct / 100.0)) / (total as f64)
+                                * 100.0)
+                                .clamp(0.0, 100.0);
+                            emit_event(serde_json::json!({
+                                "type": "progress",
+                                "id": task_id_clone,
+                                "percent": overall_pct,
+                                "item_index": idx + 1,
+                                "item_count": total
+                            }));
 
-                        if is_terminal_event(&msg) {
-                            break;
+                            if is_terminal_event(&msg) {
+                                item_succeeded = terminal_event_succeeded(&msg);
+                                break;
+                            }
                         }
                     }
+                    Err(error) => emit_event(serde_json::json!({
+                        "type": "item_error", "id": task_id_clone, "item_index": idx + 1, "error": error
+                    })),
+                }
+                if !item_succeeded && !cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
+                    failed.store(true, Ordering::SeqCst);
                 }
                 bridge_state.unregister_sub_listener(&sub_id);
             }
         } else {
-            use std::sync::{Arc, Mutex};
             use std::sync::atomic::{AtomicUsize, Ordering};
+            use std::sync::{Arc, Mutex};
 
             let completed = Arc::new(AtomicUsize::new(0));
-            let items_queue = Arc::new(Mutex::new(items.into_iter().enumerate().collect::<Vec<_>>()));
+            let items_queue = Arc::new(Mutex::new(
+                items.into_iter().enumerate().collect::<Vec<_>>(),
+            ));
 
             let mut threads = Vec::new();
             for _ in 0..max_concurrent {
@@ -532,57 +364,81 @@ pub fn start_batch_compress(
                 let cancel_ref = cancel_flag.clone();
                 let app = app_handle_clone.clone();
                 let tid = task_id_clone.clone();
+                let failed_ref = failed.clone();
 
-                let handle = std::thread::spawn(move || {
-                    loop {
-                        if cancel_ref.load(Ordering::SeqCst) {
-                            break;
+                let handle = std::thread::spawn(move || loop {
+                    if cancel_ref.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    let next_item = {
+                        let mut q = queue.lock().unwrap();
+                        if q.is_empty() {
+                            None
+                        } else {
+                            Some(q.remove(0))
                         }
-                        let next_item = {
-                            let mut q = queue.lock().unwrap();
-                            if q.is_empty() { None } else { Some(q.remove(0)) }
-                        };
+                    };
 
-                        let (idx, mut item_opts) = match next_item {
-                            Some(item) => item,
-                            None => break,
-                        };
+                    let (idx, mut item_opts) = match next_item {
+                        Some(item) => item,
+                        None => break,
+                    };
 
-                        let sub_id = format!("{}_sub_{}", tid, idx);
-                        item_opts.client_task_id = Some(sub_id.clone());
+                    let sub_id = format!("{}_sub_{}", tid, idx);
+                    item_opts.client_task_id = Some(sub_id.clone());
 
-                        let bridge_state = app.state::<BridgeState>();
-                        let config_mgr_state = app.state::<ConfigManager>();
-                        let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
+                    let bridge_state = app.state::<BridgeState>();
+                    let config_mgr_state = app.state::<ConfigManager>();
+                    let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                        if let Ok(_) = start_compress(
-                            app.clone(),
-                            bridge_state.clone(),
-                            config_mgr_state.clone(),
-                            item_opts,
-                        ) {
+                    let result = start_compress(
+                        app.clone(),
+                        bridge_state.clone(),
+                        config_mgr_state.clone(),
+                        item_opts,
+                    );
+                    let mut item_succeeded = false;
+                    match result {
+                        Ok(_) => {
                             while let Ok(msg) = sub_rx.recv() {
                                 if cancel_ref.load(Ordering::SeqCst) {
-                                    let _ = cancel_download(app.clone(), bridge_state.clone(), sub_id.clone());
+                                    let _ = cancel_download(
+                                        app.clone(),
+                                        bridge_state.clone(),
+                                        sub_id.clone(),
+                                    );
                                     break;
                                 }
                                 if is_terminal_event(&msg) {
+                                    item_succeeded = terminal_event_succeeded(&msg);
                                     break;
                                 }
                             }
                         }
-                        bridge_state.unregister_sub_listener(&sub_id);
+                        Err(error) => {
+                            failed_ref.store(true, Ordering::SeqCst);
+                            let _ = app.emit("download-event", serde_json::json!({
+                                "type": "item_error", "id": tid, "item_index": idx + 1, "error": error
+                            }));
+                        }
+                    }
+                    if !item_succeeded && !cancel_ref.load(Ordering::SeqCst) {
+                        failed_ref.store(true, Ordering::SeqCst);
+                    }
+                    bridge_state.unregister_sub_listener(&sub_id);
 
-                        let count = completed_ref.fetch_add(1, Ordering::SeqCst) + 1;
-                        let pct = ((count as f64) / (total as f64) * 100.0).clamp(0.0, 100.0);
-                        let _ = app.emit("download-event", serde_json::json!({
+                    let count = completed_ref.fetch_add(1, Ordering::SeqCst) + 1;
+                    let pct = ((count as f64) / (total as f64) * 100.0).clamp(0.0, 100.0);
+                    let _ = app.emit(
+                        "download-event",
+                        serde_json::json!({
                             "type": "progress",
                             "id": tid,
                             "percent": pct,
                             "item_index": count,
                             "item_count": total
-                        }));
-                    }
+                        }),
+                    );
                 });
                 threads.push(handle);
             }
@@ -595,7 +451,9 @@ pub fn start_batch_compress(
         if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
             emit_event(serde_json::json!({ "type": "cancelled", "id": task_id_clone }));
         } else {
-            emit_event(serde_json::json!({ "type": "finished", "id": task_id_clone, "success": true }));
+            emit_event(
+                serde_json::json!({ "type": "finished", "id": task_id_clone, "success": !failed.load(std::sync::atomic::Ordering::SeqCst) }),
+            );
         }
 
         let bridge_state = app_handle_clone.state::<BridgeState>();
