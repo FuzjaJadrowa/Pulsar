@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "../services/i18n";
-import { invoke, listen } from "../services/tauri";
-import { useConfig } from "../services/config";
-import { usePresets } from "../services/presets";
-import { enqueue, animateQueueOrb } from "../services/queue";
-import { useUiState } from "../services/uiState";
-import { showNotification } from "../services/notifications";
-import { formatDuration } from "../utils/format";
-import { sanitizeSvg } from "../utils/security";
-import { PathSelector } from "../components/PathSelector";
-import { CustomSelect } from "../components/CustomSelect";
-import { useTauriMetadata } from "../hooks/useTauriMetadata";
+import { useTranslation } from "../../services/i18n";
+import { invoke, listen } from "../../services/tauri";
+import { useConfig } from "../../services/config";
+import { usePresets } from "../../services/presets";
+import { enqueue, animateQueueOrb } from "../queue/queue";
+import { useUiState } from "../../services/uiState";
+import { showNotification } from "../../services/notifications";
+import { formatDuration } from "../../utils/format";
+import { sanitizeSvg } from "../../utils/security";
+import { PathSelector } from "../../components/PathSelector";
+import { CustomSelect } from "../../components/CustomSelect";
+import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
-import { DEFAULT_ICON } from "../utils/icons";
+import { DEFAULT_ICON } from "../../utils/icons";
 
-import { getFormatEntrySync, loadFormatCatalog } from "../services/formats";
+import { getFormatEntrySync, loadFormatCatalog } from "../../services/formats";
 
 interface DownloaderProps {
   active?: boolean;

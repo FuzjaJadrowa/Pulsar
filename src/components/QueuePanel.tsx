@@ -1,5 +1,5 @@
 import React from "react";
-import { useQueue, QueueItem } from "../services/queue";
+import { useQueue, QueueItem } from "../features/queue/queue";
 import { useTranslation } from "../services/i18n";
 import { formatBytes, detectSourceFromUrl } from "../utils/format";
 import { useConfig } from "../services/config";

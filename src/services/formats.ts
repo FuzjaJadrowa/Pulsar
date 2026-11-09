@@ -13,13 +13,14 @@ export interface FormatCatalog {
 let cachedCatalog: FormatCatalog | null = null;
 let catalogPromise: Promise<FormatCatalog> | null = null;
 
-loadFormatCatalog();
-
 export async function loadFormatCatalog(): Promise<FormatCatalog> {
   if (cachedCatalog) return cachedCatalog;
   if (!catalogPromise) {
     catalogPromise = fetch("./assets/format.json")
-      .then((res) => res.json())
+      .then((response) => {
+        if (!response.ok) throw new Error(`Format catalog request failed (${response.status})`);
+        return response.json();
+      })
       .then((data: FormatCatalog) => {
         cachedCatalog = {
           dformats: Array.isArray(data?.dformats) ? data.dformats : [],
@@ -29,9 +30,8 @@ export async function loadFormatCatalog(): Promise<FormatCatalog> {
       })
       .catch((err) => {
         console.error("Failed to load format catalog:", err);
-        const empty = { dformats: [], cformats: [] };
-        cachedCatalog = empty;
-        return empty;
+        catalogPromise = null;
+        return { dformats: [], cformats: [] };
       });
   }
   return catalogPromise;

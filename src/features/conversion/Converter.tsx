@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "../services/i18n";
-import { invoke } from "../services/tauri";
-import { usePresets } from "../services/presets";
-import { enqueue, animateQueueOrb } from "../services/queue";
-import { useUiState } from "../services/uiState";
-import { showNotification } from "../services/notifications";
-import { formatBytes, formatDuration } from "../utils/format";
-import { sanitizeSvg } from "../utils/security";
-import { PathSelector } from "../components/PathSelector";
-import { useTauriMetadata, fetchSingleFileMetadata } from "../hooks/useTauriMetadata";
-import { useFileDragDrop } from "../hooks/useFileDragDrop";
-import { CustomSelect } from "../components/CustomSelect";
+import { useTranslation } from "../../services/i18n";
+import { invoke } from "../../services/tauri";
+import { usePresets } from "../../services/presets";
+import { enqueue, animateQueueOrb } from "../queue/queue";
+import { useUiState } from "../../services/uiState";
+import { showNotification } from "../../services/notifications";
+import { formatBytes, formatDuration } from "../../utils/format";
+import { sanitizeSvg } from "../../utils/security";
+import { PathSelector } from "../../components/PathSelector";
+import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
+import { useFileDragDrop } from "../../hooks/useFileDragDrop";
+import { CustomSelect } from "../../components/CustomSelect";
 
-import { DEFAULT_ICON, CATEGORY_ICONS } from "../utils/icons";
+import { DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
 
 interface ConverterProps {
   active?: boolean;

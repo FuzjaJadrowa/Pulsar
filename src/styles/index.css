@@ -3,10 +3,10 @@
 @import "./layout.css";
 @import "./components.css";
 
-@import "./pages/home.css";
-@import "./pages/downloader.css";
-@import "./pages/converter.css";
-@import "./pages/compressor.css";
-@import "./pages/settings.css";
-@import "./pages/preset_creator.css";
-@import "./pages/queue.css";
+@import "../features/home/styles.css";
+@import "../features/downloader/styles.css";
+@import "../features/conversion/styles.css";
+@import "../features/compression/styles.css";
+@import "../features/settings/styles.css";
+@import "../features/queue/styles.css";
+@import "../features/settings/preset_creator.css";

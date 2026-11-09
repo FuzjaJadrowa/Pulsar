@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "../services/i18n";
-import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../services/config";
-import { usePresets } from "../services/presets";
-import { CustomSelect } from "../components/CustomSelect";
-import { PresetCreatorModal } from "../components/PresetCreatorModal";
-import { sanitizeSvg } from "../utils/security";
-import { ToggleSwitch } from "../components/ToggleSwitch";
-import { invoke } from "../services/tauri";
-import { DEFAULT_ICON, TAG_ICON_SVG } from "../utils/icons";
+import { useTranslation } from "../../services/i18n";
+import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../../services/config";
+import { usePresets } from "../../services/presets";
+import { CustomSelect } from "../../components/CustomSelect";
+import { PresetCreatorModal } from "../../components/PresetCreatorModal";
+import { sanitizeSvg } from "../../utils/security";
+import { ToggleSwitch } from "../../components/ToggleSwitch";
+import { invoke } from "../../services/tauri";
+import { DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
 
 let textMeasureCanvas: HTMLCanvasElement | null = null;
 function getTextWidth(text: string): number {

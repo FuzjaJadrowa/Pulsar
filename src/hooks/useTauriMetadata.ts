@@ -11,6 +11,7 @@ interface UseTauriMetadataOptions {
 export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauriMetadataOptions) {
   const [metadata, setMetadata] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const isLoadingRef = useRef(false);
   const currentTaskIdRef = useRef<string | null>(null);
 
   const onSuccessRef = useRef(onSuccess);
@@ -27,6 +28,12 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
 
   useEffect(() => {
     let active = true;
+    const finishRequest = () => {
+      isLoadingRef.current = false;
+      setIsLoading(false);
+      currentTaskIdRef.current = null;
+    };
+
     const unsubPromise = listen<any>("download-event", (event) => {
       if (!active) return;
       const payload = event.payload;
@@ -34,12 +41,10 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
 
       if (payload.id === currentTaskIdRef.current) {
         if (payload.type === "finished" && payload.success === false) {
-          setIsLoading(false);
-          currentTaskIdRef.current = null;
+          finishRequest();
           if (onErrorRef.current) onErrorRef.current(payload.error || "Metadata fetch failed.");
         } else if (payload.type === "metadata") {
-          setIsLoading(false);
-          currentTaskIdRef.current = null;
+          finishRequest();
           if (payload.success && payload.data) {
             setMetadata(payload.data);
             if (onSuccessRef.current) onSuccessRef.current(payload.data);
@@ -50,6 +55,12 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
       }
     });
 
+    unsubPromise.catch((error) => {
+      if (!active) return;
+      finishRequest();
+      onErrorRef.current?.(`Unable to listen for metadata events: ${String(error)}`);
+    });
+
     return () => {
       active = false;
       unsubPromise.then((unsub) => unsub());
@@ -57,7 +68,8 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
   }, []);
 
   const fetchMetadata = async (targetPathOrUrl: string) => {
-    if (isLoading) return;
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
     setIsLoading(true);
     setMetadata(null);
     const taskId = generateTaskId();
@@ -70,6 +82,8 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
         
       await invoke<string>(pickerCommand, args);
     } catch (error) {
+      if (currentTaskIdRef.current !== taskId) return;
+      isLoadingRef.current = false;
       setIsLoading(false);
       currentTaskIdRef.current = null;
       if (onErrorRef.current) onErrorRef.current(String(error));
@@ -77,6 +91,7 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
   };
 
   const reset = () => {
+    isLoadingRef.current = false;
     setMetadata(null);
     setIsLoading(false);
     currentTaskIdRef.current = null;

@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
 import { minimizeWindow, maximizeWindow, closeWindow } from "../services/tauri";
-import { useQueue } from "../services/queue";
+import { useQueue } from "../features/queue/queue";
 import { DataSeaCanvas } from "./DataSeaCanvas";
 import { NotificationContainer } from "../components/NotificationContainer";
 import { ConsoleModal } from "../components/ConsoleModal";
 import { QueuePanel } from "../components/QueuePanel";
-import { Home } from "../pages/Home";
-import { Settings } from "../pages/Settings";
-import { Downloader } from "../pages/Downloader";
-import { Converter } from "../pages/Converter";
-import { Compressor } from "../pages/Compressor";
+import { Home } from "../features/home/Home";
+import { Settings } from "../features/settings/Settings";
+import { Downloader } from "../features/downloader/Downloader";
+import { Converter } from "../features/conversion/Converter";
+import { Compressor } from "../features/compression/Compressor";
 import { useUiState } from "../services/uiState";
 import { showNotification } from "../services/notifications";
 

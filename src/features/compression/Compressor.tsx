@@ -1,83 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "../services/i18n";
-import { invoke } from "../services/tauri";
-import { usePresets } from "../services/presets";
-import { enqueue, animateQueueOrb } from "../services/queue";
-import { useUiState } from "../services/uiState";
-import { showNotification } from "../services/notifications";
-import { formatBytes, formatDuration } from "../utils/format";
-import { sanitizeSvg } from "../utils/security";
-import { PathSelector } from "../components/PathSelector";
-import { useTauriMetadata, fetchSingleFileMetadata } from "../hooks/useTauriMetadata";
-import { useFileDragDrop } from "../hooks/useFileDragDrop";
-import { CustomSelect } from "../components/CustomSelect";
+import { useTranslation } from "../../services/i18n";
+import { invoke } from "../../services/tauri";
+import { usePresets } from "../../services/presets";
+import { enqueue, animateQueueOrb } from "../queue/queue";
+import { useUiState } from "../../services/uiState";
+import { showNotification } from "../../services/notifications";
+import { formatBytes, formatDuration } from "../../utils/format";
+import { sanitizeSvg } from "../../utils/security";
+import { PathSelector } from "../../components/PathSelector";
+import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
+import { useFileDragDrop } from "../../hooks/useFileDragDrop";
+import { CustomSelect } from "../../components/CustomSelect";
 
-import { DEFAULT_ICON, CATEGORY_ICONS } from "../utils/icons";
+import { DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
+import { extractFileName, extractFolderPath, normalizeFormatKey, parseSizeInput } from "./files";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
 const SUPPORTED_IMAGE_FORMATS = new Set([
   "bmp", "gif", "jfif", "jpg", "jpeg", "png", "tga", "tif", "tiff", "webp"
 ]);
-
-const extractFolderPath = (value: string) => {
-  if (typeof value !== "string") return "";
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const normalized = trimmed.replace(/\\/g, "/");
-  const idx = normalized.lastIndexOf("/");
-  if (idx <= 0) return "";
-  return normalized.slice(0, idx).replace(/\//g, "\\");
-};
-
-const extractFileName = (value: string) => {
-  if (typeof value !== "string") return "";
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const normalized = trimmed.replace(/\\/g, "/");
-  const idx = normalized.lastIndexOf("/");
-  if (idx < 0) return trimmed;
-  return normalized.slice(idx + 1);
-};
-
-const parseSizeInput = (value: string) => {
-  const raw = String(value || "").trim().toLowerCase();
-  if (!raw) return null;
-  const match = raw.match(/^(\d+(?:[.,]\d+)?)\s*([a-z]*)$/i);
-  if (!match) return null;
-  const amount = parseFloat(match[1].replace(",", "."));
-  if (!Number.isFinite(amount)) return null;
-  if (!match[2]) return null;
-  let unit = match[2].toLowerCase();
-  if (unit === "bytes") unit = "b";
-  if (unit === "k") unit = "kb";
-  if (unit === "m") unit = "mb";
-  if (unit === "g") unit = "gb";
-  if (unit === "t") unit = "tb";
-  const multipliers: Record<string, number> = {
-    b: 1,
-    kb: 1024,
-    kib: 1024,
-    mb: 1024 ** 2,
-    mib: 1024 ** 2,
-    gb: 1024 ** 3,
-    gib: 1024 ** 3,
-    tb: 1024 ** 4,
-    tib: 1024 ** 4
-  };
-  const mult = multipliers[unit];
-  if (!mult) return null;
-  const bytes = amount * mult;
-  return Number.isFinite(bytes) ? Math.round(bytes) : null;
-};
-
-const normalizeFormatKey = (value: string) => {
-  if (!value) return "";
-  let raw = String(value || "").trim().toLowerCase();
-  while (raw.startsWith(".")) {
-    raw = raw.slice(1);
-  }
-  return raw;
-};
 
 interface CompressorProps {
   active?: boolean;

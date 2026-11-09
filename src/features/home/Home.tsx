@@ -1,5 +1,5 @@
 import React from "react";
-import { useTranslation } from "../services/i18n";
+import { useTranslation } from "../../services/i18n";
 
 interface HomeProps {
   onNavigate?: (pageName: string, index: number) => void;

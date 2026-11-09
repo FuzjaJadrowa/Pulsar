@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { invoke, listen } from "./tauri";
-import { showNotification } from "./notifications";
-import { t } from "./i18n";
-import { getCurrentConfig } from "./config";
+import { invoke, listen } from "../../services/tauri";
+import { showNotification } from "../../services/notifications";
+import { t } from "../../services/i18n";
+import { getCurrentConfig } from "../../services/config";
+import { restoreQueueItems } from "./model";
 
 export interface QueueItem {
   id: string;
@@ -112,26 +113,7 @@ async function hydrate(): Promise<void> {
     const cfg = getCurrentConfig();
     state.maxConcurrent = cfg.maximum_concurrent_processes || 3;
 
-    state.items = Array.isArray(data?.items)
-      ? data.items.map((raw: any) => ({
-          id: String(raw.id || Math.random().toString(36).substring(2, 9)),
-          itemType: (raw.itemType || raw.item_type || "download") as any,
-          title: String(raw.title || t("common.unknownTitle")),
-          thumbnail: String(raw.thumbnail || ""),
-          status: raw.status === "downloading" ? "pending" : (raw.status || "pending"),
-          progress: raw.status === "downloading" ? 0 : (Number(raw.progress) || 0),
-          eta: String(raw.eta || "--"),
-          listProgress: null,
-          addedAt: Number(raw.addedAt ?? raw.added_at) || Date.now(),
-          payload: raw.payload && typeof raw.payload === "object" ? raw.payload : {},
-          path: String(raw.path || ""),
-          taskId: null,
-          skippedByStop: Boolean(raw.skippedByStop ?? raw.skipped_by_stop),
-          startReason: null,
-          pendingStartReason: raw.pendingStartReason || raw.pending_start_reason || null,
-          source: String(raw.source || "queue"),
-        }))
-      : [];
+    state.items = restoreQueueItems(data?.items, t("common.unknownTitle"));
 
     state.activeItemIds = [];
     state.priorityQueue = Array.isArray(data?.priorityQueue || data?.priority_queue)
