@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::core::downloader::BridgeState;
-use crate::system::config::ConfigManager;
+use crate::app::config::ConfigManager;
+use crate::features::downloads::BridgeState;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::Serialize;
@@ -823,7 +823,7 @@ fn emit_status(window: &Window, status: &str, is_downloading: bool, can_skip: bo
     );
 }
 
-use crate::core::utils::get_requirements_path;
+use crate::infrastructure::platform::get_requirements_path;
 
 fn get_executable_name(base: &str) -> String {
     if cfg!(target_os = "windows") {
@@ -870,7 +870,7 @@ fn normalize_app_tag(version: &str) -> String {
 }
 
 fn is_flatpak_runtime() -> bool {
-    crate::core::utils::is_flatpak()
+    crate::infrastructure::platform::is_flatpak()
 }
 
 fn populate_flatpak_versions(versions: &mut Versions, app_version: &str) {

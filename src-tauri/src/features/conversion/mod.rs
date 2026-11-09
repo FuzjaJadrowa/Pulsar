@@ -1,8 +1,9 @@
 pub mod batch;
 mod estimate;
-use crate::core::acceleration;
-use crate::core::downloader::BridgeState;
-use crate::system::config::ConfigManager;
+mod input;
+use crate::app::config::ConfigManager;
+use crate::features::downloads::BridgeState;
+use crate::system::acceleration;
 pub use estimate::EstimatePayload;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -203,15 +204,15 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     ))
 }
 
-use crate::core::downloader::{cancel_download, is_terminal_event};
-use crate::core::media::{
+use self::input::{parse_kbps, parse_numeric};
+use crate::app::task_id::generate;
+use crate::features::downloads::{cancel_download, is_terminal_event};
+use crate::infrastructure::ffmpeg::codecs::{
     default_audio_codec_for_format, default_video_codec_for_format, extract_file_extension,
     is_audio_copy_compatible, is_video_copy_compatible, map_audio_codec, map_video_codec,
     map_video_codec_hw,
 };
-use crate::core::utils::{
-    generate_task_id, get_ffmpeg_path, parse_kbps_string, parse_numeric_string,
-};
+use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
 use tauri::Emitter;
 use tauri::Manager;
 
@@ -219,7 +220,7 @@ fn build_ffmpeg_args(
     options: &ConvertOptions,
     output_path: &str,
     hwaccel: Option<String>,
-    config: &crate::system::config::AppConfig,
+    config: &crate::app::config::AppConfig,
 ) -> Vec<String> {
     let mut args = vec![
         "-hide_banner".to_string(),
@@ -280,8 +281,8 @@ fn build_ffmpeg_args(
                     .to_string()
             })
             .to_lowercase();
-        let has_video_mods = parse_kbps_string(options.video_bitrate.as_deref()).is_some()
-            || parse_numeric_string(options.video_fps.as_deref()).is_some()
+        let has_video_mods = parse_kbps(options.video_bitrate.as_deref()).is_some()
+            || parse_numeric(options.video_fps.as_deref()).is_some()
             || options
                 .video_quality
                 .as_deref()
@@ -321,11 +322,11 @@ fn build_ffmpeg_args(
                 args.push("veryfast".to_string());
             }
 
-            if let Some(br) = parse_kbps_string(options.video_bitrate.as_deref()) {
+            if let Some(br) = parse_kbps(options.video_bitrate.as_deref()) {
                 args.push("-b:v".to_string());
                 args.push(format!("{}k", br));
             }
-            if let Some(fps) = parse_numeric_string(options.video_fps.as_deref()) {
+            if let Some(fps) = parse_numeric(options.video_fps.as_deref()) {
                 args.push("-r".to_string());
                 args.push(fps);
             }
@@ -357,7 +358,7 @@ fn build_ffmpeg_args(
                 .to_string()
         })
         .to_lowercase();
-    let has_audio_mods = parse_kbps_string(options.audio_bitrate.as_deref()).is_some();
+    let has_audio_mods = parse_kbps(options.audio_bitrate.as_deref()).is_some();
     let can_copy_audio = config.copy_codec_if_possible
         && !has_audio_mods
         && is_audio_copy_compatible(&source_ext, &output_format);
@@ -377,7 +378,7 @@ fn build_ffmpeg_args(
         args.push(codec_to_use);
     }
 
-    if let Some(br) = parse_kbps_string(options.audio_bitrate.as_deref()) {
+    if let Some(br) = parse_kbps(options.audio_bitrate.as_deref()) {
         args.push("-b:a".to_string());
         args.push(format!("{}k", br));
     }
@@ -431,7 +432,7 @@ pub fn start_convert(
     };
     drop(config);
     if let Some(args) = ffmpeg_args.as_deref() {
-        crate::core::media::validate_ffmpeg_encoders(&ffmpeg_path, args)?;
+        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, args)?;
     }
 
     let task_id = options
@@ -439,7 +440,7 @@ pub fn start_convert(
         .as_ref()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(generate_task_id);
+        .unwrap_or_else(generate);
 
     let payload = ConvertBridgePayload {
         input_path: input_path.to_string(),

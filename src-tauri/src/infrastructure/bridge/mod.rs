@@ -1,4 +1,4 @@
-use crate::core::utils::get_requirements_path;
+use crate::infrastructure::platform::get_requirements_path;
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -118,7 +118,7 @@ impl BridgeState {
             let spawned = cmd
                 .spawn()
                 .map_err(|e| format!("Failed to spawn bridge: {}", e))?;
-            crate::core::utils::attach_process_to_job_object(&spawned);
+            crate::infrastructure::platform::attach_process_to_job_object(&spawned);
             spawned
         };
 
@@ -249,7 +249,7 @@ struct FfmpegRange {
     total_seconds: f64,
 }
 
-pub(super) fn parse_time_to_seconds(input: &str) -> Option<f64> {
+pub(crate) fn parse_time_to_seconds(input: &str) -> Option<f64> {
     let parts: Vec<&str> = input.trim().split(':').collect();
     if parts.is_empty() {
         return None;

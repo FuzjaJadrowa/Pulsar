@@ -1,4 +1,4 @@
-use crate::system::config::ConfigManager;
+use crate::app::config::ConfigManager;
 use serde::Serialize;
 use std::path::Path;
 use std::process::Command;
@@ -10,7 +10,7 @@ pub struct AccelerationInfo {
     pub preferred: String,
 }
 
-use crate::core::utils::get_ffmpeg_path;
+use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
 
 fn parse_hwaccels(output: &str) -> Vec<String> {
     let mut lines = output.lines();
@@ -21,7 +21,6 @@ fn parse_hwaccels(output: &str) -> Vec<String> {
         if trimmed.is_empty() {
             continue;
         }
-        // Ignore preamble and start parsing only after the ffmpeg header line.
         if trimmed
             .to_lowercase()
             .contains("hardware acceleration methods:")
@@ -160,7 +159,6 @@ fn choose_preferred(accels: &[String], current: &str) -> String {
         }
     }
 
-    // Prefer non-AMF fallback when vendor detection is uncertain.
     let fallback = if vendor.as_deref() != Some("amd") {
         accels.iter().find(|item| item.as_str() != "amf").cloned()
     } else {

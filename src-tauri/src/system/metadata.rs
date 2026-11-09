@@ -1,8 +1,8 @@
 use serde::Serialize;
 use tauri::{AppHandle, State};
 
-use crate::core::downloader::BridgeState;
-use crate::system::config::ConfigManager;
+use crate::app::config::ConfigManager;
+use crate::features::downloads::BridgeState;
 
 #[derive(Serialize)]
 struct BridgeCommand {

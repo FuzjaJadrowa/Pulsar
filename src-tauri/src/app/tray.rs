@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::system::queue::QueueState;
+use crate::app::queue::QueueState;
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem};
 use tauri::path::BaseDirectory;

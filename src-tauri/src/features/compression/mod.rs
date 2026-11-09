@@ -1,12 +1,257 @@
-use super::*;
-use crate::core::downloader::terminal_event_succeeded;
+mod args;
+mod quality;
+use self::args::build_ffmpeg_args;
+use crate::app::config::ConfigManager;
+use crate::features::downloads::BridgeState;
+use crate::system::acceleration;
+use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
+use tauri::{AppHandle, State};
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CompressOptions {
+    #[serde(alias = "input_path")]
+    pub input_path: String,
+    #[serde(default, alias = "output_dir")]
+    pub output_dir: Option<String>,
+    #[serde(default, alias = "output_name")]
+    pub output_name: Option<String>,
+    #[serde(default, alias = "output_format")]
+    pub output_format: Option<String>,
+    pub category: Option<String>,
+    #[serde(default, alias = "compress_mode")]
+    pub compress_mode: Option<String>,
+    #[serde(default, alias = "target_percent")]
+    pub target_percent: Option<f64>,
+    #[serde(default, alias = "target_size_bytes")]
+    pub target_size_bytes: Option<u64>,
+    pub crf: Option<u32>,
+    #[serde(default, alias = "video_codec")]
+    pub video_codec: Option<String>,
+    #[serde(default, alias = "audio_codec")]
+    pub audio_codec: Option<String>,
+    #[serde(default, alias = "source_duration_seconds")]
+    pub source_duration_seconds: Option<f64>,
+    #[serde(default, alias = "source_size_bytes")]
+    pub source_size_bytes: Option<u64>,
+    #[serde(default, alias = "source_format")]
+    pub source_format: Option<String>,
+    #[serde(default, alias = "client_task_id")]
+    pub client_task_id: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchCompressOptions {
+    #[serde(alias = "client_task_id")]
+    pub client_task_id: String,
+    pub items: Vec<CompressOptions>,
+}
+
+#[derive(Serialize)]
+struct CompressBridgePayload {
+    input_path: String,
+    output_path: String,
+    category: String,
+    compress_mode: String,
+    source_duration_seconds: Option<f64>,
+    source_size_bytes: Option<u64>,
+    ffmpeg_path: String,
+    ffmpeg_args: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct CompressBridgeCommand {
+    command: String,
+    id: String,
+    payload: CompressBridgePayload,
+}
+
+fn normalize_format(value: &str) -> String {
+    let mut normalized = value.trim().to_lowercase();
+    while normalized.starts_with('.') {
+        normalized.remove(0);
+    }
+    normalized
+}
+
+fn sanitize_output_name(value: &str) -> String {
+    value
+        .replace('\\', " ")
+        .replace('/', " ")
+        .trim()
+        .to_string()
+}
+
+fn resolve_output_dir(input_path: &Path, output_dir: Option<&str>) -> Result<PathBuf, String> {
+    if let Some(raw) = output_dir {
+        let trimmed = raw.trim();
+        if !trimmed.is_empty() {
+            return Ok(PathBuf::from(trimmed));
+        }
+    }
+    input_path
+        .parent()
+        .map(|p| p.to_path_buf())
+        .ok_or_else(|| "Unable to resolve output directory.".to_string())
+}
+
+fn resolve_output_name(input_path: &Path, output_name: Option<&str>) -> String {
+    let base = output_name
+        .and_then(|name| {
+            let trimmed = name.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(sanitize_output_name(trimmed))
+            }
+        })
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| {
+            input_path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "output".to_string())
+        });
+    Path::new(&base)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .map(|s| s.to_string())
+        .unwrap_or(base)
+}
+
+fn resolve_output_format(options: &CompressOptions, input_path: &Path) -> String {
+    if let Some(fmt) = options.output_format.as_deref() {
+        let normalized = normalize_format(fmt);
+        if !normalized.is_empty() {
+            return normalized;
+        }
+    }
+    if let Some(fmt) = options.source_format.as_deref() {
+        let normalized = normalize_format(fmt);
+        if !normalized.is_empty() {
+            return normalized;
+        }
+    }
+    input_path
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(normalize_format)
+        .unwrap_or_default()
+}
+
+fn build_output_path(options: &CompressOptions, output_format: &str) -> Result<String, String> {
+    let input_path = Path::new(options.input_path.trim());
+    let output_dir = resolve_output_dir(input_path, options.output_dir.as_deref())?;
+    let mut name = resolve_output_name(input_path, options.output_name.as_deref());
+    if !output_format.is_empty() {
+        let suffix = format!(".{}", output_format);
+        if name.to_lowercase().ends_with(&suffix) {
+            name = name[..name.len() - suffix.len()].to_string();
+        }
+    }
+    if name.trim().is_empty() {
+        name = "output".to_string();
+    }
+    Ok(crate::features::conversion::resolve_unique_output_path(
+        &output_dir,
+        &name,
+        output_format,
+    ))
+}
+
+use crate::app::task_id::generate;
+use crate::features::downloads::{cancel_download, is_terminal_event, terminal_event_succeeded};
+use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
+use tauri::Emitter;
+use tauri::Manager;
 
 #[tauri::command]
-pub fn start_batch_convert(
+pub fn start_compress(
     app_handle: AppHandle,
     state: State<BridgeState>,
     config_mgr: State<ConfigManager>,
-    options: BatchConvertOptions,
+    options: CompressOptions,
+) -> Result<String, String> {
+    let input_path = options.input_path.trim();
+    if input_path.is_empty() {
+        return Err("Input path cannot be empty.".to_string());
+    }
+
+    let category = options
+        .category
+        .as_deref()
+        .map(|c| c.trim().to_lowercase())
+        .filter(|c| !c.is_empty())
+        .unwrap_or_else(|| "video".to_string());
+    if category != "video" && category != "audio" && category != "image" {
+        return Err("Unsupported compression category.".to_string());
+    }
+
+    let input_path_obj = Path::new(input_path);
+    let output_format = resolve_output_format(&options, input_path_obj);
+    if output_format.is_empty() {
+        return Err("Output format cannot be empty.".to_string());
+    }
+    let output_path = build_output_path(&options, &output_format)?;
+
+    let ffmpeg_path = get_ffmpeg_path();
+    {
+        let config = config_mgr.config.lock().unwrap();
+        if config.ffmpeg_hwaccel != "none"
+            && config.ffmpeg_hwaccel != "false"
+            && config.ffmpeg_hwaccels.is_empty()
+        {
+            drop(config);
+            let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
+        }
+    }
+    let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
+    let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel)?;
+    crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, &ffmpeg_args)?;
+
+    let task_id = options
+        .client_task_id
+        .as_ref()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(generate);
+
+    let compress_mode = options
+        .compress_mode
+        .clone()
+        .unwrap_or_else(|| "percent".to_string());
+
+    let payload = CompressBridgePayload {
+        input_path: input_path.to_string(),
+        output_path,
+        category,
+        compress_mode,
+        source_duration_seconds: options.source_duration_seconds,
+        source_size_bytes: options.source_size_bytes,
+        ffmpeg_path: ffmpeg_path.to_string_lossy().to_string(),
+        ffmpeg_args,
+    };
+
+    let cmd = CompressBridgeCommand {
+        command: "compress".to_string(),
+        id: task_id.clone(),
+        payload,
+    };
+
+    state.send_raw_command(&app_handle, &cmd)?;
+
+    Ok(task_id)
+}
+
+#[tauri::command]
+pub fn start_batch_compress(
+    app_handle: AppHandle,
+    state: State<BridgeState>,
+    config_mgr: State<ConfigManager>,
+    options: BatchCompressOptions,
 ) -> Result<String, String> {
     let task_id = options.client_task_id.trim().to_string();
     if task_id.is_empty() {
@@ -34,7 +279,7 @@ pub fn start_batch_convert(
         let category = items[0]
             .category
             .as_deref()
-            .unwrap_or("image")
+            .unwrap_or("video")
             .trim()
             .to_lowercase();
 
@@ -58,7 +303,7 @@ pub fn start_batch_convert(
                 let config_mgr_state = app_handle_clone.state::<ConfigManager>();
                 let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                let result = start_convert(
+                let result = start_compress(
                     app_handle_clone.clone(),
                     bridge_state.clone(),
                     config_mgr_state.clone(),
@@ -148,7 +393,7 @@ pub fn start_batch_convert(
                     let config_mgr_state = app.state::<ConfigManager>();
                     let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                    let result = start_convert(
+                    let result = start_compress(
                         app.clone(),
                         bridge_state.clone(),
                         config_mgr_state.clone(),
@@ -175,8 +420,8 @@ pub fn start_batch_convert(
                         Err(error) => {
                             failed_ref.store(true, Ordering::SeqCst);
                             let _ = app.emit("download-event", serde_json::json!({
-                                    "type": "item_error", "id": tid, "item_index": idx + 1, "error": error
-                                }));
+                                "type": "item_error", "id": tid, "item_index": idx + 1, "error": error
+                            }));
                         }
                     }
                     if !item_succeeded && !cancel_ref.load(Ordering::SeqCst) {
@@ -208,11 +453,9 @@ pub fn start_batch_convert(
         if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
             emit_event(serde_json::json!({ "type": "cancelled", "id": task_id_clone }));
         } else {
-            emit_event(serde_json::json!({
-                "type": "finished",
-                "id": task_id_clone,
-                "success": !failed.load(std::sync::atomic::Ordering::SeqCst)
-            }));
+            emit_event(
+                serde_json::json!({ "type": "finished", "id": task_id_clone, "success": !failed.load(std::sync::atomic::Ordering::SeqCst) }),
+            );
         }
 
         let bridge_state = app_handle_clone.state::<BridgeState>();

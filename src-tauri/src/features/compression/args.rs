@@ -1,6 +1,6 @@
+use super::quality::{clamp, qscale_from_crf, qscale_from_percent};
 use super::CompressOptions;
-use crate::core::media::{map_audio_codec, map_video_codec, map_video_codec_hw};
-use crate::core::utils::{clamp_f64, qscale_from_crf, qscale_from_percent};
+use crate::infrastructure::ffmpeg::codecs::{map_audio_codec, map_video_codec, map_video_codec_hw};
 
 fn resolve_target_bytes(options: &CompressOptions, mode: &str) -> Option<u64> {
     match mode {
@@ -179,13 +179,13 @@ pub(super) fn build_ffmpeg_args(
                 192.0
             };
             let factor = 1.0 - (crf as f64 / 51.0) * 0.7;
-            let target_kbps = clamp_f64(source_kbps * factor, 48.0, 320.0);
+            let target_kbps = clamp(source_kbps * factor, 48.0, 320.0);
             args.push("-b:a".to_string());
             args.push(format!("{}k", target_kbps.round().max(24.0)));
         }
     } else if let Some(kbps) = total_kbps {
         if category == "audio" {
-            let target_kbps = clamp_f64(kbps, 32.0, 320.0);
+            let target_kbps = clamp(kbps, 32.0, 320.0);
             args.push("-b:a".to_string());
             args.push(format!("{}k", target_kbps.round().max(24.0)));
         } else {
@@ -195,7 +195,7 @@ pub(super) fn build_ffmpeg_args(
                         .to_string(),
                 );
             }
-            let mut audio_kbps = clamp_f64(kbps * 0.1, 64.0, 192.0);
+            let mut audio_kbps = clamp(kbps * 0.1, 64.0, 192.0);
             let mut video_kbps = kbps - audio_kbps;
             // Keep a safe floor for video bitrate in constrained-size mode.
             if video_kbps < 200.0 {

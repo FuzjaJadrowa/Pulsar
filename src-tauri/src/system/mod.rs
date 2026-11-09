@@ -1,13 +1,9 @@
-pub mod config;
+pub mod acceleration;
 pub mod formats;
 pub mod metadata;
-pub mod notifications;
-pub mod presets;
-pub mod queue;
-
-use self::config::{AppConfig, ConfigManager};
-use self::queue::{QueueManager, QueueState};
-use crate::sync_tray_from_queue;
+use crate::app::config::{AppConfig, ConfigManager};
+use crate::app::queue::{QueueManager, QueueState};
+use crate::app::tray::sync_tray_from_queue;
 use base64::{engine::general_purpose, Engine as _};
 use std::path::Path;
 use tauri::{AppHandle, State};
@@ -19,7 +15,7 @@ pub fn get_config(state: State<ConfigManager>) -> AppConfig {
 
 #[tauri::command]
 pub fn get_distribution_channel() -> String {
-    if crate::core::utils::is_flatpak() {
+    if crate::infrastructure::platform::is_flatpak() {
         return "flatpak".to_string();
     }
     if let Ok(runtime_value) = std::env::var("PULSAR_DIST") {

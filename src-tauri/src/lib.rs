@@ -1,12 +1,14 @@
-mod core;
+mod app;
+mod features;
+mod infrastructure;
+mod startup;
 mod system;
 
-use core::downloader::BridgeState;
-use core::splash::SplashState;
-use core::tray::build_tray_icon;
-pub use core::tray::sync_tray_from_queue;
-use system::config::ConfigManager;
-use system::queue::QueueManager;
+use app::config::ConfigManager;
+use app::queue::QueueManager;
+use app::tray::build_tray_icon;
+use features::downloads::BridgeState;
+use startup::SplashState;
 use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -60,34 +62,34 @@ pub fn run() {
             system::metadata::fetch_metadata_downloader,
             system::metadata::fetch_metadata_converter,
             system::metadata::search,
-            system::notifications::send_system_notification,
-            system::presets::list_presets,
-            system::presets::load_preset,
-            system::presets::save_preset,
-            system::presets::set_preset_hidden,
-            system::presets::delete_preset,
-            system::presets::import_preset,
-            system::presets::export_preset,
+            app::notifications::send_system_notification,
+            app::presets::list_presets,
+            app::presets::load_preset,
+            app::presets::save_preset,
+            app::presets::set_preset_hidden,
+            app::presets::delete_preset,
+            app::presets::import_preset,
+            app::presets::export_preset,
             system::read_file_base64,
-            core::splash::get_requirements_versions,
-            core::splash::run_splash_checks,
-            core::splash::cancel_splash_checks,
-            core::splash::run_requirement_check,
-            core::acceleration::refresh_acceleration_info,
-            core::downloader::start_download,
-            core::downloader::cancel_download,
-            core::downloader::init_bridge,
-            core::downloader::file_ops::pick_download_directory,
-            core::converter::pick_convert_file,
-            core::converter::pick_convert_files,
-            core::converter::estimate_convert_size,
-            core::converter::start_convert,
-            core::converter::batch::start_batch_convert,
-            core::compressor::start_compress,
-            core::compressor::start_batch_compress,
-            core::downloader::file_ops::save_thumbnail_to_disk,
-            core::downloader::file_ops::read_clipboard_text,
-            core::downloader::file_ops::open_in_file_manager
+            startup::get_requirements_versions,
+            startup::run_splash_checks,
+            startup::cancel_splash_checks,
+            startup::run_requirement_check,
+            system::acceleration::refresh_acceleration_info,
+            features::downloads::start_download,
+            features::downloads::cancel_download,
+            features::downloads::init_bridge,
+            features::downloads::file_ops::pick_download_directory,
+            features::conversion::pick_convert_file,
+            features::conversion::pick_convert_files,
+            features::conversion::estimate_convert_size,
+            features::conversion::start_convert,
+            features::conversion::batch::start_batch_convert,
+            features::compression::start_compress,
+            features::compression::start_batch_compress,
+            features::downloads::file_ops::save_thumbnail_to_disk,
+            features::downloads::file_ops::read_clipboard_text,
+            features::downloads::file_ops::open_in_file_manager
         ])
         .run(tauri::generate_context!())
         .expect("Error while running Pulsar");

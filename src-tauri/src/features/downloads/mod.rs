@@ -1,10 +1,11 @@
 mod args;
-mod bridge;
 pub mod file_ops;
 use self::args::{apply_filters, build_audio_filters, build_subtitle_args, build_video_filters};
-use self::bridge::parse_time_to_seconds;
-use crate::system::config::ConfigManager;
-pub use bridge::{is_terminal_event, terminal_event_succeeded, BridgeCommand, BridgeState};
+use crate::app::config::ConfigManager;
+use crate::infrastructure::bridge::parse_time_to_seconds;
+pub use crate::infrastructure::bridge::{
+    is_terminal_event, terminal_event_succeeded, BridgeCommand, BridgeState,
+};
 use serde::Deserialize;
 use tauri::{AppHandle, State};
 
@@ -85,7 +86,7 @@ pub fn start_download(
         .as_ref()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(generate_task_id);
+        .unwrap_or_else(generate);
     let config = config_mgr.config.lock().unwrap();
     let mut effective_options = options;
     let format_id = if effective_options.mode == "audio" {
@@ -355,4 +356,5 @@ pub fn cancel_download(
     result
 }
 
-use crate::core::utils::{generate_task_id, get_requirements_path};
+use crate::app::task_id::generate;
+use crate::infrastructure::platform::get_requirements_path;
