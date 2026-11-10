@@ -56,6 +56,7 @@ export interface DownloaderEvent {
 export interface DownloadPayload extends Record<string, unknown> {
   url: string;
   path: string;
+  custom_filename?: string;
   mode: "video" | "audio";
   video_format: string | null;
   video_quality: string | null;

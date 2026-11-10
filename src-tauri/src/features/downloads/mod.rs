@@ -19,6 +19,8 @@ pub fn init_bridge(app_handle: AppHandle, state: State<BridgeState>) -> Result<(
 pub struct DownloadOptions {
     url: String,
     path: String,
+    #[serde(default, rename = "custom_filename", alias = "customFilename")]
+    custom_filename: Option<String>,
     mode: String,
     #[serde(alias = "video_format")]
     video_format: Option<String>,
@@ -308,11 +310,23 @@ pub fn start_download(
         args.push("--embed-metadata".to_string());
     }
 
-    if !config.title_template.trim().is_empty() {
-        let mut output_template = config.title_template.trim().to_string();
-        if !output_template.contains(".%(ext)s") {
-            output_template.push_str(".%(ext)s");
+    let custom_output_template = options
+        .custom_filename
+        .as_deref()
+        .map(sanitize_custom_filename)
+        .filter(|name| !name.is_empty())
+        .map(|name| format!("{}.%(ext)s", name.replace('%', "%%")));
+    let configured_output_template = if config.title_template.trim().is_empty() {
+        None
+    } else {
+        let mut template = config.title_template.trim().to_string();
+        if !template.contains(".%(ext)s") {
+            template.push_str(".%(ext)s");
         }
+        Some(template)
+    };
+
+    if let Some(output_template) = custom_output_template.or(configured_output_template) {
         args.push("-o".to_string());
         args.push(output_template);
     }
@@ -331,6 +345,22 @@ pub fn start_download(
     state.send_command(&app_handle, cmd)?;
 
     Ok(task_id)
+}
+
+fn sanitize_custom_filename(filename: &str) -> String {
+    filename
+        .trim()
+        .chars()
+        .map(|character| {
+            if character.is_control() || "<>:\"/\\|?*".contains(character) {
+                '_'
+            } else {
+                character
+            }
+        })
+        .collect::<String>()
+        .trim_matches([' ', '.'])
+        .to_string()
 }
 
 #[tauri::command]

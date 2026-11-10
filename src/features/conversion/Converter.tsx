@@ -93,6 +93,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   });
 
   const [currentName, setCurrentName] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedMode, setSelectedMode] = useState<"video" | "audio">("video");
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
@@ -171,6 +172,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const handleMetadataLoaded = (data: MediaFileMetadata) => {
     setMetadata(data);
     setCurrentName(data.name || "");
+    setNameDraft(data.name || "");
     const initialCategory = String(data.category || "").toLowerCase();
     
     // Choose default conversion mode
@@ -253,6 +255,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     setIsDashboardVisible(false);
     resetMetadataState();
     setCurrentName("");
+    setNameDraft("");
     setSelectedFormat(null);
     setSavePath("");
     clearActivePreset();
@@ -342,6 +345,16 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     const raw = String(value || "").trim();
     if (!raw) return "";
     return raw.replace(/[\\/]+/g, " ").trim();
+  };
+
+  const getDefaultOutputName = () => metadata?.name || extractFileName(metadata?.path || "") || "";
+  const beginNameEdit = () => {
+    setNameDraft(currentName || getDefaultOutputName());
+    setIsEditingName(true);
+  };
+  const finishNameEdit = () => {
+    setCurrentName(nameDraft.trim() || getDefaultOutputName());
+    setIsEditingName(false);
   };
 
   const normalizeOutputFormat = (value: string) => {
@@ -659,12 +672,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   {!isEditingName ? (
                     <>
                       <span className="converter-name-text">
-                        {currentName || t("common.output.placeholder")}
+                        {currentName || metadata.name || extractFileName(metadata.path || "") || t("common.output.placeholder")}
                       </span>
                       <button
                         type="button"
                         className="converter-rename-btn"
-                        onClick={() => setIsEditingName(true)}
+                        onClick={beginNameEdit}
                         title={t("common.output.editTitle")}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -678,14 +691,14 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       <input
                         className="converter-name-input"
                         type="text"
-                        value={currentName}
-                        onChange={(e) => setCurrentName(e.target.value)}
+                        value={nameDraft}
+                        onChange={(e) => setNameDraft(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            setIsEditingName(false);
+                            finishNameEdit();
                           }
                         }}
-                        onBlur={() => setIsEditingName(false)}
+                        onBlur={finishNameEdit}
                         autoFocus
                       />
                     </>

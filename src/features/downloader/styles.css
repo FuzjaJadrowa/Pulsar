@@ -396,6 +396,17 @@ body.theme-light .drop-hint-icon svg {
     font-family: "Roboto", "Manrope", "Montserrat", sans-serif; font-size: 0.9rem; padding: 12px 15px; outline: none;
 }
 #path-input::placeholder { font-style: italic; opacity: 0.5; }
+.meta-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.meta-title-row h2 { min-width: 0; overflow-wrap: anywhere; }
+.meta-title-input { width: min(500px, 75vw); box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; text-align: center; }
+.downloader-rename-btn {
+    flex: 0 0 34px; width: 34px; height: 34px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7); display: inline-flex; align-items: center;
+    justify-content: center; cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.downloader-rename-btn svg { width: 18px; height: 18px; }
+.downloader-rename-btn:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.28); color: #fff; }
 .small-btn {
     background: transparent; border: none; color: var(--c-text-dim);
     cursor: pointer; padding: 8px; border-radius: 4px; transition: 0.2s;

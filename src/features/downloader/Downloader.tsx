@@ -92,6 +92,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   }, [selectedFormat, videoCodec, audioCodec]);
   const [savePath, setSavePath] = useState("");
+  const [customFilename, setCustomFilename] = useState("");
+  const [filenameDraft, setFilenameDraft] = useState("");
+  const [isEditingFilename, setIsEditingFilename] = useState(false);
+  const filenameEditOriginalRef = useRef("");
 
   const [rangeStart, setRangeStart] = useState<number>(0);
   const [rangeEnd, setRangeEnd] = useState<number>(100);
@@ -351,6 +355,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const handleMetadataLoaded = (data: DownloaderMetadata) => {
     setMetadata(data);
+    setCustomFilename("");
+    setIsEditingFilename(false);
     if (data?.webpage_url && /^https?:\/\//i.test(data.webpage_url)) {
       setUrl(data.webpage_url);
     }
@@ -429,6 +435,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setSubsLang("");
     setMuteAudio(false);
     setCustomArgs("");
+    setCustomFilename("");
+    setIsEditingFilename(false);
     setThumbnailAction("none");
     clearActivePreset();
     applySourceConstraints("");
@@ -635,6 +643,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim(),
+      ...(customFilename.trim() ? { custom_filename: customFilename.trim() } : {}),
       mode: mode,
       video_format: mode === "video" ? selectedFormat : null,
       video_quality: mode === "video" ? selectedQuality : null,
@@ -678,6 +687,21 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       thumbnail: metadata?.thumbnail || "",
       path: savePath.trim()
     };
+  };
+
+  const beginFilenameEdit = () => {
+    const currentValue = customFilename.trim() || metadata?.title || "";
+    filenameEditOriginalRef.current = currentValue.trim();
+    setFilenameDraft(currentValue);
+    setIsEditingFilename(true);
+  };
+
+  const finishFilenameEdit = () => {
+    const nextValue = filenameDraft.trim();
+    if (!nextValue || nextValue !== filenameEditOriginalRef.current) {
+      setCustomFilename(nextValue);
+    }
+    setIsEditingFilename(false);
   };
 
   const triggerAnimationOrb = (sourceRect: DOMRect | null) => {
@@ -848,7 +872,36 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
             <>
               {/* Metadata Title/Uploader */}
               <div className="meta-info fade-in">
-                <h2 id="meta-title">{metadata.title || t("common.unknownTitle")}</h2>
+                <div className="meta-title-row">
+                  {isEditingFilename ? (
+                    <input
+                      id="custom-filename-input"
+                      className="meta-title-input"
+                      type="text"
+                      value={filenameDraft}
+                      onChange={(event) => setFilenameDraft(event.target.value)}
+                      onBlur={finishFilenameEdit}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") finishFilenameEdit();
+                      }}
+                      autoFocus
+                    />
+                  ) : (
+                    <h2 id="meta-title">{customFilename.trim() || metadata.title || t("common.unknownTitle")}</h2>
+                  )}
+                  <button
+                    type="button"
+                    className="downloader-rename-btn"
+                    onClick={beginFilenameEdit}
+                    title={t("common.output.editTitle")}
+                    aria-label={t("common.output.editTitle")}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
+                </div>
                 <p className="meta-line">
                   <span
                     id="meta-author"

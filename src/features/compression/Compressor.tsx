@@ -123,6 +123,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   });
 
   const [currentName, setCurrentName] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [savePath, setSavePath] = useState("");
 
@@ -286,6 +287,16 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       return normalized;
     }
     return "other";
+  };
+
+  const getDefaultOutputName = () => metadata?.name || extractFileName(metadata?.path || "") || "";
+  const beginNameEdit = () => {
+    setNameDraft(currentName || getDefaultOutputName());
+    setIsEditingName(true);
+  };
+  const finishNameEdit = () => {
+    setCurrentName(nameDraft.trim() || getDefaultOutputName());
+    setIsEditingName(false);
   };
 
   const handlePresetClick = async (pr: Preset) => {
@@ -597,14 +608,15 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       className="compressor-name-input"
                       type="text"
                       placeholder={t("common.output.placeholder")}
-                      value={currentName}
-                      onChange={(e) => setCurrentName(e.target.value)}
-                      onBlur={() => setIsEditingName(false)}
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onBlur={finishNameEdit}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          setIsEditingName(false);
+                          finishNameEdit();
                         } else if (e.key === "Escape") {
-                          setCurrentName(metadata.name || extractFileName(metadata.path || ""));
+                          setNameDraft(getDefaultOutputName());
+                          setCurrentName(getDefaultOutputName());
                           setIsEditingName(false);
                         }
                       }}
@@ -616,9 +628,9 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       id="compress-file-name"
                       className="compressor-name-text"
                       data-i18n-lock={currentName ? "true" : undefined}
-                      onDoubleClick={() => setIsEditingName(true)}
+                      onDoubleClick={beginNameEdit}
                     >
-                      {currentName || t("common.output.placeholder")}
+                      {currentName || metadata.name || extractFileName(metadata.path || "") || t("common.output.placeholder")}
                     </span>
                   )}
                   <button
@@ -626,7 +638,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     id="compress-rename-btn"
                     className="compressor-rename-btn"
                     title={t("common.output.editTitle")}
-                    onClick={() => setIsEditingName(!isEditingName)}
+                    onClick={() => isEditingName ? finishNameEdit() : beginNameEdit()}
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="M12 20h9" />
