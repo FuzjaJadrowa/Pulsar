@@ -46,6 +46,7 @@ pub fn fetch_metadata_downloader(
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
+    crate::infrastructure::platform::append_js_runtime_args(&mut args);
 
     if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
     {
@@ -112,6 +113,7 @@ pub fn search(
 
     let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
+    crate::infrastructure::platform::append_js_runtime_args(&mut args);
 
     if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
     {

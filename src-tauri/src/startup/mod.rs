@@ -190,7 +190,8 @@ pub async fn run_splash_checks(
     }
 
     let bridge_exists = check_file_exists(&req_path, "pulsar-bridge");
-    let ffmpeg_exists = check_file_exists(&req_path, "ffmpeg");
+    let ffmpeg_exists =
+        check_file_exists(&req_path, "ffmpeg") && check_file_exists(&req_path, "deno");
 
     let bridge_needs_check = if is_flatpak {
         false
@@ -900,7 +901,7 @@ fn ensure_ffmpeg_permissions(dest_dir: &Path) {
     #[cfg(target_family = "unix")]
     {
         use std::os::unix::fs::PermissionsExt;
-        for name in ["ffmpeg", "ffprobe"] {
+        for name in ["ffmpeg", "ffprobe", "deno"] {
             let path = dest_dir.join(name);
             if let Ok(metadata) = fs::metadata(&path) {
                 let mut perms = metadata.permissions();

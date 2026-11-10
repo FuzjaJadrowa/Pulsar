@@ -149,6 +149,8 @@ pub fn start_download(
     args.push("--ffmpeg-location".to_string());
     args.push(ffmpeg_path.to_string_lossy().to_string());
 
+    crate::infrastructure::platform::append_js_runtime_args(&mut args);
+
     if !options.path.is_empty() {
         args.push("-P".to_string());
         args.push(options.path.clone());
@@ -286,7 +288,6 @@ pub fn start_download(
         ) {
             let total = (end - start).max(0.0);
             if total > 0.0 {
-                // Store expected ffmpeg range so progress events can expose ETA.
                 state.set_ffmpeg_range(task_id.clone(), total);
             }
         }

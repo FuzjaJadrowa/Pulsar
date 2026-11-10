@@ -37,6 +37,19 @@ pub fn get_requirements_path() -> PathBuf {
     PathBuf::from("Requirements")
 }
 
+pub fn append_js_runtime_args(args: &mut Vec<String>) {
+    let deno_name = if cfg!(target_os = "windows") {
+        "deno.exe"
+    } else {
+        "deno"
+    };
+    let deno_path = get_requirements_path().join(deno_name);
+    if deno_path.is_file() {
+        args.push("--js-runtimes".to_string());
+        args.push(format!("deno:{}", deno_path.to_string_lossy()));
+    }
+}
+
 pub fn attach_process_to_job_object(child: &std::process::Child) {
     #[cfg(windows)]
     {
