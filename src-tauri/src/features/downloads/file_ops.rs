@@ -107,52 +107,43 @@ pub fn open_in_file_manager(path: String) -> Result<(), String> {
     #[cfg(not(target_os = "windows"))]
     let clean_path_str = trimmed.to_string();
 
-    let mut path_buf = PathBuf::from(&clean_path_str);
-
-    if !path_buf.exists() {
-        if let Some(existing_ancestor) = path_buf.ancestors().skip(1).find(|p| p.exists()) {
-            path_buf = existing_ancestor.to_path_buf();
-        } else {
-            return Err("Target path and its parent directories do not exist.".to_string());
-        }
+    let target_path = PathBuf::from(&clean_path_str);
+    if !target_path.is_absolute() {
+        return Err("Target path must be absolute.".to_string());
     }
+
+    let requested_folder = if target_path.is_dir() {
+        target_path.as_path()
+    } else {
+        target_path
+            .parent()
+            .ok_or_else(|| "Unable to determine the target folder.".to_string())?
+    };
+    let path_buf = requested_folder
+        .ancestors()
+        .find(|path| path.is_dir())
+        .map(PathBuf::from)
+        .ok_or_else(|| "Target folder and its parent directories do not exist.".to_string())?;
 
     #[cfg(target_os = "windows")]
     {
         let mut cmd = Command::new("explorer");
         let win_path = path_buf.to_string_lossy().replace('/', "\\");
-        if path_buf.is_file() {
-            let arg = format!("/select,{}", win_path);
-            cmd.arg(arg);
-        } else {
-            cmd.arg(win_path);
-        }
+        cmd.arg(win_path);
         cmd.spawn().map_err(|e| e.to_string())?;
     }
 
     #[cfg(target_os = "macos")]
     {
         let mut cmd = Command::new("open");
-        if path_buf.is_file() {
-            cmd.arg("-R").arg(&path_buf);
-        } else {
-            cmd.arg(&path_buf);
-        }
+        cmd.arg(&path_buf);
         cmd.spawn().map_err(|e| e.to_string())?;
     }
 
     #[cfg(target_os = "linux")]
     {
         let mut cmd = Command::new("xdg-open");
-        if path_buf.is_file() {
-            if let Some(parent) = path_buf.parent() {
-                cmd.arg(parent);
-            } else {
-                cmd.arg(&path_buf);
-            }
-        } else {
-            cmd.arg(&path_buf);
-        }
+        cmd.arg(&path_buf);
         cmd.spawn().map_err(|e| e.to_string())?;
     }
 

@@ -7,6 +7,32 @@ import { openConsole } from "../services/console";
 
 import { ICONS, SOURCE_ICONS } from "../utils/icons";
 
+function getParentFolder(filePath: string): string {
+  const normalized = filePath.trim().replace(/\\/g, "/");
+  const separator = normalized.lastIndexOf("/");
+  if (separator < 0) return "";
+  if (separator === 0) return "/";
+  if (separator === 2 && normalized[1] === ":") return normalized.slice(0, 3).replace(/\/$/, "\\");
+  return normalized.slice(0, separator).replace(/\//g, filePath.includes("\\") ? "\\" : "/");
+}
+
+function getQueueItemOutputFolder(item: QueueItem): string {
+  const payload = item.payload || {};
+  const asPath = (value: unknown) => typeof value === "string" ? value.trim() : "";
+
+  if (item.itemType === "download") {
+    return asPath(payload.path) || asPath(payload.output_dir) || asPath(payload.save_path) || item.path;
+  }
+
+  const batchItems = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : [];
+  const outputDirectory = asPath(payload.output_dir) || asPath(batchItems[0]?.output_dir);
+  if (outputDirectory) return outputDirectory;
+  if (payload.is_batch && item.path) return item.path;
+
+  const outputFile = asPath(payload.output_path) || asPath(payload.path) || item.path;
+  return getParentFolder(outputFile) || asPath(payload.save_path);
+}
+
 export const QueuePanel: React.FC = () => {
   const { t } = useTranslation();
   const { config } = useConfig();
@@ -229,15 +255,7 @@ export const QueuePanel: React.FC = () => {
                       <button
                         className="queue-icon-btn"
                         onClick={() =>
-                          openInFileManager(
-                            item.path ||
-                              item.payload?.path ||
-                              item.payload?.output_path ||
-                              item.payload?.filepath ||
-                              item.payload?.output_dir ||
-                              item.payload?.save_path ||
-                              ""
-                          )
+                          openInFileManager(getQueueItemOutputFolder(item))
                         }
                         title={t("queue.itemActions.openLocation")}
                       >
@@ -250,15 +268,7 @@ export const QueuePanel: React.FC = () => {
                       <button
                         className="queue-icon-btn"
                         onClick={() =>
-                          openInFileManager(
-                            item.path ||
-                              item.payload?.path ||
-                              item.payload?.output_path ||
-                              item.payload?.filepath ||
-                              item.payload?.output_dir ||
-                              item.payload?.save_path ||
-                              ""
-                          )
+                          openInFileManager(getQueueItemOutputFolder(item))
                         }
                         title={t("queue.itemActions.openLocation")}
                       >
