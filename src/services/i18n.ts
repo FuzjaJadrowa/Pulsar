@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-type Dictionary = Record<string, any>;
+type Dictionary = Record<string, unknown>;
 
 interface I18nState {
   locale: string;
@@ -22,18 +22,18 @@ function notifyListeners() {
   listeners.forEach((l) => l());
 }
 
-function resolveKey(obj: any, key: string): any {
+function resolveKey(obj: unknown, key: string): unknown {
   if (!obj || !key) return undefined;
-  return key.split(".").reduce((acc, part) => {
-    if (acc && Object.prototype.hasOwnProperty.call(acc, part)) {
-      return acc[part];
-    }
-    return undefined;
-  }, obj);
+  let value: unknown = obj;
+  for (const part of key.split(".")) {
+    if (!value || typeof value !== "object" || !Object.prototype.hasOwnProperty.call(value, part)) return undefined;
+    value = (value as Record<string, unknown>)[part];
+  }
+  return value;
 }
 
-function interpolate(template: any, params: Record<string, any> | null): string {
-  if (typeof template !== "string") return template || "";
+function interpolate(template: unknown, params: Record<string, unknown> | null): string {
+  if (typeof template !== "string") return template == null ? "" : String(template);
   return template.replace(/\{(\w+)\}/g, (_, token) => {
     if (params && Object.prototype.hasOwnProperty.call(params, token)) {
       return String(params[token]);
@@ -118,11 +118,11 @@ export async function initI18n(locale: string = "en"): Promise<Dictionary> {
 
 export function t(
   key: string,
-  fallbackOrParams?: string | Record<string, any> | null,
-  params?: Record<string, any> | null
+  fallbackOrParams?: string | Record<string, unknown> | null,
+  params?: Record<string, unknown> | null
 ): string {
   let fallbackStr = "";
-  let actualParams: Record<string, any> | null = null;
+  let actualParams: Record<string, unknown> | null = null;
 
   if (typeof fallbackOrParams === "object" && fallbackOrParams !== null) {
     actualParams = fallbackOrParams;

@@ -7,16 +7,16 @@ import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { formatDuration } from "../../utils/format";
-import { sanitizeSvg } from "../../utils/security";
 import { PathSelector } from "../../components/PathSelector";
 import { CustomSelect } from "../../components/CustomSelect";
+import { PresetGrid } from "../../components/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
+import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderPresetOverrides, DownloaderSearchResult, SubtitleOption } from "./types";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
-import { DEFAULT_ICON } from "../../utils/icons";
 
 import { getFormatEntrySync, loadFormatCatalog } from "../../services/formats";
 
@@ -27,7 +27,7 @@ interface DownloaderProps {
 export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const { t } = useTranslation();
   const { config } = useConfig();
-  const { presets } = usePresets();
+  const { presets, loadPreset } = usePresets();
 
   useEffect(() => {
     loadFormatCatalog().catch(() => {});
@@ -37,7 +37,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<DownloaderSearchResult[]>([]);
   const [searchExiting, setSearchExiting] = useState(false);
   const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
   const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     fetchMetadata: triggerFetchMetadata,
     reset: resetMetadataState,
     setMetadata
-  } = useTauriMetadata({
+  } = useTauriMetadata<DownloaderMetadata>({
     pickerCommand: "fetch_metadata_downloader",
     onSuccess: (data) => {
       handleMetadataLoaded(data);
@@ -109,20 +109,20 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [downloadChat, setDownloadChat] = useState(false);
   const [embedSubs, setEmbedSubs] = useState(false);
   const [subsLang, setSubsLang] = useState("");
-  const [subtitleOptions, setSubtitleOptions] = useState<any[]>([]);
+  const [subtitleOptions, setSubtitleOptions] = useState<SubtitleOption[]>([]);
   const [metaSubLangs, setMetaSubLangs] = useState<string[]>([]);
   const [metaAutoLangs, setMetaAutoLangs] = useState<string[]>([]);
   const [showLangSuggestions, setShowLangSuggestions] = useState(false);
-  const [langSuggestions, setLangSuggestions] = useState<any[]>([]);
+  const [langSuggestions, setLangSuggestions] = useState<SubtitleOption[]>([]);
 
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [presetOverrides, setPresetOverrides] = useState<any | null>(null);
+  const [presetOverrides, setPresetOverrides] = useState<DownloaderPresetOverrides | null>(null);
 
   const [isAudioOnlySource, setIsAudioOnlySource] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
 
   const currentSearchIdRef = useRef<string | null>(null);
-  const searchRevealTimerRef = useRef<any>(null);
+  const searchRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -148,7 +148,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   useEffect(() => {
     let isMounted = true;
-    const unsubPromise = listen<any>("download-event", (event) => {
+    const unsubPromise = listen<DownloaderEvent>("download-event", (event) => {
       if (!isMounted) return;
       const payload = event.payload;
       if (!payload || !payload.type) return;
@@ -285,7 +285,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const generateSubtitleOptions = (data: any) => {
+  const generateSubtitleOptions = (data: DownloaderMetadata): SubtitleOption[] => {
     const all = [...(data.subtitles_langs || []), ...(data.auto_captions_langs || [])];
     const unique = [...new Set(all.map((c) => String(c).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     return unique.map((code: string) => {
@@ -325,7 +325,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     });
   };
 
-  const parseVideoQuality = (formats: any[] = []) => {
+  const parseVideoQuality = (formats: DownloaderFormat[] = []) => {
     const found = new Set<string>();
     formats.forEach((format) => {
       const note = String(format.note || "");
@@ -349,7 +349,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return videoQualities.slice(videoQualities.indexOf(highest));
   };
 
-  const handleMetadataLoaded = (data: any) => {
+  const handleMetadataLoaded = (data: DownloaderMetadata) => {
     setMetadata(data);
     if (data?.webpage_url && /^https?:\/\//i.test(data.webpage_url)) {
       setUrl(data.webpage_url);
@@ -369,8 +369,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
     const subOpts = generateSubtitleOptions(data);
     setSubtitleOptions(subOpts);
-    const sLangs = Array.isArray(data.subtitles_langs) ? data.subtitles_langs.map((l: any) => String(l).trim()).filter(Boolean) : [];
-    const aLangs = Array.isArray(data.auto_captions_langs) ? data.auto_captions_langs.map((l: any) => String(l).trim()).filter(Boolean) : [];
+    const sLangs = data.subtitles_langs?.map((language) => language.trim()).filter(Boolean) || [];
+    const aLangs = data.auto_captions_langs?.map((language) => language.trim()).filter(Boolean) || [];
     setMetaSubLangs(sLangs);
     setMetaAutoLangs(aLangs);
 
@@ -457,13 +457,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const handlePresetClick = async (presetSummary: any) => {
+  const handlePresetClick = async (presetSummary: DownloaderPreset) => {
+    if (!presetSummary.id) return;
     if (activePresetId === presetSummary.id) {
       clearActivePreset();
       return;
     }
     try {
-      const preset = await invoke<any>("load_preset", { id: presetSummary.id });
+      const preset = await loadPreset(presetSummary.id);
       if (preset && preset.downloader) {
         const d = preset.downloader;
         setPresetOverrides({
@@ -479,11 +480,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           setSavePath(d.path);
         }
 
-        const newMode = d.mode || "video";
+        const newMode = d.mode === "audio" ? "audio" : "video";
         setMode(newMode);
 
         setSelectedFormat(d.format ? d.format.toUpperCase() : null);
-        setSelectedQuality(newMode === "video" ? d.video_quality : d.audio_quality);
+        setSelectedQuality((newMode === "video" ? d.video_quality : d.audio_quality) || null);
         setVideoCodec(d.video_codec || "");
         setAudioCodec(d.audio_codec || "");
 
@@ -496,7 +497,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           setSubsLang(d.subtitles_code);
         }
         setThumbnailAction(d.embed_thumbnail ? "embed" : "none");
-        setActivePresetId(presetSummary.id);
+        setActivePresetId(presetSummary.id || null);
       }
     } catch (error) {
       console.error("Failed to load preset:", error);
@@ -562,7 +563,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     clearActivePreset();
   };
 
-  const handleSelectSearchResult = async (entry: any) => {
+  const handleSelectSearchResult = async (entry: DownloaderSearchResult) => {
     const targetUrl = resolveResultUrl(entry);
     if (!targetUrl) return;
     setUrl(targetUrl);
@@ -570,7 +571,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     triggerFetchMetadata(targetUrl);
   };
 
-  const resolveResultUrl = (entry: any) => {
+  const resolveResultUrl = (entry: DownloaderSearchResult) => {
     const raw = String(entry?.url || "").trim();
     if (raw) {
       if (/^https?:\/\//i.test(raw)) return raw;
@@ -631,7 +632,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const isTimeRangeActive = !isPlaylist && (rangeStart > 0 || rangeEnd < 100);
     const parsedArgs = config?.advanced_mode ? parseCustomArgsString(customArgs) : [];
     const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
-    const payload: any = {
+    const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim(),
       mode: mode,
@@ -899,29 +900,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               {downloaderPresets.length > 0 && (
                 <div className="preset-section fade-in" id="preset-section">
                   <span className="option-label">{t("downloader.options.presets")}</span>
-                  <div className="preset-grid" id="preset-grid">
-                    {downloaderPresets.map((pr: any) => (
-                      <button
-                        key={pr.id}
-                        type="button"
-                        className={`preset-card ${activePresetId === pr.id ? "active" : ""}`}
-                        onClick={() => handlePresetClick(pr)}
-                      >
-                        <div
-                          className="preset-card-icon"
-                          dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || DEFAULT_ICON) }}
-                        />
-                        <div className="preset-card-info">
-                          <div className="preset-card-title">
-                            {pr.title || t("settings.presetsManager.untitled")}
-                          </div>
-                          <div className="preset-card-summary">
-                            {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  <PresetGrid id="preset-grid" presets={downloaderPresets} activeId={activePresetId} onSelect={handlePresetClick} />
                 </div>
               )}
 

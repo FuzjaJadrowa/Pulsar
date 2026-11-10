@@ -32,7 +32,7 @@ export const AppShell: React.FC = () => {
   }>({ outgoing: null, direction: null });
   const [queueVisible, setQueueVisible] = useState<boolean>(false);
 
-  const transitionTimerRef = useRef<any>(null);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { updateUiState } = useUiState();
 

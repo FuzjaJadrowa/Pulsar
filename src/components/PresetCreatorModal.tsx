@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
 import { Preset, exportPreset, getPresetFromCache } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
-import { sanitizeSvg } from "../utils/security";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { PathSelector } from "./PathSelector";
 import { useUiState } from "../services/uiState";
+import { loadFormatCatalog, type FormatEntry } from "../services/formats";
+import { PresetIconField } from "./presets/PresetIconField";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -18,56 +19,15 @@ interface PresetCreatorModalProps {
 
 const DEFAULT_ICON = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:%23ffffff"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.3.5-1 .1-1.4"/></svg>`;
 
-const renderPresetIconPreview = (src: string, alt: string = "preset") => {
-  if (!src) src = DEFAULT_ICON;
-  let svgText = "";
-  if (src.startsWith("data:image/svg+xml")) {
-    if (src.includes(";base64,")) {
-      try {
-        svgText = atob(src.split(";base64,")[1]);
-      } catch (e) {
-        svgText = "";
-      }
-    } else if (src.includes(",")) {
-      svgText = decodeURIComponent(src.split(",")[1]);
-    }
-  } else if (src.startsWith("<svg")) {
-    svgText = src;
-  }
+interface PresetFormatData {
+  downloader: FormatEntry[];
+  converter: FormatEntry[];
+}
 
-  if (svgText && svgText.includes("<svg")) {
-    if (!svgText.includes('fill=')) {
-      svgText = svgText.replace('<svg', '<svg fill="#ffffff"');
-    } else {
-      svgText = svgText.replace(/fill="currentColor"/g, 'fill="#ffffff"').replace(/fill='currentColor'/g, "fill='#ffffff'");
-    }
-    return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgText) }}
-        style={{ width: "100%", height: "100%", color: "#ffffff", fill: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}
-      />
-    );
-  }
-
-  return <img src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
-};
-
-let globalFormatData: { downloader: any[]; converter: any[] } = {
+let globalFormatData: PresetFormatData = {
   downloader: [],
   converter: [],
 };
-
-fetch("./assets/format.json")
-  .then((res) => res.json())
-  .then((data) => {
-    if (data) {
-      globalFormatData = {
-        downloader: Array.isArray(data?.dformats) ? data.dformats : [],
-        converter: Array.isArray(data?.cformats) ? data.cformats : [],
-      };
-    }
-  })
-  .catch((err) => console.error("Failed to load formats meta:", err));
 
 export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   isOpen,
@@ -108,9 +68,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const [formatSuggestions, setFormatSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [formatData, setFormatData] = useState<{ downloader: any[]; converter: any[] }>(globalFormatData);
+  const [formatData, setFormatData] = useState<PresetFormatData>(globalFormatData);
 
   const [prevOpenState, setPrevOpenState] = useState({ isOpen: false, mode: "create", presetId: null as string | null });
 
@@ -151,7 +109,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       setAudioBitrate(c.audio_bitrate || "");
     } else if (preset.preset_type === "compressor" && preset.compressor) {
       const c = preset.compressor;
-      setCompressMode((c.mode as any) || "percent");
+      setCompressMode(c.mode === "size" || c.mode === "quality" ? c.mode : "percent");
       setCompressPercent(c.target_percent ?? 60);
       setCompressSize(c.target_size || "");
       setCompressCrf(c.crf ? String(c.crf) : "23");
@@ -197,23 +155,18 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   }
 
   useEffect(() => {
+    let isMounted = true;
     if (globalFormatData.downloader.length > 0) {
       setFormatData(globalFormatData);
     } else {
-      fetch("./assets/format.json")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data) {
-            const parsed = {
-              downloader: Array.isArray(data?.dformats) ? data.dformats : [],
-              converter: Array.isArray(data?.cformats) ? data.cformats : [],
-            };
-            globalFormatData = parsed;
-            setFormatData(parsed);
-          }
-        })
-        .catch((err) => console.error("Failed to load formats meta:", err));
+      loadFormatCatalog().then((catalog) => {
+        if (!isMounted) return;
+        const parsed = { downloader: catalog.dformats, converter: catalog.cformats };
+        globalFormatData = parsed;
+        setFormatData(parsed);
+      });
     }
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
@@ -238,54 +191,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     const query = format.toLowerCase();
     const formats = presetType === "converter" ? formatData.converter : formatData.downloader;
     const matches = formats
-      .filter((item: any) => String(item.id || "").toLowerCase().includes(query))
-      .map((item: any) => String(item.id).toLowerCase());
+      .filter((item) => item.id.toLowerCase().includes(query))
+      .map((item) => item.id.toLowerCase());
     setFormatSuggestions(matches.slice(0, 5));
   }, [format, presetType, formatData]);
-
-  const processImageFile = (file: File) => {
-    const isImg = file.type?.startsWith("image/") || /\.(svg|png|jpg|jpeg|webp|gif)$/i.test(file.name);
-    if (!isImg) {
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setIconDataUrl(e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.files?.length) {
-      processImageFile(e.dataTransfer.files[0]);
-    } else if (e.dataTransfer.items?.length) {
-      const item = e.dataTransfer.items[0];
-      if (item.kind === "file") {
-        const file = item.getAsFile();
-        if (file) processImageFile(file);
-      }
-    }
-  };
-
-  const handleBrowseIcon = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      processImageFile(e.target.files[0]);
-    }
-  };
-
 
   const selectedFormatLower = format.toLowerCase().trim();
   const formatMap = presetType === "converter" ? formatData.converter : formatData.downloader;
@@ -444,7 +353,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const videoCodecOptions = [
     { value: "", label: t("presetCreator.select.auto") },
-    ...(currentFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
+    ...(currentFormatMeta?.video_codecs || []).map((vc) => ({ value: vc, label: vc }))
   ];
 
   const audioCodecOptions = [
@@ -525,33 +434,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
             <div className="preset-detail-row">
               {}
-              <div className="preset-field preset-field-icon">
-                <span>{t("presetCreator.fields.icon")}</span>
-                <div
-                  className="preset-icon-drop"
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                >
-                  <div className="preset-icon-preview">
-                    {renderPresetIconPreview(iconDataUrl, title || "preset")}
-                  </div>
-                  <div className="preset-icon-meta">
-                    <div className="preset-icon-title">{t("presetCreator.icon.title")}</div>
-                    <div className="preset-icon-hint">{t("presetCreator.icon.hint")}</div>
-                    <button type="button" className="anim-btn preset-icon-browse" onClick={handleBrowseIcon}>
-                      {t("common.browse")}
-                    </button>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    className="preset-icon-file"
-                    type="file"
-                    accept="image/*,.svg"
-                    onChange={handleIconChange}
-                    style={{ display: "none" }}
-                  />
-                </div>
-              </div>
+              <PresetIconField value={iconDataUrl} title={title} fallback={DEFAULT_ICON} onChange={setIconDataUrl} />
 
               {}
               <div className="preset-field preset-field-type">

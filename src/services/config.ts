@@ -89,7 +89,7 @@ export function setIdleAnimationClass(enabled: boolean) {
   body.classList.toggle("idle-anim-enabled", enabled);
 }
 
-let idleWavesEnterTimer: any = null;
+let idleWavesEnterTimer: ReturnType<typeof setTimeout> | null = null;
 export function triggerIdleWavesEnter() {
   const body = document.body;
   if (!body) return;
@@ -116,7 +116,7 @@ themeMedia.addEventListener("change", () => {
 
 export async function loadConfig(): Promise<PulsarConfig> {
   try {
-    const raw = await invoke<any>("get_config");
+    const raw = await invoke<Record<string, unknown>>("get_config");
     if (raw && typeof raw === "object") {
       const normalized: PulsarConfig = {
         theme: String(raw.theme ?? DEFAULT_CONFIG.theme),

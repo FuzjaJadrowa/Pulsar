@@ -6,13 +6,18 @@ import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { formatBytes, formatDuration } from "../../utils/format";
-import { sanitizeSvg } from "../../utils/security";
 import { PathSelector } from "../../components/PathSelector";
 import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
 import { CustomSelect } from "../../components/CustomSelect";
+import { PresetGrid } from "../../components/PresetGrid";
+import type { FormatEntry } from "../../services/formats";
+import { loadFormatCatalog } from "../../services/formats";
+import type { MediaFileMetadata } from "../../types/media";
+import type { Preset } from "../../services/presets";
+import { BatchFilesList } from "../../components/BatchFilesList";
 
-import { DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
+import { CATEGORY_ICONS } from "../../utils/icons";
 
 interface ConverterProps {
   active?: boolean;
@@ -20,11 +25,11 @@ interface ConverterProps {
 
 export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { t } = useTranslation();
-  const { presets } = usePresets();
+  const { presets, loadPreset } = usePresets();
 
   const [filePath, setFilePath] = useState("");
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [loadedFiles, setLoadedFiles] = useState<any[]>([]);
+  const [loadedFiles, setLoadedFiles] = useState<MediaFileMetadata[]>([]);
 
   const {
     metadata,
@@ -32,7 +37,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     fetchMetadata: triggerFetchMetadata,
     reset: resetMetadataState,
     setMetadata
-  } = useTauriMetadata({
+  } = useTauriMetadata<MediaFileMetadata>({
     pickerCommand: "fetch_metadata_converter",
     onSuccess: (data) => {
       handleMetadataLoaded(data);
@@ -58,7 +63,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     try {
       const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
       const results = await Promise.all(metaPromises);
-      const validMeta = results.filter(m => m && m.path && m.category);
+      const validMeta = results.filter((m): m is MediaFileMetadata => Boolean(m && m.path && m.category));
       if (validMeta.length === 0) {
         showNotification(t("common.error"), t("common.errors.invalidFileOrLink"), "error");
         return;
@@ -111,7 +116,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
 
-  const [formatData, setFormatData] = useState<any[]>([]);
+  const [formatData, setFormatData] = useState<FormatEntry[]>([]);
 
 
   const pathInputRef = useRef<HTMLInputElement | null>(null);
@@ -129,11 +134,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   useEffect(() => {
     // Load formats definition
-    fetch("./assets/format.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setFormatData(Array.isArray(data?.cformats) ? data.cformats : []);
-      })
+    loadFormatCatalog()
+      .then((catalog) => setFormatData(catalog.cformats))
       .catch((err) => console.error("Failed to load cformats:", err));
   }, []);
 
@@ -166,7 +168,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     metadata
   ]);
 
-  const handleMetadataLoaded = (data: any) => {
+  const handleMetadataLoaded = (data: MediaFileMetadata) => {
     setMetadata(data);
     setCurrentName(data.name || "");
     const initialCategory = String(data.category || "").toLowerCase();
@@ -262,7 +264,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       return;
     }
 
-    const formatMeta = formatData.find((f: any) => f.id.toLowerCase() === selectedFormat.toLowerCase());
+    const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
     const targetCategory = formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
 
     const payload = {
@@ -297,13 +299,14 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }
   };
 
-  const handlePresetClick = async (presetSummary: any) => {
+  const handlePresetClick = async (presetSummary: Preset) => {
+    if (!presetSummary.id) return;
     if (activePresetId === presetSummary.id) {
       clearActivePreset();
       return;
     }
     try {
-      const preset = await invoke<any>("load_preset", { id: presetSummary.id });
+      const preset = await loadPreset(presetSummary.id);
       if (preset && preset.converter) {
         const c = preset.converter;
         if (c.path) {
@@ -313,7 +316,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
         const fmt = c.format ? c.format.toLowerCase() : "";
         setSelectedFormat(fmt);
 
-        const formatMeta = formatData.find((f: any) => f.id.toLowerCase() === fmt);
+        const formatMeta = formatData.find((format) => format.id.toLowerCase() === fmt);
         const isAudioTarget = formatMeta?.type === "audio";
 
         if (isAudioTarget) {
@@ -386,7 +389,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const buildConvertPayload = () => {
     if (!selectedFormat || !metadata) return null;
 
-    const formatMeta = formatData.find((f: any) => f.id.toLowerCase() === selectedFormat.toLowerCase());
+    const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
     const targetCategory = formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
     if (!targetCategory) return null;
 
@@ -433,7 +436,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
     if (loadedFiles.length > 1) {
       // Bulk conversion
-      const formatMeta = formatData.find((f: any) => f.id.toLowerCase() === selectedFormat.toLowerCase());
+      const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
       const outputFormat = normalizeOutputFormat(selectedFormat);
       if (!outputFormat) {
         showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
@@ -648,27 +651,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                     </span>
                   </div>
                 </div>
-                <div className="bulk-file-list">
-                  {loadedFiles.map((file, idx) => (
-                    <div key={file.path || idx} className="bulk-file-item">
-                      <span className="bulk-file-name" title={file.path}>
-                        {file.name || extractFileName(file.path)}
-                      </span>
-                      <span className="bulk-file-size">{formatBytes(file.size_bytes)}</span>
-                      <button
-                        type="button"
-                        className="bulk-remove-btn"
-                        title={t("converter.bulk.removeFile")}
-                        onClick={() => removeFileFromBatch(idx)}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <BatchFilesList files={loadedFiles} removeTitle={t("converter.bulk.removeFile")} onRemove={removeFileFromBatch} />
               </div>
             ) : (
               <div className={`converter-info-card fade-in ${!metadata.duration_seconds ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
@@ -742,29 +725,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
             {converterPresets.length > 0 && (
               <div className="preset-section fade-in" id="convert-preset-section">
                 <span className="option-label">{t("downloader.options.presets")}</span>
-                <div className="preset-grid" id="convert-preset-grid">
-                  {converterPresets.map((pr) => (
-                    <button
-                      key={pr.id}
-                      type="button"
-                      className={`preset-card ${activePresetId === pr.id ? "active" : ""}`}
-                      onClick={() => handlePresetClick(pr)}
-                    >
-                      <div
-                        className="preset-card-icon"
-                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || DEFAULT_ICON) }}
-                      />
-                      <div className="preset-card-info">
-                        <div className="preset-card-title">
-                          {pr.title || t("settings.presetsManager.untitled")}
-                        </div>
-                        <div className="preset-card-summary">
-                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <PresetGrid id="convert-preset-grid" presets={converterPresets} activeId={activePresetId} onSelect={handlePresetClick} />
               </div>
             )}
 

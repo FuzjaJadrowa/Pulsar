@@ -3,7 +3,8 @@ import { invoke, listen } from "../../services/tauri";
 import { showNotification } from "../../services/notifications";
 import { t } from "../../services/i18n";
 import { getCurrentConfig } from "../../services/config";
-import { restoreQueueItems } from "./model";
+import { applyQueueEventToItem, restoreQueueItems } from "./model";
+import type { QueueBridgeEvent } from "./events";
 
 export interface QueueItem {
   id: string;
@@ -15,13 +16,33 @@ export interface QueueItem {
   eta: string;
   listProgress: string | null;
   addedAt: number;
-  payload: Record<string, any>;
+  payload: QueueItemPayload;
   path: string;
   taskId: string | null;
   skippedByStop: boolean;
   startReason: string | null;
   pendingStartReason: string | null;
   source: string;
+}
+
+export interface QueueItemPayload extends Record<string, unknown> {
+  url?: string;
+  path?: string;
+  output_path?: string;
+  filepath?: string;
+  output_dir?: string;
+  save_path?: string;
+  category?: string;
+  mode?: string;
+  output_format?: string;
+  video_format?: string;
+  audio_format?: string;
+  video_quality?: string;
+  audio_quality?: string;
+  source_size_bytes?: number | string;
+  download_subs?: boolean;
+  download_chat?: boolean;
+  embed_subs?: boolean;
 }
 
 interface QueueState {
@@ -73,19 +94,9 @@ function sendSystemNotification(title: string, body: string, type: string) {
   }
 }
 
-function parseProgressValue(p: any, _payload: any): number {
-  if (typeof p === "number") return p;
-  if (typeof p === "string") {
-    const clean = p.replace("%", "").trim();
-    const parsed = parseFloat(clean);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-let saveTimer: any = null;
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function persistSoon() {
-  clearTimeout(saveTimer);
+  if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     const payload = {
       items: state.items,
@@ -109,15 +120,16 @@ function persistSoon() {
 let hydratePromise: Promise<void> | null = null;
 async function hydrate(): Promise<void> {
   try {
-    const data = await invoke<any>("get_queue_state");
+    const data = await invoke<Record<string, unknown>>("get_queue_state");
     const cfg = getCurrentConfig();
     state.maxConcurrent = cfg.maximum_concurrent_processes || 3;
 
     state.items = restoreQueueItems(data?.items, t("common.unknownTitle"));
 
     state.activeItemIds = [];
-    state.priorityQueue = Array.isArray(data?.priorityQueue || data?.priority_queue)
-      ? (data.priorityQueue || data.priority_queue).filter((id: string) => state.items.some((i) => i.id === id))
+    const savedPriorityQueue = data.priorityQueue ?? data.priority_queue;
+    state.priorityQueue = Array.isArray(savedPriorityQueue)
+      ? savedPriorityQueue.map(String).filter((id) => state.items.some((item) => item.id === id))
       : [];
     state.startAllActive = false;
     state.startAllSuccess = true;
@@ -167,23 +179,23 @@ export async function startItem(item: QueueItem, reason: string) {
   persistSoon();
 
   try {
-    let tId: any = null;
-    const cleanPayload: any = { ...item.payload, client_task_id: String(item.id) };
+    let tId: string | null = null;
+    const cleanPayload: Record<string, unknown> = { ...item.payload, client_task_id: String(item.id) };
 
     if (item.itemType === "convert") {
       if (cleanPayload.is_batch && Array.isArray(cleanPayload.items)) {
-        tId = await invoke("start_batch_convert", { options: cleanPayload });
+        tId = await invoke<string>("start_batch_convert", { options: cleanPayload });
       } else {
-        tId = await invoke("start_convert", { options: cleanPayload });
+        tId = await invoke<string>("start_convert", { options: cleanPayload });
       }
     } else if (item.itemType === "compress") {
       if (cleanPayload.is_batch && Array.isArray(cleanPayload.items)) {
-        tId = await invoke("start_batch_compress", { options: cleanPayload });
+        tId = await invoke<string>("start_batch_compress", { options: cleanPayload });
       } else {
-        tId = await invoke("start_compress", { options: cleanPayload });
+        tId = await invoke<string>("start_compress", { options: cleanPayload });
       }
     } else {
-      tId = await invoke("start_download", { options: cleanPayload });
+      tId = await invoke<string>("start_download", { options: cleanPayload });
     }
 
     const current = state.items.find((i) => i.id === item.id);
@@ -534,7 +546,7 @@ export async function openInFileManager(path: string) {
 
 export async function enqueue(
   itemType: "download" | "convert" | "compress",
-  payload: Record<string, any>,
+  payload: Record<string, unknown>,
   meta: { title?: string; thumbnail?: string; path?: string; source?: string },
   opts: { autoStart?: boolean; startReason?: string } = {}
 ) {
@@ -552,7 +564,7 @@ export async function enqueue(
     listProgress: null,
     addedAt: Date.now(),
     payload: { ...payload },
-    path: meta?.path || payload?.path || payload?.output_dir || payload?.save_path || "",
+    path: meta?.path || [payload.path, payload.output_dir, payload.save_path].find((value): value is string => typeof value === "string") || "",
     taskId: null,
     skippedByStop: false,
     startReason: null,
@@ -598,66 +610,21 @@ export function useQueue() {
   };
 }
 
-listen("download-event", (event: any) => {
+listen<QueueBridgeEvent>("download-event", (event) => {
   const payload = event.payload;
   if (!payload || payload.type === "metadata" || !payload.id) return;
   const item = state.items.find((i) => i.id === String(payload.id));
   if (!item) return;
 
-  const win = window as any;
-  if (win.queueConsole && typeof win.queueConsole.log === "function") {
-    win.queueConsole.log(item.id, payload);
-  }
+  window.queueConsole?.log(item.id, payload);
 
-  const eventPath = payload.filepath || payload.path || payload.output_path || payload.filename;
-  if (eventPath && typeof eventPath === "string") {
-    const trimmedPath = eventPath.trim();
-    if (trimmedPath) {
-      item.path = trimmedPath;
-    }
-  }
-
-  if (
-    payload.type === "progress" ||
-    payload.type === "progress_ffmpeg" ||
-    typeof payload.percent !== "undefined" ||
-    typeof payload.progress !== "undefined"
-  ) {
-    let p = payload.percent;
-    if (typeof p === "undefined") p = payload.progress;
-    if (typeof p === "undefined") p = payload.percentage;
-    const n = parseProgressValue(p, payload);
-    if (Number.isFinite(n)) {
-      item.progress = Math.min(Math.max(n, 0), 100);
-    }
-
-    if (typeof payload.eta_seconds !== "undefined") {
-      const total = Math.max(0, Math.floor(Number(payload.eta_seconds) || 0));
-      const h = Math.floor(total / 3600);
-      const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
-      const s = String(total % 60).padStart(2, "0");
-      item.eta = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
-    } else if (typeof payload.eta !== "undefined") {
-      item.eta = String(payload.eta);
-    }
-
-    const index = Number(payload.item_index);
-    const count = Number(payload.item_count);
-    if (Number.isFinite(index) && Number.isFinite(count)) {
-      item.listProgress = `${Math.max(1, Math.floor(index))}/${Math.max(1, Math.floor(count))}`;
-    }
-
+  const changes = applyQueueEventToItem(item, payload);
+  if (changes.progressUpdated) {
     notifyListeners();
     persistSoon();
   }
 
-  if (payload.type === "cancelled") {
-    item.status = "pending";
-    item.progress = 0;
-    item.eta = "--";
-    item.taskId = null;
-    item.skippedByStop = true;
-    item.startReason = null;
+  if (changes.cancelled) {
     state.activeItemIds = state.activeItemIds.filter((aid) => aid !== item.id);
     
     notifyListeners();
@@ -666,11 +633,11 @@ listen("download-event", (event: any) => {
     return;
   }
 
-  if (payload.type === "finished") {
-    if (payload.success) {
+  if (changes.finished) {
+    if (changes.success) {
       markCompleted(item);
     } else {
-      markFailed(item, payload.error || "UNKNOWN");
+      markFailed(item, changes.error || "UNKNOWN");
     }
   }
 });
@@ -695,9 +662,8 @@ export function animateQueueOrb(source: HTMLElement | DOMRect | { left: number; 
         startY = rect.top + rect.height / 2;
       }
     } else if ("left" in source && "top" in source) {
-      const rect = source as any;
-      startX = rect.left + (rect.width || 0) / 2;
-      startY = rect.top + (rect.height || 0) / 2;
+      startX = source.left + (source.width || 0) / 2;
+      startY = source.top + (source.height || 0) / 2;
     }
   }
 

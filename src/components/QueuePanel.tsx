@@ -58,7 +58,7 @@ export const QueuePanel: React.FC = () => {
       else modeIcon = itemType === "convert" ? ICONS.convert : ICONS.compress;
     }
 
-    const source = detectSourceFromUrl(item.payload?.url);
+    const source = detectSourceFromUrl(item.payload?.url || "");
     const sourceIcon = source ? (
       <span className={`queue-source-icon ${source}-icon`} aria-hidden="true">
         {SOURCE_ICONS[source as keyof typeof SOURCE_ICONS]}

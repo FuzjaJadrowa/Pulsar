@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { listen } from "../services/tauri";
+import type { Event } from "@tauri-apps/api/event";
+
+interface DragDropPayload {
+  paths?: string[] | string;
+}
 
 interface UseFileDragDropOptions {
   pageClass: string; // "page-converter" | "page-compressor" etc.
@@ -24,7 +29,7 @@ export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOption
       setShowDropOverlay(false);
     };
 
-    const handleDrop = (event: any) => {
+    const handleDrop = (event: Event<DragDropPayload>) => {
       if (!active) return;
       setShowDropOverlay(false);
       if (!document.body?.classList.contains(pageClass)) return;
@@ -38,12 +43,12 @@ export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOption
     };
 
     const unsubPromises = [
-      listen<any>("tauri://drag-enter", handleEnter),
-      listen<any>("tauri://drag-leave", handleLeave),
-      listen<any>("tauri://drag-drop", handleDrop),
-      listen<any>("tauri://file-drop-hover", handleEnter),
-      listen<any>("tauri://file-drop-cancelled", handleLeave),
-      listen<any>("tauri://file-drop", handleDrop),
+      listen("tauri://drag-enter", handleEnter),
+      listen("tauri://drag-leave", handleLeave),
+      listen("tauri://drag-drop", handleDrop),
+      listen("tauri://file-drop-hover", handleEnter),
+      listen("tauri://file-drop-cancelled", handleLeave),
+      listen("tauri://file-drop", handleDrop),
     ];
 
     return () => {

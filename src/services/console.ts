@@ -3,6 +3,22 @@ import { getCurrentConfig } from "./config";
 
 type LogLine = string;
 
+interface QueueConsoleApi {
+  open: typeof openConsole;
+  close: typeof closeConsole;
+  log: typeof logToConsole;
+  remove: typeof removeConsoleLogs;
+  retain: typeof retainConsoleLogs;
+  clear: typeof clearAllConsoleLogs;
+  setEnabled: typeof setConsoleEnabled;
+}
+
+declare global {
+  interface Window {
+    queueConsole: QueueConsoleApi;
+  }
+}
+
 const logsMap = new Map<string, LogLine[]>();
 const listeners = new Map<string, Set<() => void>>();
 let openConsoleId: string | null = null;
@@ -22,7 +38,7 @@ function notifyListeners(taskId: string) {
   globalListeners.forEach((l) => l());
 }
 
-export function logToConsole(taskId: string, payload: any) {
+export function logToConsole(taskId: string, payload: unknown) {
   if (!taskId) return;
   const key = String(taskId);
   const lines = logsMap.get(key) || [];
@@ -32,11 +48,13 @@ export function logToConsole(taskId: string, payload: any) {
   if (
     payload &&
     typeof payload === "object" &&
-    payload.type === "bridge_command" &&
-    typeof payload.direction === "string"
+    (payload as Record<string, unknown>).type === "bridge_command" &&
+    typeof (payload as Record<string, unknown>).direction === "string"
   ) {
-    const raw = typeof payload.raw === "string" ? payload.raw : "";
-    text = raw ? `[${payload.direction}]: ${raw}` : `[${payload.direction}]`;
+    const command = payload as Record<string, unknown>;
+    const raw = typeof command.raw === "string" ? command.raw : "";
+    const direction = String(command.direction);
+    text = raw ? `[${direction}]: ${raw}` : `[${direction}]`;
   } else {
     try {
       text = JSON.stringify(payload);
@@ -137,8 +155,7 @@ export function useConsoleModal() {
   };
 }
 
-const win = window as any;
-win.queueConsole = {
+window.queueConsole = {
   open: openConsole,
   close: closeConsole,
   log: logToConsole,

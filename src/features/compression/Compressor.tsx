@@ -6,11 +6,16 @@ import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { formatBytes, formatDuration } from "../../utils/format";
-import { sanitizeSvg } from "../../utils/security";
 import { PathSelector } from "../../components/PathSelector";
 import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
 import { CustomSelect } from "../../components/CustomSelect";
+import { PresetGrid } from "../../components/PresetGrid";
+import type { FormatEntry } from "../../services/formats";
+import { loadFormatCatalog } from "../../services/formats";
+import type { MediaFileMetadata } from "../../types/media";
+import type { Preset } from "../../services/presets";
+import { BatchFilesList } from "../../components/BatchFilesList";
 
 import { DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
 import { extractFileName, extractFolderPath, normalizeFormatKey, parseSizeInput } from "./files";
@@ -30,7 +35,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   const [filePath, setFilePath] = useState("");
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [loadedFiles, setLoadedFiles] = useState<any[]>([]);
+  const [loadedFiles, setLoadedFiles] = useState<MediaFileMetadata[]>([]);
 
   const {
     metadata,
@@ -38,7 +43,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     fetchMetadata: triggerFetchMetadata,
     reset: resetMetadataState,
     setMetadata
-  } = useTauriMetadata({
+  } = useTauriMetadata<MediaFileMetadata>({
     pickerCommand: "fetch_metadata_converter",
     onSuccess: (data) => {
       const category = String(data.category || "").toLowerCase();
@@ -78,7 +83,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     try {
       const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
       const results = await Promise.all(metaPromises);
-      const validMeta = results.filter(m => {
+      const validMeta = results.filter((m): m is MediaFileMetadata => {
         if (!m || !m.path || !m.category) return false;
         const category = String(m.category || "").toLowerCase();
         if (!SUPPORTED_CATEGORIES.has(category)) return false;
@@ -138,7 +143,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
 
   // Format Data Map
-  const [formatData, setFormatData] = useState<any[]>([]);
+  const [formatData, setFormatData] = useState<FormatEntry[]>([]);
 
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -155,11 +160,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
   useEffect(() => {
     // Load formats definition
-    fetch("./assets/format.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setFormatData(Array.isArray(data?.cformats) ? data.cformats : []);
-      })
+    loadFormatCatalog()
+      .then((catalog) => setFormatData(catalog.cformats))
       .catch((err) => console.error("Failed to load cformats:", err));
   }, []);
 
@@ -193,7 +195,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     crfValue
   ]);
 
-  const handleMetadataLoaded = (data: any) => {
+  const handleMetadataLoaded = (data: MediaFileMetadata) => {
     setMetadata(data);
     const defaultName = data.name || extractFileName(data.path || "");
     setCurrentName(defaultName);
@@ -286,7 +288,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     return "other";
   };
 
-  const handlePresetClick = async (pr: any) => {
+  const handlePresetClick = async (pr: Preset) => {
+    if (!pr.id) return;
     if (activePresetId === pr.id) {
       clearActivePreset();
       return;
@@ -473,14 +476,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   };
 
   const initialCategory = metadata ? String(metadata.category || "").toLowerCase() : "";
-  const extKey = metadata ? normalizeFormatKey(metadata.extension || "") : "";
-  const extFormatMeta = formatData.find((f: any) => f.id.toLowerCase() === extKey);
+  const extKey = metadata ? normalizeFormatKey(metadata.extension || metadata.format || "") : "";
+  const extFormatMeta = formatData.find((format) => format.id.toLowerCase() === extKey);
 
   const videoCodecsOptions = extFormatMeta?.video_codecs || [];
   const audioCodecsOptions = extFormatMeta?.audio_codecs || [];
 
   const hasDuration = initialCategory === "video" || initialCategory === "audio";
-  const targetCategory = metadata ? resolveSpecsCategory(metadata.category) : "other";
+  const targetCategory = metadata ? resolveSpecsCategory(metadata.category || "") : "other";
 
   const pctVal = typeof percentValue === "number" ? percentValue : 60;
   const percentFillRatio = (pctVal - 1) / (100 - 1);
@@ -583,27 +586,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     </span>
                   </div>
                 </div>
-                <div className="bulk-file-list">
-                  {loadedFiles.map((file, idx) => (
-                    <div key={file.path || idx} className="bulk-file-item">
-                      <span className="bulk-file-name" title={file.path}>
-                        {file.name || extractFileName(file.path)}
-                      </span>
-                      <span className="bulk-file-size">{formatBytes(file.size_bytes)}</span>
-                      <button
-                        type="button"
-                        className="bulk-remove-btn"
-                        title={t("compressor.bulk.removeFile")}
-                        onClick={() => removeFileFromBatch(idx)}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <BatchFilesList files={loadedFiles} removeTitle={t("compressor.bulk.removeFile")} onRemove={removeFileFromBatch} />
               </div>
             ) : (
               <div className={`compressor-info-card fade-in ${!hasDuration ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
@@ -696,29 +679,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
             {compressorPresets.length > 0 && (
               <div id="compress-preset-section" className="preset-section fade-in">
                 <span className="option-label">{t("downloader.options.presets")}</span>
-                <div className="preset-grid" id="compress-preset-grid">
-                  {compressorPresets.map((pr) => (
-                    <button
-                      key={pr.id}
-                      type="button"
-                      className={`preset-card ${activePresetId === pr.id ? "active" : ""}`}
-                      onClick={() => handlePresetClick(pr)}
-                    >
-                      <div
-                        className="preset-card-icon"
-                        dangerouslySetInnerHTML={{ __html: sanitizeSvg(pr.icon_data_url || DEFAULT_ICON) }}
-                      />
-                      <div className="preset-card-info">
-                        <div className="preset-card-title">
-                          {pr.title || t("settings.presetsManager.untitled")}
-                        </div>
-                        <div className="preset-card-summary">
-                          {pr.summary ? (pr.summary.length > 50 ? `${pr.summary.slice(0, 49)}…` : pr.summary) : t("settings.presetsManager.noSummary")}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <PresetGrid id="compress-preset-grid" presets={compressorPresets} activeId={activePresetId} onSelect={handlePresetClick} />
               </div>
             )}
 

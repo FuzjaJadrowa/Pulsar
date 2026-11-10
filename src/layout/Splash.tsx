@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { invoke, listen } from "../services/tauri";
 import { useTranslation } from "../services/i18n";
 import { triggerIdleWavesEnter } from "../services/config";
+import type { UnlistenFn } from "@tauri-apps/api/event";
 
 interface SplashProps {
   onFinished?: (prewarmBridge: boolean) => void;
@@ -15,7 +16,7 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   const [isExiting, setIsExiting] = useState<boolean>(false);
   const [isHidden, setIsHidden] = useState<boolean>(false);
 
-  const translateSplashStatus = (val: any): string => {
+  const translateSplashStatus = (val: unknown): string => {
     if (val === null || typeof val === "undefined") return "";
     const raw = String(val);
     const trimmed = raw.trim();
@@ -78,9 +79,9 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
   };
 
   useEffect(() => {
-    let unlistStatus: any = null;
-    let unlistProgress: any = null;
-    let unlistFinished: any = null;
+    let unlistStatus: UnlistenFn | null = null;
+    let unlistProgress: UnlistenFn | null = null;
+    let unlistFinished: UnlistenFn | null = null;
 
     const setupListeners = async () => {
       unlistStatus = await listen<{ status: string; can_skip: boolean; is_downloading: boolean }>(

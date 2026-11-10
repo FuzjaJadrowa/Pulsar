@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke, listen } from "../services/tauri";
 import { t } from "../services/i18n";
+import { resolveMetadataEvent, type MetadataBridgeEvent } from "./metadataEvents";
+import { isMediaFileMetadata, type MediaFileMetadata } from "../types/media";
 
-interface UseTauriMetadataOptions {
+interface UseTauriMetadataOptions<T> {
   pickerCommand: "fetch_metadata_downloader" | "fetch_metadata_converter";
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   onError?: (err: string) => void;
 }
 
-export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauriMetadataOptions) {
-  const [metadata, setMetadata] = useState<any>(null);
+export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, onSuccess, onError }: UseTauriMetadataOptions<T>) {
+  const [metadata, setMetadata] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const isLoadingRef = useRef(false);
   const currentTaskIdRef = useRef<string | null>(null);
@@ -34,24 +36,20 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
       currentTaskIdRef.current = null;
     };
 
-    const unsubPromise = listen<any>("download-event", (event) => {
+    const unsubPromise = listen<MetadataBridgeEvent>("download-event", (event) => {
       if (!active) return;
       const payload = event.payload;
       if (!payload || !payload.type) return;
 
-      if (payload.id === currentTaskIdRef.current) {
-        if (payload.type === "finished" && payload.success === false) {
-          finishRequest();
-          if (onErrorRef.current) onErrorRef.current(payload.error || "Metadata fetch failed.");
-        } else if (payload.type === "metadata") {
-          finishRequest();
-          if (payload.success && payload.data) {
-            setMetadata(payload.data);
-            if (onSuccessRef.current) onSuccessRef.current(payload.data);
-          } else {
-            if (onErrorRef.current) onErrorRef.current(t("common.errors.invalidFileOrLink"));
-          }
-        }
+      const outcome = resolveMetadataEvent(payload, currentTaskIdRef.current);
+      if (outcome.kind === "error") {
+        finishRequest();
+        const message = outcome.message || t("common.errors.invalidFileOrLink");
+        onErrorRef.current?.(message);
+      } else if (outcome.kind === "success") {
+        finishRequest();
+        setMetadata(outcome.data as T);
+        onSuccessRef.current?.(outcome.data as T);
       }
     });
 
@@ -106,7 +104,7 @@ export function useTauriMetadata({ pickerCommand, onSuccess, onError }: UseTauri
   };
 }
 
-export function fetchSingleFileMetadata(filePath: string): Promise<any> {
+export function fetchSingleFileMetadata(filePath: string): Promise<MediaFileMetadata | null> {
   return new Promise((resolve) => {
     const taskId = `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
     let unsub: (() => void) | null = null;
@@ -127,24 +125,25 @@ export function fetchSingleFileMetadata(filePath: string): Promise<any> {
       }
     }, 15000);
 
-    listen<any>("download-event", (event) => {
+    listen<MetadataBridgeEvent>("download-event", (event) => {
       const payload = event.payload;
-      if (!payload || payload.id !== taskId) return;
+      if (!payload) return;
+      const outcome = resolveMetadataEvent(payload, taskId);
 
-      if (payload.type === "finished" && payload.success === false) {
+      if (outcome.kind === "error") {
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
           cleanup();
           resolve(null);
         }
-      } else if (payload.type === "metadata") {
+      } else if (outcome.kind === "success") {
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
           cleanup();
-          if (payload.success && payload.data) {
-            resolve(payload.data);
+          if (isMediaFileMetadata(outcome.data)) {
+            resolve(outcome.data);
           } else {
             resolve(null);
           }

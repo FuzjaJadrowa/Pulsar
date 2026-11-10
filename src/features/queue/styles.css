@@ -12,7 +12,7 @@
     position: absolute;
     top: 88px;
     right: 20px;
-    width: 560px;
+    width: min(560px, calc(100vw - 40px));
     max-height: calc(100vh - 108px);
     display: flex;
     flex-direction: column;
@@ -652,4 +652,30 @@ body.theme-light .queue-console-close:hover {
 
 body.theme-light .queue-console-body {
     color: #1f2937;
+}
+
+@media (max-width: 600px) {
+    #queue-panel {
+        top: calc(var(--titlebar-height) + 8px);
+        right: 12px;
+        max-height: calc(100vh - var(--titlebar-height) - 20px);
+        border-radius: 14px;
+    }
+
+    .queue-panel-inner {
+        max-height: calc(100vh - var(--titlebar-height) - 20px);
+        padding: 14px;
+    }
+
+    .queue-console-modal {
+        width: calc(100vw - 24px);
+        height: min(70vh, 620px);
+        border-radius: 12px;
+    }
+
+    .queue-console-header,
+    .queue-console-body {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
 }

@@ -1,5 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { loadFormatCatalog } from "./formats";
+import { loadFormatCatalog, normalizeFormatCatalog } from "./formats";
+
+describe("normalizeFormatCatalog", () => {
+  it("keeps only usable format entries and sanitizes codec lists", () => {
+    expect(normalizeFormatCatalog({
+      cformats: [
+        { id: " mp4 ", type: "video", video_codecs: ["h264", 4] },
+        { id: "", type: "video" },
+        { id: "bad", type: "unknown" },
+      ],
+    })).toEqual({
+      dformats: [],
+      cformats: [{ id: "mp4", type: "video", video_codecs: ["h264"] }],
+    });
+  });
+});
 
 describe("loadFormatCatalog", () => {
   afterEach(() => vi.unstubAllGlobals());

@@ -4,7 +4,7 @@ import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../../s
 import { usePresets } from "../../services/presets";
 import { CustomSelect } from "../../components/CustomSelect";
 import { PresetCreatorModal } from "../../components/PresetCreatorModal";
-import { sanitizeSvg } from "../../utils/security";
+import { PresetIconPreview } from "../../components/PresetIconPreview";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
 import { invoke } from "../../services/tauri";
 import { DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
@@ -20,40 +20,6 @@ function getTextWidth(text: string): number {
   ctx.font = '13px "Manrope", "Montserrat", "Roboto", sans-serif';
   return ctx.measureText(text).width;
 }
-
-const renderPresetIconPreview = (src: string, alt: string = "preset") => {
-  if (!src) src = DEFAULT_ICON;
-  let svgText = "";
-  if (src.startsWith("data:image/svg+xml")) {
-    if (src.includes(";base64,")) {
-      try {
-        svgText = atob(src.split(";base64,")[1]);
-      } catch (e) {
-        svgText = "";
-      }
-    } else if (src.includes(",")) {
-      svgText = decodeURIComponent(src.split(",")[1]);
-    }
-  } else if (src.startsWith("<svg")) {
-    svgText = src;
-  }
-
-  if (svgText && svgText.includes("<svg")) {
-    if (!svgText.includes('fill=')) {
-      svgText = svgText.replace('<svg', '<svg fill="#ffffff"');
-    } else {
-      svgText = svgText.replace(/fill="currentColor"/g, 'fill="#ffffff"').replace(/fill='currentColor'/g, "fill='#ffffff'");
-    }
-    return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgText) }}
-        style={{ width: "100%", height: "100%", color: "#ffffff", fill: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}
-      />
-    );
-  }
-
-  return <img src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
-};
 
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
@@ -851,7 +817,7 @@ export const Settings: React.FC = () => {
               return (
                 <div key={preset.id} className={`preset-item ${preset.hidden ? "is-hidden" : ""}`}>
                   <div className="preset-item-icon">
-                    {renderPresetIconPreview(iconSrc || DEFAULT_ICON, preset.title || "preset")}
+                    <PresetIconPreview src={iconSrc || DEFAULT_ICON} alt={preset.title || "preset"} fallback={DEFAULT_ICON} />
                   </div>
 
                   <div className="preset-item-info">
