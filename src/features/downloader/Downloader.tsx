@@ -148,6 +148,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   }, [selectedFormat]);
 
   const isGifFormat = mode === "video" && selectedFormat?.toLowerCase() === "gif";
+  const showAudioCodec = mode !== "video" || (!muteAudio && !isGifFormat);
 
   const { updateUiState } = useUiState();
 
@@ -1293,21 +1294,23 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       />
                     </div>
                   )}
-                  {!(mode === "video" && (muteAudio || isGifFormat)) && (
-                    <div className="form-row">
-                      <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
-                      <CustomSelect
-                        options={downloaderAudioCodecOptions}
-                        value={audioCodec}
-                        onChange={(val) => {
-                          setAudioCodec(val);
-                          clearActivePreset();
-                        }}
-                        width="115px"
-                        direction="up"
-                      />
-                    </div>
-                  )}
+                  <div
+                    className={`form-row audio-codec-row ${showAudioCodec ? "visible" : ""}`}
+                    aria-hidden={!showAudioCodec}
+                  >
+                    <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
+                    <CustomSelect
+                      options={downloaderAudioCodecOptions}
+                      value={audioCodec}
+                      disabled={!showAudioCodec}
+                      onChange={(val) => {
+                        setAudioCodec(val);
+                        clearActivePreset();
+                      }}
+                      width="115px"
+                      direction="up"
+                    />
+                  </div>
                 </div>
               </div>
 

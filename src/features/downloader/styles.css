@@ -572,17 +572,23 @@ body.audio-only-source .extras-section .form-row.video-only {
     align-items: flex-end;
 }
 .embed-subs-row,
-.lang-input-wrapper {
+.lang-input-wrapper,
+.audio-codec-row {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
 }
-.embed-subs-row { height: 40px; }
+.embed-subs-row,
+.audio-codec-row { height: 40px; }
 .embed-subs-row.visible {
     opacity: 1;
     pointer-events: auto;
 }
 .lang-input-wrapper.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.audio-codec-row.visible {
     opacity: 1;
     pointer-events: auto;
 }
