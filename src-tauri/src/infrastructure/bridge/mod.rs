@@ -94,6 +94,13 @@ impl ProcessLimiter {
             self.changed.notify_all();
         }
     }
+
+    fn active_count(&self) -> usize {
+        self.state
+            .lock()
+            .map(|state| state.active.len())
+            .unwrap_or(0)
+    }
 }
 
 impl BridgeState {
@@ -110,6 +117,15 @@ impl BridgeState {
 
     pub fn set_process_limit(&self, limit: usize) {
         self.process_limiter.set_limit(limit);
+    }
+
+    pub fn has_active_work(&self) -> bool {
+        let active_batch = self
+            .batch_cancels
+            .lock()
+            .map(|batches| !batches.is_empty())
+            .unwrap_or(true);
+        active_batch || self.process_limiter.active_count() > 0
     }
 
     pub fn shutdown(&self) {

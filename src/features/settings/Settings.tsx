@@ -7,6 +7,7 @@ import { PresetCreatorModal } from "../../components/PresetCreatorModal";
 import { PresetIconPreview } from "../../components/PresetIconPreview";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
 import { invoke } from "../../services/tauri";
+import { showNotification } from "../../services/notifications";
 import { DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
 import { PathSelector } from "../../components/PathSelector";
 
@@ -80,6 +81,7 @@ export const Settings: React.FC = () => {
   const [bridgeVersion, setBridgeVersion] = useState("-");
   const [ffmpegVersion, setFfmpegVersion] = useState("-");
   const [isFlatpak, setIsFlatpak] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   useEffect(() => {
     invoke<string>("get_distribution_channel")
@@ -103,10 +105,21 @@ export const Settings: React.FC = () => {
     fetchVersions();
   }, []);
 
-  const handleUpdateCheck = (component: string) => {
-    invoke("run_requirement_check", { component }).catch((err) => {
+  const handleUpdateCheck = async (component: string) => {
+    if (isCheckingUpdate) return;
+    setIsCheckingUpdate(true);
+    try {
+      await invoke("run_requirement_check", { component });
+      const reqVersions = await invoke<Record<string, string>>("get_requirements_versions");
+      setPulsarVersion(reqVersions["pulsar"] || "3.0.1");
+      setBridgeVersion(reqVersions["pulsar-bridge"] || "N/A");
+      setFfmpegVersion(reqVersions["ffmpeg"] || "N/A");
+    } catch (err) {
       console.error(`Check update failed for ${component}:`, err);
-    });
+      showNotification(t("common.error"), String(err), "error");
+    } finally {
+      setIsCheckingUpdate(false);
+    }
   };
 
   const handleOpenPresetCreate = () => {
@@ -408,7 +421,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("pulsar")}
-              disabled={isFlatpak}
+              disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check Pulsar update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -418,7 +431,7 @@ export const Settings: React.FC = () => {
             </button>
             <ToggleSwitch
               checked={isFlatpak ? false : !!config.update_app}
-              disabled={isFlatpak}
+              disabled={isFlatpak || isCheckingUpdate}
               onChange={(checked) => updateConfig({ update_app: checked })}
             />
           </div>
@@ -434,7 +447,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("pulsar-bridge")}
-              disabled={isFlatpak}
+              disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check Bridge update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -460,7 +473,7 @@ export const Settings: React.FC = () => {
               className="update-check-btn"
               type="button"
               onClick={() => handleUpdateCheck("ffmpeg")}
-              disabled={isFlatpak}
+              disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check FFmpeg update"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -470,7 +483,7 @@ export const Settings: React.FC = () => {
             </button>
             <ToggleSwitch
               checked={isFlatpak ? false : !!config.update_ffmpeg}
-              disabled={isFlatpak}
+              disabled={isFlatpak || isCheckingUpdate}
               onChange={(checked) => updateConfig({ update_ffmpeg: checked })}
             />
           </div>
