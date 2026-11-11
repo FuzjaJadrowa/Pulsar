@@ -6,8 +6,15 @@
   <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build.yml/badge.svg" alt="Build Matrix">
 </p>
 
+<p align="center">Fast and modern media manager.</p>
+
 ---
-<p align="center">A fast, modern media manager built with Tauri and Rust.</p>
+
+<p align="center">
+  <video src=".github/assets/pulsar-trailer.mp4" controls width="800">
+    <a href=".github/assets/pulsar-trailer.mp4">Pulsar Trailer</a>
+  </video>
+</p>
 
 ---
 ## Features

@@ -1,7 +1,7 @@
 [package]
 name = "Pulsar"
 version = "3.2.0-beta.1"
-description = "A fast, modern media manager built with Tauri and Rust."
+description = "A fast and modern media manager."
 authors = ["Fuzja Jadrowa"]
 edition = "2021"
 
