@@ -858,6 +858,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 }}
                 pickerCommand="pick_download_directory"
                 title={t("common.browse")}
+                useLastPathTitle={t("common.useLastPath")}
                 buttonClassName="compressor-small-btn"
               />
 

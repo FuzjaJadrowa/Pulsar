@@ -969,6 +969,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 }}
                 pickerCommand="pick_download_directory"
                 title={t("common.browse")}
+                useLastPathTitle={t("common.useLastPath")}
               />
 
               {/* Mode Switcher */}

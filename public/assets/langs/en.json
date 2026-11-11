@@ -7,6 +7,7 @@
     "unknownChannel": "Unknown channel",
     "eta": "ETA",
     "browse": "Browse",
+    "useLastPath": "Use last path",
     "addToQueue": "ADD TO QUEUE",
     "dropHint": "or just drop some files",
     "output": {

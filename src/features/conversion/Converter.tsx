@@ -817,6 +817,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         }}
                         pickerCommand="pick_download_directory"
                         title={t("common.browse")}
+                        useLastPathTitle={t("common.useLastPath")}
                         buttonClassName="converter-small-btn"
                       />
 
