@@ -542,6 +542,9 @@
     font-family: "Roboto", "Manrope", "Montserrat", sans-serif;
     font-size: 0.82rem;
     white-space: pre-wrap;
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
 }
 
 #btn-queue.queue-pulse {
