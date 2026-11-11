@@ -231,6 +231,7 @@ export const QueuePanel: React.FC = () => {
                     <button
                       className="queue-icon-btn"
                       onClick={() => cancelItem(item.id)}
+                      disabled={Boolean(item.cancelRequested)}
                       title={t("queue.itemActions.stop")}
                     >
                       {ICONS.stop}

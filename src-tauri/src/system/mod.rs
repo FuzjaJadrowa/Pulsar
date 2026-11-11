@@ -4,6 +4,7 @@ pub mod metadata;
 use crate::app::config::{AppConfig, ConfigManager};
 use crate::app::queue::{QueueManager, QueueState};
 use crate::app::tray::sync_tray_from_queue;
+use crate::features::downloads::BridgeState;
 use base64::{engine::general_purpose, Engine as _};
 use std::path::Path;
 use tauri::{AppHandle, State};
@@ -28,16 +29,21 @@ pub fn get_distribution_channel() -> String {
 }
 
 #[tauri::command]
-pub fn save_config(new_config: AppConfig, state: State<ConfigManager>) {
+pub fn save_config(
+    new_config: AppConfig,
+    state: State<ConfigManager>,
+    bridge_state: State<BridgeState>,
+) {
     let mut config = state.config.lock().unwrap();
     *config = new_config;
     config.sanitize();
+    bridge_state.set_process_limit(config.maximum_concurrent_processes as usize);
     drop(config);
     state.save();
 }
 
 #[tauri::command]
-pub fn get_queue_state(state: State<QueueManager>) -> QueueState {
+pub fn get_queue_state(state: State<QueueManager>) -> Result<QueueState, String> {
     state.load()
 }
 

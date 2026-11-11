@@ -250,7 +250,6 @@ pub fn start_compress(
 pub fn start_batch_compress(
     app_handle: AppHandle,
     state: State<BridgeState>,
-    config_mgr: State<ConfigManager>,
     options: BatchCompressOptions,
 ) -> Result<String, String> {
     let task_id = options.client_task_id.trim().to_string();
@@ -264,10 +263,12 @@ pub fn start_batch_compress(
     let items = options.items;
     let cancel_flag = state.register_batch_cancel(task_id.clone());
 
-    let max_concurrent = {
-        let config = config_mgr.config.lock().unwrap();
-        (config.maximum_concurrent_processes as usize).max(1)
-    };
+    let max_concurrent = app_handle
+        .state::<ConfigManager>()
+        .config
+        .lock()
+        .unwrap()
+        .maximum_concurrent_processes as usize;
 
     let app_handle_clone = app_handle.clone();
     let task_id_clone = task_id.clone();

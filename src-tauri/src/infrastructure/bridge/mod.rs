@@ -1,11 +1,12 @@
 use crate::infrastructure::platform::get_requirements_path;
 use serde::Serialize;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
+use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 #[derive(Serialize)]
@@ -21,6 +22,78 @@ pub struct BridgeState {
     ffmpeg_ranges: Arc<Mutex<HashMap<String, FfmpegRange>>>,
     sub_listeners: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<Value>>>>,
     batch_cancels: Arc<Mutex<HashMap<String, Arc<std::sync::atomic::AtomicBool>>>>,
+    process_limiter: Arc<ProcessLimiter>,
+}
+
+struct ProcessLimiter {
+    state: Mutex<ProcessLimitState>,
+    changed: Condvar,
+}
+
+struct ProcessLimitState {
+    limit: usize,
+    active: HashSet<String>,
+}
+
+impl ProcessLimiter {
+    fn new(limit: usize) -> Self {
+        Self {
+            state: Mutex::new(ProcessLimitState {
+                limit: limit.max(1),
+                active: HashSet::new(),
+            }),
+            changed: Condvar::new(),
+        }
+    }
+
+    fn set_limit(&self, limit: usize) {
+        if let Ok(mut state) = self.state.lock() {
+            state.limit = limit.max(1);
+            self.changed.notify_all();
+        }
+    }
+
+    fn acquire<F>(&self, id: &str, mut is_cancelled: F) -> Result<(), String>
+    where
+        F: FnMut() -> bool,
+    {
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| "Process limit lock is unavailable".to_string())?;
+        loop {
+            if is_cancelled() {
+                return Err("Batch was cancelled before its process could start.".to_string());
+            }
+            if state.active.contains(id) {
+                return Err(format!("Process ID '{id}' is already active."));
+            }
+            if state.active.len() < state.limit {
+                state.active.insert(id.to_string());
+                return Ok(());
+            }
+            let (next_state, _) = self
+                .changed
+                .wait_timeout(state, Duration::from_millis(100))
+                .map_err(|_| "Process limit lock is unavailable".to_string())?;
+            state = next_state;
+        }
+    }
+
+    fn release(&self, id: &str) {
+        if let Ok(mut state) = self.state.lock() {
+            if state.active.remove(id) {
+                self.changed.notify_all();
+            }
+        }
+    }
+
+    fn release_all(&self) {
+        if let Ok(mut state) = self.state.lock() {
+            state.active.clear();
+            self.changed.notify_all();
+        }
+    }
 }
 
 impl BridgeState {
@@ -31,7 +104,12 @@ impl BridgeState {
             ffmpeg_ranges: Arc::new(Mutex::new(HashMap::new())),
             sub_listeners: Arc::new(Mutex::new(HashMap::new())),
             batch_cancels: Arc::new(Mutex::new(HashMap::new())),
+            process_limiter: Arc::new(ProcessLimiter::new(3)),
         }
+    }
+
+    pub fn set_process_limit(&self, limit: usize) {
+        self.process_limiter.set_limit(limit);
     }
 
     pub fn shutdown(&self) {
@@ -72,8 +150,8 @@ impl BridgeState {
     }
 
     pub fn cancel_batch(&self, task_id: &str) -> bool {
-        let mut guard = self.batch_cancels.lock().unwrap();
-        if let Some(flag) = guard.remove(task_id) {
+        let guard = self.batch_cancels.lock().unwrap();
+        if let Some(flag) = guard.get(task_id) {
             flag.store(true, std::sync::atomic::Ordering::SeqCst);
             true
         } else {
@@ -134,6 +212,7 @@ impl BridgeState {
         let app_handle_clone = app_handle.clone();
         let ffmpeg_ranges = self.ffmpeg_ranges.clone();
         let sub_listeners = self.sub_listeners.clone();
+        let process_limiter = self.process_limiter.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
@@ -175,6 +254,7 @@ impl BridgeState {
                                 }
                                 if is_terminal_event(&json_val) {
                                     ffmpeg_ranges.lock().unwrap().remove(id);
+                                    process_limiter.release(id);
                                 }
                             }
                             let _ = app_handle_clone.emit("download-event", json_val);
@@ -183,6 +263,7 @@ impl BridgeState {
                     Err(e) => eprintln!("Error reading bridge stdout: {}", e),
                 }
             }
+            process_limiter.release_all();
         });
 
         thread::spawn(move || {
@@ -210,24 +291,54 @@ impl BridgeState {
         app_handle: &AppHandle,
         cmd: &T,
     ) -> Result<(), String> {
-        self.init(app_handle)?;
-
-        if let Some(stdin) = self.stdin.lock().unwrap().as_mut() {
-            let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
-            writeln!(stdin, "{}", json).map_err(|e| format!("Failed to write to bridge: {}", e))?;
-            if let Ok(mut payload) = serde_json::from_str::<Value>(&json) {
-                if payload.get("id").is_some() {
-                    payload["type"] = Value::from("bridge_command");
-                    payload["direction"] = Value::from("RUST -> BRIDGE");
-                    payload["raw"] = Value::from(json.clone());
-                    let _ = app_handle.emit("download-event", payload);
-                }
-            }
-            println!("[RUST -> BRIDGE]: {}", json);
-            Ok(())
-        } else {
-            Err("Bridge stdin not available".to_string())
+        let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
+        let process_id = serde_json::from_str::<Value>(&json).ok().and_then(|value| {
+            let command = value.get("command")?.as_str()?;
+            matches!(command, "download" | "convert" | "compress")
+                .then(|| value.get("id")?.as_str().map(str::to_owned))?
+        });
+        if let Some(id) = process_id.as_deref() {
+            self.process_limiter
+                .acquire(id, || self.is_batch_cancelled_for_task(id))?;
         }
+
+        let result = (|| {
+            self.init(app_handle)?;
+            let mut stdin_guard = self.stdin.lock().unwrap();
+            if let Some(stdin) = stdin_guard.as_mut() {
+                writeln!(stdin, "{}", json)
+                    .map_err(|e| format!("Failed to write to bridge: {}", e))?;
+                if let Ok(mut payload) = serde_json::from_str::<Value>(&json) {
+                    if payload.get("id").is_some() {
+                        payload["type"] = Value::from("bridge_command");
+                        payload["direction"] = Value::from("RUST -> BRIDGE");
+                        payload["raw"] = Value::from(json.clone());
+                        let _ = app_handle.emit("download-event", payload);
+                    }
+                }
+                println!("[RUST -> BRIDGE]: {}", json);
+                Ok(())
+            } else {
+                Err("Bridge stdin not available".to_string())
+            }
+        })();
+        if result.is_err() {
+            if let Some(id) = process_id.as_deref() {
+                self.process_limiter.release(id);
+            }
+        }
+        result
+    }
+
+    fn is_batch_cancelled_for_task(&self, task_id: &str) -> bool {
+        let Some((batch_id, _)) = task_id.rsplit_once("_sub_") else {
+            return false;
+        };
+        self.batch_cancels
+            .lock()
+            .ok()
+            .and_then(|guard| guard.get(batch_id).cloned())
+            .is_some_and(|flag| flag.load(std::sync::atomic::Ordering::SeqCst))
     }
 
     pub fn set_ffmpeg_range(&self, task_id: String, total_seconds: f64) {

@@ -14,7 +14,7 @@ use tauri::{Manager, WindowEvent};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let config_manager = ConfigManager::new();
-    let queue_manager = QueueManager::new();
+    let queue_manager = QueueManager::new().expect("Failed to initialize queue database");
     let bridge_state = BridgeState::new();
     let splash_state = SplashState::new();
 
@@ -35,7 +35,17 @@ pub fn run() {
         .manage(bridge_state)
         .manage(splash_state)
         .setup(|app| {
-            let queue_state = app.state::<QueueManager>().load();
+            let process_limit = app
+                .state::<ConfigManager>()
+                .config
+                .lock()
+                .unwrap()
+                .maximum_concurrent_processes as usize;
+            app.state::<BridgeState>().set_process_limit(process_limit);
+            let queue_state = app
+                .state::<QueueManager>()
+                .load()
+                .map_err(std::io::Error::other)?;
             build_tray_icon(app.handle(), &queue_state)?;
             Ok(())
         })

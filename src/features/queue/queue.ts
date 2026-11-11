@@ -23,6 +23,7 @@ export interface QueueItem {
   startReason: string | null;
   pendingStartReason: string | null;
   source: string;
+  cancelRequested?: boolean;
 }
 
 export interface QueueItemPayload extends Record<string, unknown> {
@@ -72,6 +73,7 @@ const state: QueueState = {
 };
 
 const listeners = new Set<(items: QueueItem[]) => void>();
+const pendingRemovalIds = new Set<string>();
 
 function notifyListeners() {
   listeners.forEach((l) => l([...state.items]));
@@ -99,15 +101,22 @@ function persistSoon() {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     const payload = {
-      items: state.items,
-      currentItemId: state.activeItemIds.length ? state.activeItemIds[0] : null,
-      activeItemIds: state.activeItemIds,
+      items: state.items.map((item) => ({
+        id: item.id,
+        itemType: item.itemType,
+        title: item.title,
+        thumbnail: item.thumbnail,
+        status: item.status,
+        progress: item.progress,
+        eta: item.eta,
+        addedAt: item.addedAt,
+        payload: item.payload,
+        path: item.path,
+        skippedByStop: item.skippedByStop,
+        pendingStartReason: item.pendingStartReason,
+        source: item.source,
+      })),
       priorityQueue: state.priorityQueue,
-      startAllActive: state.startAllActive,
-      startAllSuccess: state.startAllSuccess,
-      startAllStarted: state.startAllStarted,
-      clearAfterCurrent: state.clearAfterCurrent,
-      currentPage: 1,
     };
     try {
       await invoke("save_queue_state", { queueState: payload });
@@ -163,10 +172,12 @@ function getNextItemId(): string {
 
 export async function startItem(item: QueueItem, reason: string) {
   if (item.status === "downloading") return;
+  const runId = `${item.id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   item.status = "downloading";
   item.progress = 0;
   item.eta = "--";
-  item.taskId = item.id;
+  item.taskId = runId;
+  item.cancelRequested = false;
   item.startReason = reason;
   item.pendingStartReason = null;
   item.skippedByStop = false;
@@ -180,7 +191,7 @@ export async function startItem(item: QueueItem, reason: string) {
 
   try {
     let tId: string | null = null;
-    const cleanPayload: Record<string, unknown> = { ...item.payload, client_task_id: String(item.id) };
+    const cleanPayload: Record<string, unknown> = { ...item.payload, client_task_id: runId };
 
     if (item.itemType === "convert") {
       if (cleanPayload.is_batch && Array.isArray(cleanPayload.items)) {
@@ -199,17 +210,32 @@ export async function startItem(item: QueueItem, reason: string) {
     }
 
     const current = state.items.find((i) => i.id === item.id);
-    if (!current || current.status !== "downloading") {
+    if (!current || current.status !== "downloading" || current.taskId !== runId) {
       if (tId) await invoke("cancel_download", { taskId: String(tId) });
       return;
     }
 
     item.taskId = String(tId);
     persistSoon();
+    // A stop can be requested while the start command is still being handled.
+    // Send it again after start resolves so the cancel cannot overtake startup.
+    if (item.cancelRequested && tId) {
+      await invoke("cancel_download", { taskId: String(tId) }).catch((error) => {
+        console.error("Cancel task failed:", error);
+        if (item.status === "downloading" && item.taskId === String(tId)) {
+          item.cancelRequested = false;
+          notifyListeners();
+        }
+      });
+    }
   } catch (e) {
     console.error("Start failed:", e);
-    item.taskId = null;
-    markFailed(item, "START_FAILED");
+    const current = state.items.find((candidate) => candidate.id === item.id);
+    if (current?.status === "downloading" && current.taskId === runId) {
+      current.taskId = null;
+      current.cancelRequested = false;
+      markFailed(current, "START_FAILED");
+    }
   }
 }
 
@@ -297,6 +323,7 @@ export function markCompleted(item: QueueItem) {
   item.progress = 100;
   item.eta = "00:00";
   item.taskId = null;
+  item.cancelRequested = false;
   state.activeItemIds = state.activeItemIds.filter((id) => id !== item.id);
 
   if (["download", "queue-manual", "convert", "compress"].includes(item.startReason || "")) {
@@ -363,6 +390,7 @@ export function markFailed(item: QueueItem, code: string) {
 
   item.status = "failed";
   item.taskId = null;
+  item.cancelRequested = false;
   state.activeItemIds = state.activeItemIds.filter((id) => id !== item.id);
 
   if (state.startAllActive && item.startReason === "start-all") {
@@ -402,18 +430,27 @@ export async function cancelItem(id: string) {
   if (!item) return;
 
   if (item.status === "downloading") {
+    if (item.cancelRequested) return;
     const tId = item.taskId;
-    item.status = "pending";
-    item.progress = 0;
-    item.eta = "--";
-    item.taskId = null;
-    state.activeItemIds = state.activeItemIds.filter((aid) => aid !== id);
-    
-    if (tId) {
-      try {
-        await invoke("cancel_download", { taskId: tId });
-      } catch (e) {
-        console.error("Cancel task failed:", e);
+    if (!tId) return;
+    item.cancelRequested = true;
+    notifyListeners();
+    persistSoon();
+    try {
+      await invoke("cancel_download", { taskId: tId });
+    } catch (e) {
+      console.error("Cancel task failed:", e);
+      if (item.status === "downloading" && item.taskId === tId) {
+        item.cancelRequested = false;
+        if (pendingRemovalIds.delete(id)) {
+          const element = document.querySelector(`.queue-item[data-id="${id}"]`) as HTMLElement | null;
+          if (element) {
+            element.classList.remove("removing");
+            element.style.height = "";
+          }
+        }
+        notifyListeners();
+        persistSoon();
       }
     }
   } else {
@@ -458,20 +495,15 @@ export function removeItem(id: string) {
     el.classList.add("removing");
     el.style.height = "0px";
 
-    setTimeout(() => {
-      if (item.status === "downloading") {
-        cancelItem(id).then(performStateRemoval);
-      } else {
-        performStateRemoval();
-      }
-    }, 320);
-  } else {
-    if (item.status === "downloading") {
-      cancelItem(id).then(performStateRemoval);
-    } else {
-      performStateRemoval();
-    }
   }
+
+  if (item.status === "downloading") {
+    pendingRemovalIds.add(id);
+    void cancelItem(id);
+    return;
+  }
+
+  setTimeout(performStateRemoval, el ? 320 : 0);
 }
 
 export function clearQueue() {
@@ -613,7 +645,7 @@ export function useQueue() {
 listen<QueueBridgeEvent>("download-event", (event) => {
   const payload = event.payload;
   if (!payload || payload.type === "metadata" || !payload.id) return;
-  const item = state.items.find((i) => i.id === String(payload.id));
+  const item = state.items.find((i) => i.status === "downloading" && i.taskId === String(payload.id));
   if (!item) return;
 
   window.queueConsole?.log(item.id, payload);
@@ -626,7 +658,11 @@ listen<QueueBridgeEvent>("download-event", (event) => {
 
   if (changes.cancelled) {
     state.activeItemIds = state.activeItemIds.filter((aid) => aid !== item.id);
-    
+    item.cancelRequested = false;
+    if (pendingRemovalIds.delete(item.id)) {
+      state.items = state.items.filter((candidate) => candidate.id !== item.id);
+      state.priorityQueue = state.priorityQueue.filter((queueId) => queueId !== item.id);
+    }
     notifyListeners();
     persistSoon();
     maybeStartNext();
@@ -638,6 +674,12 @@ listen<QueueBridgeEvent>("download-event", (event) => {
       markCompleted(item);
     } else {
       markFailed(item, changes.error || "UNKNOWN");
+    }
+    if (pendingRemovalIds.delete(item.id)) {
+      state.items = state.items.filter((candidate) => candidate.id !== item.id);
+      state.priorityQueue = state.priorityQueue.filter((queueId) => queueId !== item.id);
+      notifyListeners();
+      persistSoon();
     }
   }
 });

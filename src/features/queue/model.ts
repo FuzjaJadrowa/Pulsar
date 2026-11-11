@@ -56,6 +56,7 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
     item.progress = 0;
     item.eta = "--";
     item.taskId = null;
+    item.cancelRequested = false;
     item.skippedByStop = true;
     item.startReason = null;
     changes.cancelled = true;
