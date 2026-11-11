@@ -3,9 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-windows.yml/badge.svg" alt="Build Windows">
-  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-macos.yml/badge.svg" alt="Build macOS">
-  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build-linux.yml/badge.svg" alt="Build Linux">
+  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build.yml/badge.svg" alt="Build Matrix">
 </p>
 
 ---
