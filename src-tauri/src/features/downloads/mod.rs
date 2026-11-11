@@ -1,6 +1,6 @@
 mod args;
 pub mod file_ops;
-use self::args::{apply_filters, build_audio_filters, build_subtitle_args, build_video_filters};
+use self::args::build_subtitle_args;
 use crate::app::config::ConfigManager;
 use crate::infrastructure::bridge::parse_time_to_seconds;
 pub use crate::infrastructure::bridge::{
@@ -8,6 +8,71 @@ pub use crate::infrastructure::bridge::{
 };
 use serde::Deserialize;
 use tauri::{AppHandle, State};
+
+fn parse_quality_limits(value: Option<&str>) -> (Option<u32>, Option<u32>) {
+    let Some((height, fps)) = value.unwrap_or_default().trim().split_once('p') else {
+        return (None, None);
+    };
+    (height.parse::<u32>().ok(), fps.parse::<u32>().ok())
+}
+
+fn parse_kbps(value: Option<&str>) -> Option<u32> {
+    value?
+        .trim()
+        .trim_end_matches("kbps")
+        .trim()
+        .parse::<u32>()
+        .ok()
+        .filter(|value| *value > 0)
+}
+
+fn parse_sample_rate(value: Option<&str>) -> Option<u32> {
+    value?
+        .trim()
+        .trim_end_matches("Hz")
+        .trim()
+        .parse::<u32>()
+        .ok()
+        .filter(|value| *value >= 8_000 && *value <= 192_000)
+}
+
+fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> String {
+    let mut filters = Vec::new();
+    if let Some(height) = height {
+        filters.push(format!("height<={height}"));
+    }
+    if let Some(fps) = fps {
+        filters.push(format!("fps<={fps}"));
+    }
+    let bounded = if filters.is_empty() {
+        String::new()
+    } else {
+        format!("[{}]", filters.join("]["))
+    };
+    if gif {
+        if bounded.is_empty() {
+            "bv".to_string()
+        } else {
+            format!("bv{bounded}/bv")
+        }
+    } else if bounded.is_empty() {
+        "bv+ba/b".to_string()
+    } else {
+        let height_only = height
+            .map(|height| format!("[height<={height}]"))
+            .unwrap_or_default();
+        let fps_only = fps.map(|fps| format!("[fps<={fps}]")).unwrap_or_default();
+        let mut choices = vec![format!("bv{bounded}+ba/b{bounded}")];
+        if !fps_only.is_empty() {
+            choices.push(format!("bv{height_only}+ba/b{height_only}"));
+        }
+        if !height_only.is_empty() {
+            choices.push(format!("bv{fps_only}+ba/b{fps_only}"));
+        }
+        choices.push("bv+ba/b".to_string());
+        choices.join("/")
+    }
+}
 
 #[tauri::command]
 pub fn init_bridge(app_handle: AppHandle, state: State<BridgeState>) -> Result<(), String> {
@@ -96,7 +161,12 @@ pub fn start_download(
     } else {
         effective_options.video_format.as_deref()
     };
-    if let Some(format_id) = format_id {
+    let is_gif = effective_options.mode == "video"
+        && effective_options
+            .video_format
+            .as_deref()
+            .is_some_and(|format| format.eq_ignore_ascii_case("gif"));
+    if let Some(format_id) = format_id.filter(|_| !is_gif) {
         crate::system::formats::validate_codec_support(
             format_id,
             effective_options.video_codec.as_deref(),
@@ -111,7 +181,7 @@ pub fn start_download(
         )?;
     }
     let (eff_vcodec, eff_acodec) = crate::system::formats::resolve_effective_codecs(
-        format_id,
+        format_id.filter(|_| !is_gif),
         effective_options.video_codec.as_deref(),
         effective_options.audio_codec.as_deref(),
         Some(&config.default_video_codec),
@@ -128,6 +198,11 @@ pub fn start_download(
         || effective_options.audio_codec.as_deref() == Some("auto")
     {
         effective_options.audio_codec = eff_acodec;
+    }
+    if is_gif {
+        effective_options.video_codec = None;
+        effective_options.audio_codec = None;
+        effective_options.mute_audio = true;
     }
 
     let options = effective_options;
@@ -168,118 +243,177 @@ pub fn start_download(
     }
 
     if options.mode == "audio" {
-        let audio_filters = build_audio_filters(&options);
-        let has_audio_filters = !audio_filters.is_empty();
         let selected_audio_format = options.audio_format.as_ref().map(|f| f.to_lowercase());
-        let uses_audio_format = matches!(
-            selected_audio_format.as_deref(),
-            Some("aac" | "alac" | "flac" | "m4a" | "mp3" | "opus" | "vorbis" | "wav")
-        );
+        let audio_target_format = selected_audio_format.as_deref().unwrap_or("m4a");
+        if audio_target_format == "aiff" {
+            args.extend(["-f".to_string(), "ba".to_string()]);
+            args.extend(["--recode-video".to_string(), "aiff".to_string()]);
+            let codec = options.audio_codec.as_deref().unwrap_or("").trim();
+            let codec = if codec.is_empty() || codec.eq_ignore_ascii_case("auto") {
+                crate::infrastructure::ffmpeg::codecs::default_audio_codec_for_format("aiff")
+            } else {
+                crate::infrastructure::ffmpeg::codecs::map_audio_codec(codec)
+            };
+            let mut pp_args = vec!["-vn".to_string(), "-c:a".to_string(), codec];
+            if let Some(sample_rate) = parse_sample_rate(options.audio_sample_rate.as_deref()) {
+                pp_args.extend(["-ar".to_string(), sample_rate.to_string()]);
+            }
+            args.extend([
+                "--postprocessor-args".to_string(),
+                format!("VideoConvertor+ffmpeg_o:{}", pp_args.join(" ")),
+            ]);
+        } else {
+            let uses_audio_format = matches!(
+                selected_audio_format.as_deref(),
+                Some("aac" | "alac" | "flac" | "m4a" | "mp3" | "opus" | "vorbis" | "wav" | "ogg")
+            );
 
-        let mut audio_selector: Option<String> = None;
-        if uses_audio_format {
-            args.push("-x".to_string());
-            if let Some(fmt_lower) = selected_audio_format {
-                args.push("--audio-format".to_string());
-                args.push(fmt_lower);
+            let mut audio_selector: Option<String> = None;
+            if uses_audio_format {
+                args.push("-x".to_string());
+                if let Some(fmt_lower) = selected_audio_format.as_ref() {
+                    args.push("--audio-format".to_string());
+                    args.push(if fmt_lower == "ogg" {
+                        "vorbis".to_string()
+                    } else {
+                        fmt_lower.clone()
+                    });
+                }
+                if options
+                    .audio_bitrate
+                    .as_deref()
+                    .and_then(|value| parse_kbps(Some(value)))
+                    .is_none()
+                {
+                    if let Some(ref quality) = options.audio_quality {
+                        let q_arg = quality.replace("kbps", "K");
+                        args.push("--audio-quality".to_string());
+                        args.push(q_arg);
+                    }
+                }
+                let target_codec = options.audio_codec.as_deref().unwrap_or("").trim();
+                let bitrate = parse_kbps(options.audio_bitrate.as_deref());
+                let sample_rate = parse_sample_rate(options.audio_sample_rate.as_deref());
+                if !target_codec.is_empty() || bitrate.is_some() || sample_rate.is_some() {
+                    let codec =
+                        if target_codec.is_empty() || target_codec.eq_ignore_ascii_case("auto") {
+                            crate::infrastructure::ffmpeg::codecs::default_audio_codec_for_format(
+                                selected_audio_format.as_deref().unwrap_or(""),
+                            )
+                        } else {
+                            crate::infrastructure::ffmpeg::codecs::map_audio_codec(target_codec)
+                        };
+                    let mut pp_args = vec!["-c:a".to_string(), codec];
+                    if let Some(bitrate) = bitrate {
+                        pp_args.extend(["-b:a".to_string(), format!("{bitrate}k")]);
+                    }
+                    if let Some(sample_rate) = sample_rate {
+                        pp_args.extend(["-ar".to_string(), sample_rate.to_string()]);
+                    }
+                    args.push("--postprocessor-args".to_string());
+                    args.push(format!("ExtractAudio+ffmpeg_o:{}", pp_args.join(" ")));
+                }
+                audio_selector = Some("ba".to_string());
             }
-            if let Some(ref quality) = options.audio_quality {
-                let q_arg = quality.replace("kbps", "K");
-                args.push("--audio-quality".to_string());
-                args.push(q_arg);
+            if let Some(selector) = audio_selector {
+                args.push("-f".to_string());
+                args.push(selector);
             }
-            if has_audio_filters {
-                audio_selector = Some(apply_filters("ba", &audio_filters));
-            }
-        } else if let Some(fmt_lower) = selected_audio_format {
-            let base = apply_filters(&format!("ba[ext={}]", fmt_lower), &audio_filters);
-            let fallback = apply_filters("ba", &audio_filters);
-            audio_selector = Some(format!("{}/{}", base, fallback));
-            if matches!(fmt_lower.as_str(), "aiff" | "ogg") {
-                args.push("--remux-video".to_string());
-                args.push(fmt_lower);
-            }
-        }
-        if let Some(selector) = audio_selector {
-            args.push("-f".to_string());
-            args.push(selector);
         }
     } else {
-        let video_filters = build_video_filters(&options);
-        let audio_filters = build_audio_filters(&options);
-        let has_filters = !video_filters.is_empty() || !audio_filters.is_empty();
-        let mut format_selector: Option<String> = None;
-        let mut remux_format: Option<String> = None;
-        let mut merge_output: Option<String> = None;
+        let fmt = options
+            .video_format
+            .as_deref()
+            .unwrap_or("mp4")
+            .to_lowercase();
+        let gif = fmt == "gif";
+        let (height, quality_fps) = parse_quality_limits(options.video_quality.as_deref());
+        let target_fps = options
+            .video_fps
+            .as_deref()
+            .and_then(|value| value.trim().parse::<u32>().ok())
+            .or(quality_fps);
+        let selector = video_format_selector(height, target_fps, gif);
+        args.extend(["-f".to_string(), selector]);
 
-        if let Some(ref fmt) = options.video_format {
-            let fmt_lower = fmt.to_lowercase();
-            match fmt_lower.as_str() {
-                "gif" => {
-                    args.push("--recode-video".to_string());
-                    args.push("gif".to_string());
-                    if has_filters || options.mute_audio {
-                        format_selector = Some(apply_filters("bv", &video_filters));
-                    }
-                }
-                "mp4" | "mkv" | "webm" | "mov" | "flv" | "avi" => {
-                    merge_output = Some(fmt_lower);
-                    if options.mute_audio {
-                        format_selector = Some(apply_filters("bv", &video_filters));
-                    } else if has_filters {
-                        let video_sel = apply_filters("bv*", &video_filters);
-                        let audio_sel = apply_filters("ba", &audio_filters);
-                        format_selector = Some(format!(
-                            "{}+{}/{}/{}+{}/b",
-                            video_sel, audio_sel, video_sel, video_sel, audio_sel
-                        ));
-                    }
-                }
-                _ => {
-                    let video_ext =
-                        apply_filters(&format!("bv*[ext={}]", fmt_lower), &video_filters);
-                    let audio_ext =
-                        apply_filters(&format!("ba[ext={}]", fmt_lower), &audio_filters);
-                    let video_fallback = apply_filters("bv*", &video_filters);
-                    let audio_fallback = apply_filters("ba", &audio_filters);
-                    if options.mute_audio {
-                        format_selector = Some(format!("{}/bv", video_ext));
-                    } else {
-                        format_selector = Some(format!(
-                            "{}+{}/{}/{}+{}/b",
-                            video_ext, audio_ext, video_ext, video_fallback, audio_fallback
-                        ));
-                    }
-                    remux_format = Some(fmt_lower);
-                }
+        if gif {
+            args.extend(["--recode-video".to_string(), "gif".to_string()]);
+            let mut gif_args = vec!["-c:v".to_string(), "gif".to_string(), "-an".to_string()];
+            let gif_fps = target_fps;
+            if let (Some(height), Some(fps)) = (height, gif_fps) {
+                gif_args.extend([
+                    "-vf".to_string(),
+                    format!("scale=-2:{height}"),
+                    "-r".to_string(),
+                    fps.to_string(),
+                ]);
+            } else if let Some(height) = height {
+                gif_args.extend(["-vf".to_string(), format!("scale=-2:{height}")]);
+            } else if let Some(fps) = gif_fps {
+                gif_args.extend(["-r".to_string(), fps.to_string()]);
             }
-        } else if options.mute_audio {
-            format_selector = Some(apply_filters("bv", &video_filters));
-        } else if has_filters {
-            let video_sel = apply_filters("bv*", &video_filters);
-            let audio_sel = apply_filters("ba", &audio_filters);
-            format_selector = Some(format!(
-                "{}+{}/{}/{}+{}/b",
-                video_sel, audio_sel, video_sel, video_sel, audio_sel
-            ));
-        }
-
-        if let Some(selector) = format_selector {
-            args.push("-f".to_string());
-            args.push(selector);
-        }
-        if let Some(merge) = merge_output {
-            args.push("--merge-output-format".to_string());
-            args.push(merge);
-        }
-        if let Some(remux) = remux_format {
-            args.push("--remux-video".to_string());
-            args.push(remux);
-        }
-        if let Some(ref quality) = options.video_quality {
-            let res = quality.replace("p", "");
-            args.push("-S".to_string());
-            args.push(format!("res:{}", res));
+            args.push("--postprocessor-args".to_string());
+            args.push(format!("VideoConvertor+ffmpeg_o:{}", gif_args.join(" ")));
+        } else {
+            let video_bitrate = parse_kbps(options.video_bitrate.as_deref());
+            let audio_bitrate = parse_kbps(options.audio_bitrate.as_deref());
+            let sample_rate = parse_sample_rate(options.audio_sample_rate.as_deref());
+            let requested_video_codec = options.video_codec.as_deref().unwrap_or("").trim();
+            let requested_audio_codec = options.audio_codec.as_deref().unwrap_or("").trim();
+            let needs_encode = !requested_video_codec.is_empty()
+                || !requested_audio_codec.is_empty()
+                || video_bitrate.is_some()
+                || audio_bitrate.is_some()
+                || sample_rate.is_some()
+                || target_fps.is_some();
+            if needs_encode {
+                args.extend(["--merge-output-format".to_string(), fmt.clone()]);
+                args.extend(["--recode-video".to_string(), fmt.clone()]);
+                let video_codec = if requested_video_codec.is_empty()
+                    || requested_video_codec.eq_ignore_ascii_case("auto")
+                {
+                    crate::infrastructure::ffmpeg::codecs::default_video_codec_for_format(&fmt)
+                } else {
+                    crate::infrastructure::ffmpeg::codecs::map_video_codec(requested_video_codec)
+                };
+                let audio_codec = if requested_audio_codec.is_empty()
+                    || requested_audio_codec.eq_ignore_ascii_case("auto")
+                {
+                    crate::infrastructure::ffmpeg::codecs::default_audio_codec_for_format(&fmt)
+                } else {
+                    crate::infrastructure::ffmpeg::codecs::map_audio_codec(requested_audio_codec)
+                };
+                let mut pp_args = vec!["-c:v".to_string(), video_codec];
+                if options.mute_audio {
+                    pp_args.push("-an".to_string());
+                } else {
+                    pp_args.extend(["-c:a".to_string(), audio_codec]);
+                    if let Some(bitrate) = audio_bitrate {
+                        pp_args.extend(["-b:a".to_string(), format!("{bitrate}k")]);
+                    } else {
+                        pp_args.extend(["-b:a".to_string(), "192k".to_string()]);
+                    }
+                    if let Some(sample_rate) = sample_rate {
+                        pp_args.extend(["-ar".to_string(), sample_rate.to_string()]);
+                    }
+                }
+                if let Some(bitrate) = video_bitrate {
+                    pp_args.extend(["-b:v".to_string(), format!("{bitrate}k")]);
+                }
+                if let Some(fps) = target_fps {
+                    pp_args.extend(["-r".to_string(), fps.to_string()]);
+                }
+                if let Some(height) = height {
+                    pp_args.extend(["-vf".to_string(), format!("scale=-2:{height}")]);
+                }
+                args.push("--postprocessor-args".to_string());
+                let encode_args = pp_args.join(" ");
+                args.push(format!("Merger+ffmpeg_o:{encode_args}"));
+                args.push("--postprocessor-args".to_string());
+                args.push(format!("VideoConvertor+ffmpeg_o:{encode_args}"));
+            } else {
+                args.extend(["--merge-output-format".to_string(), fmt]);
+            }
         }
     }
 

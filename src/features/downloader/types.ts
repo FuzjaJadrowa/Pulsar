@@ -5,6 +5,7 @@ export interface DownloaderFormat {
   resolution?: string;
   vcodec?: string | null;
   acodec?: string | null;
+  fps?: number | null;
 }
 
 export interface DownloaderMetadata {
@@ -38,15 +39,6 @@ export interface SubtitleOption {
   flag: string;
 }
 
-export interface DownloaderPresetOverrides {
-  video_codec: string | null;
-  audio_codec: string | null;
-  video_bitrate: string | null;
-  audio_bitrate: string | null;
-  video_fps: string | null;
-  audio_sample_rate: string | null;
-}
-
 export interface DownloaderEvent {
   id?: string;
   type?: string;
@@ -66,6 +58,10 @@ export interface DownloadPayload extends Record<string, unknown> {
   audio_quality: string | null;
   video_codec?: string;
   audio_codec?: string;
+  video_bitrate?: string;
+  audio_bitrate?: string;
+  video_fps?: string;
+  audio_sample_rate?: string;
   is_time_range_active: boolean;
   start_time: string;
   end_time: string;

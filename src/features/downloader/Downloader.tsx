@@ -13,7 +13,7 @@ import { PathSelector } from "../../components/PathSelector";
 import { CustomSelect } from "../../components/CustomSelect";
 import { PresetGrid } from "../../components/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
-import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderPresetOverrides, DownloaderSearchResult, SubtitleOption } from "./types";
+import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderSearchResult, SubtitleOption } from "./types";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
@@ -73,6 +73,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
   const [videoCodec, setVideoCodec] = useState<string>("");
   const [audioCodec, setAudioCodec] = useState<string>("");
+  const [videoBitrate, setVideoBitrate] = useState("");
+  const [audioBitrate, setAudioBitrate] = useState("");
+  const [videoFps, setVideoFps] = useState("");
+  const [audioSampleRate, setAudioSampleRate] = useState("");
 
   const currentFormatEntry = selectedFormat ? getFormatEntrySync(selectedFormat, false) : null;
 
@@ -91,6 +95,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       label: ac,
     })),
   ];
+
+  const displayedVideoCodec = videoCodec || (config?.default_video_codec?.toLowerCase() === "auto" ? "" : config?.default_video_codec?.toLowerCase() || "");
+  const displayedAudioCodec = audioCodec || (config?.default_audio_codec?.toLowerCase() === "auto" ? "" : config?.default_audio_codec?.toLowerCase() || "");
 
   useEffect(() => {
     if (videoCodec && !downloaderVideoCodecOptions.some((opt) => opt.value === videoCodec)) {
@@ -129,7 +136,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [langSuggestions, setLangSuggestions] = useState<SubtitleOption[]>([]);
 
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [presetOverrides, setPresetOverrides] = useState<DownloaderPresetOverrides | null>(null);
 
   const [isAudioOnlySource, setIsAudioOnlySource] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
@@ -327,19 +333,31 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       const noteMatch = note.match(/(\d{3,4})p/i);
       if (noteMatch && videoQualities.includes(`${noteMatch[1]}p`)) {
         found.add(`${noteMatch[1]}p`);
-        return;
       }
 
       const resolutionMatch = resolution.match(/\d+x(\d{3,4})/i);
       if (resolutionMatch && videoQualities.includes(`${resolutionMatch[1]}p`)) {
         found.add(`${resolutionMatch[1]}p`);
       }
+      const height = Number(resolution.match(/\d+x(\d{3,4})/i)?.[1] || note.match(/(\d{3,4})p/i)?.[1]);
+      const fps = Number(format.fps);
+      if (height && fps >= 25) {
+        const roundedFps = Math.round(fps);
+        const quality = `${height}p${roundedFps}`;
+        if (videoQualities.includes(`${height}p`)) found.add(quality);
+      }
     });
 
     if (!found.size) return videoQualities;
     const highest = videoQualities.find((q) => found.has(q));
     if (!highest) return videoQualities;
-    return videoQualities.slice(videoQualities.indexOf(highest));
+    const ordered = videoQualities.slice(videoQualities.indexOf(highest));
+    return ordered.flatMap((quality) => {
+      const fpsQualities = [...found]
+        .filter((entry) => entry.startsWith(quality) && entry !== quality)
+        .sort((a, b) => Number(a.slice(quality.length)) - Number(b.slice(quality.length)));
+      return [quality, ...fpsQualities];
+    });
   };
 
   const handleMetadataLoaded = (data: DownloaderMetadata) => {
@@ -390,6 +408,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setMode(defaultMode);
     setSelectedFormat(null);
     setSelectedQuality(null);
+    setVideoQualityOptions(videoQualities);
 
     if (isSearchMode) {
       setSearchExiting(true);
@@ -418,6 +437,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setSelectedQuality(null);
     setVideoCodec("");
     setAudioCodec("");
+    setVideoBitrate("");
+    setAudioBitrate("");
+    setVideoFps("");
+    setAudioSampleRate("");
     setSubtitleOptions([]);
     setMetaSubLangs([]);
     setMetaAutoLangs([]);
@@ -436,7 +459,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const clearActivePreset = () => {
     setActivePresetId(null);
-    setPresetOverrides(null);
   };
 
   const handlePaste = async () => {
@@ -467,14 +489,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       const preset = await loadPreset(presetSummary.id);
       if (preset && preset.downloader) {
         const d = preset.downloader;
-        setPresetOverrides({
-          video_codec: d.video_codec || null,
-          audio_codec: d.audio_codec || null,
-          video_bitrate: d.video_bitrate || null,
-          audio_bitrate: d.audio_bitrate || null,
-          video_fps: d.video_fps || null,
-          audio_sample_rate: d.audio_sample_rate || null
-        });
+        setVideoBitrate(d.video_bitrate || "");
+        setAudioBitrate(d.audio_bitrate || "");
+        setVideoFps(d.video_fps || "");
+        setAudioSampleRate(d.audio_sample_rate || "");
 
         if (d.path) {
           setSavePath(d.path);
@@ -643,6 +661,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       audio_quality: mode === "audio" ? selectedQuality : null,
       video_codec: mode === "video" ? (videoCodec || undefined) : undefined,
       audio_codec: audioCodec || undefined,
+      video_bitrate: videoBitrate || undefined,
+      audio_bitrate: audioBitrate || undefined,
+      video_fps: videoFps || undefined,
+      audio_sample_rate: audioSampleRate || undefined,
       is_time_range_active: isTimeRangeActive,
       start_time: timeStart,
       end_time: timeEnd,
@@ -657,14 +679,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       meta_sub_langs: metaSubLangs || [],
       meta_auto_langs: metaAutoLangs || []
     };
-
-    if (activePresetId && presetOverrides) {
-      Object.entries(presetOverrides).forEach(([key, value]) => {
-        if (value !== null && value !== "") {
-          payload[key] = value;
-        }
-      });
-    }
 
     if (payload.mute_audio) {
       payload.audio_codec = undefined;
@@ -1284,7 +1298,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       <span className="toggle-text">{t("downloader.options.videoCodec")}</span>
                       <CustomSelect
                         options={downloaderVideoCodecOptions}
-                        value={videoCodec}
+                        value={displayedVideoCodec}
                         onChange={(val) => {
                           setVideoCodec(val);
                           clearActivePreset();
@@ -1301,7 +1315,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
                     <CustomSelect
                       options={downloaderAudioCodecOptions}
-                      value={audioCodec}
+                      value={displayedAudioCodec}
                       disabled={!showAudioCodec}
                       onChange={(val) => {
                         setAudioCodec(val);
@@ -1311,6 +1325,42 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       direction="up"
                     />
                   </div>
+                </div>
+
+                <div className="option-group encoding-group">
+                  <span className="option-label">{t("downloader.options.encoding")}</span>
+                  {mode === "video" && !isGifFormat && (
+                    <label className="encoding-field">
+                      <span className="toggle-text">{t("downloader.options.videoBitrate")}</span>
+                      <input type="number" min="1" step="100" placeholder="Auto" value={videoBitrate}
+                        onChange={(e) => { setVideoBitrate(e.target.value); clearActivePreset(); }} />
+                      <small>kbps</small>
+                    </label>
+                  )}
+                  {mode === "video" && !isGifFormat && (
+                    <label className="encoding-field">
+                      <span className="toggle-text">{t("downloader.options.videoFps")}</span>
+                      <input type="number" min="1" max="240" step="1" placeholder="Auto" value={videoFps}
+                        onChange={(e) => { setVideoFps(e.target.value); clearActivePreset(); }} />
+                      <small>FPS</small>
+                    </label>
+                  )}
+                  {showAudioCodec && (
+                    <label className="encoding-field">
+                      <span className="toggle-text">{t("downloader.options.audioBitrate")}</span>
+                      <input type="number" min="1" step="16" placeholder="Auto" value={audioBitrate}
+                        onChange={(e) => { setAudioBitrate(e.target.value); clearActivePreset(); }} />
+                      <small>kbps</small>
+                    </label>
+                  )}
+                  {showAudioCodec && (
+                    <label className="encoding-field">
+                      <span className="toggle-text">{t("downloader.options.audioSampleRate")}</span>
+                      <input type="number" min="8000" max="192000" step="1000" placeholder="Auto" value={audioSampleRate}
+                        onChange={(e) => { setAudioSampleRate(e.target.value); clearActivePreset(); }} />
+                      <small>Hz</small>
+                    </label>
+                  )}
                 </div>
               </div>
 

@@ -95,7 +95,12 @@
       "codeOptional": "Code (optional)",
       "codecs": "CODECS",
       "videoCodec": "Video codec",
-      "audioCodec": "Audio codec"
+      "audioCodec": "Audio codec",
+      "encoding": "ENCODING",
+      "videoBitrate": "Video bitrate",
+      "audioBitrate": "Audio bitrate",
+      "videoFps": "Video FPS",
+      "audioSampleRate": "Audio sample rate"
     },
     "thumbnail": {
       "none": "None",

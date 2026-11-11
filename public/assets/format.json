@@ -33,7 +33,7 @@
     {
       "id": "gif",
       "type": "video",
-      "video_codecs": ["GIF"],
+      "video_codecs": [],
       "audio_codecs": []
     },
     {
