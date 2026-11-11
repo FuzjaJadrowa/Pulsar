@@ -1,8 +1,12 @@
+import { invoke } from "./tauri";
+
 export interface FormatEntry {
   id: string;
   type: "video" | "audio" | "image" | "archive" | "font";
   video_codecs?: string[];
   audio_codecs?: string[];
+  default_video_codec?: string | null;
+  default_audio_codec?: string | null;
 }
 
 export interface FormatCatalog {
@@ -29,6 +33,12 @@ function normalizeEntries(value: unknown): FormatEntry[] {
       ...(Array.isArray(entry.audio_codecs)
         ? { audio_codecs: entry.audio_codecs.filter((codec): codec is string => typeof codec === "string") }
         : {}),
+      ...(typeof entry.default_video_codec === "string" || entry.default_video_codec === null
+        ? { default_video_codec: entry.default_video_codec as string | null }
+        : {}),
+      ...(typeof entry.default_audio_codec === "string" || entry.default_audio_codec === null
+        ? { default_audio_codec: entry.default_audio_codec as string | null }
+        : {}),
     }];
   });
 }
@@ -47,12 +57,8 @@ let catalogPromise: Promise<FormatCatalog> | null = null;
 export async function loadFormatCatalog(): Promise<FormatCatalog> {
   if (cachedCatalog) return cachedCatalog;
   if (!catalogPromise) {
-    catalogPromise = fetch("./assets/format.json")
-      .then((response) => {
-        if (!response.ok) throw new Error(`Format catalog request failed (${response.status})`);
-        return response.json();
-      })
-      .then((data: unknown) => {
+    catalogPromise = invoke<unknown>("get_format_catalog")
+      .then((data) => {
         cachedCatalog = normalizeFormatCatalog(data);
         return cachedCatalog;
       })

@@ -95,12 +95,7 @@
       "codeOptional": "Kod (opcjonalnie)",
       "codecs": "KODEKI",
       "videoCodec": "Kodek wideo",
-      "audioCodec": "Kodek audio",
-      "encoding": "KODOWANIE",
-      "videoBitrate": "Bitrate wideo",
-      "audioBitrate": "Bitrate audio",
-      "videoFps": "Klatki na sekundę",
-      "audioSampleRate": "Częstotliwość próbkowania"
+      "audioCodec": "Kodek audio"
     },
     "thumbnail": {
       "none": "Brak",

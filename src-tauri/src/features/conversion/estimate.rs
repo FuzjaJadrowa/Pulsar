@@ -22,7 +22,7 @@ pub struct EstimatePayload {
     image_quality: Option<u32>,
 }
 
-#[derive(Deserialize, Default, Clone)]
+#[derive(Default, Clone)]
 struct ESizeDefaults {
     container_overhead: f64,
     video_bitrate_kbps: f64,
@@ -35,48 +35,219 @@ struct ESizeDefaults {
     image_quality_min: f64,
 }
 
-#[derive(Deserialize, Default, Clone)]
+#[derive(Default, Clone)]
 struct ESizeImageFormat {
     bpp: Option<f64>,
     quality_weight: Option<f64>,
 }
 
-#[derive(Deserialize, Default, Clone)]
+#[derive(Default, Clone)]
 struct ESizeData {
-    #[serde(default)]
     defaults: ESizeDefaults,
-    #[serde(default)]
     video_quality_kbps: HashMap<String, f64>,
-    #[serde(default)]
     fps_multiplier: HashMap<String, f64>,
-    #[serde(default)]
     video_codecs: HashMap<String, f64>,
-    #[serde(default)]
     audio_codecs: HashMap<String, f64>,
-    #[serde(default)]
     image_formats: HashMap<String, ESizeImageFormat>,
-    #[serde(default)]
     container_overhead: HashMap<String, f64>,
-}
-
-#[derive(Deserialize, Default)]
-struct FormatCatalog {
-    #[serde(default)]
-    esize: ESizeData,
 }
 
 static ESIZE_CACHE: OnceLock<ESizeData> = OnceLock::new();
 
 fn load_esize() -> &'static ESizeData {
-    ESIZE_CACHE.get_or_init(|| {
-        // Cache once per process
-        let raw = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../public/assets/format.json"
-        ));
-        serde_json::from_str::<FormatCatalog>(raw)
-            .map(|data| data.esize)
-            .unwrap_or_default()
+    ESIZE_CACHE.get_or_init(|| ESizeData {
+        defaults: ESizeDefaults {
+            container_overhead: 1.02,
+            video_bitrate_kbps: 8000.0,
+            audio_bitrate_kbps: 192.0,
+            video_bitrate_min_kbps: 300.0,
+            video_bitrate_max_kbps: 80_000.0,
+            audio_bitrate_min_kbps: 32.0,
+            audio_bitrate_max_kbps: 1000.0,
+            image_bpp: 0.75,
+            image_quality_min: 0.25,
+        },
+        video_quality_kbps: HashMap::from([
+            ("2160p".to_string(), 20_000.0),
+            ("1440p".to_string(), 12_000.0),
+            ("1080p".to_string(), 8000.0),
+            ("720p".to_string(), 5000.0),
+            ("480p".to_string(), 2500.0),
+            ("360p".to_string(), 1000.0),
+            ("240p".to_string(), 600.0),
+            ("144p".to_string(), 300.0),
+        ]),
+        fps_multiplier: HashMap::from([
+            ("60".to_string(), 1.5),
+            ("30".to_string(), 1.0),
+            ("24".to_string(), 0.8),
+        ]),
+        video_codecs: HashMap::from([
+            ("h264".to_string(), 1.0),
+            ("h265".to_string(), 0.7),
+            ("hevc".to_string(), 0.7),
+            ("av1".to_string(), 0.6),
+            ("vp9".to_string(), 0.75),
+            ("vp8".to_string(), 1.1),
+            ("mpeg2".to_string(), 1.4),
+            ("mpeg4".to_string(), 1.2),
+            ("h263".to_string(), 1.6),
+            ("theora".to_string(), 1.3),
+            ("wmv".to_string(), 1.2),
+            ("prores".to_string(), 3.0),
+            ("gif".to_string(), 2.4),
+        ]),
+        audio_codecs: HashMap::from([
+            ("aac".to_string(), 1.0),
+            ("mp3".to_string(), 1.15),
+            ("opus".to_string(), 0.75),
+            ("vorbis".to_string(), 0.85),
+            ("flac".to_string(), 2.2),
+            ("wav".to_string(), 3.5),
+            ("aiff".to_string(), 3.5),
+            ("ac3".to_string(), 1.2),
+            ("wma".to_string(), 1.2),
+            ("dts".to_string(), 1.6),
+            ("lpcm".to_string(), 4.0),
+            ("amr".to_string(), 0.5),
+            ("amr-wb".to_string(), 0.6),
+            ("amr-wb+".to_string(), 0.65),
+            ("he-aac".to_string(), 0.85),
+        ]),
+        image_formats: HashMap::from([
+            (
+                "jpg".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.5),
+                    quality_weight: Some(1.0),
+                },
+            ),
+            (
+                "jfif".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.5),
+                    quality_weight: Some(1.0),
+                },
+            ),
+            (
+                "png".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(1.6),
+                    quality_weight: Some(0.25),
+                },
+            ),
+            (
+                "webp".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.45),
+                    quality_weight: Some(0.9),
+                },
+            ),
+            (
+                "avif".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.4),
+                    quality_weight: Some(0.9),
+                },
+            ),
+            (
+                "heic".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.45),
+                    quality_weight: Some(0.9),
+                },
+            ),
+            (
+                "gif".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(1.2),
+                    quality_weight: Some(0.3),
+                },
+            ),
+            (
+                "bmp".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(3.0),
+                    quality_weight: Some(0.05),
+                },
+            ),
+            (
+                "tiff".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(2.5),
+                    quality_weight: Some(0.2),
+                },
+            ),
+            (
+                "svg".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(0.1),
+                    quality_weight: Some(0.1),
+                },
+            ),
+            (
+                "ico".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(1.2),
+                    quality_weight: Some(0.3),
+                },
+            ),
+            (
+                "tga".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(3.0),
+                    quality_weight: Some(0.1),
+                },
+            ),
+            (
+                "icns".to_string(),
+                ESizeImageFormat {
+                    bpp: Some(1.2),
+                    quality_weight: Some(0.3),
+                },
+            ),
+        ]),
+        container_overhead: HashMap::from([
+            ("avi".to_string(), 1.05),
+            ("flv".to_string(), 1.04),
+            ("m4v".to_string(), 1.02),
+            ("mkv".to_string(), 1.01),
+            ("mov".to_string(), 1.03),
+            ("mp4".to_string(), 1.02),
+            ("ogv".to_string(), 1.02),
+            ("ts".to_string(), 1.03),
+            ("vob".to_string(), 1.03),
+            ("webm".to_string(), 1.01),
+            ("wmv".to_string(), 1.04),
+            ("aac".to_string(), 1.01),
+            ("aiff".to_string(), 1.02),
+            ("flac".to_string(), 1.02),
+            ("m4a".to_string(), 1.01),
+            ("mp3".to_string(), 1.01),
+            ("ogg".to_string(), 1.01),
+            ("opus".to_string(), 1.01),
+            ("wav".to_string(), 1.02),
+            ("wma".to_string(), 1.02),
+            ("gif".to_string(), 1.03),
+            ("jpg".to_string(), 1.0),
+            ("png".to_string(), 1.0),
+            ("webp".to_string(), 1.0),
+            ("avif".to_string(), 1.0),
+            ("heic".to_string(), 1.0),
+            ("7z".to_string(), 1.0),
+            ("bz2".to_string(), 1.0),
+            ("gz".to_string(), 1.0),
+            ("tar".to_string(), 1.0),
+            ("xz".to_string(), 1.0),
+            ("zip".to_string(), 1.0),
+            ("tar.gz".to_string(), 1.0),
+            ("tar.xz".to_string(), 1.0),
+            ("tar.bz2".to_string(), 1.0),
+            ("otf".to_string(), 1.0),
+            ("ttf".to_string(), 1.0),
+            ("woff".to_string(), 1.0),
+            ("woff2".to_string(), 1.0),
+        ]),
     })
 }
 

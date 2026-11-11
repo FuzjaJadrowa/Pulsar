@@ -1326,42 +1326,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     />
                   </div>
                 </div>
-
-                <div className="option-group encoding-group">
-                  <span className="option-label">{t("downloader.options.encoding")}</span>
-                  {mode === "video" && !isGifFormat && (
-                    <label className="encoding-field">
-                      <span className="toggle-text">{t("downloader.options.videoBitrate")}</span>
-                      <input type="number" min="1" step="100" placeholder="Auto" value={videoBitrate}
-                        onChange={(e) => { setVideoBitrate(e.target.value); clearActivePreset(); }} />
-                      <small>kbps</small>
-                    </label>
-                  )}
-                  {mode === "video" && !isGifFormat && (
-                    <label className="encoding-field">
-                      <span className="toggle-text">{t("downloader.options.videoFps")}</span>
-                      <input type="number" min="1" max="240" step="1" placeholder="Auto" value={videoFps}
-                        onChange={(e) => { setVideoFps(e.target.value); clearActivePreset(); }} />
-                      <small>FPS</small>
-                    </label>
-                  )}
-                  {showAudioCodec && (
-                    <label className="encoding-field">
-                      <span className="toggle-text">{t("downloader.options.audioBitrate")}</span>
-                      <input type="number" min="1" step="16" placeholder="Auto" value={audioBitrate}
-                        onChange={(e) => { setAudioBitrate(e.target.value); clearActivePreset(); }} />
-                      <small>kbps</small>
-                    </label>
-                  )}
-                  {showAudioCodec && (
-                    <label className="encoding-field">
-                      <span className="toggle-text">{t("downloader.options.audioSampleRate")}</span>
-                      <input type="number" min="8000" max="192000" step="1000" placeholder="Auto" value={audioSampleRate}
-                        onChange={(e) => { setAudioSampleRate(e.target.value); clearActivePreset(); }} />
-                      <small>Hz</small>
-                    </label>
-                  )}
-                </div>
               </div>
 
               {/* Action Footer */}

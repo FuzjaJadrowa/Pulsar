@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { invoke } from "./tauri";
 import { loadFormatCatalog, normalizeFormatCatalog } from "./formats";
+
+vi.mock("./tauri", () => ({ invoke: vi.fn() }));
 
 describe("normalizeFormatCatalog", () => {
   it("keeps only usable format entries and sanitizes codec lists", () => {
@@ -17,16 +20,12 @@ describe("normalizeFormatCatalog", () => {
 });
 
 describe("loadFormatCatalog", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => vi.clearAllMocks());
 
-  it("allows retry after a failed request and then caches the valid catalog", async () => {
-    const fetchMock = vi.fn()
+  it("allows retry after a failed backend request and then caches the valid catalog", async () => {
+    vi.mocked(invoke)
       .mockRejectedValueOnce(new Error("network unavailable"))
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ dformats: [{ id: "mp4", type: "video" }], cformats: [] }),
-      });
-    vi.stubGlobal("fetch", fetchMock);
+      .mockResolvedValueOnce({ dformats: [{ id: "mp4", type: "video" }], cformats: [] });
 
     await expect(loadFormatCatalog()).resolves.toEqual({ dformats: [], cformats: [] });
     await expect(loadFormatCatalog()).resolves.toEqual({
@@ -35,6 +34,6 @@ describe("loadFormatCatalog", () => {
     });
     await loadFormatCatalog();
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(invoke).toHaveBeenCalledTimes(2);
   });
 });
