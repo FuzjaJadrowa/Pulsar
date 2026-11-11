@@ -50,6 +50,7 @@ pub fn append_js_runtime_args(args: &mut Vec<String>) {
     }
 }
 
+#[cfg(windows)]
 pub fn attach_process_to_job_object(child: &std::process::Child) {
     #[cfg(windows)]
     {
@@ -124,6 +125,4 @@ pub fn attach_process_to_job_object(child: &std::process::Child) {
             }
         }
     }
-    #[cfg(not(windows))]
-    let _ = child;
 }

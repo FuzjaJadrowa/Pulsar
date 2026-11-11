@@ -1,6 +1,10 @@
 import type { Preset } from "../../services/presets";
 
 export interface DownloaderFormat {
+  format_id?: string;
+  format_note?: string;
+  width?: number | null;
+  height?: number | null;
   note?: string;
   resolution?: string;
   vcodec?: string | null;

@@ -135,7 +135,6 @@ const AUDIO_AAC: &[&str] = &["AAC"];
 const AUDIO_OPUS: &[&str] = &["Opus"];
 const AUDIO_VORBIS_OPUS_FLAC: &[&str] = &["Vorbis", "Opus", "FLAC"];
 const AUDIO_AAC_AC3: &[&str] = &["AAC", "AC3"];
-const AUDIO_AC3_DTS_MP2_LPCM: &[&str] = &["AC3", "DTS", "MP2", "LPCM"];
 const AUDIO_WMA: &[&str] = &["WMA"];
 const AUDIO_NONE: &[&str] = &[];
 

@@ -325,38 +325,35 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   };
 
   const parseVideoQuality = (formats: DownloaderFormat[] = []) => {
-    const found = new Set<string>();
+    const found = new Map<string, number>();
     formats.forEach((format) => {
-      const note = String(format.note || "");
+      if (format.vcodec?.trim().toLowerCase() === "none") return;
+
+      const note = String(format.format_note || format.note || "");
       const resolution = String(format.resolution || "");
+      const resolutionMatch = resolution.match(/\d+x(\d{2,5})/i);
+      const noteMatch = note.match(/(\d{2,5})p/i);
+      const formatIdMatch = String(format.format_id || "").match(/(?:^|[^\d])(\d{2,5})p(?:\d+)?(?:$|[^\d])/i);
+      const height = Number(
+        format.height || resolutionMatch?.[1] || noteMatch?.[1] || formatIdMatch?.[1] || 0,
+      );
+      const quality = videoQualities.find((entry) => Number.parseInt(entry, 10) <= height);
+      if (!quality) return;
 
-      const noteMatch = note.match(/(\d{3,4})p/i);
-      if (noteMatch && videoQualities.includes(`${noteMatch[1]}p`)) {
-        found.add(`${noteMatch[1]}p`);
-      }
-
-      const resolutionMatch = resolution.match(/\d+x(\d{3,4})/i);
-      if (resolutionMatch && videoQualities.includes(`${resolutionMatch[1]}p`)) {
-        found.add(`${resolutionMatch[1]}p`);
-      }
-      const height = Number(resolution.match(/\d+x(\d{3,4})/i)?.[1] || note.match(/(\d{3,4})p/i)?.[1]);
       const fps = Number(format.fps);
-      if (height && fps >= 25) {
-        const roundedFps = Math.round(fps);
-        const quality = `${height}p${roundedFps}`;
-        if (videoQualities.includes(`${height}p`)) found.add(quality);
-      }
+      const knownFps = Number.isFinite(fps) && fps > 0 ? Math.round(fps) : 0;
+      found.set(quality, Math.max(found.get(quality) || 0, knownFps));
     });
 
-    if (!found.size) return videoQualities;
-    const highest = videoQualities.find((q) => found.has(q));
-    if (!highest) return videoQualities;
-    const ordered = videoQualities.slice(videoQualities.indexOf(highest));
-    return ordered.flatMap((quality) => {
-      const fpsQualities = [...found]
-        .filter((entry) => entry.startsWith(quality) && entry !== quality)
-        .sort((a, b) => Number(a.slice(quality.length)) - Number(b.slice(quality.length)));
-      return [quality, ...fpsQualities];
+    if (!found.size) return ["Best"];
+    const highest = videoQualities.find((quality) => found.has(quality));
+    if (!highest) return ["Best"];
+    const ordered = videoQualities.slice(videoQualities.indexOf(highest)).filter((quality) =>
+      Number.parseInt(quality, 10) <= Number.parseInt(highest, 10),
+    );
+    return ordered.map((quality) => {
+      const maxFps = found.get(quality) || 0;
+      return maxFps > 30 ? `${quality}${maxFps}` : quality;
     });
   };
 
@@ -408,7 +405,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setMode(defaultMode);
     setSelectedFormat(null);
     setSelectedQuality(null);
-    setVideoQualityOptions(videoQualities);
 
     if (isSearchMode) {
       setSearchExiting(true);
@@ -424,7 +420,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>(videoQualities);
+  const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>(["Best"]);
 
   const resetToZen = () => {
     setUrl("");
