@@ -30,7 +30,8 @@ pub struct PresetDownloaderOptions {
     pub subtitles_code: Option<String>,
     pub embed_metadata: bool,
     pub embed_thumbnail: bool,
-    pub geo_bypass: bool,
+    #[serde(default)]
+    pub skip_sponsors: bool,
     pub mute_audio: bool,
     pub video_codec: Option<String>,
     pub audio_codec: Option<String>,

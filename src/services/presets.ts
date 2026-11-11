@@ -12,7 +12,7 @@ export interface PresetDownloaderOptions {
   subtitles_code?: string;
   embed_metadata: boolean;
   embed_thumbnail: boolean;
-  geo_bypass: boolean;
+  skip_sponsors: boolean;
   mute_audio: boolean;
   video_codec?: string;
   audio_codec?: string;

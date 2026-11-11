@@ -73,9 +73,6 @@
       "resultsCount": "Wyniki: {count}",
       "empty": "Brak wyników."
     },
-    "path": {
-      "placeholder": "Nie wybrano ścieżki zapisu..."
-    },
     "mode": {
       "video": "WIDEO",
       "audio": "AUDIO"
@@ -86,7 +83,7 @@
       "thumbnail": "MINIATURA",
       "presets": "PRESETY",
       "other": "INNE",
-      "geoBypass": "Obejście geoblokady",
+      "skipSponsors": "Pomijaj sponsorów",
       "embedMetadata": "Osadź metadane",
       "muteAudio": "Wycisz audio",
       "customArgs": "Własne argumenty",
@@ -365,7 +362,7 @@
       "subtitlesCode": "Kod (opcjonalnie)",
       "embedMetadata": "Osadź metadane",
       "embedThumbnail": "Osadź miniaturę",
-      "geoBypass": "Obejście geoblokady",
+      "skipSponsors": "Pomijaj sponsorów",
       "muteAudio": "Wycisz audio"
     },
     "actions": {

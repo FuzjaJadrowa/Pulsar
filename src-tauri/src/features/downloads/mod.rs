@@ -36,8 +36,8 @@ pub struct DownloadOptions {
     start_time: String,
     #[serde(default, alias = "end_time")]
     end_time: String,
-    #[serde(default, alias = "geo_bypass")]
-    geo_bypass: bool,
+    #[serde(default, alias = "skip_sponsors")]
+    skip_sponsors: bool,
     #[serde(default, alias = "embed_tags")]
     embed_tags: bool,
     #[serde(default, alias = "embed_thumbnail")]
@@ -302,8 +302,9 @@ pub fn start_download(
         args.push("--embed-thumbnail".to_string());
     }
 
-    if options.geo_bypass {
-        args.push("--geo-bypass".to_string());
+    if options.skip_sponsors {
+        args.push("--sponsorblock-remove".to_string());
+        args.push("sponsor".to_string());
     }
 
     if options.embed_tags {

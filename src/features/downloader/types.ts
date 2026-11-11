@@ -67,7 +67,7 @@ export interface DownloadPayload extends Record<string, unknown> {
   is_time_range_active: boolean;
   start_time: string;
   end_time: string;
-  geo_bypass: boolean;
+  skip_sponsors: boolean;
   embed_tags: boolean;
   embed_thumbnail: boolean;
   mute_audio: boolean;

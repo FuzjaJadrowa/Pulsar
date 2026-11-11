@@ -103,7 +103,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [timeEnd, setTimeEnd] = useState<string>("00:00:00");
 
   const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">("none");
-  const [geoBypass, setGeoBypass] = useState(false);
+  const [skipSponsors, setSkipSponsors] = useState(false);
   const [embedMetadata, setEmbedMetadata] = useState(false);
   const [muteAudio, setMuteAudio] = useState(false);
   const [customArgs, setCustomArgs] = useState("");
@@ -496,7 +496,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         setVideoCodec(d.video_codec || "");
         setAudioCodec(d.audio_codec || "");
 
-        setGeoBypass(!!d.geo_bypass);
+        setSkipSponsors(!!d.skip_sponsors);
         setEmbedMetadata(!!d.embed_metadata);
         setMuteAudio(!!d.mute_audio);
         setDownloadSubs(!!d.download_subtitles);
@@ -654,7 +654,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       is_time_range_active: isTimeRangeActive,
       start_time: timeStart,
       end_time: timeEnd,
-      geo_bypass: geoBypass,
+      skip_sponsors: skipSponsors,
       embed_tags: embedMetadata,
       embed_thumbnail: thumbnailAction === "embed",
       mute_audio: mode === "video" ? muteAudio : false,
@@ -1170,15 +1170,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   <div className="form-row">
                     <input
                       type="checkbox"
-                      id="geo-toggle"
+                      id="skip-sponsors-toggle"
                       className="toggle-switch"
-                      checked={geoBypass}
+                      checked={skipSponsors}
                       onChange={(e) => {
-                        setGeoBypass(e.target.checked);
+                        setSkipSponsors(e.target.checked);
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("downloader.options.geoBypass")}</span>
+                    <span className="toggle-text">{t("downloader.options.skipSponsors")}</span>
                   </div>
                   <div className="form-row">
                     <input

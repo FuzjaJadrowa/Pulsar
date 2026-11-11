@@ -71,9 +71,6 @@
       "resultsCount": "{count} résultats",
       "empty": "Aucun résultat."
     },
-    "path": {
-      "placeholder": "Aucun dossier de sauvegarde sélectionné..."
-    },
     "mode": {
       "video": "VIDÉO",
       "audio": "AUDIO"
@@ -84,7 +81,6 @@
       "thumbnail": "MINIATURE",
       "presets": "PRÉRÉGLAGES",
       "other": "AUTRE",
-      "geoBypass": "Contournement géo",
       "embedMetadata": "Intégrer les métadonnées",
       "muteAudio": "Couper le son",
       "customArgs": "Arguments personnalisés",
@@ -362,7 +358,6 @@
       "subtitlesCode": "Code (optionnel)",
       "embedMetadata": "Intégrer les métadonnées",
       "embedThumbnail": "Intégrer la miniature",
-      "geoBypass": "Contournement géo",
       "muteAudio": "Couper le son"
     },
     "actions": {

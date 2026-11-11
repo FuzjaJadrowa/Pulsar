@@ -54,7 +54,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const [subsCode, setSubsCode] = useState("");
   const [embedMetadata, setEmbedMetadata] = useState(false);
   const [embedThumbnail, setEmbedThumbnail] = useState(false);
-  const [geoBypass, setGeoBypass] = useState(false);
+  const [skipSponsors, setSkipSponsors] = useState(false);
   const [muteAudio, setMuteAudio] = useState(false);
 
   const [videoQuality, setVideoQuality] = useState("");
@@ -87,7 +87,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       setSubsCode(d.subtitles_code || "");
       setEmbedMetadata(!!d.embed_metadata);
       setEmbedThumbnail(!!d.embed_thumbnail);
-      setGeoBypass(!!d.geo_bypass);
+      setSkipSponsors(!!d.skip_sponsors);
       setMuteAudio(!!d.mute_audio);
       setVideoQuality(d.video_quality || "");
       setVideoCodec(d.video_codec || "");
@@ -142,7 +142,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
       setSubsCode("");
       setEmbedMetadata(false);
       setEmbedThumbnail(false);
-      setGeoBypass(false);
+      setSkipSponsors(false);
       setMuteAudio(false);
       setVideoQuality("");
       setVideoCodec("");
@@ -248,7 +248,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         subtitles_code: downloadSubs && subsCode.trim() ? subsCode.trim() : undefined,
         embed_metadata: embedMetadata,
         embed_thumbnail: embedThumbnail,
-        geo_bypass: geoBypass,
+        skip_sponsors: skipSponsors,
         mute_audio: muteAudio,
         video_codec: videoCodec || undefined,
         audio_codec: audioCodec || undefined,
@@ -311,7 +311,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
         subtitles_code: downloadSubs && subsCode.trim() ? subsCode.trim() : undefined,
         embed_metadata: embedMetadata,
         embed_thumbnail: embedThumbnail,
-        geo_bypass: geoBypass,
+        skip_sponsors: skipSponsors,
         mute_audio: muteAudio,
         video_codec: videoCodec || undefined,
         audio_codec: audioCodec || undefined,
@@ -687,10 +687,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     />
                   </div>
                   <div className="preset-toggle-item">
-                    <span>{t("presetCreator.toggles.geoBypass")}</span>
+                    <span>{t("presetCreator.toggles.skipSponsors")}</span>
                     <ToggleSwitch
-                      checked={geoBypass}
-                      onChange={setGeoBypass}
+                      checked={skipSponsors}
+                      onChange={setSkipSponsors}
                     />
                   </div>
                   {presetType === "downloader" && selectedFormatLower !== "gif" && (

@@ -83,7 +83,7 @@
       "thumbnail": "THUMBNAIL",
       "presets": "PRESETS",
       "other": "OTHER",
-      "geoBypass": "Geo bypass",
+      "skipSponsors": "Skip sponsors",
       "embedMetadata": "Embed metadata",
       "muteAudio": "Mute audio",
       "customArgs": "Custom args",
@@ -362,7 +362,7 @@
       "subtitlesCode": "Code (optional)",
       "embedMetadata": "Embed metadata",
       "embedThumbnail": "Embed thumbnail",
-      "geoBypass": "Geo bypass",
+      "skipSponsors": "Skip sponsors",
       "muteAudio": "Mute audio"
     },
     "actions": {
