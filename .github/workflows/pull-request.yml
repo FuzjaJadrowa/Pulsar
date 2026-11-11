@@ -21,12 +21,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install rust stable
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies (Node)
-        run: npm install
+        run: npm ci
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
       - name: TypeScript check
         run: npx tsc --noEmit
