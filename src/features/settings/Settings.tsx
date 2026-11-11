@@ -8,6 +8,7 @@ import { PresetIconPreview } from "../../components/PresetIconPreview";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
 import { invoke } from "../../services/tauri";
 import { DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
+import { PathSelector } from "../../components/PathSelector";
 
 let textMeasureCanvas: HTMLCanvasElement | null = null;
 function getTextWidth(text: string): number {
@@ -306,6 +307,18 @@ export const Settings: React.FC = () => {
               <span>{t("settings.closeBehaviorOptions.exit")}</span>
             </label>
           </div>
+        </div>
+
+        <div className="form-row">
+          <span>{t("settings.defaultSavePath")}</span>
+          <PathSelector
+            className="path-selector settings-default-path-selector"
+            value={config.default_save_path}
+            onChange={(path) => updateConfig({ default_save_path: path })}
+            placeholder={t("common.noSavePathSelected")}
+            pickerCommand="pick_download_directory"
+            title={t("common.browse")}
+          />
         </div>
 
         <div className="form-row">

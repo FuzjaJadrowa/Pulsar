@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../../services/i18n";
+import { useConfig } from "../../services/config";
 import { invoke } from "../../services/tauri";
 import { usePresets } from "../../services/presets";
 import { enqueue, animateQueueOrb } from "../queue/queue";
@@ -31,6 +32,7 @@ interface CompressorProps {
 
 export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const { t } = useTranslation();
+  const { config } = useConfig();
   const { presets, loadPreset } = usePresets();
 
   const [filePath, setFilePath] = useState("");
@@ -330,7 +332,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     const category = String(metadata.category || "").toLowerCase();
     if (category !== "video" && category !== "audio" && category !== "image") return null;
 
-    const outputDir = savePath.trim() || extractFolderPath(metadata.path);
+    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(metadata.path);
     const rawName = currentName.trim() || metadata.name || "output";
     const inputFormat = normalizeFormatKey(metadata.extension || metadata.format || "");
 
@@ -388,7 +390,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       // Bulk compressor
       const payloads = loadedFiles.map(file => {
         const category = String(file.category || "").toLowerCase();
-        const outputDir = savePath.trim() || extractFolderPath(file.path);
+    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(file.path);
         const rawName = extractFileName(file.path);
         const inputFormat = normalizeFormatKey(file.extension || file.format || "");
         let baseName = rawName;
@@ -431,7 +433,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       const meta = {
         title: `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`,
         thumbnail: "",
-        path: savePath.trim() || extractFolderPath(loadedFiles[0].path),
+        path: savePath.trim() || config.default_save_path.trim() || extractFolderPath(loadedFiles[0].path),
         source: autoStart ? "compress" : "queue"
       };
 
@@ -850,7 +852,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               <PathSelector
                 className="compressor-path-selector fade-in"
                 id="compress-save-path-input"
-                placeholder={t("compressor.options.pathPlaceholder")}
+                placeholder={t("common.noSavePathSelected")}
                 value={savePath}
                 onChange={(selected) => {
                   setSavePath(selected);

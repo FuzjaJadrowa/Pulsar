@@ -642,7 +642,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
     const payload: DownloadPayload = {
       url: targetUrl,
-      path: savePath.trim(),
+      path: savePath.trim() || config.default_save_path.trim(),
       ...(customFilename.trim() ? { custom_filename: customFilename.trim() } : {}),
       mode: mode,
       video_format: mode === "video" ? selectedFormat : null,
@@ -685,7 +685,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return {
       title: metadata?.title || t("common.unknownTitle"),
       thumbnail: metadata?.thumbnail || "",
-      path: savePath.trim()
+      path: savePath.trim() || config.default_save_path.trim()
     };
   };
 
@@ -753,7 +753,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const isValid = !!(selectedFormat && selectedQuality && savePath.trim().length > 0);
+  const isValid = !!(selectedFormat && selectedQuality && (savePath.trim().length > 0 || config.default_save_path.trim().length > 0));
 
   const formatsToRender = mode === "video" ? videoFormats : audioFormats;
   const qualitiesToRender = mode === "video" ? videoQualityOptions : audioQualities;
@@ -961,7 +961,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               <PathSelector
                 className="path-selector fade-in"
                 id="path-input"
-                placeholder={t("downloader.path.placeholder")}
+                placeholder={t("common.noSavePathSelected")}
                 value={savePath}
                 onChange={(selected) => {
                   setSavePath(selected);

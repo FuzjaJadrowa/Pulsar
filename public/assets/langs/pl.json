@@ -7,6 +7,7 @@
     "unknownChannel": "Nieznany kanał",
     "eta": "Pozostały czas",
     "browse": "Przeglądaj",
+    "noSavePathSelected": "Nie wybrano ścieżki zapisu...",
     "useLastPath": "Użyj ostatniej ścieżki",
     "addToQueue": "DODAJ DO KOLEJKI",
     "dropHint": "lub po prostu upuść pliki",
@@ -131,7 +132,6 @@
     "options": {
       "convertTo": "KONWERTUJ NA",
       "title": "OPCJE",
-      "pathPlaceholder": "Ścieżka zapisu...",
       "estimatedSize": "Szacowany rozmiar",
       "videoQuality": "Jakość wideo",
       "videoCodec": "Kodek wideo",
@@ -174,7 +174,6 @@
     "options": {
       "compressBy": "KOMPRESUJ WEDŁUG",
       "title": "OPCJE",
-      "pathPlaceholder": "Ścieżka zapisu...",
       "estimatedSize": "Szacowany rozmiar",
       "videoCodec": "Kodek wideo",
       "audioCodec": "Kodek audio"
@@ -266,6 +265,7 @@
     "ffmpegHwAccel": "Akceleracja sprzętowa FFmpeg",
     "updateCooldown": "Odstęp między sprawdzaniem aktualizacji (minuty)",
     "downloadSettings": "Ustawienia pobierania",
+    "defaultSavePath": "Domyślna ścieżka zapisu",
     "cookiesFromBrowser": "Ciasteczka z przeglądarki",
     "cookiesFromBrowserNote": "Pozwala używać ciasteczek z przeglądarki do pobierania ograniczonych filmów, do których masz dostęp.",
     "maximumConcurrentProcesses": "Maksymalna liczba równoczesnych procesów",
@@ -353,7 +353,6 @@
       "title": "Tytuł presetu",
       "summary": "Krótki opis",
       "format": "Typ formatu",
-      "path": "Opcjonalnie",
       "bitrate": "Auto"
     },
     "icon": {

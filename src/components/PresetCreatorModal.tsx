@@ -630,7 +630,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                       className="path-selector"
                       value={savePath}
                       onChange={setSavePath}
-                      placeholder={t("presetCreator.placeholders.path")}
+                      placeholder={t("common.noSavePathSelected")}
                       pickerCommand="pick_download_directory"
                       title={t("common.browse")}
                     />

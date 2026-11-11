@@ -7,6 +7,7 @@
     "unknownChannel": "Unknown channel",
     "eta": "ETA",
     "browse": "Browse",
+    "noSavePathSelected": "No save path selected...",
     "useLastPath": "Use last path",
     "addToQueue": "ADD TO QUEUE",
     "dropHint": "or just drop some files",
@@ -72,9 +73,6 @@
       "resultsCount": "{count} results",
       "empty": "No results."
     },
-    "path": {
-      "placeholder": "No save path selected..."
-    },
     "mode": {
       "video": "VIDEO",
       "audio": "AUDIO"
@@ -131,7 +129,6 @@
     "options": {
       "convertTo": "CONVERT TO",
       "title": "OPTIONS",
-      "pathPlaceholder": "Save path...",
       "estimatedSize": "Estimated size",
       "videoQuality": "Video quality",
       "videoCodec": "Video codec",
@@ -174,7 +171,6 @@
     "options": {
       "compressBy": "COMPRESS BY",
       "title": "OPTIONS",
-      "pathPlaceholder": "Save path...",
       "estimatedSize": "Estimated size",
       "videoCodec": "Video codec",
       "audioCodec": "Audio codec"
@@ -266,6 +262,7 @@
     "ffmpegHwAccel": "FFmpeg hardware acceleration",
     "updateCooldown": "Update check cooldown (minutes)",
     "downloadSettings": "Download settings",
+    "defaultSavePath": "Default save path",
     "cookiesFromBrowser": "Cookies from browser",
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
@@ -353,7 +350,6 @@
       "title": "Preset title",
       "summary": "Short description",
       "format": "Type format",
-      "path": "Optional",
       "bitrate": "Auto"
     },
     "icon": {

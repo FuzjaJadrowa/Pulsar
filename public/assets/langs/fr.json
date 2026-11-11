@@ -130,7 +130,6 @@
     "options": {
       "convertTo": "CONVERTIR EN",
       "title": "OPTIONS",
-      "pathPlaceholder": "Dossier de sauvegarde...",
       "estimatedSize": "Taille estimée",
       "videoQuality": "Qualité vidéo",
       "videoCodec": "Codec vidéo",
@@ -173,7 +172,6 @@
     "options": {
       "compressBy": "COMPRESSER PAR",
       "title": "OPTIONS",
-      "pathPlaceholder": "Dossier de sauvegarde...",
       "estimatedSize": "Taille estimée",
       "videoCodec": "Codec vidéo",
       "audioCodec": "Codec audio"
@@ -352,7 +350,6 @@
       "title": "Titre du préréglage",
       "summary": "Brève description",
       "format": "Saisir le format",
-      "path": "Optionnel",
       "bitrate": "Auto"
     },
     "icon": {

@@ -51,6 +51,8 @@ pub struct AppConfig {
     pub default_video_codec: String,
     #[serde(default = "default_codec_auto", alias = "default_audio_codec")]
     pub default_audio_codec: String,
+    #[serde(default, alias = "default_save_path")]
+    pub default_save_path: String,
 }
 
 fn default_theme() -> String {
@@ -89,6 +91,7 @@ impl Default for AppConfig {
             copy_codec_if_possible: false,
             default_video_codec: "auto".to_string(),
             default_audio_codec: "auto".to_string(),
+            default_save_path: String::new(),
         }
     }
 }
@@ -228,6 +231,9 @@ impl ConfigManager {
                     if let Some(v) = section.get("cookies_browser") {
                         config.cookies_browser = v.to_string();
                     }
+                    if let Some(v) = section.get("default_save_path") {
+                        config.default_save_path = v.to_string();
+                    }
                     config.maximum_concurrent_processes = section
                         .get("maximum_concurrent_processes")
                         .and_then(|v| v.parse::<u64>().ok())
@@ -348,6 +354,7 @@ impl ConfigManager {
 
         ini.with_section(Some("Download"))
             .set("cookies_browser", &config.cookies_browser)
+            .set("default_save_path", &config.default_save_path)
             .set(
                 "maximum_concurrent_processes",
                 config.maximum_concurrent_processes.to_string(),

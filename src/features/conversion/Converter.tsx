@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../../services/i18n";
+import { useConfig } from "../../services/config";
 import { invoke } from "../../services/tauri";
 import { usePresets } from "../../services/presets";
 import { enqueue, animateQueueOrb } from "../queue/queue";
@@ -25,6 +26,7 @@ interface ConverterProps {
 
 export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const { t } = useTranslation();
+  const { config } = useConfig();
   const { presets, loadPreset } = usePresets();
 
   const [filePath, setFilePath] = useState("");
@@ -409,7 +411,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     const outputFormat = normalizeOutputFormat(selectedFormat);
     if (!outputFormat) return null;
 
-    const outputDir = savePath.trim() || extractFolderPath(metadata.path);
+    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(metadata.path);
     const rawName = sanitizeOutputName(currentName || metadata.name || "output");
 
     let baseName = rawName;
@@ -458,7 +460,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
       const payloads = loadedFiles.map(file => {
         const targetCategory = formatMeta?.type || (file.category === "video" ? selectedMode : file.category);
-        const outputDir = savePath.trim() || extractFolderPath(file.path);
+    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(file.path);
         const rawName = sanitizeOutputName(file.name || extractFileName(file.path) || "output");
 
         let baseName = rawName;
@@ -499,7 +501,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       const meta = {
         title: `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`,
         thumbnail: "",
-        path: savePath.trim() || extractFolderPath(loadedFiles[0].path),
+        path: savePath.trim() || config.default_save_path.trim() || extractFolderPath(loadedFiles[0].path),
         source: autoStart ? "convert" : "queue"
       };
 
@@ -809,7 +811,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       <PathSelector
                         className="converter-path-selector fade-in"
                         id="convert-save-path-input"
-                        placeholder={t("converter.options.pathPlaceholder")}
+                        placeholder={t("common.noSavePathSelected")}
                         value={savePath}
                         onChange={(selected) => {
                           setSavePath(selected);

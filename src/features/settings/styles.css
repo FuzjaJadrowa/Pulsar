@@ -68,6 +68,12 @@
 .settings-section-card .form-row:last-child {
     margin-bottom: 0;
 }
+.settings-default-path-selector {
+    width: min(100%, 380px);
+    flex: 0 1 380px;
+    margin-left: auto;
+    transform: translateY(20px);
+}
 
 .update-actions {
     display: inline-flex;

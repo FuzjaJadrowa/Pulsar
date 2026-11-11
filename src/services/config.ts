@@ -21,6 +21,7 @@ export interface PulsarConfig {
   copy_codec_if_possible: boolean;
   default_video_codec: string;
   default_audio_codec: string;
+  default_save_path: string;
 }
 
 export const DEFAULT_CONFIG: PulsarConfig = {
@@ -42,6 +43,7 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   copy_codec_if_possible: false,
   default_video_codec: "auto",
   default_audio_codec: "auto",
+  default_save_path: "",
 };
 
 let globalConfig: PulsarConfig = { ...DEFAULT_CONFIG };
@@ -137,6 +139,7 @@ export async function loadConfig(): Promise<PulsarConfig> {
         copy_codec_if_possible: Boolean(raw.copy_codec_if_possible ?? raw.copyCodecIfPossible ?? DEFAULT_CONFIG.copy_codec_if_possible),
         default_video_codec: String(raw.default_video_codec ?? raw.defaultVideoCodec ?? DEFAULT_CONFIG.default_video_codec),
         default_audio_codec: String(raw.default_audio_codec ?? raw.defaultAudioCodec ?? DEFAULT_CONFIG.default_audio_codec),
+        default_save_path: String(raw.default_save_path ?? raw.defaultSavePath ?? DEFAULT_CONFIG.default_save_path),
       };
       globalConfig = normalized;
       applyTheme(globalConfig.theme, false);
@@ -171,6 +174,7 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
     copy_codec_if_possible: Boolean(merged.copy_codec_if_possible ?? DEFAULT_CONFIG.copy_codec_if_possible),
     default_video_codec: String(merged.default_video_codec ?? DEFAULT_CONFIG.default_video_codec),
     default_audio_codec: String(merged.default_audio_codec ?? DEFAULT_CONFIG.default_audio_codec),
+    default_save_path: String(merged.default_save_path ?? DEFAULT_CONFIG.default_save_path),
   };
   globalConfig = updated;
 
