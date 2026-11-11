@@ -7,7 +7,8 @@ import { usePresets } from "../../services/presets";
 import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
-import { formatDuration } from "../../utils/format";
+import { detectSourceFromUrl, formatDuration } from "../../utils/format";
+import { SOURCE_ICONS, SourceIcon } from "../../utils/icons";
 import { PathSelector } from "../../components/PathSelector";
 import { CustomSelect } from "../../components/CustomSelect";
 import { PresetGrid } from "../../components/PresetGrid";
@@ -18,6 +19,13 @@ const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
+
+const hasCodec = (codec?: string | null) => !!codec?.trim() && codec.trim().toLowerCase() !== "none";
+
+const metadataHasOnlyAudioSources = (formats: DownloaderFormat[] = []) => {
+  const codecFormats = formats.filter((format) => hasCodec(format.vcodec) || hasCodec(format.acodec));
+  return codecFormats.length > 0 && codecFormats.every((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec));
+};
 
 import { getFormatEntrySync, loadFormatCatalog } from "../../services/formats";
 
@@ -139,6 +147,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   }, [selectedFormat]);
 
+  const isGifFormat = mode === "video" && selectedFormat?.toLowerCase() === "gif";
+
   const { updateUiState } = useUiState();
 
   useEffect(() => {
@@ -210,32 +220,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return /^https?:\/\//i.test(value.trim());
   };
 
-  const detectSourceFromUrl = (rawUrl: string) => {
-    const input = String(rawUrl || "").trim().toLowerCase();
-    if (!input) return null;
-    try {
-      const parsed = new URL(input);
-      const host = parsed.hostname.toLowerCase();
-      if (host === "music.youtube.com" || host.endsWith(".music.youtube.com")) return "ytmusic";
-      if (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be") return "youtube";
-      if (host === "soundcloud.com" || host.endsWith(".soundcloud.com") || host === "soundcloud.app.goo.gl") return "soundcloud";
-      if (host === "spotify.com" || host.endsWith(".spotify.com")) return "spotify";
-      if (host === "music.apple.com" || host.endsWith(".music.apple.com") || host === "itunes.apple.com" || host.endsWith(".itunes.apple.com") || host === "apple.co") return "applemusic";
-      if (host === "deezer.com" || host.endsWith(".deezer.com") || host === "deezer.page.link") return "deezer";
-      if (host === "dzr.page.link" || host === "link.deezer.com" || host === "dzr.fm") return "deezer";
-    } catch (_) {
-      if (input.includes("music.youtube.com")) return "ytmusic";
-      if (input.includes("youtube.com") || input.includes("youtu.be")) return "youtube";
-      if (input.includes("soundcloud.com") || input.includes("soundcloud.app.goo.gl")) return "soundcloud";
-      if (input.includes("spotify.com")) return "spotify";
-      if (input.includes("music.apple.com") || input.includes("itunes.apple.com") || input.includes("apple.co/")) return "applemusic";
-      if (input.includes("deezer.com") || input.includes("deezer.page.link") || input.includes("dzr.page.link") || input.includes("link.deezer.com") || input.includes("dzr.fm")) return "deezer";
-    }
-    return null;
-  };
-
   const isAudioOnlySourceUrl = (rawUrl: string) => {
-    return detectSourceFromUrl(rawUrl) !== "youtube" && detectSourceFromUrl(rawUrl) !== null;
+    const source = detectSourceFromUrl(rawUrl);
+    return source !== null && source !== "youtube" && source !== "soundcloud";
   };
 
   const applySourceConstraints = (rawUrl: string) => {
@@ -395,7 +382,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setRangeStart(0);
     setRangeEnd(100);
 
-    const defaultMode = isAudioOnlySourceUrl(url) ? "audio" : "video";
+    const sourceUrl = data.webpage_url || pendingMetadataUrl || url;
+    const audioOnlySource = isAudioOnlySourceUrl(sourceUrl) || metadataHasOnlyAudioSources(data.formats);
+    setIsAudioOnlySource(audioOnlySource);
+    const defaultMode = audioOnlySource ? "audio" : "video";
     setMode(defaultMode);
     setSelectedFormat(null);
     setSelectedQuality(null);
@@ -658,7 +648,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       skip_sponsors: skipSponsors,
       embed_tags: embedMetadata,
       embed_thumbnail: thumbnailAction === "embed",
-      mute_audio: mode === "video" ? muteAudio : false,
+      mute_audio: mode === "video" ? (isGifFormat || muteAudio) : false,
       download_subs: downloadSubs,
       download_chat: downloadChat,
       subs_code: subsLang.trim(),
@@ -673,6 +663,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           payload[key] = value;
         }
       });
+    }
+
+    if (payload.mute_audio) {
+      payload.audio_codec = undefined;
     }
 
     if (parsedArgs.length) {
@@ -835,10 +829,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 className={`provider-btn ${provider === "ytsearch" ? "active" : ""}`}
                 onClick={() => setProvider("ytsearch")}
               >
-                <svg className="provider-icon youtube-icon" viewBox="0 0 28.57 20" aria-hidden="true">
-                  <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" />
-                  <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" />
-                </svg>
+                <SourceIcon source="youtube" className="provider-icon youtube-icon" />
                 <span>YouTube</span>
               </button>
               <button
@@ -846,11 +837,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 className={`provider-btn ${provider === "ytmsearch" ? "active" : ""}`}
                 onClick={() => setProvider("ytmsearch")}
               >
-                <svg className="provider-icon ytmusic-icon" viewBox="0 0 176 176" aria-hidden="true">
-                  <circle cx="88" cy="88" r="88" />
-                  <path d="M88,46c23.1,0,42,18.8,42,42s-18.8,42-42,42s-42-18.8-42-42S64.9,46,88,46 M88,42c-25.4,0-46,20.6-46,46s20.6,46,46,46s46-20.6,46-46S113.4,42,88,42L88,42z" />
-                  <polygon points="72,111 111,87 72,65" />
-                </svg>
+                <SourceIcon source="ytmusic" className="provider-icon ytmusic-icon" />
                 <span>YouTube Music</span>
               </button>
               <button
@@ -858,9 +845,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 className={`provider-btn ${provider === "scsearch" ? "active" : ""}`}
                 onClick={() => setProvider("scsearch")}
               >
-                <svg className="provider-icon soundcloud-icon" viewBox="0 0 2499.998 1386.695" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                  <path d="M0 1137.737c0 31.024 11.247 54.481 33.737 70.382 22.491 15.898 46.533 21.52 72.126 16.868 24.041-4.653 40.91-13.185 50.607-25.593 9.693-12.408 14.542-32.962 14.542-61.657V800.372c0-24.044-8.336-44.403-25.012-61.075-16.672-16.676-37.03-25.012-61.074-25.012-23.267 0-43.237 8.336-59.912 25.012C8.339 755.969 0 776.327 0 800.372zm267.566 144.253c0 22.495 7.95 39.36 23.848 50.608 15.9 11.247 36.26 16.868 61.075 16.868 25.593 0 46.338-5.624 62.238-16.868 15.898-11.245 23.849-28.113 23.849-50.608V495.58c0-23.267-8.34-43.239-25.012-59.912-16.675-16.672-37.033-25.011-61.075-25.011-23.266 0-43.239 8.339-59.911 25.011-16.676 16.676-25.012 36.645-25.012 59.912zm266.403 37.227c0 22.492 8.143 39.36 24.43 50.607 16.286 11.245 37.226 16.869 62.822 16.869 24.816 0 45.174-5.624 61.072-16.869 15.9-11.247 23.851-28.115 23.851-50.607V601.442c0-24.041-8.339-44.595-25.012-61.657-16.675-17.061-36.644-25.59-59.911-25.59-24.044 0-44.595 8.529-61.657 25.59-17.061 17.062-25.593 37.616-25.593 61.657v717.775zm267.566 3.49c0 42.657 28.695 63.986 86.086 63.986 57.39 0 86.084-21.329 86.084-63.986V159.377c0-65.147-19.776-101.985-59.33-110.517-25.593-6.205-50.8 1.163-75.616 22.103-24.818 20.94-37.227 50.41-37.227 88.413v1163.331zm272.222 33.737V90.74c0-40.328 12.02-64.37 36.063-72.127C1161.78 6.205 1213.356 0 1264.543 0c118.657 0 229.176 27.92 331.547 83.76 102.373 55.84 185.165 132.038 248.37 228.594 63.21 96.56 99.854 203.001 109.936 319.337 47.308-20.165 97.717-30.247 151.23-30.247 108.578 0 201.452 38.39 278.618 115.17 77.168 76.782 115.754 169.072 115.754 276.875 0 108.578-38.586 201.256-115.754 278.036-77.166 76.78-169.651 115.17-277.455 115.17l-1012.097-1.163c-6.983-2.327-12.218-6.594-15.708-12.797s-5.227-11.638-5.227-16.291z" />
-                </svg>
+                <SourceIcon source="soundcloud" className="provider-icon soundcloud-icon" />
                 <span>SoundCloud</span>
               </button>
             </div>
@@ -917,28 +902,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       }
                     }}
                   >
-                    {currentSource === "youtube" && (
-                      <span className="meta-source-icon youtube-icon">
-                        <svg viewBox="0 0 28.57 20" aria-hidden="true">
-                          <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" />
-                          <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" />
-                        </svg>
-                      </span>
-                    )}
-                    {currentSource === "ytmusic" && (
-                      <span className="meta-source-icon ytmusic-icon">
-                        <svg viewBox="0 0 176 176" aria-hidden="true">
-                          <circle cx="88" cy="88" r="88" />
-                          <path d="M88,46c23.1,0,42,18.8,42,42s-18.8,42-42,42s-42-18.8-42-42S64.9,46,88,46 M88,42c-25.4,0-46,20.6-46,46s20.6,46,46,46s46-20.6,46-46S113.4,42,88,42L88,42z" />
-                          <polygon points="72,111 111,87 72,65" />
-                        </svg>
-                      </span>
-                    )}
-                    {currentSource === "soundcloud" && (
-                      <span className="meta-source-icon soundcloud-icon">
-                        <svg viewBox="0 0 2499.998 1386.695" aria-hidden="true">
-                          <path d="M0 1137.737c0 31.024 11.247 54.481 33.737 70.382 22.491 15.898 46.533 21.52 72.126 16.868 24.041-4.653 40.91-13.185 50.607-25.593 9.693-12.408 14.542-32.962 14.542-61.657V800.372c0-24.044-8.336-44.403-25.012-61.075-16.672-16.676-37.03-25.012-61.074-25.012-23.267 0-43.237 8.336-59.912 25.012C8.339 755.969 0 776.327 0 800.372zm267.566 144.253c0 22.495 7.95 39.36 23.848 50.608 15.9 11.247 36.26 16.868 61.075 16.868 25.593 0 46.338-5.624 62.238-16.868 15.898-11.245 23.849-28.113 23.849-50.608V495.58c0-23.267-8.34-43.239-25.012-59.912-16.675-16.672-37.033-25.011-61.075-25.011-23.266 0-43.239 8.339-59.911 25.011-16.676 16.676-25.012 36.645-25.012 59.912zm266.403 37.227c0 22.492 8.143 39.36 24.43 50.607 16.286 11.245 37.226 16.869 62.822 16.869 24.816 0 45.174-5.624 61.072-16.869 15.9-11.247 23.851-28.115 23.851-50.607V601.442c0-24.041-8.339-44.595-25.012-61.657-16.675-17.061-36.644-25.59-59.911-25.59-24.044 0-44.595 8.529-61.657 25.59-17.061 17.062-25.593 37.616-25.593 61.657v717.775zm267.566 3.49c0 42.657 28.695 63.986 86.086 63.986 57.39 0 86.084-21.329 86.084-63.986V159.377c0-65.147-19.776-101.985-59.33-110.517-25.593-6.205-50.8 1.163-75.616 22.103-24.818 20.94-37.227 50.41-37.227 88.413v1163.331zm272.222 33.737V90.74c0-40.328 12.02-64.37 36.063-72.127C1161.78 6.205 1213.356 0 1264.543 0c118.657 0 229.176 27.92 331.547 83.76 102.373 55.84 185.165 132.038 248.37 228.594 63.21 96.56 99.854 203.001 109.936 319.337 47.308-20.165 97.717-30.247 151.23-30.247 108.578 0 201.452 38.39 278.618 115.17 77.168 76.782 115.754 169.072 115.754 276.875 0 108.578-38.586 201.256-115.754 278.036-77.166 76.78-169.651 115.17-277.455 115.17l-1012.097-1.163c-6.983-2.327-12.218-6.594-15.708-12.797s-5.227-11.638-5.227-16.291z" />
-                        </svg>
+                    {currentSource && currentSource in SOURCE_ICONS && (
+                      <span className={`meta-source-icon ${currentSource}-icon`}>
+                        <SourceIcon source={currentSource} />
                       </span>
                     )}
                     <span className="meta-author-name">
@@ -1202,9 +1168,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         type="checkbox"
                         id="mute-audio-toggle"
                         className="toggle-switch"
-                        checked={muteAudio}
+                      checked={isGifFormat || muteAudio}
+                      disabled={isGifFormat}
                         onChange={(e) => {
-                          setMuteAudio(e.target.checked);
+                          setMuteAudio(isGifFormat || e.target.checked);
                           clearActivePreset();
                         }}
                       />
@@ -1326,19 +1293,21 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       />
                     </div>
                   )}
-                  <div className="form-row">
-                    <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
-                    <CustomSelect
-                      options={downloaderAudioCodecOptions}
-                      value={audioCodec}
-                      onChange={(val) => {
-                        setAudioCodec(val);
-                        clearActivePreset();
-                      }}
-                      width="115px"
-                      direction="up"
-                    />
-                  </div>
+                  {!(mode === "video" && (muteAudio || isGifFormat)) && (
+                    <div className="form-row">
+                      <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
+                      <CustomSelect
+                        options={downloaderAudioCodecOptions}
+                        value={audioCodec}
+                        onChange={(val) => {
+                          setAudioCodec(val);
+                          clearActivePreset();
+                        }}
+                        width="115px"
+                        direction="up"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

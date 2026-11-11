@@ -172,12 +172,6 @@ body.theme-light .drop-hint-icon svg {
     stroke: none;
     display: block;
 }
-.provider-btn .youtube-icon path:first-child { opacity: 0.35; }
-.provider-btn .youtube-icon path:last-child { opacity: 1; }
-.provider-btn .ytmusic-icon circle { opacity: 0.25; }
-.provider-btn .ytmusic-icon path,
-.provider-btn .ytmusic-icon polygon { opacity: 1; }
-.provider-btn .soundcloud-icon { opacity: 0.9; }
 .provider-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .provider-btn.active {
     background: rgba(255,255,255,0.2);
@@ -368,18 +362,6 @@ body.theme-light .drop-hint-icon svg {
     fill: currentColor;
     stroke: none;
 }
-.meta-source-icon.youtube-icon path:first-child { opacity: 0.35; }
-.meta-source-icon.youtube-icon path:last-child { opacity: 1; }
-.meta-source-icon.ytmusic-icon circle { opacity: 0.25; }
-.meta-source-icon.ytmusic-icon path,
-.meta-source-icon.ytmusic-icon polygon { opacity: 1; }
-.meta-source-icon.soundcloud-icon { opacity: 0.9; }
-.meta-source-icon.spotify-icon path:first-child { opacity: 0.3; }
-.meta-source-icon.deezer-icon svg,
-.meta-source-icon.applemusic-icon svg {
-    filter: grayscale(1) brightness(0.85);
-    opacity: 0.85;
-}
 .meta-author-link {
     color: inherit;
     text-decoration: none;
@@ -563,6 +545,7 @@ body.audio-only-source .extras-section .form-row.video-only {
 }
 .toggle-switch:checked { background: var(--active-color); border-color: var(--active-color); }
 .toggle-switch:checked::after { left: 26px; }
+.toggle-switch:disabled { cursor: not-allowed; opacity: 0.65; }
 .lang-input:focus { border-color: var(--active-color); outline: none; }
 
 .toggle-text { font-size: 0.85rem; color: #aaa; }

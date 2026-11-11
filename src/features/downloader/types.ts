@@ -3,6 +3,8 @@ import type { Preset } from "../../services/presets";
 export interface DownloaderFormat {
   note?: string;
   resolution?: string;
+  vcodec?: string | null;
+  acodec?: string | null;
 }
 
 export interface DownloaderMetadata {

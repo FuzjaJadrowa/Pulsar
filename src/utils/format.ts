@@ -33,7 +33,7 @@ export function eta(seconds: number | string | undefined | null): string {
   return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
 }
 
-export function detectSourceFromUrl(rawUrl: string): "youtube" | "ytmusic" | "soundcloud" | "spotify" | null {
+export function detectSourceFromUrl(rawUrl: string): "youtube" | "ytmusic" | "soundcloud" | "spotify" | "applemusic" | "deezer" | null {
   const input = String(rawUrl || "").trim().toLowerCase();
   if (!input) return null;
   try {
@@ -43,6 +43,8 @@ export function detectSourceFromUrl(rawUrl: string): "youtube" | "ytmusic" | "so
     if (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be") return "youtube";
     if (host === "soundcloud.com" || host.endsWith(".soundcloud.com") || host === "soundcloud.app.goo.gl") return "soundcloud";
     if (host === "spotify.com" || host.endsWith(".spotify.com")) return "spotify";
+    if (host === "music.apple.com" || host.endsWith(".music.apple.com") || host === "itunes.apple.com" || host.endsWith(".itunes.apple.com") || host === "apple.co") return "applemusic";
+    if (host === "deezer.com" || host.endsWith(".deezer.com") || host === "deezer.page.link" || host === "dzr.page.link" || host === "link.deezer.com" || host === "dzr.fm") return "deezer";
     return null;
   } catch {
     return null;

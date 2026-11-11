@@ -5,7 +5,7 @@ import { formatBytes, detectSourceFromUrl } from "../utils/format";
 import { useConfig } from "../services/config";
 import { openConsole } from "../services/console";
 
-import { ICONS, SOURCE_ICONS } from "../utils/icons";
+import { ICONS, SOURCE_ICONS, SourceIcon } from "../utils/icons";
 
 function getParentFolder(filePath: string): string {
   const normalized = filePath.trim().replace(/\\/g, "/");
@@ -85,9 +85,9 @@ export const QueuePanel: React.FC = () => {
     }
 
     const source = detectSourceFromUrl(item.payload?.url || "");
-    const sourceIcon = source ? (
+    const sourceIcon = source && source in SOURCE_ICONS ? (
       <span className={`queue-source-icon ${source}-icon`} aria-hidden="true">
-        {SOURCE_ICONS[source as keyof typeof SOURCE_ICONS]}
+        <SourceIcon source={source} />
       </span>
     ) : null;
 
