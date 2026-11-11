@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "../../services/i18n";
 import { invoke, listen } from "../../services/tauri";
 import { useConfig } from "../../services/config";
@@ -910,7 +911,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     tabIndex={metadata.uploader_url ? 0 : -1}
                     onClick={() => {
                       if (metadata.uploader_url) {
-                        window.open(metadata.uploader_url, "_blank");
+                        openUrl(metadata.uploader_url).catch((error) => {
+                          console.error("Failed to open uploader channel:", error);
+                        });
                       }
                     }}
                   >
