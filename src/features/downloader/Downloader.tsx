@@ -23,6 +23,18 @@ const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
 
 const hasCodec = (codec?: string | null) => !!codec?.trim() && codec.trim().toLowerCase() !== "none";
 
+const codecMatches = (requested: string, source?: string | null) => {
+  const wanted = requested.trim().toLowerCase();
+  const found = (source || "").trim().toLowerCase();
+  if (!wanted || !found || found === "none") return false;
+  const prefixes: Record<string, string[]> = {
+    h264: ["h264", "avc1", "avc3"], h265: ["h265", "hevc", "hev1", "hvc1"], hevc: ["h265", "hevc", "hev1", "hvc1"],
+    av1: ["av1", "av01"], vp9: ["vp9", "vp09"], vp8: ["vp8", "vp08"], aac: ["aac", "mp4a"], opus: ["opus"],
+    vorbis: ["vorbis"], mp3: ["mp3"], flac: ["flac"], alac: ["alac"],
+  };
+  return (prefixes[wanted] || [wanted]).some((prefix) => found.startsWith(prefix));
+};
+
 const metadataHasOnlyAudioSources = (formats: DownloaderFormat[] = []) => {
   const codecFormats = formats.filter((format) => hasCodec(format.vcodec) || hasCodec(format.acodec));
   return codecFormats.length > 0 && codecFormats.every((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec));
@@ -656,6 +668,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       ? largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)))
       : largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.vcodec)))
         + largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)));
+    const bestVideoSource = [...estimatedFormats].filter((format) => hasCodec(format.vcodec)).sort((a, b) => (b.height || 0) - (a.height || 0))[0];
+    const bestAudioSource = [...estimatedFormats].filter((format) => hasCodec(format.acodec)).sort((a, b) => Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0))[0];
+    const preferredVideoCodec = videoCodec || (config.default_video_codec.toLowerCase() === "auto" ? "" : config.default_video_codec);
+    const preferredAudioCodec = audioCodec || (config.default_audio_codec.toLowerCase() === "auto" ? "" : config.default_audio_codec);
+    const videoCodecAlreadyAvailable = !!preferredVideoCodec && codecMatches(preferredVideoCodec, bestVideoSource?.vcodec);
+    const audioCodecAlreadyAvailable = !!preferredAudioCodec && codecMatches(preferredAudioCodec, bestAudioSource?.acodec);
+    const otherTranscodeOptions = !!videoBitrate || !!audioBitrate || !!videoFps || !!audioSampleRate;
     const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim() || config.default_save_path.trim(),
@@ -665,8 +684,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       video_quality: mode === "video" ? selectedQuality : null,
       audio_format: mode === "audio" ? selectedFormat : null,
       audio_quality: mode === "audio" ? selectedQuality : null,
-      video_codec: mode === "video" ? (videoCodec || undefined) : undefined,
-      audio_codec: audioCodec || undefined,
+      video_codec: mode === "video" && (!videoCodecAlreadyAvailable || otherTranscodeOptions) ? (preferredVideoCodec || undefined) : undefined,
+      audio_codec: !audioCodecAlreadyAvailable || otherTranscodeOptions ? (preferredAudioCodec || undefined) : undefined,
       video_bitrate: videoBitrate || undefined,
       audio_bitrate: audioBitrate || undefined,
       video_fps: videoFps || undefined,

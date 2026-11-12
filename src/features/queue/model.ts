@@ -32,7 +32,9 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
       : event.progress !== undefined
         ? event.progress
         : event.percentage;
-    item.progress = Math.min(Math.max(parseProgressValue(progressValue), 0), 100);
+    if (progressValue !== undefined) {
+      item.progress = Math.min(Math.max(parseProgressValue(progressValue), 0), 100);
+    }
 
     if (event.eta_seconds !== undefined) {
       const total = Math.max(0, Math.floor(Number(event.eta_seconds) || 0));

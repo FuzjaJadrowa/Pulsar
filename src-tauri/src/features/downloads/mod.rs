@@ -36,6 +36,34 @@ fn parse_sample_rate(value: Option<&str>) -> Option<u32> {
         .filter(|value| *value >= 8_000 && *value <= 192_000)
 }
 
+fn download_video_encoder(requested: &str, format: &str, config: &crate::app::config::AppConfig) -> String {
+    let codec_key = if requested.is_empty() || requested.eq_ignore_ascii_case("auto") {
+        match format.to_ascii_lowercase().as_str() {
+            "webm" => "vp9",
+            "ogv" => "theora",
+            "gif" => "gif",
+            "prores" => "prores",
+            _ => "h264",
+        }
+    } else {
+        requested
+    };
+    let hwaccel = if config.ffmpeg_hwaccel == "none" || config.ffmpeg_hwaccel == "false" {
+        None
+    } else if config.ffmpeg_hwaccel_preferred != "auto"
+        && config.ffmpeg_hwaccels.iter().any(|candidate| candidate == &config.ffmpeg_hwaccel_preferred)
+    {
+        Some(config.ffmpeg_hwaccel_preferred.as_str())
+    } else {
+        config.ffmpeg_hwaccels.first().map(String::as_str)
+    };
+    if let Some(accel) = hwaccel {
+        crate::infrastructure::ffmpeg::codecs::map_video_codec_hw(codec_key, accel)
+    } else {
+        crate::infrastructure::ffmpeg::codecs::map_video_codec(codec_key)
+    }
+}
+
 fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> String {
     let mut filters = Vec::new();
     if let Some(height) = height {
@@ -158,6 +186,12 @@ pub fn start_download(
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(generate);
+    let explicitly_selected_video_codec = options.video_codec.as_deref().is_some_and(|codec| {
+        !codec.trim().is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy")
+    });
+    let explicitly_selected_audio_codec = options.audio_codec.as_deref().is_some_and(|codec| {
+        !codec.trim().is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy")
+    });
     let conversion_requested = options.video_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
         || options.audio_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
         || options.video_bitrate.is_some()
@@ -376,8 +410,8 @@ pub fn start_download(
             let sample_rate = parse_sample_rate(options.audio_sample_rate.as_deref());
             let requested_video_codec = options.video_codec.as_deref().unwrap_or("").trim();
             let requested_audio_codec = options.audio_codec.as_deref().unwrap_or("").trim();
-            let needs_encode = !requested_video_codec.is_empty()
-                || !requested_audio_codec.is_empty()
+            let needs_encode = explicitly_selected_video_codec
+                || explicitly_selected_audio_codec
                 || video_bitrate.is_some()
                 || audio_bitrate.is_some()
                 || sample_rate.is_some()
@@ -385,13 +419,7 @@ pub fn start_download(
             if needs_encode {
                 args.extend(["--merge-output-format".to_string(), fmt.clone()]);
                 args.extend(["--recode-video".to_string(), fmt.clone()]);
-                let video_codec = if requested_video_codec.is_empty()
-                    || requested_video_codec.eq_ignore_ascii_case("auto")
-                {
-                    crate::infrastructure::ffmpeg::codecs::default_video_codec_for_format(&fmt)
-                } else {
-                    crate::infrastructure::ffmpeg::codecs::map_video_codec(requested_video_codec)
-                };
+                let video_codec = download_video_encoder(requested_video_codec, &fmt, &config);
                 let audio_codec = if requested_audio_codec.is_empty()
                     || requested_audio_codec.eq_ignore_ascii_case("auto")
                 {
