@@ -25,7 +25,12 @@ export const PresetIconPreview: React.FC<PresetIconPreviewProps> = ({ src, alt =
   }
 
   if (svgText && svgText.includes("<svg")) {
-    if (!svgText.includes("fill=")) {
+    const isDefaultKey = svgText.includes("m22.7 19-9.1 9.1");
+    if (isDefaultKey) {
+      svgText = svgText
+        .replace(/fill\s*=\s*(["'])#?ffffff\1/gi, 'fill="currentColor"')
+        .replace(/fill\s*:\s*#ffffff/gi, "fill:currentColor");
+    } else if (!svgText.includes("fill=")) {
       svgText = svgText.replace("<svg", '<svg fill="#ffffff"');
     } else {
       svgText = svgText.replace(/fill="currentColor"/g, 'fill="#ffffff"').replace(/fill='currentColor'/g, "fill='#ffffff'");
@@ -33,7 +38,7 @@ export const PresetIconPreview: React.FC<PresetIconPreviewProps> = ({ src, alt =
     return (
       <div
         dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgText) }}
-        style={{ width: "100%", height: "100%", color: "#ffffff", fill: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{ width: "100%", height: "100%", color: "currentColor", fill: "currentColor", display: "flex", alignItems: "center", justifyContent: "center" }}
       />
     );
   }

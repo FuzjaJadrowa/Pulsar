@@ -327,10 +327,8 @@ body.theme-light .drop-hint-icon svg {
 }
 @media (max-width: 960px) {
     .search-results-grid { grid-template-columns: 1fr; }
-    .preset-grid { grid-template-columns: repeat(3, minmax(200px, 1fr)); }
 }
 @media (max-width: 700px) {
-    .preset-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
     .extras-section { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .fade-in { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.5s forwards; }
@@ -405,6 +403,11 @@ body.theme-light .drop-hint-icon svg {
 .preset-section.fade-in { animation-duration: 0.7s; }
 .preset-section.hidden {
     display: none;
+}
+#preset-grid.preset-grid {
+    width: fit-content;
+    max-width: 100%;
+    align-self: center;
 }
 .mode-switcher {
     display: flex; background: rgba(0,0,0,0.3); border-radius: 12px;

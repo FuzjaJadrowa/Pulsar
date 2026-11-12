@@ -109,8 +109,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     })),
   ];
 
-  const displayedVideoCodec = videoCodec || (config?.default_video_codec?.toLowerCase() === "auto" ? "" : config?.default_video_codec?.toLowerCase() || "");
-  const displayedAudioCodec = audioCodec || (config?.default_audio_codec?.toLowerCase() === "auto" ? "" : config?.default_audio_codec?.toLowerCase() || "");
+  const displayedVideoCodec = videoCodec;
+  const displayedAudioCodec = audioCodec;
 
   useEffect(() => {
     if (videoCodec && !downloaderVideoCodecOptions.some((opt) => opt.value === videoCodec)) {

@@ -1,8 +1,8 @@
 import React from "react";
 import { Preset } from "../services/presets";
 import { t } from "../services/i18n";
-import { sanitizeSvg } from "../utils/security";
 import { DEFAULT_ICON } from "../utils/icons";
+import { PresetIconPreview } from "./PresetIconPreview";
 
 interface PresetGridProps {
   id: string;
@@ -20,10 +20,9 @@ export const PresetGrid: React.FC<PresetGridProps> = ({ id, presets, activeId, o
         className={`preset-card ${activeId === preset.id ? "active" : ""}`}
         onClick={() => onSelect(preset)}
       >
-        <div
-          className="preset-card-icon"
-          dangerouslySetInnerHTML={{ __html: sanitizeSvg(preset.icon_data_url || DEFAULT_ICON) }}
-        />
+        <div className="preset-card-icon">
+          <PresetIconPreview src={preset.icon_data_url || DEFAULT_ICON} alt="" fallback={DEFAULT_ICON} />
+        </div>
         <div className="preset-card-info">
           <div className="preset-card-title">
             {preset.title || t("settings.presetsManager.untitled")}
