@@ -1,4 +1,8 @@
 {
+  "bridgeProtocol": {
+    "updateBridge": "Ta wersja Pulsara nie obsługuje zainstalowanego Pulsar-Bridge. Zaktualizuj Pulsar-Bridge, aby zapewnić pełne i poprawne działanie.",
+    "updatePulsar": "Ta wersja Pulsar-Bridge nie obsługuje Pulsara. Zaktualizuj Pulsara, aby zapewnić pełne i poprawne działanie."
+  },
   "common": {
     "error": "Błąd",
     "success": "Sukces",

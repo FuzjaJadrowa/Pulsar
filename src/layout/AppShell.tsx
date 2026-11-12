@@ -13,6 +13,7 @@ import { Converter } from "../features/conversion/Converter";
 import { Compressor } from "../features/compression/Compressor";
 import { useUiState } from "../services/uiState";
 import { showNotification } from "../services/notifications";
+import { listen } from "@tauri-apps/api/event";
 
 const PAGE_INDICES: Record<string, number> = {
   home: 0,
@@ -33,12 +34,33 @@ export const AppShell: React.FC = () => {
   const [queueVisible, setQueueVisible] = useState<boolean>(false);
 
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const protocolMismatchShownRef = useRef(false);
 
   const { updateUiState } = useUiState();
 
   useEffect(() => {
     updateUiState({ currentPage });
   }, [currentPage, updateUiState]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let active = true;
+    void listen<{ component: "pulsar" | "bridge" }>("bridge-protocol-mismatch", (event) => {
+      if (protocolMismatchShownRef.current) return;
+      protocolMismatchShownRef.current = true;
+      const message = event.payload.component === "bridge"
+        ? t("bridgeProtocol.updateBridge")
+        : t("bridgeProtocol.updatePulsar");
+      showNotification(t("common.info"), message, "info", true);
+    }).then((stop) => {
+      if (active) unlisten = stop;
+      else stop();
+    });
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, [t]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

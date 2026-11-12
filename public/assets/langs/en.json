@@ -1,4 +1,8 @@
 {
+  "bridgeProtocol": {
+    "updateBridge": "This version of Pulsar does not support the installed Pulsar-Bridge. Update Pulsar-Bridge for full and correct work.",
+    "updatePulsar": "This version of Pulsar-Bridge does not support Pulsar. Update Pulsar for full and correct work."
+  },
   "common": {
     "error": "Error",
     "success": "Success",
