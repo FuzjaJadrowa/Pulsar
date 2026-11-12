@@ -11,6 +11,7 @@
     "unknownChannel": "Unknown channel",
     "eta": "ETA",
     "browse": "Browse",
+    "clearSelection": "Clear selected file",
     "noSavePathSelected": "No save path selected...",
     "useLastPath": "Use last path",
     "addToQueue": "ADD TO QUEUE",

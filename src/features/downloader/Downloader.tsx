@@ -270,7 +270,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
     if (looksLikeUrl(raw)) {
       setIsSearchMode(false);
+      setIsDashboardVisible(false);
       setSearchResults([]);
+      setSearchExiting(false);
+      resetMetadataState();
+      setPendingMetadataUrl(raw);
       applySourceConstraints(raw);
       triggerFetchMetadata(raw);
     } else {
@@ -435,12 +439,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>(["Best"]);
 
-  const resetToZen = () => {
-    setUrl("");
+  const resetToZen = (nextUrl = "") => {
+    setUrl(nextUrl);
     setIsDashboardVisible(false);
     setIsSearchMode(false);
+    setSearchExiting(false);
     setSearchResults([]);
     resetMetadataState();
+    setPendingMetadataUrl(null);
     setDuration(0);
     setSelectedFormat(null);
     setSelectedQuality(null);
@@ -466,6 +472,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     applySourceConstraints("");
   };
 
+  const updateUrlFromInput = (nextUrl: string) => {
+    if (isDashboardVisible && nextUrl.trim() !== url.trim()) {
+      resetToZen(nextUrl);
+      return;
+    }
+    setUrl(nextUrl);
+  };
+
   const clearActivePreset = () => {
     setActivePresetId(null);
   };
@@ -474,13 +488,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     try {
       const clipboardText = await invoke<string>("read_clipboard_text");
       if (clipboardText) {
-        setUrl(clipboardText.trim());
+        updateUrlFromInput(clipboardText.trim());
       }
     } catch (e) {
       try {
         const clipboardText = await navigator.clipboard.readText();
         if (clipboardText) {
-          setUrl(clipboardText.trim());
+          updateUrlFromInput(clipboardText.trim());
         }
       } catch (err) {
         console.error("Failed to read from clipboard:", err);
@@ -814,9 +828,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               placeholder={t("downloader.search.urlPlaceholder")}
               value={url}
               onChange={(e) => {
-                setUrl(e.target.value);
-                if (e.target.value.trim() === "") {
+                const nextUrl = e.target.value;
+                if (!nextUrl.trim()) {
                   resetToZen();
+                } else {
+                  updateUrlFromInput(nextUrl);
                 }
               }}
               onKeyDown={(e) => {
