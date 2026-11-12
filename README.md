@@ -109,5 +109,7 @@ If you just want to run the app in development mode, use:
 
 ## License and credits
 This project is licensed under the **GPL-3.0** described in the **LICENSE** file.
+
 French translation by Zetsukae.
+
 Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [FFmpeg](https://ffmpeg.org/).
