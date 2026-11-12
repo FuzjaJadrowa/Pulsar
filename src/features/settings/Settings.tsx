@@ -597,6 +597,20 @@ export const Settings: React.FC = () => {
           />
         </div>
 
+        <div className="title-constructor">
+          <div className="title-constructor-title">{t("settings.preferDownloadingWithFfmpeg")}</div>
+          <div className="form-row">
+            <span>{t("settings.whileConvertingMedia")}</span>
+            <ToggleSwitch checked={config.prefer_ffmpeg_while_converting} onChange={(checked) => updateConfig({ prefer_ffmpeg_while_converting: checked })} />
+          </div>
+          <div className="settings-note">{t("settings.whileConvertingMediaNote")}</div>
+          <div className="form-row">
+            <span>{t("settings.whileDownloadingMedia")}</span>
+            <ToggleSwitch checked={config.prefer_ffmpeg_while_downloading} onChange={(checked) => updateConfig({ prefer_ffmpeg_while_downloading: checked })} />
+          </div>
+          <div className="settings-note">{t("settings.whileDownloadingMediaNote")}</div>
+        </div>
+
         {/* Title Constructor */}
         <div className="title-constructor">
           <div className="title-constructor-title">{t("settings.titleConstructor")}</div>

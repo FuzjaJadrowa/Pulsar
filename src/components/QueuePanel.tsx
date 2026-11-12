@@ -198,7 +198,7 @@ export const QueuePanel: React.FC = () => {
                     </div>
                     <div className="queue-progress-meta">
                       <span>
-                        {Math.round(item.progress)}%
+                        {item.stage ? `${item.stage} - ` : ""}{Math.round(item.progress)}%
                         {item.listProgress ? ` (${item.listProgress})` : ""}
                       </span>
                       <span>

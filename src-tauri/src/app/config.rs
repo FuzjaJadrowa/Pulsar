@@ -44,6 +44,10 @@ pub struct AppConfig {
     pub maximum_search_results: u64,
     #[serde(default, alias = "title_template")]
     pub title_template: String,
+    #[serde(default)]
+    pub prefer_ffmpeg_while_converting: bool,
+    #[serde(default)]
+    pub prefer_ffmpeg_while_downloading: bool,
 
     #[serde(default, alias = "copy_codec_if_possible")]
     pub copy_codec_if_possible: bool,
@@ -88,6 +92,8 @@ impl Default for AppConfig {
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
             title_template: "%(title)s [%(id)s]".to_string(),
+            prefer_ffmpeg_while_converting: false,
+            prefer_ffmpeg_while_downloading: false,
             copy_codec_if_possible: false,
             default_video_codec: "auto".to_string(),
             default_audio_codec: "auto".to_string(),
@@ -245,6 +251,8 @@ impl ConfigManager {
                     if let Some(v) = section.get("title_template") {
                         config.title_template = v.to_string();
                     }
+                    config.prefer_ffmpeg_while_converting = section.get("prefer_ffmpeg_while_converting").map(|v| v == "true").unwrap_or(false);
+                    config.prefer_ffmpeg_while_downloading = section.get("prefer_ffmpeg_while_downloading").map(|v| v == "true").unwrap_or(false);
                 }
                 if let Some(section) = ini.section(Some("Codecs")) {
                     config.copy_codec_if_possible = section
@@ -363,7 +371,9 @@ impl ConfigManager {
                 "maximum_search_results",
                 config.maximum_search_results.to_string(),
             )
-            .set("title_template", &config.title_template);
+            .set("title_template", &config.title_template)
+            .set("prefer_ffmpeg_while_converting", config.prefer_ffmpeg_while_converting.to_string())
+            .set("prefer_ffmpeg_while_downloading", config.prefer_ffmpeg_while_downloading.to_string());
 
         if let Err(e) = ini.write_to_file(path) {
             eprintln!("Failed to write config.ini to {:?}: {}", path, e);

@@ -26,6 +26,7 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
   if (typeof eventPath === "string" && eventPath.trim()) item.path = eventPath.trim();
 
   if (event.type === "progress" || event.type === "progress_ffmpeg" || event.percent !== undefined || event.progress !== undefined) {
+    if (event.stage || event.status) item.stage = String(event.stage || event.status);
     const progressValue = event.percent !== undefined
       ? event.percent
       : event.progress !== undefined
@@ -49,6 +50,10 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
       item.listProgress = `${Math.max(1, Math.floor(index))}/${Math.max(1, Math.floor(count))}`;
     }
     changes.progressUpdated = true;
+  }
+
+  if (event.type === "status" && (event.stage || event.status)) {
+    item.stage = String(event.stage || event.status);
   }
 
   if (event.type === "cancelled") {
@@ -93,6 +98,7 @@ export function restoreQueueItems(rawItems: unknown, unknownTitle: string): Queu
         : "pending",
       progress: interrupted || !Number.isFinite(progress) ? 0 : Math.min(Math.max(progress, 0), 100),
       eta: String(raw.eta || "--"),
+      stage: String(raw.stage || ""),
       listProgress: null,
       addedAt: Number(raw.addedAt ?? raw.added_at) || Date.now(),
       payload: raw.payload && typeof raw.payload === "object" ? raw.payload as QueueItemPayload : {},

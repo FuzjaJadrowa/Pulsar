@@ -14,6 +14,7 @@ export interface QueueItem {
   status: "pending" | "downloading" | "failed" | "completed";
   progress: number;
   eta: string;
+  stage: string;
   listProgress: string | null;
   addedAt: number;
   payload: QueueItemPayload;
@@ -593,6 +594,7 @@ export async function enqueue(
     status: "pending",
     progress: 0,
     eta: "--",
+    stage: "",
     listProgress: null,
     addedAt: Date.now(),
     payload: { ...payload },

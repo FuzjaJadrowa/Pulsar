@@ -22,6 +22,8 @@ export interface PulsarConfig {
   default_video_codec: string;
   default_audio_codec: string;
   default_save_path: string;
+  prefer_ffmpeg_while_converting: boolean;
+  prefer_ffmpeg_while_downloading: boolean;
 }
 
 export const DEFAULT_CONFIG: PulsarConfig = {
@@ -44,6 +46,8 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   default_video_codec: "auto",
   default_audio_codec: "auto",
   default_save_path: "",
+  prefer_ffmpeg_while_converting: false,
+  prefer_ffmpeg_while_downloading: false,
 };
 
 let globalConfig: PulsarConfig = { ...DEFAULT_CONFIG };
@@ -140,6 +144,8 @@ export async function loadConfig(): Promise<PulsarConfig> {
         default_video_codec: String(raw.default_video_codec ?? raw.defaultVideoCodec ?? DEFAULT_CONFIG.default_video_codec),
         default_audio_codec: String(raw.default_audio_codec ?? raw.defaultAudioCodec ?? DEFAULT_CONFIG.default_audio_codec),
         default_save_path: String(raw.default_save_path ?? raw.defaultSavePath ?? DEFAULT_CONFIG.default_save_path),
+        prefer_ffmpeg_while_converting: Boolean(raw.prefer_ffmpeg_while_converting ?? raw.preferFfmpegWhileConverting ?? DEFAULT_CONFIG.prefer_ffmpeg_while_converting),
+        prefer_ffmpeg_while_downloading: Boolean(raw.prefer_ffmpeg_while_downloading ?? raw.preferFfmpegWhileDownloading ?? DEFAULT_CONFIG.prefer_ffmpeg_while_downloading),
       };
       globalConfig = normalized;
       applyTheme(globalConfig.theme, false);
@@ -175,6 +181,8 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
     default_video_codec: String(merged.default_video_codec ?? DEFAULT_CONFIG.default_video_codec),
     default_audio_codec: String(merged.default_audio_codec ?? DEFAULT_CONFIG.default_audio_codec),
     default_save_path: String(merged.default_save_path ?? DEFAULT_CONFIG.default_save_path),
+    prefer_ffmpeg_while_converting: Boolean(merged.prefer_ffmpeg_while_converting ?? DEFAULT_CONFIG.prefer_ffmpeg_while_converting),
+    prefer_ffmpeg_while_downloading: Boolean(merged.prefer_ffmpeg_while_downloading ?? DEFAULT_CONFIG.prefer_ffmpeg_while_downloading),
   };
   globalConfig = updated;
 

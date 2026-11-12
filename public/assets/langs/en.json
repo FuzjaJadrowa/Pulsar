@@ -267,6 +267,11 @@
     "cookiesFromBrowserNote": "Allows using your browser cookies to download restricted videos you have access to.",
     "maximumConcurrentProcesses": "Maximum concurrent processes",
     "maximumSearchResults": "Maximum search results",
+    "preferDownloadingWithFfmpeg": "Prefer downloading with FFmpeg",
+    "whileConvertingMedia": "While converting media",
+    "whileConvertingMediaNote": "Pass the online source directly to FFmpeg during conversion. This can improve download speed and output quality depending on the source and encoder.",
+    "whileDownloadingMedia": "While downloading media",
+    "whileDownloadingMediaNote": "Let FFmpeg fetch online media instead of yt-dlp. This can affect speed, source compatibility, and output quality.",
     "presetsManager": {
       "title": "Presets Manager",
       "count": "{count} presets",

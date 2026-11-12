@@ -267,6 +267,11 @@
     "cookiesFromBrowserNote": "Pozwala używać ciasteczek z przeglądarki do pobierania ograniczonych filmów, do których masz dostęp.",
     "maximumConcurrentProcesses": "Maksymalna liczba równoczesnych procesów",
     "maximumSearchResults": "Maksymalna liczba wyników wyszukiwania",
+    "preferDownloadingWithFfmpeg": "Preferuj pobieranie przez FFmpeg",
+    "whileConvertingMedia": "Podczas konwersji multimediów",
+    "whileConvertingMediaNote": "Przekazuje źródło online bezpośrednio do FFmpeg podczas konwersji. Może to poprawić szybkość pobierania i jakość wyniku, zależnie od źródła i kodera.",
+    "whileDownloadingMedia": "Podczas pobierania multimediów",
+    "whileDownloadingMediaNote": "Pozwala FFmpeg pobierać multimedia online zamiast yt-dlp. Może to wpłynąć na szybkość, zgodność ze źródłami i jakość wyniku.",
     "presetsManager": {
       "title": "Menedżer presetów",
       "count": "{count} presetów",
