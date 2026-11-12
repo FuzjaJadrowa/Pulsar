@@ -59,6 +59,7 @@ struct CompressBridgePayload {
     source_size_bytes: Option<u64>,
     ffmpeg_path: String,
     ffmpeg_args: Vec<String>,
+    two_pass: bool,
 }
 
 #[derive(Serialize)]
@@ -155,11 +156,11 @@ fn build_output_path(options: &CompressOptions, output_format: &str) -> Result<S
     if name.trim().is_empty() {
         name = "output".to_string();
     }
-    Ok(crate::features::conversion::resolve_unique_output_path(
+    crate::features::conversion::resolve_unique_output_path(
         &output_dir,
         &name,
         output_format,
-    ))
+    )
 }
 
 use crate::app::task_id::generate;
@@ -209,8 +210,15 @@ pub fn start_compress(
         }
     }
     let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
-    let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel)?;
-    crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, &ffmpeg_args)?;
+    let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel).map_err(|error| {
+        let _ = std::fs::remove_file(&output_path);
+        error
+    })?;
+    crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, &ffmpeg_args)
+        .map_err(|error| {
+            let _ = std::fs::remove_file(&output_path);
+            error
+        })?;
 
     let task_id = options
         .client_task_id
@@ -223,7 +231,19 @@ pub fn start_compress(
         .compress_mode
         .clone()
         .unwrap_or_else(|| "percent".to_string());
+    let selected_video_encoder = ffmpeg_args
+        .windows(2)
+        .find(|pair| pair[0] == "-c:v")
+        .map(|pair| pair[1].as_str())
+        .unwrap_or("");
+    let two_pass = category == "video"
+        && !compress_mode.trim().eq_ignore_ascii_case("quality")
+        && matches!(
+            selected_video_encoder,
+            "libx264" | "libvpx" | "libvpx-vp9"
+        );
 
+    let output_path_for_cleanup = output_path.clone();
     let payload = CompressBridgePayload {
         input_path: input_path.to_string(),
         output_path,
@@ -233,6 +253,7 @@ pub fn start_compress(
         source_size_bytes: options.source_size_bytes,
         ffmpeg_path: ffmpeg_path.to_string_lossy().to_string(),
         ffmpeg_args,
+        two_pass,
     };
 
     let cmd = CompressBridgeCommand {
@@ -241,7 +262,12 @@ pub fn start_compress(
         payload,
     };
 
-    state.send_raw_command(&app_handle, &cmd)?;
+    state.register_output_path(task_id.clone(), Path::new(&output_path_for_cleanup).to_path_buf());
+    if let Err(error) = state.send_raw_command(&app_handle, &cmd) {
+        state.unregister_output_path(&task_id);
+        let _ = std::fs::remove_file(output_path_for_cleanup);
+        return Err(error);
+    }
 
     Ok(task_id)
 }

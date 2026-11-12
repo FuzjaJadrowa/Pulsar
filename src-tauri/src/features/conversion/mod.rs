@@ -6,6 +6,7 @@ use crate::features::downloads::BridgeState;
 use crate::system::acceleration;
 pub use estimate::EstimatePayload;
 use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
@@ -157,30 +158,42 @@ pub fn resolve_unique_output_path(
     output_dir: &Path,
     base_name: &str,
     output_format: &str,
-) -> String {
+) -> Result<String, String> {
     let fmt = output_format.trim().trim_start_matches('.');
     let initial_filename = if fmt.is_empty() {
         base_name.to_string()
     } else {
         format!("{}.{}", base_name, fmt)
     };
-    let initial_path = output_dir.join(&initial_filename);
-    if !initial_path.exists() {
-        return initial_path.to_string_lossy().to_string();
-    }
-
-    let mut counter = 1;
+    std::fs::create_dir_all(output_dir).map_err(|error| {
+        format!("Unable to create output directory '{}': {error}", output_dir.display())
+    })?;
+    let mut counter = 0;
     loop {
-        let candidate_filename = if fmt.is_empty() {
+        let candidate_filename = if counter == 0 {
+            initial_filename.clone()
+        } else if fmt.is_empty() {
             format!("{}_{}", base_name, counter)
         } else {
             format!("{}_{}.{}", base_name, counter, fmt)
         };
         let candidate_path = output_dir.join(&candidate_filename);
-        if !candidate_path.exists() {
-            return candidate_path.to_string_lossy().to_string();
+        match OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&candidate_path)
+        {
+            Ok(_) => return Ok(candidate_path.to_string_lossy().to_string()),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                counter += 1;
+            }
+            Err(error) => {
+                return Err(format!(
+                    "Unable to reserve output path '{}': {error}",
+                    candidate_path.display()
+                ));
+            }
         }
-        counter += 1;
     }
 }
 
@@ -197,11 +210,11 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     if name.trim().is_empty() {
         name = "output".to_string();
     }
-    Ok(resolve_unique_output_path(
+    resolve_unique_output_path(
         &output_dir,
         &name,
         output_format,
-    ))
+    )
 }
 
 use self::input::{parse_kbps, parse_numeric};
@@ -418,13 +431,21 @@ pub fn start_convert(
         options.video_codec.as_deref(),
         true,
         true,
-    )?;
+    )
+    .map_err(|error| {
+        let _ = std::fs::remove_file(&output_path);
+        error
+    })?;
     crate::system::formats::validate_codec_support(
         &output_format,
         options.audio_codec.as_deref(),
         false,
         true,
-    )?;
+    )
+    .map_err(|error| {
+        let _ = std::fs::remove_file(&output_path);
+        error
+    })?;
     let ffmpeg_args = if category == "video" || category == "audio" {
         Some(build_ffmpeg_args(&options, &output_path, hwaccel, &config))
     } else {
@@ -432,7 +453,11 @@ pub fn start_convert(
     };
     drop(config);
     if let Some(args) = ffmpeg_args.as_deref() {
-        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, args)?;
+        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(&ffmpeg_path, args)
+            .map_err(|error| {
+                let _ = std::fs::remove_file(&output_path);
+                error
+            })?;
     }
 
     let task_id = options
@@ -442,6 +467,7 @@ pub fn start_convert(
         .filter(|s| !s.is_empty())
         .unwrap_or_else(generate);
 
+    let output_path_for_cleanup = output_path.clone();
     let payload = ConvertBridgePayload {
         input_path: input_path.to_string(),
         output_path,
@@ -465,7 +491,12 @@ pub fn start_convert(
         payload,
     };
 
-    state.send_raw_command(&app_handle, &cmd)?;
+    state.register_output_path(task_id.clone(), Path::new(&output_path_for_cleanup).to_path_buf());
+    if let Err(error) = state.send_raw_command(&app_handle, &cmd) {
+        state.unregister_output_path(&task_id);
+        let _ = std::fs::remove_file(output_path_for_cleanup);
+        return Err(error);
+    }
 
     Ok(task_id)
 }

@@ -3,6 +3,7 @@ use serde::Serialize;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::io::{BufRead, BufReader, Write};
+use std::path::PathBuf;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
@@ -22,6 +23,7 @@ pub struct BridgeState {
     ffmpeg_ranges: Arc<Mutex<HashMap<String, FfmpegRange>>>,
     sub_listeners: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<Value>>>>,
     batch_cancels: Arc<Mutex<HashMap<String, Arc<std::sync::atomic::AtomicBool>>>>,
+    output_paths: Arc<Mutex<HashMap<String, PathBuf>>>,
     process_limiter: Arc<ProcessLimiter>,
 }
 
@@ -88,11 +90,13 @@ impl ProcessLimiter {
         }
     }
 
-    fn release_all(&self) {
+    fn take_all(&self) -> Vec<String> {
         if let Ok(mut state) = self.state.lock() {
-            state.active.clear();
+            let active: Vec<String> = state.active.drain().collect();
             self.changed.notify_all();
+            return active;
         }
+        Vec::new()
     }
 
     fn active_count(&self) -> usize {
@@ -111,6 +115,7 @@ impl BridgeState {
             ffmpeg_ranges: Arc::new(Mutex::new(HashMap::new())),
             sub_listeners: Arc::new(Mutex::new(HashMap::new())),
             batch_cancels: Arc::new(Mutex::new(HashMap::new())),
+            output_paths: Arc::new(Mutex::new(HashMap::new())),
             process_limiter: Arc::new(ProcessLimiter::new(3)),
         }
     }
@@ -179,11 +184,37 @@ impl BridgeState {
         self.batch_cancels.lock().unwrap().remove(task_id);
     }
 
+    pub fn register_output_path(&self, task_id: String, path: PathBuf) {
+        self.output_paths.lock().unwrap().insert(task_id, path);
+    }
+
+    pub fn unregister_output_path(&self, task_id: &str) {
+        self.output_paths.lock().unwrap().remove(task_id);
+    }
+
     pub fn init(&self, app_handle: &AppHandle) -> Result<(), String> {
         let mut process_guard = self.process.lock().unwrap();
 
-        if process_guard.is_some() {
-            return Ok(());
+        let existing_status = process_guard.as_mut().map(Child::try_wait);
+        match existing_status {
+            None | Some(Ok(None)) => {
+                if process_guard.is_some() {
+                    return Ok(());
+                }
+            }
+            Some(Ok(Some(status))) => {
+                eprintln!("Pulsar bridge exited with status {status}; restarting it.");
+                process_guard.take();
+                *self.stdin.lock().unwrap() = None;
+            }
+            Some(Err(error)) => {
+                eprintln!("Could not check Pulsar bridge status: {error}; restarting it.");
+                if let Some(child) = process_guard.as_mut() {
+                    let _ = child.kill();
+                }
+                process_guard.take();
+                *self.stdin.lock().unwrap() = None;
+            }
         }
 
         let req_path = get_requirements_path();
@@ -228,6 +259,7 @@ impl BridgeState {
         let app_handle_clone = app_handle.clone();
         let ffmpeg_ranges = self.ffmpeg_ranges.clone();
         let sub_listeners = self.sub_listeners.clone();
+        let output_paths = self.output_paths.clone();
         let process_limiter = self.process_limiter.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
@@ -271,6 +303,19 @@ impl BridgeState {
                                 if is_terminal_event(&json_val) {
                                     ffmpeg_ranges.lock().unwrap().remove(id);
                                     process_limiter.release(id);
+                                    if let Some(path) = output_paths.lock().unwrap().remove(id) {
+                                        let event_type = json_val.get("type").and_then(Value::as_str);
+                                        let failed = event_type == Some("finished")
+                                            && !terminal_event_succeeded(&json_val);
+                                        let empty_cancelled_reservation = event_type
+                                            == Some("cancelled")
+                                            && std::fs::metadata(&path)
+                                                .map(|metadata| metadata.len() == 0)
+                                                .unwrap_or(false);
+                                        if failed || empty_cancelled_reservation {
+                                            let _ = std::fs::remove_file(path);
+                                        }
+                                    }
                                 }
                             }
                             let _ = app_handle_clone.emit("download-event", json_val);
@@ -279,7 +324,23 @@ impl BridgeState {
                     Err(e) => eprintln!("Error reading bridge stdout: {}", e),
                 }
             }
-            process_limiter.release_all();
+            for id in process_limiter.take_all() {
+                if let Some(path) = output_paths.lock().unwrap().remove(&id) {
+                    let _ = std::fs::remove_file(path);
+                }
+                let failure = serde_json::json!({
+                    "type": "finished",
+                    "id": id,
+                    "success": false,
+                    "error": "Pulsar bridge process exited before the task completed."
+                });
+                if let Some(task_id) = failure.get("id").and_then(Value::as_str) {
+                    if let Some(tx) = sub_listeners.lock().unwrap().get(task_id) {
+                        let _ = tx.send(failure.clone());
+                    }
+                }
+                let _ = app_handle_clone.emit("download-event", failure);
+            }
         });
 
         thread::spawn(move || {

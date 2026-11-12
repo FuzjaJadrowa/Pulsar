@@ -103,6 +103,16 @@ pub(super) fn build_ffmpeg_args(
                 args.push("-preset".to_string());
                 args.push("veryfast".to_string());
             }
+        } else if hwaccel.is_none() {
+            let codec = crate::infrastructure::ffmpeg::codecs::default_video_codec_for_format(
+                options.output_format.as_deref().unwrap_or("mp4"),
+            );
+            args.push("-c:v".to_string());
+            args.push(codec.clone());
+            if codec == "libx264" || codec == "libx265" {
+                args.push("-preset".to_string());
+                args.push("veryfast".to_string());
+            }
         }
 
         let requested_audio_codec = options
@@ -156,6 +166,12 @@ pub(super) fn build_ffmpeg_args(
 
     let duration = options.source_duration_seconds.unwrap_or(0.0);
     let target_bytes = resolve_target_bytes(options, mode.as_str());
+    if target_bytes.is_some() && duration <= 0.0 {
+        return Err(
+            "A valid source duration is required to target a compressed file size. The app will not truncate the output to force a size limit."
+                .to_string(),
+        );
+    }
     let total_kbps = if let (Some(bytes), true) = (target_bytes, duration > 0.0) {
         Some((bytes as f64 * 8.0) / (duration * 1000.0))
     } else {
@@ -209,9 +225,6 @@ pub(super) fn build_ffmpeg_args(
                 args.push(format!("{}k", audio_kbps.round().max(24.0)));
             }
         }
-    } else if let Some(bytes) = target_bytes {
-        args.push("-fs".to_string());
-        args.push(bytes.to_string());
     } else {
         return Err("Target size could not be resolved.".to_string());
     }
