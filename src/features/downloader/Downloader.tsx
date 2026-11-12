@@ -686,6 +686,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       audio_quality: mode === "audio" ? selectedQuality : null,
       video_codec: mode === "video" && (!videoCodecAlreadyAvailable || otherTranscodeOptions) ? (preferredVideoCodec || undefined) : undefined,
       audio_codec: !audioCodecAlreadyAvailable || otherTranscodeOptions ? (preferredAudioCodec || undefined) : undefined,
+      display_video_codec: preferredVideoCodec || bestVideoSource?.vcodec || undefined,
+      display_audio_codec: preferredAudioCodec || bestAudioSource?.acodec || undefined,
       video_bitrate: videoBitrate || undefined,
       audio_bitrate: audioBitrate || undefined,
       video_fps: videoFps || undefined,

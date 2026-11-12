@@ -65,6 +65,8 @@ export interface DownloadPayload extends Record<string, unknown> {
   audio_quality: string | null;
   video_codec?: string;
   audio_codec?: string;
+  display_video_codec?: string;
+  display_audio_codec?: string;
   video_bitrate?: string;
   audio_bitrate?: string;
   video_fps?: string;

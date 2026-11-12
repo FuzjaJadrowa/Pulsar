@@ -260,9 +260,17 @@ pub fn start_download(
         .map(str::to_string)
         .collect();
 
-    if options.prefer_ffmpeg_while_downloading
-        || (options.prefer_ffmpeg_while_converting && conversion_requested)
-    {
+    let direct_ffmpeg_features_supported = !options.is_time_range_active
+        && !options.skip_sponsors
+        && !options.embed_tags
+        && !options.embed_thumbnail
+        && !options.download_subs
+        && !options.download_chat
+        && !options.embed_subs;
+    let use_ffmpeg_direct_conversion = options.prefer_ffmpeg_while_converting
+        && conversion_requested
+        && direct_ffmpeg_features_supported;
+    if options.prefer_ffmpeg_while_downloading && !use_ffmpeg_direct_conversion {
         args.extend(["--downloader".to_string(), "ffmpeg".to_string()]);
     }
 
@@ -516,7 +524,7 @@ pub fn start_download(
     args.push(options.url.clone());
 
     let cmd = BridgeCommand {
-        command: "download".to_string(),
+        command: if use_ffmpeg_direct_conversion { "download_ffmpeg" } else { "download" }.to_string(),
         id: task_id.clone(),
         args,
     };

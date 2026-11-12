@@ -45,6 +45,8 @@ export interface QueueItemPayload extends Record<string, unknown> {
   estimated_size_bytes?: number | string;
   video_codec?: string;
   audio_codec?: string;
+  display_video_codec?: string;
+  display_audio_codec?: string;
   download_subs?: boolean;
   download_chat?: boolean;
   embed_subs?: boolean;

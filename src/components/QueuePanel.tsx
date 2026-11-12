@@ -116,8 +116,8 @@ export const QueuePanel: React.FC = () => {
           ? String(item.payload?.audio_quality || "--")
           : String(item.payload?.video_quality || "--");
       const codec = dMode === "audio"
-        ? String(item.payload?.audio_codec || "").toUpperCase()
-        : [item.payload?.video_codec, item.payload?.audio_codec].filter(Boolean).map((value) => String(value).toUpperCase()).join("/");
+        ? String(item.payload?.display_audio_codec || item.payload?.audio_codec || "").toUpperCase()
+        : [item.payload?.display_video_codec || item.payload?.video_codec, item.payload?.display_audio_codec || item.payload?.audio_codec].filter(Boolean).map((value) => String(value).toUpperCase()).join("/");
       const output = codec && codec !== format ? `${format} - ${codec}` : format;
       const estimatedSize = formatBytes(item.payload?.estimated_size_bytes);
       text = `${quality} | ${output} | ${estimatedSize}`;
