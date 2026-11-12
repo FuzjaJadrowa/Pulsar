@@ -3,6 +3,7 @@ import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
 import { Preset, exportPreset, getPresetFromCache } from "../services/presets";
 import { CustomSelect } from "./CustomSelect";
+import { sanitizeBitrateInput } from "../utils/bitrate";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { PathSelector } from "./PathSelector";
 import { useUiState } from "../services/uiState";
@@ -758,7 +759,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           className="custom-input"
                           type="text"
                           value={videoBitrate}
-                          onChange={(e) => setVideoBitrate(e.target.value)}
+                          inputMode="numeric"
+                          onChange={(e) => setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000))}
                           placeholder={t("presetCreator.placeholders.bitrate")}
                         />
                       </label>
@@ -820,7 +822,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                           className="custom-input"
                           type="text"
                           value={audioBitrate}
-                          onChange={(e) => setAudioBitrate(e.target.value)}
+                          inputMode="numeric"
+                          onChange={(e) => setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000))}
                           placeholder={t("presetCreator.placeholders.bitrate")}
                         />
                       </label>

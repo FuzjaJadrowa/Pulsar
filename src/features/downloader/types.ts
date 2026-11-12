@@ -7,9 +7,12 @@ export interface DownloaderFormat {
   height?: number | null;
   note?: string;
   resolution?: string;
+  fps?: number | null;
+  filesize?: number | null;
+  filesize_approx?: number | null;
+  ext?: string;
   vcodec?: string | null;
   acodec?: string | null;
-  fps?: number | null;
 }
 
 export interface DownloaderMetadata {
@@ -66,6 +69,9 @@ export interface DownloadPayload extends Record<string, unknown> {
   audio_bitrate?: string;
   video_fps?: string;
   audio_sample_rate?: string;
+  estimated_size_bytes?: number;
+  prefer_ffmpeg_while_converting?: boolean;
+  prefer_ffmpeg_while_downloading?: boolean;
   is_time_range_active: boolean;
   start_time: string;
   end_time: string;

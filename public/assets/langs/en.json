@@ -95,7 +95,15 @@
       "codeOptional": "Code (optional)",
       "codecs": "CODECS",
       "videoCodec": "Video codec",
-      "audioCodec": "Audio codec"
+      "audioCodec": "Audio codec",
+      "showAdvanced": "Advanced options",
+      "hideAdvanced": "Hide advanced options",
+      "qualityOptions": "Quality options",
+      "videoBitrate": "Video bitrate (kbps)",
+      "audioBitrate": "Audio bitrate (kbps)",
+      "fps": "Frame rate (FPS)",
+      "sampleRate": "Audio sample rate (Hz)",
+      "properties": "PROPERTIES"
     },
     "thumbnail": {
       "none": "None",
@@ -186,6 +194,7 @@
   },
   "queue": {
     "title": "Queue",
+    "stages": { "downloading": "Downloading", "converting": "Converting" },
     "actions": {
       "startAll": "Start all",
       "stopAll": "Stop all",

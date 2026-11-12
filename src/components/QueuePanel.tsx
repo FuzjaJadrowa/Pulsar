@@ -115,13 +115,12 @@ export const QueuePanel: React.FC = () => {
         dMode === "audio"
           ? String(item.payload?.audio_quality || "--")
           : String(item.payload?.video_quality || "--");
-      const subs =
-        item.payload?.download_subs ||
-        item.payload?.download_chat ||
-        item.payload?.embed_subs
-          ? t("queue.subtitles.on")
-          : t("queue.subtitles.off");
-      text = `${format} | ${quality} | SUB: ${subs}`;
+      const codec = dMode === "audio"
+        ? String(item.payload?.audio_codec || "").toUpperCase()
+        : [item.payload?.video_codec, item.payload?.audio_codec].filter(Boolean).map((value) => String(value).toUpperCase()).join("/");
+      const output = codec && codec !== format ? `${format} - ${codec}` : format;
+      const estimatedSize = formatBytes(item.payload?.estimated_size_bytes);
+      text = `${quality} | ${output} | ${estimatedSize}`;
     }
 
     let typeIcon = ICONS.download;
@@ -198,7 +197,7 @@ export const QueuePanel: React.FC = () => {
                     </div>
                     <div className="queue-progress-meta">
                       <span>
-                        {item.stage ? `${item.stage} - ` : ""}{Math.round(item.progress)}%
+                        {item.stage ? `${t(`queue.stages.${item.stage}`)} - ` : ""}{Math.round(item.progress)}%
                         {item.listProgress ? ` (${item.listProgress})` : ""}
                       </span>
                       <span>

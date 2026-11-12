@@ -14,7 +14,7 @@ export interface QueueItem {
   status: "pending" | "downloading" | "failed" | "completed";
   progress: number;
   eta: string;
-  stage: string;
+  stage?: string;
   listProgress: string | null;
   addedAt: number;
   payload: QueueItemPayload;
@@ -42,6 +42,9 @@ export interface QueueItemPayload extends Record<string, unknown> {
   video_quality?: string;
   audio_quality?: string;
   source_size_bytes?: number | string;
+  estimated_size_bytes?: number | string;
+  video_codec?: string;
+  audio_codec?: string;
   download_subs?: boolean;
   download_chat?: boolean;
   embed_subs?: boolean;

@@ -133,6 +133,10 @@ pub struct DownloadOptions {
     video_fps: Option<String>,
     #[serde(default, alias = "audio_sample_rate")]
     audio_sample_rate: Option<String>,
+    #[serde(default, alias = "prefer_ffmpeg_while_converting")]
+    prefer_ffmpeg_while_converting: bool,
+    #[serde(default, alias = "prefer_ffmpeg_while_downloading")]
+    prefer_ffmpeg_while_downloading: bool,
     #[serde(default, alias = "custom_args")]
     custom_args: Option<Vec<String>>,
     #[serde(default, alias = "client_task_id")]
@@ -154,6 +158,12 @@ pub fn start_download(
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(generate);
+    let conversion_requested = options.video_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
+        || options.audio_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
+        || options.video_bitrate.is_some()
+        || options.audio_bitrate.is_some()
+        || options.video_fps.is_some()
+        || options.audio_sample_rate.is_some();
     let config = config_mgr.config.lock().unwrap();
     let mut effective_options = options;
     let format_id = if effective_options.mode == "audio" {
@@ -215,6 +225,12 @@ pub fn start_download(
         .filter(|arg| !arg.is_empty() && *arg != "--")
         .map(str::to_string)
         .collect();
+
+    if options.prefer_ffmpeg_while_downloading
+        || (options.prefer_ffmpeg_while_converting && conversion_requested)
+    {
+        args.extend(["--downloader".to_string(), "ffmpeg".to_string()]);
+    }
 
     let req_path = get_requirements_path();
     let ffmpeg_name = if cfg!(target_os = "windows") {

@@ -13,6 +13,7 @@ import { PathSelector } from "../../components/PathSelector";
 import { CustomSelect } from "../../components/CustomSelect";
 import { PresetGrid } from "../../components/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
+import { sanitizeBitrateInput } from "../../utils/bitrate";
 import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderSearchResult, SubtitleOption } from "./types";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
@@ -646,6 +647,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const isTimeRangeActive = !isPlaylist && (rangeStart > 0 || rangeEnd < 100);
     const parsedArgs = config?.advanced_mode ? parseCustomArgsString(customArgs) : [];
     const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
+    const qualityHeight = mode === "video" ? Number.parseInt(selectedQuality || "", 10) : undefined;
+    const estimatedFormats = (metadata?.formats || []).filter((format) =>
+      !qualityHeight || !format.height || format.height <= qualityHeight
+    );
+    const largestKnownSize = (formats: DownloaderFormat[]) => Math.max(0, ...formats.map((format) => Number(format.filesize || format.filesize_approx || 0)));
+    const estimatedBytes = mode === "audio"
+      ? largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)))
+      : largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.vcodec)))
+        + largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)));
     const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim() || config.default_save_path.trim(),
@@ -661,6 +671,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       audio_bitrate: audioBitrate || undefined,
       video_fps: videoFps || undefined,
       audio_sample_rate: audioSampleRate || undefined,
+      estimated_size_bytes: estimatedBytes || undefined,
+      prefer_ffmpeg_while_converting: config.prefer_ffmpeg_while_converting,
+      prefer_ffmpeg_while_downloading: config.prefer_ffmpeg_while_downloading,
       is_time_range_active: isTimeRangeActive,
       start_time: timeStart,
       end_time: timeEnd,
@@ -1300,7 +1313,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           clearActivePreset();
                         }}
                         width="115px"
-                        direction="up"
                       />
                     </div>
                   )}
@@ -1318,11 +1330,30 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                       width="115px"
-                      direction="up"
                     />
                   </div>
                 </div>
               </div>
+
+              <section key={`${metadata?.webpage_url || "properties"}-${isDashboardVisible}`} className="downloader-properties fade-in">
+                <h3>{t("downloader.options.properties")}</h3>
+                {mode === "video" && <label className="downloader-property-field">
+                  <span>{t("downloader.options.videoBitrate")}</span>
+                  <input className="custom-input" type="text" inputMode="numeric" value={videoBitrate} onChange={(e) => { setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000)); clearActivePreset(); }} placeholder={t("presetCreator.placeholders.bitrate")} />
+                </label>}
+                {mode === "video" && <label className="downloader-property-field">
+                  <span>{t("downloader.options.fps")}</span>
+                  <CustomSelect options={[{ value: "", label: t("presetCreator.select.auto") }, { value: "60", label: "60" }, { value: "30", label: "30" }, { value: "24", label: "24" }]} value={videoFps} onChange={(value) => { setVideoFps(value); clearActivePreset(); }} />
+                </label>}
+                {showAudioCodec && <label className="downloader-property-field">
+                  <span>{t("downloader.options.sampleRate")}</span>
+                  <CustomSelect options={[{ value: "", label: t("presetCreator.select.auto") }, { value: "32000", label: "32000" }, { value: "44100", label: "44100" }, { value: "48000", label: "48000" }, { value: "96000", label: "96000" }]} value={audioSampleRate} onChange={(value) => { setAudioSampleRate(value); clearActivePreset(); }} />
+                </label>}
+                {showAudioCodec && <label className="downloader-property-field">
+                  <span>{t("downloader.options.audioBitrate")}</span>
+                  <input className="custom-input" type="text" inputMode="numeric" value={audioBitrate} onChange={(e) => { setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000)); clearActivePreset(); }} placeholder={t("presetCreator.placeholders.bitrate")} />
+                </label>}
+              </section>
 
               {/* Action Footer */}
               <div className="action-footer fade-in">

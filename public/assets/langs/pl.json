@@ -95,7 +95,15 @@
       "codeOptional": "Kod (opcjonalnie)",
       "codecs": "KODEKI",
       "videoCodec": "Kodek wideo",
-      "audioCodec": "Kodek audio"
+      "audioCodec": "Kodek audio",
+      "showAdvanced": "Opcje zaawansowane",
+      "hideAdvanced": "Ukryj opcje zaawansowane",
+      "qualityOptions": "Opcje jakości",
+      "videoBitrate": "Bitrate wideo (kbps)",
+      "audioBitrate": "Bitrate audio (kbps)",
+      "fps": "Klatki na sekundę (FPS)",
+      "sampleRate": "Częstotliwość próbkowania audio (Hz)"
+      ,"properties": "Właściwości"
     },
     "thumbnail": {
       "none": "Brak",
@@ -186,6 +194,7 @@
   },
   "queue": {
     "title": "Kolejka",
+    "stages": { "downloading": "Pobieranie", "converting": "Konwertowanie" },
     "actions": {
       "startAll": "Uruchom wszystkie",
       "stopAll": "Zatrzymaj wszystkie",
