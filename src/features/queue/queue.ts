@@ -30,6 +30,7 @@ export interface QueueItem {
 export interface QueueItemPayload extends Record<string, unknown> {
   url?: string;
   path?: string;
+  source_category?: string;
   output_path?: string;
   filepath?: string;
   output_dir?: string;
@@ -582,6 +583,28 @@ export async function openInFileManager(path: string) {
   }
 }
 
+async function createQueueThumbnail(itemType: "download" | "convert" | "compress", payload: Record<string, unknown>) {
+  if (itemType === "download") return "";
+
+  const batchItems = Array.isArray(payload.items) ? payload.items : [];
+  const source = (payload.is_batch && batchItems.length > 0
+    ? batchItems[0]
+    : payload) as Record<string, unknown>;
+  const path = String(source.input_path || source.path || "").trim();
+  const category = String(source.source_category || source.category || payload.source_category || payload.category || "")
+    .trim()
+    .toLowerCase();
+  if (!path || !["video", "audio", "image"].includes(category)) return "";
+
+  const rawDuration = Number(source.source_duration_seconds ?? payload.source_duration_seconds);
+  const durationSeconds = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : null;
+  try {
+    return await invoke<string>("generate_queue_thumbnail", { path, category, durationSeconds });
+  } catch {
+    return "";
+  }
+}
+
 export async function enqueue(
   itemType: "download" | "convert" | "compress",
   payload: Record<string, unknown>,
@@ -590,6 +613,9 @@ export async function enqueue(
 ) {
   await ensureHydrated();
 
+  const thumbnailPromise = meta?.thumbnail
+    ? null
+    : createQueueThumbnail(itemType, payload);
   const id = getNextItemId();
   const newItem: QueueItem = {
     id,
@@ -614,6 +640,17 @@ export async function enqueue(
   state.items = [...state.items, newItem];
   notifyListeners();
   persistSoon();
+
+  if (thumbnailPromise) {
+    void thumbnailPromise.then((thumbnail) => {
+      if (!thumbnail) return;
+      const queuedItem = state.items.find((item) => item.id === id);
+      if (!queuedItem || queuedItem.thumbnail) return;
+      queuedItem.thumbnail = thumbnail;
+      notifyListeners();
+      persistSoon();
+    });
+  }
 
   if (opts.autoStart) {
     startItemOrQueue(newItem, opts.startReason || "download");

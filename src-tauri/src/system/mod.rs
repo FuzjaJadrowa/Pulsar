@@ -1,6 +1,7 @@
 pub mod acceleration;
 pub mod formats;
 pub mod metadata;
+pub mod queue_thumbnail;
 use crate::app::config::{AppConfig, ConfigManager};
 use crate::app::queue::{QueueManager, QueueState};
 use crate::app::tray::sync_tray_from_queue;

@@ -82,6 +82,7 @@ pub fn run() {
             app::presets::import_preset,
             app::presets::export_preset,
             system::read_file_base64,
+            system::queue_thumbnail::generate_queue_thumbnail,
             startup::get_requirements_versions,
             startup::run_splash_checks,
             startup::cancel_splash_checks,
