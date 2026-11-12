@@ -80,6 +80,9 @@ async function loadDictionary(locale: string): Promise<Dictionary> {
 
 function normalizeLocale(locale: string = "en"): string {
   const normalized = String(locale || "en").trim().toLowerCase();
+  // =====================
+  // ADD NRW ALIASES HERE!
+  // =====================
   const aliases: Record<string, string> = {
     en: "en",
     english: "en",
@@ -92,6 +95,7 @@ function normalizeLocale(locale: string = "en"): string {
     polish: "pl",
     polski: "pl",
   };
+  // =====================
 
   return aliases[normalized] || "en";
 }

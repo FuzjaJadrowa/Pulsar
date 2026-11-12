@@ -1,57 +1,62 @@
 <p align="center">
-  <img src=".github/assets/logo.svg" alt="Pulsar Logo" width="300"/>
+  <img src=".github/assets/logo.svg" alt="Pulsar logo" width="300" />
+</p>
+
+<h3 align="center">Fast and modern media manager.</h3>
+
+<p align="center">
+  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build.yml/badge.svg" alt="Build status" />
 </p>
 
 <p align="center">
-  <img src="https://github.com/fuzjajadrowa/Pulsar/actions/workflows/build.yml/badge.svg" alt="Build Matrix">
-</p>
-
-<p align="center">Fast and modern media manager.</p>
-
----
-
-<p align="center">
-  <video src=".github/assets/pulsar-trailer.mp4" controls width="800">
-    <a href=".github/assets/pulsar-trailer.mp4">Pulsar Trailer</a>
-  </video>
+  <img src=".github/assets/pulsar-trailer.gif" alt="Pulsar in action" width="500" />
 </p>
 
 ---
+
 ## Features
-* Fast and efficient GUI built using web tech with **Tauri** and **Rust**.
-* Offers smart queue system. You can add multiple files to a queue, manage priorities, track progress and process them efficiently in the background.
-* Automatically downloads and configures the latest versions of **Pulsar Bridge** (custom JSON yt-dlp wrapper) and **ffmpeg**.
-* Runs natively on **Windows**, **macOS**, and **Linux**.
-* Features choose between video/audio containers, qualities and bitrate, embeding metadata/thumbnails and many more advanced options.
-* Can display dark, light, and system theme, along with multi-language UI support.
+- Add downloads to a queue, start multiple processes at once, and follow their progress while they run in the background.
+- Choose video or audio formats, quality, and bitrate. You can also embed metadata and thumbnails.
+- Convert and compress media, or extract audio from a video.
+- Pulsar downloads and sets up **Pulsar Bridge**, its JSON-based yt-dlp wrapper, and **FFmpeg** for you.
+- Runs on **Windows**, **macOS**, and **Linux**.
+- Choose a light or dark theme, and set your language.
+
 ## How it works
-Pulsar is a graphical interface for **yt-dlp** and **ffmpeg**, one of the most powerful media download tools available.
-When you paste a URL, Pulsar translates your selected options into the appropriate yt-dlp commands and runs them in the background while showing live progress, download speed, ETA, and any errors.
-For media conversion and compression, Pulsar also uses **ffmpeg**, allowing you to change formats, compress files, extract audio, embed metadata without opening terminal.
+Pulsar gives you a GUI for **yt-dlp** and **FFmpeg**. Paste a URL, choose your options, and add the job to the queue. Pulsar handles the work in the background and shows progress, download speed, remaining time, and errors.
+FFmpeg also powers the conversion tools, so you can change formats, compress files, extract audio, and embed metadata without using the command line.
 
 ## Installation
-Download the latest release from the **[Releases](https://github.com/fuzjajadrowa/Pulsar/releases)** page.
-### For Windows (x86_64)
-* **Installer (.exe)**: Download the NSIS installer, run it, and follow the on-screen instructions. Pulsar will be available in your Start Menu.
-* **Portable (.zip)**: Extract the archive to any folder and run `Pulsar.exe`.
+Download the latest release from the [Releases page](https://github.com/fuzjajadrowa/Pulsar/releases), then follow the instructions for your platform.
 
-### For macOS (Apple Silicon / aarch64)
-* **Installer (.pkg)**: Open the `.pkg` file and follow the on-screen instructions to install Pulsar.
-* **Portable (.app.tar.gz)**: Unzip the file and run the `Pulsar.app` bundle.
-    * *Note:* If you encounter a damage warning, type in command prompt: ```sudo xattr -cr [Path to Pulsar.app]``` and select **Open** to authorize the first launch.
-### For Linux (x86_64)
-* **Debian/Ubuntu (.deb)**: Install via your package manager:
+### Windows (x86_64)
+- **Installer (.exe):** Run the NSIS installer and follow the instructions.
+- **Portable (.zip):** Extract the archive and run `Pulsar.exe`.
+
+### macOS (Apple Silicon / aarch64)
+- **Installer (.pkg):** Open the package and follow the installation steps.
+- **Portable (.app.tar.gz):** Extract the archive and open `Pulsar.app`. 
+  - If macOS says the app is damaged, click Cancel, then go to Settings - Privacy & Security, scroll down, and click Open Anyway.
+
+### Linux (x86_64)
+- **Debian/Ubuntu (.deb):** Install the downloaded package with:
+- 
   ```bash
   sudo apt install ./Pulsar-X.X.X-Linux.deb
   ```
-* **Flatpak (Flathub) - aarch64 is possible here too!**:
+
+- **Flatpak:** Install from Flathub (aarch64 builds are also available):
+
   ```bash
   flatpak install flathub pl.fuzjajadrowa.pulsar
   ```
-  If Flathub is not configured yet:
+
+  If you haven't added Flathub yet:
+
   ```bash
   flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   ```
+  
 ## Building from Source
 To build Pulsar yourself, ensure you have **Node.js (v20+)** and the **Rust stable** toolchain installed.
 1. Install OS Dependencies
@@ -81,6 +86,7 @@ If you just want to run the app in development mode, use:
   ```bash
     npx tauri dev
   ```
+
 ## Screenshots
 <table align="center">
   <tr>
@@ -101,7 +107,7 @@ If you just want to run the app in development mode, use:
   </tr>
 </table>
 
-# License and credits
-This project is licensed under the terms described in the **LICENSE** file.
-French translation is created by Zetsukae.
-Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://ffmpeg.org/).
+## License and credits
+This project is licensed under the **GPL-3.0** described in the **LICENSE** file.
+French translation by Zetsukae.
+Powered by [Tauri](https://v2.tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [FFmpeg](https://ffmpeg.org/).

@@ -43,7 +43,6 @@ export const Settings: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      // Revert title template to default on unmount if left empty
       const current = getCurrentConfig();
       if (!current.title_template || !current.title_template.trim()) {
         saveConfig({ title_template: DEFAULT_CONFIG.title_template });
@@ -218,14 +217,15 @@ export const Settings: React.FC = () => {
     }
   };
 
-
-
-
+// ======================
+// ADD NRW LANGUAGE HERE!
+// ======================
   const languages = [
     { value: "en", label: "English" },
     { value: "fr", label: "Français" },
     { value: "pl", label: "Polski" },
   ];
+// ======================
 
   const themes = [
     { value: "System", label: t("settings.themeOptions.system") },
