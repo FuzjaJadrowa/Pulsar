@@ -239,7 +239,12 @@ impl BridgeState {
         } else {
             "pulsar-bridge"
         };
-        let bridge_path = req_path.join(bridge_name);
+        let bridge_dir = if crate::infrastructure::platform::is_flatpak() {
+            req_path.join("bridge")
+        } else {
+            req_path
+        };
+        let bridge_path = bridge_dir.join(bridge_name);
 
         if !bridge_path.exists() {
             return Err(format!("Bridge not found at: {:?}", bridge_path));

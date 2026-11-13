@@ -119,7 +119,7 @@ jobs:
           app_path="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Pulsar.app"
           pkg_name="Pulsar-$ver-MacOS.pkg"
           mkdir -p pkg-resources
-          cp public/assets/icons/icon.icns pkg-resources/Icon.icns
+          cp assets/icons/pulsar/installer_icon.icns pkg-resources/Icon.icns
           textutil -convert rtf LICENSE -output pkg-resources/License.rtf
           productbuild --component "$app_path" /Applications --resources pkg-resources "$pkg_name"
           cp src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz "Pulsar-$ver-MacOS.app.tar.gz"
@@ -132,7 +132,12 @@ jobs:
         shell: bash
         run: |
           asset="Pulsar-${{ env.VERSION }}-Linux.deb"
-          cp src-tauri/target/release/bundle/deb/*.deb "$asset"
+          deb_file="$(find src-tauri/target/release/bundle/deb -maxdepth 1 -type f -name "*_${{ env.VERSION }}_*.deb" ! -name '*dbgsym*' -print -quit)"
+          if [[ -z "$deb_file" ]]; then
+            echo "No Debian package found in src-tauri/target/release/bundle/deb" >&2
+            exit 1
+          fi
+          cp "$deb_file" "$asset"
           echo "ASSET_DEB=$asset" >> "$GITHUB_ENV"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6

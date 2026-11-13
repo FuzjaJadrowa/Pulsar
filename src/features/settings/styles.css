@@ -208,7 +208,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 select.custom-select { display: none; }
 .select-wrapper { position: relative; user-select: none; width: 100%; font-family: "Manrope", "Montserrat", sans-serif; font-size: 13px; }
 .select-wrapper.select-open { z-index: 1200; }
-.settings-section-card.select-open-card { z-index: 30; }
 
 .title-constructor {
     display: flex;
