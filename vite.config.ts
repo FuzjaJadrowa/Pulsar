@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { cpSync } from "node:fs";
+import { copyFileSync, mkdirSync } from "node:fs";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -10,7 +10,9 @@ export default defineConfig(async () => ({
     {
       name: "copy-static-assets",
       closeBundle() {
-        cpSync("assets", "dist/assets", { recursive: true });
+        mkdirSync("dist/assets", { recursive: true });
+        copyFileSync("assets/locales.toml", "dist/assets/locales.toml");
+        copyFileSync("assets/success.mp3", "dist/assets/success.mp3");
       },
     },
   ],
