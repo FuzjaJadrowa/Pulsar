@@ -17,7 +17,6 @@ use tauri_plugin_updater::UpdaterExt;
 const BRIDGE_REPO_URL: &str =
     "https://api.github.com/repos/fuzjajadrowa/Pulsar-Bridge/releases/latest";
 const FFMPEG_REPO_URL: &str = "https://api.github.com/repos/fuzjajadrowa/FFbuilder/releases/latest";
-const FLATPAK_BRIDGE_VERSION: &str = "b24";
 const FLATPAK_FFMPEG_VERSION: &str = "7.1";
 const FAILED_UPDATE_RETRY_SECS: u64 = 5 * 60;
 
@@ -99,7 +98,7 @@ pub fn get_requirements_versions() -> std::collections::HashMap<String, String> 
     let mut versions = load_versions(&req_path);
     if is_flatpak_runtime() {
         let app_tag = normalize_app_tag(env!("CARGO_PKG_VERSION"));
-        populate_flatpak_versions(&mut versions, &app_tag);
+        populate_flatpak_versions(&mut versions, &app_tag, &req_path);
     }
     versions.local_versions
 }
@@ -159,7 +158,7 @@ pub async fn run_splash_checks(
             .get("pulsar")
             .cloned()
             .unwrap_or_default();
-        populate_flatpak_versions(&mut versions, &app_ver);
+        populate_flatpak_versions(&mut versions, &app_ver, &req_path);
     }
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -367,7 +366,7 @@ pub async fn run_requirement_check(
             .get("pulsar")
             .cloned()
             .unwrap_or_default();
-        populate_flatpak_versions(&mut versions, &app_ver);
+        populate_flatpak_versions(&mut versions, &app_ver, &req_path);
         save_versions(&req_path, &versions);
         emit_status(&window, "Starting...", false, false);
         let _ = window.emit(
@@ -1150,16 +1149,23 @@ fn is_flatpak_runtime() -> bool {
     crate::infrastructure::platform::is_flatpak()
 }
 
-fn populate_flatpak_versions(versions: &mut Versions, app_version: &str) {
+fn populate_flatpak_versions(versions: &mut Versions, app_version: &str, req_path: &Path) {
     if !app_version.trim().is_empty() {
         versions
             .local_versions
             .insert("pulsar".to_string(), app_version.to_string());
     }
-    versions.local_versions.insert(
-        "pulsar-bridge".to_string(),
-        FLATPAK_BRIDGE_VERSION.to_string(),
-    );
+    let bridge_version_path = req_path.join("bridge").join("bridge-version.txt");
+    match fs::read_to_string(bridge_version_path) {
+        Ok(version) if !version.trim().is_empty() => {
+            versions
+                .local_versions
+                .insert("pulsar-bridge".to_string(), version.trim().to_string());
+        }
+        _ => {
+            versions.local_versions.remove("pulsar-bridge");
+        }
+    }
     versions
         .local_versions
         .insert("ffmpeg".to_string(), FLATPAK_FFMPEG_VERSION.to_string());
