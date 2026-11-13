@@ -1,7 +1,7 @@
 import React from "react";
 import { Preset } from "../services/presets";
 import { t } from "../services/i18n";
-import { DEFAULT_ICON } from "../utils/icons";
+import { PRESET_DEFAULT_ICON } from "../utils/icons";
 import { PresetIconPreview } from "./PresetIconPreview";
 
 interface PresetGridProps {
@@ -21,7 +21,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({ id, presets, activeId, o
         onClick={() => onSelect(preset)}
       >
         <div className="preset-card-icon">
-          <PresetIconPreview src={preset.icon_data_url || DEFAULT_ICON} alt="" fallback={DEFAULT_ICON} />
+          <PresetIconPreview src={preset.icon_data_url || PRESET_DEFAULT_ICON} alt="" fallback={PRESET_DEFAULT_ICON} />
         </div>
         <div className="preset-card-info">
           <div className="preset-card-title">

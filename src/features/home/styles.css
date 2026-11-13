@@ -19,7 +19,7 @@
 }
 
 .home-title {
-    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
+    font-family: "Montserrat", "Manrope", sans-serif;
     font-weight: 800;
     font-size: clamp(26px, 4vw, 44px);
     letter-spacing: 0.4px;
@@ -50,7 +50,7 @@
     border: 1px solid rgba(255, 255, 255, 0.16);
     background: rgba(255, 255, 255, 0.08);
     color: rgba(245, 248, 255, 0.95);
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     font-weight: 700;
     font-size: 0.98rem;
     cursor: pointer;

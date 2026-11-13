@@ -88,7 +88,7 @@ function notifyListeners() {
 }
 
 function playSuccessSound() {
-  const audio = new Audio("assets/success.mp3");
+  const audio = new Audio("/assets/success.mp3");
   audio.play().catch((err) => {
     console.log("Audio playback failed or disabled:", err);
   });
@@ -312,8 +312,8 @@ export function maybeStartNext() {
         );
         playSuccessSound();
         sendSystemNotification(
-          t("queue.notifications.systemTitle"),
-          t("queue.notifications.queueCompletedSystem"),
+          "Pulsar",
+          t("queue.notifications.queueCompleted"),
           "success"
         );
       }
@@ -342,8 +342,8 @@ export function markCompleted(item: QueueItem) {
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle"),
-        t("queue.notifications.downloadCompletedSystem"),
+        "Pulsar",
+        t("queue.notifications.downloadCompleted"),
         "success"
       );
     } else if (item.itemType === "convert") {
@@ -354,8 +354,8 @@ export function markCompleted(item: QueueItem) {
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle"),
-        t("queue.notifications.convertCompletedSystem"),
+        "Pulsar",
+        t("queue.notifications.convertCompleted"),
         "success"
       );
     } else if (item.itemType === "compress") {
@@ -366,8 +366,8 @@ export function markCompleted(item: QueueItem) {
       );
       playSuccessSound();
       sendSystemNotification(
-        t("queue.notifications.systemTitle"),
-        t("queue.notifications.compressCompletedSystem"),
+        "Pulsar",
+        t("queue.notifications.compressCompleted"),
         "success"
       );
     }
@@ -410,20 +410,14 @@ export function markFailed(item: QueueItem, code: string) {
     : item.itemType === "compress"
     ? "compressFailed"
     : "downloadFailed";
-  const failedSysKey = item.itemType === "convert"
-    ? "convertFailedSystem"
-    : item.itemType === "compress"
-    ? "compressFailedSystem"
-    : "downloadFailedSystem";
-
   showNotification(
     t("common.error"),
     t(`queue.notifications.${failedKey}`, { suffix }),
     "error"
   );
   sendSystemNotification(
-    t("queue.notifications.systemTitle"),
-    t(`queue.notifications.${failedSysKey}`, { suffix }),
+    "Pulsar",
+    t(`queue.notifications.${failedKey}`, { suffix }),
     "error"
   );
 

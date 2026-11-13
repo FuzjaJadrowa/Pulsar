@@ -1,3 +1,4 @@
+import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "../../services/i18n";
@@ -852,10 +853,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               tabIndex={0}
               onClick={handlePaste}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="3" width="6" height="4" rx="1"></rect>
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
-              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["search"]} /></svg>
             </span>
             <button
               id="fetch-btn"
@@ -864,15 +862,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               disabled={isAnalyzing || isSearching}
             >
               {(isAnalyzing || isSearching) ? (
-                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
-                  <path d="M12 3a9 9 0 0 1 9 9" />
-                </svg>
+                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
               ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["clear-selection"]} /></svg>
               )}
             </button>
           </div>
@@ -943,10 +935,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     title={t("common.output.editTitle")}
                     aria-label={t("common.output.editTitle")}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["edit"]} /></svg>
                   </button>
                 </div>
                 <p className="meta-line">
@@ -1016,11 +1005,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   }}
                   id="mode-video"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
-                    <path d="M7 2v20M17 2v20M2 12h20" />
-                  </svg>
-                  <span>{t("downloader.mode.video")}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["video"]} /></svg>
+                  <span>{t("common.mode.video")}</span>
                 </div>
                 <div
                   className={`switch-option ${mode === "audio" ? "active" : ""}`}
@@ -1032,12 +1018,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   }}
                   id="mode-audio"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 18V5l12-2v13" />
-                    <circle cx="6" cy="18" r="3" />
-                    <circle cx="18" cy="16" r="3" />
-                  </svg>
-                  <span>{t("downloader.mode.audio")}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["audio"]} /></svg>
+                  <span>{t("common.mode.audio")}</span>
                 </div>
               </div>
 
@@ -1140,14 +1122,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 </div>
               )}
 
-              {/* Options group (Thumbnail, subtitles, geo, metadata, advanced) */}
+              {/* Options group (Thumbnail, subtitles, sponsors, metadata, advanced) */}
               <div className="extras-section fade-in">
                 {/* Thumbnail Action */}
                 <div className="thumb-container">
                   <span className="option-label">{t("downloader.options.thumbnail")}</span>
                   <div className="thumb-preview">
                     {metadata.thumbnail ? (
-                      <img src={metadata.thumbnail} alt={t("downloader.thumbnail.alt")} />
+                      <img src={metadata.thumbnail} alt=""/>
                     ) : (
                       <span className="placeholder">{t("downloader.thumbnail.noPreview")}</span>
                     )}
@@ -1161,21 +1143,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       }}
                       title={t("downloader.thumbnail.none")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                      </svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["thumbnail-none"]} /></svg>
                     </button>
                     <button
                       className="icon-btn-small"
                       onClick={saveThumbnail}
                       title={t("downloader.thumbnail.saveToFile")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["download-arrow"]} /></svg>
                     </button>
                     <button
                       className={`icon-btn-small ${thumbnailAction === "embed" ? "active" : ""}`}
@@ -1185,11 +1160,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       }}
                       title={t("downloader.thumbnail.embedInVideo")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                      </svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["image"]} /></svg>
                     </button>
                   </div>
                 </div>
@@ -1341,7 +1312,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   <span className="option-label">{t("downloader.options.codecs")}</span>
                   {mode === "video" && (
                     <div className="form-row">
-                      <span className="toggle-text">{t("downloader.options.videoCodec")}</span>
+                      <span className="toggle-text">{t("common.videoCodec")}</span>
                       <CustomSelect
                         options={downloaderVideoCodecOptions}
                         value={displayedVideoCodec}
@@ -1357,7 +1328,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     className={`form-row audio-codec-row ${showAudioCodec ? "visible" : ""}`}
                     aria-hidden={!showAudioCodec}
                   >
-                    <span className="toggle-text">{t("downloader.options.audioCodec")}</span>
+                    <span className="toggle-text">{t("common.audioCodec")}</span>
                     <CustomSelect
                       options={downloaderAudioCodecOptions}
                       value={displayedAudioCodec}
@@ -1400,11 +1371,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={handleDownload}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["download-arrow"]} /></svg>
                   <span>{t("downloader.actions.download")}</span>
                 </button>
                 <button
@@ -1413,10 +1380,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={handleAddToQueue}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["add-to-queue"]} /></svg>
                   <span>{t("common.addToQueue")}</span>
                 </button>
               </div>
@@ -1456,10 +1420,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       onClick={() => handleSelectSearchResult(entry)}
                     >
                       <span className="action-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <polyline points="19 12 12 19 5 12"></polyline>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["download-progress"]} /></svg>
                       </span>
                       <span className="action-spinner">
                         <span className="search-action-spinner"></span>

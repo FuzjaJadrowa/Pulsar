@@ -1,85 +1,63 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const file = path.join(root, 'assets', 'locales.toml');
+const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+const tables = new Map();
+const missing = new Map();
+let currentTable = null;
+const errors = [];
 
-const rootDir = path.resolve(__dirname, '..');
-const langsDir = path.join(rootDir, 'public', 'assets', 'langs');
-
-function getKeys(obj, prefix = '') {
-  let keys = [];
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const fullKey = prefix ? `${prefix}.${key}` : key;
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        keys = keys.concat(getKeys(obj[key], fullKey));
-      } else {
-        keys.push(fullKey);
-      }
-    }
+for (const [index, rawLine] of lines.entries()) {
+  const line = rawLine.trim();
+  if (!line || line.startsWith('#')) continue;
+  const tableMatch = line.match(/^\[([\w.-]+)\]$/);
+  if (tableMatch) {
+    currentTable = tableMatch[1];
+    if (tables.has(currentTable)) errors.push(`Line ${index + 1}: duplicate table [${currentTable}]`);
+    tables.set(currentTable, new Map());
+    continue;
   }
-  return keys;
-}
-
-if (!fs.existsSync(langsDir)) {
-  console.error(`Translations directory does not exist: ${langsDir}`);
-  process.exit(1);
-}
-
-const files = fs.readdirSync(langsDir).filter(file => file.endsWith('.json'));
-
-if (files.length === 0) {
-  console.error(`No JSON translation files found in ${langsDir}`);
-  process.exit(1);
-}
-
-let hasErrors = false;
-const langKeysMap = new Map();
-
-for (const file of files) {
-  const filePath = path.join(langsDir, file);
+  const entryMatch = line.match(/^([\w-]+)\s*=\s*("(?:\\.|[^"\\])*")\s*$/);
+  if (!currentTable || !entryMatch) {
+    errors.push(`Line ${index + 1}: invalid TOML entry: ${rawLine}`);
+    continue;
+  }
   try {
-    const content = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
-    const json = JSON.parse(content);
-    const keys = new Set(getKeys(json));
-    langKeysMap.set(file, keys);
-  } catch (err) {
-    console.error(`Error reading or parsing ${file}: ${err.message}`);
-    hasErrors = true;
+    const values = tables.get(currentTable);
+    if (values.has(entryMatch[1])) errors.push(`Line ${index + 1}: duplicate language '${entryMatch[1]}' in [${currentTable}]`);
+    values.set(entryMatch[1], JSON.parse(entryMatch[2]));
+  } catch {
+    errors.push(`Line ${index + 1}: invalid string value in [${currentTable}]`);
   }
 }
 
-if (hasErrors) {
-  process.exit(1);
-}
+const languageTable = tables.get('language.name');
+if (!languageTable?.has('en')) errors.push('Missing English language name in [language.name]');
+const languages = [...(languageTable?.keys() || [])];
+if (!languages.length) errors.push('No languages found in [language.name]');
 
-const referenceFile = files.includes('en.json') ? 'en.json' : files[0];
-const referenceKeys = langKeysMap.get(referenceFile);
-
-for (const file of files) {
-  if (file === referenceFile) continue;
-
-  const currentKeys = langKeysMap.get(file);
-
-  for (const key of referenceKeys) {
-    if (!currentKeys.has(key)) {
-      console.error(`Missing translation key in ${file}: "${key}" (present in ${referenceFile})`);
-      hasErrors = true;
+for (const [key, values] of tables) {
+  if (key === 'language.name') continue;
+  for (const locale of languages) {
+    if (!values.has(locale)) {
+      const list = missing.get(locale) || [];
+      list.push(key);
+      missing.set(locale, list);
     }
   }
-
-  for (const key of currentKeys) {
-    if (!referenceKeys.has(key)) {
-      console.error(`Extra translation key in ${file}: "${key}" (not in ${referenceFile})`);
-      hasErrors = true;
-    }
+  for (const locale of values.keys()) {
+    if (!languages.includes(locale)) errors.push(`[${key}] uses '${locale}', which is not declared in [language.name]`);
   }
 }
 
-if (hasErrors) {
-  process.exit(1);
+if (errors.length) console.error(errors.join('\n'));
+for (const [locale, keys] of missing) {
+  console.error(`\nMissing translations for ${languageTable.get(locale)} (${locale}):`);
+  for (const key of keys) console.error(`  - ${key}`);
 }
 
-console.log(`Translation keys check passed successfully for ${files.length} language file(s): ${files.join(', ')}!`);
+if (errors.length || missing.size) process.exit(1);
+console.log(`All ${languages.length} languages have translations for every key in ${path.relative(root, file)}.`);

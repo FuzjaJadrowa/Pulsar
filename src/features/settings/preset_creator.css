@@ -84,7 +84,7 @@ body.preset-modal-open .page-scroll {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.4px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
 }
 .preset-modal-close {
     width: 36px;
@@ -127,7 +127,7 @@ body.preset-modal-open .page-scroll {
     font-weight: 700;
     font-size: 13px;
     letter-spacing: 0.4px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
 }
 .preset-save-btn {
@@ -298,7 +298,7 @@ body.preset-modal-open .page-scroll {
     color: rgba(255, 255, 255, 0.72);
     font-weight: 700;
     font-size: 13px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     cursor: pointer;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -352,7 +352,7 @@ body.preset-modal-open .page-scroll {
     color: rgba(255, 255, 255, 0.72);
     font-weight: 700;
     font-size: 12px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     cursor: pointer;
     letter-spacing: 0.4px;
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;

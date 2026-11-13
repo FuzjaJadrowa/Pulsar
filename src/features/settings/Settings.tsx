@@ -1,5 +1,6 @@
+import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "../../services/i18n";
+import { useTranslation, getLanguages } from "../../services/i18n";
 import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../../services/config";
 import { usePresets } from "../../services/presets";
 import { CustomSelect } from "../../components/CustomSelect";
@@ -8,7 +9,7 @@ import { PresetIconPreview } from "../../components/PresetIconPreview";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
 import { invoke } from "../../services/tauri";
 import { showNotification } from "../../services/notifications";
-import { DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
+import { PRESET_DEFAULT_ICON, TAG_ICON_SVG } from "../../utils/icons";
 import { PathSelector } from "../../components/PathSelector";
 
 let textMeasureCanvas: HTMLCanvasElement | null = null;
@@ -19,7 +20,7 @@ function getTextWidth(text: string): number {
   }
   const ctx = textMeasureCanvas.getContext("2d");
   if (!ctx) return text.length * 7;
-  ctx.font = '13px "Manrope", "Montserrat", "Roboto", sans-serif';
+  ctx.font = '13px "Manrope", "Montserrat", sans-serif';
   return ctx.measureText(text).width;
 }
 
@@ -220,11 +221,7 @@ export const Settings: React.FC = () => {
 // ======================
 // ADD NRW LANGUAGE HERE!
 // ======================
-  const languages = [
-    { value: "en", label: "English" },
-    { value: "fr", label: "Français" },
-    { value: "pl", label: "Polski" },
-  ];
+  const languages = getLanguages();
 // ======================
 
   const themes = [
@@ -414,10 +411,7 @@ export const Settings: React.FC = () => {
               disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check Pulsar update"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                <path d="M1 4v6h6" />
-                <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["retry"]} /></svg>
             </button>
             <ToggleSwitch
               checked={isFlatpak ? false : !!config.update_app}
@@ -440,10 +434,7 @@ export const Settings: React.FC = () => {
               disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check Bridge update"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                <path d="M1 4v6h6" />
-                <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["retry"]} /></svg>
             </button>
             <ToggleSwitch
               checked={isFlatpak ? false : !!config.update_ytdlp}
@@ -466,10 +457,7 @@ export const Settings: React.FC = () => {
               disabled={isFlatpak || isCheckingUpdate}
               aria-label="Check FFmpeg update"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                <path d="M1 4v6h6" />
-                <path d="M3.5 15A9 9 0 1 0 4 5.7L1 10" />
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["retry"]} /></svg>
             </button>
             <ToggleSwitch
               checked={isFlatpak ? false : !!config.update_ffmpeg}
@@ -847,7 +835,7 @@ export const Settings: React.FC = () => {
               return (
                 <div key={preset.id} className={`preset-item ${preset.hidden ? "is-hidden" : ""}`}>
                   <div className="preset-item-icon">
-                    <PresetIconPreview src={iconSrc || DEFAULT_ICON} alt={preset.title || "preset"} fallback={DEFAULT_ICON} />
+                    <PresetIconPreview src={iconSrc || PRESET_DEFAULT_ICON} alt={preset.title || "preset"} fallback={PRESET_DEFAULT_ICON} />
                   </div>
 
                   <div className="preset-item-info">

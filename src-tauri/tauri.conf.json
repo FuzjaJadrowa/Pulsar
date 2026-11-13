@@ -26,26 +26,26 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' asset: data: http: https: blob:; connect-src 'self' ipc: tauri:"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' asset: data: http: https: blob:; connect-src 'self' ipc: tauri:"
     }
   },
   "bundle": {
     "active": true,
     "targets": ["nsis", "app", "deb"],
     "icon": [
-      "../public/assets/icons/icon.png",
-      "../public/assets/icons/icon.icns",
-      "../public/assets/icons/icon.ico"
+      "../assets/icons/pulsar/icon.png",
+      "../assets/icons/pulsar/icon.icns",
+      "../assets/icons/pulsar/icon.ico"
     ],
     "resources": [
-      "../public/assets/icons/icon.png"
+      "../assets/icons/pulsar/icon.png"
     ],
     "copyright": "Copyright © 2026 Fuzja Jadrowa",
     "licenseFile": "../LICENSE",
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
-        "installerIcon": "../public/assets/icons/installer_icon.ico",
+        "installerIcon": "../assets/icons/pulsar/installer_icon.ico",
         "installMode": "perMachine"
       }
     }

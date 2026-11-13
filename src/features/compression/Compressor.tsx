@@ -1,3 +1,4 @@
+import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../../services/i18n";
 import { useConfig } from "../../services/config";
@@ -18,7 +19,7 @@ import type { MediaFileMetadata } from "../../types/media";
 import type { Preset } from "../../services/presets";
 import { BatchFilesList } from "../../components/BatchFilesList";
 
-import { DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
+import { PRESET_DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
 import { extractFileName, extractFolderPath, normalizeFormatKey, parseSizeInput } from "./files";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
@@ -543,9 +544,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 }
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["folder-browse"]} /></svg>
             </span>
             {filePath && (
               <button
@@ -555,9 +554,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 aria-label={t("common.clearSelection")}
                 onClick={resetView}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                  <path d="m18 6-12 12M6 6l12 12" />
-                </svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><use href={ICON_ASSETS["window-close"]} /></svg>
               </button>
             )}
             <button
@@ -567,30 +564,20 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               disabled={isConfirmLoading}
             >
               {isConfirmLoading ? (
-                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
-                  <path d="M12 3a9 9 0 0 1 9 9" />
-                </svg>
+                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
               ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["clear-selection"]} /></svg>
               )}
             </button>
           </div>
           {!isDashboardVisible && (
             <div className="drop-hint compress-drop-hint" onClick={openPicker}>
               <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512">
-                  <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
-                </svg>
+                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
               </span>
               <span className="drop-hint-text">{t("common.dropHint")}</span>
               <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512">
-                  <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
-                </svg>
+                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
               </span>
             </div>
           )}
@@ -605,7 +592,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   <div className="bulk-header-title">
                     <span
                       className="compressor-category-icon"
-                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || DEFAULT_ICON }}
+                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || PRESET_DEFAULT_ICON }}
                     />
                     <span>
                       {t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} ({loadedFiles.length})
@@ -655,17 +642,14 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     title={t("common.output.editTitle")}
                     onClick={() => isEditingName ? finishNameEdit() : beginNameEdit()}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["edit"]} /></svg>
                   </button>
                 </div>
                 <div className="compressor-category-row">
                   <span
                     id="compress-category-icon"
                     className="compressor-category-icon"
-                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || DEFAULT_ICON }}
+                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || PRESET_DEFAULT_ICON }}
                   />
                   <span id="compress-category-label" className="compressor-category-label">
                     {metadata.extension
@@ -723,11 +707,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   }}
                   aria-pressed={selectedMode === "percent" ? "true" : "false"}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <path d="M19 5 5 19" />
-                    <circle cx="7" cy="7" r="3" />
-                    <circle cx="17" cy="17" r="3" />
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-percent"]} /></svg>
                   <span>{t("compressor.mode.percent")}</span>
                 </button>
                 <button
@@ -739,11 +719,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   }}
                   aria-pressed={selectedMode === "size" ? "true" : "false"}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <ellipse cx="12" cy="6" rx="9" ry="3" />
-                    <path d="M3 6v6c0 1.66 4.03 3 9 3s9-1.34 9-3V6" />
-                    <path d="M3 12v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6" />
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-size"]} /></svg>
                   <span>{t("compressor.mode.size")}</span>
                 </button>
                 <button
@@ -755,9 +731,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                   }}
                   aria-pressed={selectedMode === "quality" ? "true" : "false"}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <path d="m12 3.76 2.74 5.55 6.19.41-4.47 4.35 1.06 6.18L12 17.7l-5.52 2.55 1.07-6.18-4.48-4.35 6.19-.41z" />
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-quality"]} /></svg>
                   <span>{t("compressor.mode.quality")}</span>
                 </button>
               </div>
@@ -859,7 +833,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
 
             {/* Options Panel */}
             <div className="compressor-options-panel fade-in">
-              <span className="option-label compressor-options-title">{t("compressor.options.title")}</span>
+              <span className="option-label compressor-options-title">{t("common.options.title")}</span>
 
               {/* Destination Save Path */}
               <PathSelector
@@ -885,11 +859,11 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "video" && (
                       <div className="compressor-specs-section" data-section="video">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
+                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
                           <span id="compress-estimated-video-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.videoCodec")}</span>
+                          <span className="compressor-specs-label">{t("common.videoCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
@@ -906,7 +880,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                           </div>
                         </label>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.audioCodec")}</span>
+                          <span className="compressor-specs-label">{t("common.audioCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
@@ -929,11 +903,11 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "audio" && (
                       <div className="compressor-specs-section" data-section="audio">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
+                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
                           <span id="compress-estimated-audio-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                         <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.audioCodec")}</span>
+                          <span className="compressor-specs-label">{t("common.audioCodec")}</span>
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
@@ -956,7 +930,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "image" && (
                       <div className="compressor-specs-section" data-section="image">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
+                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
                           <span id="compress-estimated-image-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                       </div>
@@ -966,7 +940,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {targetCategory === "other" && (
                       <div className="compressor-specs-section" data-section="other">
                         <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("compressor.options.estimatedSize")}</span>
+                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
                           <span id="compress-estimated-other-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
                         </div>
                       </div>
@@ -984,9 +958,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 onClick={(e) => handleStartCompress(true, e)}
                 disabled={!isValid}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
-                </svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["compress"]} /></svg>
                 <span>{t("compressor.actions.compress")}</span>
               </button>
               <button
@@ -995,10 +967,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                 onClick={(e) => handleStartCompress(false, e)}
                 disabled={!isValid}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["add-to-queue"]} /></svg>
                 <span>{t("common.addToQueue")}</span>
               </button>
             </div>
@@ -1010,9 +979,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       <div id="compress-drop-overlay" className={`compress-drop-overlay ${showDropOverlay ? "visible" : ""}`} aria-hidden={!showDropOverlay}>
         <div className="compress-drop-content">
           <div className="compress-drop-icon" aria-hidden="true">
-            <svg viewBox="0 0 512 512">
-              <path d="M256 0c70.43 0 134.43 28.79 180.82 75.18S512 185.57 512 256s-28.79 134.43-75.18 180.82S326.43 512 256 512s-134.43-28.79-180.82-75.18S0 326.42 0 256 28.79 121.57 75.18 75.18 185.58 0 256 0m-90.15 260.79c-6.91-.29-11.82-2.6-14.65-6.9-7.7-11.53 2.81-22.93 10.09-30.95 20.68-22.68 71.32-77.2 81.53-89.21 7.73-8.54 18.74-8.54 26.46 0 10.54 12.31 63.74 69.32 83.39 91.38 6.82 7.68 15.25 18.15 8.15 28.78-2.9 4.31-7.75 6.61-14.66 6.9H304.2V364.5c0 11.07-9.08 20.17-20.16 20.17h-56.03c-11.08 0-20.16-9.08-20.16-20.17V260.79h-41.97ZM256 24.6c127.27 0 231.4 104.13 231.4 231.4S383.28 487.4 256 487.4 24.6 383.27 24.6 256 128.73 24.6 256 24.6" style={{ fillRule: "evenodd" }} fill="currentColor" />
-            </svg>
+            <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
           </div>
           <div className="compress-drop-text">{t("compressor.drop.text")}</div>
         </div>

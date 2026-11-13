@@ -118,7 +118,7 @@ fn load_tray_icon<R: Runtime>(app: &AppHandle<R>) -> Option<Image<'static>> {
     }
 
     // Final fallback
-    Image::from_bytes(include_bytes!("../../../public/assets/icons/icon.png"))
+    Image::from_bytes(include_bytes!("../../../assets/icons/pulsar/icon.png"))
         .ok()
         .map(|img| img.to_owned())
 }

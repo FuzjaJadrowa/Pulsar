@@ -42,13 +42,39 @@ function interpolate(template: unknown, params: Record<string, unknown> | null):
   });
 }
 
+let tomlCache: Dictionary | null = null;
 async function fetchLangJson(locale: string): Promise<Dictionary> {
-  const response = await fetch(`./assets/langs/${locale}.json`, { cache: "no-store" });
+  const response = await fetch(`/assets/locales.toml`, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error(`Failed to load language file (${locale}): ${response.status}`);
+    throw new Error(`Failed to load locales.toml: ${response.status}`);
   }
-  const json = await response.json();
-  return json && typeof json === "object" ? json : {};
+  if (!tomlCache) {
+    const root: Dictionary = {};
+    let cursor: Dictionary | null = null;
+    for (const line of (await response.text()).split(/\r?\n/)) {
+      const table = line.match(/^\[([\w.-]+)\]$/);
+      if (table) {
+        cursor = root;
+        const parts = table[1].split(".");
+        for (const part of parts) cursor = (cursor[part] ??= {}) as Dictionary;
+      } else if (cursor && line.trim()) {
+        const item = line.match(/^([\w-]+)\s*=\s*("(?:\\.|[^"\\])*")\s*$/);
+        if (item) cursor[item[1]] = JSON.parse(item[2]);
+      }
+    }
+    tomlCache = root;
+  }
+  const result: Dictionary = {};
+  const collect = (src: Dictionary, dst: Dictionary) => Object.entries(src).forEach(([key, value]) => {
+    if (value && typeof value === "object") {
+      const map = value as Record<string, unknown>;
+      const isTranslationTable = Object.keys(map).length > 0 && Object.values(map).every((entry) => typeof entry === "string");
+      if (isTranslationTable) dst[key] = map[locale] ?? map.en;
+      else { const child: Dictionary = {}; collect(map as Dictionary, child); dst[key] = child; }
+    }
+  });
+  collect(tomlCache, result);
+  return result;
 }
 
 async function loadDictionary(locale: string): Promise<Dictionary> {
@@ -97,7 +123,7 @@ function normalizeLocale(locale: string = "en"): string {
   };
   // =====================
 
-  return aliases[normalized] || "en";
+  return aliases[normalized] || (normalized.length === 2 ? normalized : "en");
 }
 
 export async function initI18n(locale: string = "en"): Promise<Dictionary> {
@@ -146,6 +172,12 @@ export function t(
 
 export function getLocale(): string {
   return state.locale;
+}
+
+export function getLanguages(): { value: string; label: string }[] {
+  const names = tomlCache?.language as Record<string, unknown> | undefined;
+  const entries = names?.name as Record<string, unknown> | undefined;
+  return Object.entries(entries || {}).map(([value, label]) => ({ value, label: String(label) }));
 }
 
 export function useTranslation() {

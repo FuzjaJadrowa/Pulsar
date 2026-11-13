@@ -40,19 +40,16 @@ git push origin feature/short-description
 Open a pull request from your branch to the Pulsar repository. Use the pull request template and describe what changed, why it was needed, and how you checked it. A maintainer may ask questions or suggest changes during review.
 
 ## Adding a language
-The interface translations are in `public/assets/langs/`. English (`en.json`) is the reference file; the other language files must use the same keys and nested structure.
+The UI translations are in `assets/locales.toml`. Each translation key has a TOML table containing language-code/value pairs. English is the reference language.
 
-1. Copy `public/assets/langs/en.json` to `public/assets/langs/<code>.json`, using the language's lowercase two-letter code where available (for example, `es.json` for Spanish).
-2. Translate the values in the new file. Keep every key exactly as it is in `en.json`, preserve the JSON structure, and leave placeholders such as `{error}` unchanged. Don't translate URLs, format identifiers, or other values that are meant to remain literal.
-3. Add the language to the selector in `src/features/settings/Settings.tsx`, using the language's native name as its label, the correct line of the code are marked with comments.
-4. Add the code and any useful name aliases to `normalizeLocale` in `src/services/i18n.ts`. This lets the app load the new JSON file when that language is selected, it's also marked with comments.
-5. Run the translation key check:
+1. Add the language's native name under `[language.name]` in `assets/locales.toml`.
+2. Add its language code and translated value to each applicable key table. Preserve placeholders such as `{error}` and leave URLs, format identifiers, and literal values unchanged.
+3. Run the translation check:
 ```bash
 npm run check:translations
 ```
 
-The check compares every language file with `en.json` and reports missing or extra keys. Fix any reported differences refers to added language before submitting the pull request.
-Include the new JSON file and the selector and locale changes in the same pull request. If you update English UI text or add a new UI string, update the corresponding key in every language file as well.
+The check reports every missing key grouped by language and exits with an error while any are missing. The UI falls back to English for untranslated entries.
 
 ## A few things to keep in mind
 - Keep pull requests focused on one change where possible.

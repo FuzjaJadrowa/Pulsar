@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     position: relative;
-    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     color: var(--text-color);
     overflow: hidden;
 
@@ -60,4 +60,19 @@ body.theme-transition .notification-toast {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
+}
+@font-face {
+    font-family: "Manrope";
+    src: url("../../assets/fonts/Manrope.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../../assets/fonts/Montserrat.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
 }

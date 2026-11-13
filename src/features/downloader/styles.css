@@ -54,7 +54,7 @@ body.page-downloader.mode-audio::after { opacity: 1; }
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     font-size: 0.92rem;
     color: rgba(255, 255, 255, 0.6);
     opacity: 0.9;
@@ -110,7 +110,7 @@ body.theme-light .drop-hint-icon svg {
     transform-origin: top center;
     overflow: hidden;
     pointer-events: none;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     transition: max-height 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), margin-top 0.22s ease;
     will-change: max-height, opacity, transform;
     position: relative;
@@ -133,7 +133,7 @@ body.theme-light .drop-hint-icon svg {
     color: var(--c-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    font-family: "Montserrat", "Manrope", "Roboto", sans-serif;
+    font-family: "Montserrat", "Manrope", sans-serif;
     font-weight: 700;
     width: 100%;
     text-align: center;
@@ -157,7 +157,7 @@ body.theme-light .drop-hint-icon svg {
     color: #c0c0c0;
     font-size: 0.82rem;
     font-weight: 600;
-    font-family: "Manrope", "Montserrat", "Roboto", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     cursor: pointer;
     line-height: 1;
     white-space: nowrap;
@@ -374,7 +374,7 @@ body.theme-light .drop-hint-icon svg {
 }
 #path-input {
     flex-grow: 1; background: transparent; border: none; color: #ddd;
-    font-family: "Roboto", "Manrope", "Montserrat", sans-serif; font-size: 0.9rem; padding: 12px 15px; outline: none;
+    font-family: "Manrope", "Montserrat", sans-serif; font-size: 0.9rem; padding: 12px 15px; outline: none;
 }
 #path-input::placeholder { font-style: italic; opacity: 0.5; }
 .meta-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -455,7 +455,7 @@ body.mode-audio .tile.active { color: #a9f5c6; }
     padding: 8px 10px;
     width: 90px;
     text-align: center;
-    font-family: "Manrope", "Roboto", "Montserrat", sans-serif;
+    font-family: "Manrope", "Montserrat", sans-serif;
     font-size: 14px;
     color: var(--input-text);
     outline: none;

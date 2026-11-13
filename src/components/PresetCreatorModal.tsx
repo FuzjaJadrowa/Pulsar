@@ -1,3 +1,4 @@
+import { ICON_ASSETS } from "../utils/icons";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "../services/i18n";
 import { invoke } from "../services/tauri";
@@ -9,7 +10,7 @@ import { PathSelector } from "./PathSelector";
 import { useUiState } from "../services/uiState";
 import { loadFormatCatalog, type FormatEntry } from "../services/formats";
 import { PresetIconField } from "./presets/PresetIconField";
-import { DEFAULT_ICON } from "../utils/icons";
+import { PRESET_DEFAULT_ICON } from "../utils/icons";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
-  const [iconDataUrl, setIconDataUrl] = useState(DEFAULT_ICON);
+  const [iconDataUrl, setIconDataUrl] = useState(PRESET_DEFAULT_ICON);
   const [presetType, setPresetType] = useState<"downloader" | "converter" | "compressor">("downloader");
   const [format, setFormat] = useState("");
   const [compressMode, setCompressMode] = useState<"percent" | "size" | "quality">("percent");
@@ -75,7 +76,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const applyPresetData = (preset: Preset) => {
     setTitle(preset.title || "");
     setSummary(preset.summary || "");
-    setIconDataUrl(preset.icon_data_url || DEFAULT_ICON);
+    setIconDataUrl(preset.icon_data_url || PRESET_DEFAULT_ICON);
     setPresetType(preset.preset_type || "downloader");
 
     if (preset.preset_type === "downloader" && preset.downloader) {
@@ -129,7 +130,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
     } else if (mode === "create") {
       setTitle("");
       setSummary("");
-      setIconDataUrl(DEFAULT_ICON);
+      setIconDataUrl(PRESET_DEFAULT_ICON);
       setPresetType("downloader");
       setFormat("");
       setCompressMode("percent");
@@ -434,7 +435,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
             <div className="preset-detail-row">
               {}
-              <PresetIconField value={iconDataUrl} title={title} fallback={DEFAULT_ICON} onChange={setIconDataUrl} />
+              <PresetIconField value={iconDataUrl} title={title} fallback={PRESET_DEFAULT_ICON} onChange={setIconDataUrl} />
 
               {}
               <div className="preset-field preset-field-type">
@@ -445,11 +446,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     className={`preset-choice ${presetType === "downloader" ? "active" : ""}`}
                     onClick={() => { setPresetType("downloader"); setFormat(""); }}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" width="16" height="16">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" width="16" height="16"><use href={ICON_ASSETS["download-arrow"]} /></svg>
                     <span>{t("settings.presetsManager.types.downloader")}</span>
                   </button>
                   <button
@@ -457,9 +454,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     className={`preset-choice ${presetType === "converter" ? "active" : ""}`}
                     onClick={() => { setPresetType("converter"); setFormat(""); }}
                   >
-                    <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" width="16" height="16">
-                      <path d="M7.288 48.34c.061.04.129.068.193.105.18.105.363.201.559.277.093.036.19.06.286.089.175.053.351.098.535.127.049.008.094.028.144.034q.238.027.476.028h.001q.401-.001.79-.08c.154-.031.297-.086.443-.134.101-.033.206-.054.304-.094.162-.067.31-.158.46-.245.075-.043.156-.075.228-.124a4 4 0 0 0 .604-.495l7.492-7.492a3.995 3.995 0 0 0-4.249-6.56c4.535-11.868 16.033-20.322 29.475-20.322 12.266 0 23.516 7.2 28.658 18.342a4 4 0 1 0 7.264-3.352C74.503 14.478 60.403 5.455 45.027 5.455c-17.837 0-32.947 11.873-37.859 28.129-1.224-1.611-3.48-2.084-5.247-1.008a4 4 0 0 0-1.338 5.496l5.481 9.007c.014.023.035.041.049.063q.189.291.424.545c.036.039.064.085.101.122q.297.3.65.531m82.128 3.589-5.48-9.008c-.014-.023-.035-.04-.049-.063a4 4 0 0 0-.424-.546c-.035-.039-.063-.084-.1-.121a4 4 0 0 0-.65-.531c-.061-.04-.129-.067-.192-.104a4 4 0 0 0-.56-.277c-.093-.036-.19-.06-.287-.089a4 4 0 0 0-.534-.127c-.049-.008-.095-.028-.144-.034-.07-.008-.138.003-.208-.001-.091-.007-.177-.028-.269-.028-.082 0-.159.019-.239.024q-.18.01-.36.036a4 4 0 0 0-.503.113c-.105.03-.209.058-.312.097a4 4 0 0 0-.509.243c-.082.045-.166.082-.245.133-.237.153-.46.326-.659.524l-.001.001-7.492 7.492a4 4 0 0 0 0 5.656 3.99 3.99 0 0 0 4.249.904c-4.535 11.868-16.033 20.321-29.475 20.321a31.505 31.505 0 0 1-29.068-19.268 4 4 0 0 0-7.368 3.117 39.49 39.49 0 0 0 36.436 24.151c17.831 0 32.937-11.864 37.854-28.111a4 4 0 0 0 3.176 1.574c.708 0 1.426-.188 2.075-.584a3.996 3.996 0 0 0 1.338-5.494" transform="translate(1.407 1.407)scale(2.81)" />
-                    </svg>
+                    <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" width="16" height="16"><use href={ICON_ASSETS["convert"]} /></svg>
                     <span>{t("settings.presetsManager.types.converter")}</span>
                   </button>
                   <button
@@ -467,9 +462,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     className={`preset-choice ${presetType === "compressor" ? "active" : ""}`}
                     onClick={() => setPresetType("compressor")}
                   >
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="16" height="16">
-                      <path d="M8.94 0h6.12c-2.06 9.33-2.28 14.67 0 24H8.94c2.19-9.33 2.15-14.67 0-24m.04 12.87L5.8 16.99l-1.77-1.42 1.82-2.44H0v-2.26h5.85L4.03 8.42 5.8 7l3.15 4.08c.53.68.57 1.09.03 1.79m6.02 0L18.19 17l1.77-1.42-1.82-2.44h5.85v-2.26h-5.86l1.82-2.45-1.77-1.42-3.15 4.08c-.53.68-.57 1.09-.03 1.79Z" />
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="16" height="16"><use href={ICON_ASSETS["compress"]} /></svg>
                     <span>{t("settings.presetsManager.types.compressor")}</span>
                   </button>
                 </div>
@@ -503,9 +496,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                         }}
                       >
                         <span>{item.toUpperCase()}</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ opacity: 0.6 }}>
-                          <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" opacity="0.6"><use href={ICON_ASSETS["chevron-right"]} /></svg>
                       </div>
                     ))}
                   </div>
@@ -715,12 +706,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                 {showVideoSettings && (
                   <div className="preset-subsection preset-media-row">
                     <div className="preset-media-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                        <line x1="7" y1="2" x2="7" y2="22"></line>
-                        <line x1="17" y1="2" x2="17" y2="22"></line>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                      </svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><use href={ICON_ASSETS["video"]} /></svg>
                     </div>
                     <div className="preset-media-grid preset-media-grid-video">
                       <label className="preset-field">
@@ -744,7 +730,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                         />
                       </label>
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.videoCodec")}</span>
+                        <span>{t("common.videoCodec")}</span>
                         <CustomSelect
                           options={videoCodecOptions}
                           value={videoCodec}
@@ -784,11 +770,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                 {showAudioSettings && (
                   <div className="preset-subsection preset-media-row">
                     <div className="preset-media-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                        <path d="M9 18V5l12-2v13"></path>
-                        <circle cx="6" cy="18" r="3"></circle>
-                        <circle cx="18" cy="16" r="3"></circle>
-                      </svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><use href={ICON_ASSETS["audio"]} /></svg>
                     </div>
                     <div className="preset-media-grid preset-media-grid-audio">
                       <label className="preset-field">
@@ -807,7 +789,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                         />
                       </label>
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.audioCodec")}</span>
+                        <span>{t("common.audioCodec")}</span>
                         <CustomSelect
                           options={audioCodecOptions}
                           value={audioCodec}

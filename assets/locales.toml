@@ -1,0 +1,1233 @@
+[language.name]
+en = "English"
+fr = "Français"
+pl = "Polski"
+
+[bridgeProtocol.updateBridge]
+en = "This version of Pulsar does not support the installed Pulsar-Bridge. Update Pulsar-Bridge for full and correct work."
+pl = "Ta wersja Pulsara nie obsługuje zainstalowanego Pulsar-Bridge. Zaktualizuj Pulsar-Bridge, aby zapewnić pełne i poprawne działanie."
+
+[bridgeProtocol.updatePulsar]
+en = "This version of Pulsar-Bridge does not support Pulsar. Update Pulsar for full and correct work."
+pl = "Ta wersja Pulsar-Bridge nie obsługuje Pulsara. Zaktualizuj Pulsara, aby zapewnić pełne i poprawne działanie."
+
+[common.error]
+en = "Error"
+pl = "Błąd"
+fr = "Erreur"
+
+[common.success]
+en = "Success"
+pl = "Sukces"
+fr = "Succès"
+
+[common.info]
+en = "Info"
+pl = "Info"
+fr = "Info"
+
+[common.unknownTitle]
+en = "Unknown title"
+pl = "Nieznany tytuł"
+fr = "Titre inconnu"
+
+[common.unknownChannel]
+en = "Unknown channel"
+pl = "Nieznany kanał"
+fr = "Chaîne inconnue"
+
+[common.eta]
+en = "ETA"
+pl = "Pozostały czas"
+fr = "Temps restant"
+
+[common.browse]
+en = "Browse"
+pl = "Przeglądaj"
+fr = "Parcourir"
+
+[common.clearSelection]
+en = "Clear selected file"
+pl = "Wyczyść wybrany plik"
+
+[common.noSavePathSelected]
+en = "No save path selected..."
+pl = "Nie wybrano ścieżki zapisu..."
+
+[common.useLastPath]
+en = "Use last path"
+pl = "Użyj ostatniej ścieżki"
+
+[common.addToQueue]
+en = "ADD TO QUEUE"
+pl = "DODAJ DO KOLEJKI"
+fr = "AJOUTER À LA FILE"
+
+[common.dropHint]
+en = "or just drop some files"
+pl = "lub po prostu upuść pliki"
+fr = "ou simplement déposez des fichiers"
+
+[common.output.placeholder]
+en = "Output name"
+pl = "Nazwa wyjściowa"
+fr = "Nom du fichier de sortie"
+
+[common.output.editTitle]
+en = "Edit output name"
+pl = "Edytuj nazwę wyjściową"
+fr = "Modifier le nom de sortie"
+
+[common.meta.locationLabel]
+en = "Location"
+pl = "Lokalizacja"
+fr = "Emplacement"
+
+[common.meta.sizeLabel]
+en = "Size"
+pl = "Rozmiar"
+fr = "Taille"
+
+[common.meta.durationLabel]
+en = "Duration"
+pl = "Czas trwania"
+fr = "Durée"
+
+[common.meta.category.video]
+en = "Video"
+pl = "Wideo"
+fr = "Vidéo"
+
+[common.meta.category.audio]
+en = "Audio"
+pl = "Audio"
+fr = "Audio"
+
+[common.meta.category.image]
+en = "Image"
+pl = "Obraz"
+fr = "Image"
+
+[common.meta.category.archive]
+en = "Archive"
+pl = "Archiwum"
+fr = "Archive"
+
+[common.meta.category.font]
+en = "Font"
+pl = "Czcionka"
+fr = "Police"
+
+[common.errors.unsupportedFormat]
+en = "Unsupported format."
+pl = "Niewspierany format."
+fr = "Format non supporté."
+
+[common.errors.invalidFileOrLink]
+en = "Invalid file or link."
+pl = "Nieprawidłowy plik lub link."
+fr = "Fichier ou lien invalide."
+
+[common.errors.startPrefix]
+en = "Error: {error}"
+pl = "Błąd: {error}"
+fr = "Erreur : {error}"
+
+[common.mode.video]
+en = "VIDEO"
+pl = "WIDEO"
+fr = "VIDÉO"
+
+[common.mode.audio]
+en = "AUDIO"
+pl = "AUDIO"
+fr = "AUDIO"
+
+[common.options.title]
+en = "OPTIONS"
+pl = "OPCJE"
+fr = "OPTIONS"
+
+[common.options.estimatedSize]
+en = "Estimated size"
+pl = "Szacowany rozmiar"
+fr = "Taille estimée"
+
+[common.videoCodec]
+en = "Video codec"
+pl = "Kodek wideo"
+fr = "Codec vidéo"
+
+[common.audioCodec]
+en = "Audio codec"
+pl = "Kodek audio"
+fr = "Codec audio"
+
+[connection.noInternet]
+en = "No internet connection. Some app features may be unavailable."
+pl = "Brak połączenia z internetem. Niektóre funkcje aplikacji mogą być niedostępne."
+fr = "Pas de connexion internet. Certaines fonctionnalités de l'application peuvent être indisponibles."
+
+[connection.lost]
+en = "Internet connection lost."
+pl = "Utracono połączenie z internetem."
+fr = "Connexion internet perdue."
+
+[connection.restored]
+en = "Internet connection restored."
+pl = "Przywrócono połączenie z internetem."
+fr = "Connexion internet rétablie."
+
+[index.splash.starting]
+en = "Starting..."
+pl = "Uruchamianie..."
+fr = "Démarrage..."
+
+[index.splash.skipUpdate]
+en = "Skip Update"
+pl = "Pomiń aktualizację"
+fr = "Ignorer la mise à jour"
+
+[index.splash.checking]
+en = "Checking..."
+pl = "Sprawdzanie..."
+fr = "Vérification..."
+
+[index.splash.checkingForUpdates]
+en = "Checking for updates..."
+pl = "Sprawdzanie aktualizacji..."
+fr = "Vérification des mises à jour..."
+
+[index.splash.checkingComponent]
+en = "Checking {component}..."
+pl = "Sprawdzanie {component}..."
+fr = "Vérification de {component}..."
+
+[index.splash.updatingTo]
+en = "Updating to {version}"
+pl = "Aktualizowanie do {version}"
+fr = "Mise à jour vers la version {version}"
+
+[index.splash.updateCheckFailed]
+en = "Update check failed: {error}"
+pl = "Błąd sprawdzania aktualizacji: {error}"
+fr = "Échec de la vérification de la mise à jour : {error}"
+
+[index.splash.errorPrefix]
+en = "Error: {error}"
+pl = "Błąd: {error}"
+fr = "Erreur : {error}"
+
+[index.splash.downloadingComponent]
+en = "Downloading {component}..."
+pl = "Pobieranie {component}..."
+fr = "Téléchargement de {component}..."
+
+[index.splash.extracting]
+en = "Extracting..."
+pl = "Rozpakowywanie..."
+fr = "Extraction..."
+
+[index.nav.download]
+en = "Download"
+pl = "Pobieraj"
+fr = "Télécharger"
+
+[index.nav.convert]
+en = "Convert"
+pl = "Konwertuj"
+fr = "Convertir"
+
+[index.nav.compress]
+en = "Compress"
+pl = "Kompresuj"
+fr = "Compresser"
+
+[index.nav.settings]
+en = "Settings"
+pl = "Ustawienia"
+fr = "Paramètres"
+
+[index.nav.queue]
+en = "Queue"
+pl = "Kolejka"
+fr = "File d'attente"
+
+[home.title]
+en = "What do you want to do today?"
+pl = "Co chcesz dzisiaj zrobić?"
+fr = "Que voulez-vous faire aujourd'hui ?"
+
+[downloader.search.urlPlaceholder]
+en = "Type something to download..."
+pl = "Wpisz coś, aby pobrać..."
+fr = "Saisissez quelque chose à télécharger..."
+
+[downloader.search.pasteTitle]
+en = "Paste from clipboard"
+pl = "Wklej ze schowka"
+fr = "Coller depuis le presse-papiers"
+
+[downloader.search.providerLabel]
+en = "Search on"
+pl = "Szukaj w"
+fr = "Rechercher sur"
+
+[downloader.search.resultsTitle]
+en = "SEARCH RESULTS"
+pl = "WYNIKI WYSZUKIWANIA"
+fr = "RÉSULTATS DE RECHERCHE"
+
+[downloader.search.resultsCount]
+en = "{count} results"
+pl = "{count} wyników"
+fr = "{count} résultats"
+
+[downloader.search.empty]
+en = "No results."
+pl = "Brak wyników."
+fr = "Aucun résultat."
+
+[downloader.options.format]
+en = "FORMAT"
+pl = "FORMAT"
+fr = "FORMAT"
+
+[downloader.options.quality]
+en = "QUALITY"
+pl = "JAKOŚĆ"
+fr = "QUALITÉ"
+
+[downloader.options.thumbnail]
+en = "THUMBNAIL"
+pl = "MINIATURA"
+fr = "MINIATURE"
+
+[downloader.options.presets]
+en = "PRESETS"
+pl = "PRESETY"
+fr = "PRÉRÉGLAGES"
+
+[downloader.options.other]
+en = "OTHER"
+pl = "INNE"
+fr = "AUTRE"
+
+[downloader.options.skipSponsors]
+en = "Skip sponsors"
+pl = "Pomijaj sponsorów"
+
+[downloader.options.embedMetadata]
+en = "Embed metadata"
+pl = "Osadź metadane"
+fr = "Intégrer les métadonnées"
+
+[downloader.options.muteAudio]
+en = "Mute audio"
+pl = "Wycisz audio"
+fr = "Couper le son"
+
+[downloader.options.customArgs]
+en = "Custom args"
+pl = "Własne argumenty"
+fr = "Arguments personnalisés"
+
+[downloader.options.customArgsPlaceholder]
+en = "Optional"
+pl = "Opcjonalnie"
+fr = "Optionnel"
+
+[downloader.options.subtitles]
+en = "SUBTITLES"
+pl = "NAPISY"
+fr = "SOUS-TITRES"
+
+[downloader.options.downloadSubtitles]
+en = "Download subtitles"
+pl = "Pobierz napisy"
+fr = "Télécharger les sous-titres"
+
+[downloader.options.embedSubtitles]
+en = "Embed subtitles"
+pl = "Osadź napisy"
+fr = "Intégrer les sous-titres"
+
+[downloader.options.downloadLiveChat]
+en = "Download live chat"
+pl = "Pobierz czat na żywo"
+fr = "Télécharger le chat en direct"
+
+[downloader.options.codeOptional]
+en = "Code (optional)"
+pl = "Kod (opcjonalnie)"
+fr = "Code (optionnel)"
+
+[downloader.options.codecs]
+en = "CODECS"
+pl = "KODEKI"
+fr = "CODECS"
+
+[downloader.options.properties]
+en = "PROPERTIES"
+pl = "Właściwości"
+
+[downloader.options.videoBitrate]
+en = "Video bitrate (kbps)"
+pl = "Bitrate wideo (kbps)"
+
+[downloader.options.audioBitrate]
+en = "Audio bitrate (kbps)"
+pl = "Bitrate audio (kbps)"
+
+[downloader.options.fps]
+en = "Frame rate (FPS)"
+pl = "Klatki na sekundę (FPS)"
+
+[downloader.options.sampleRate]
+en = "Audio sample rate (Hz)"
+pl = "Częstotliwość próbkowania audio (Hz)"
+
+[downloader.thumbnail.none]
+en = "None"
+pl = "Brak"
+fr = "Aucune"
+
+[downloader.thumbnail.saveToFile]
+en = "Save to file"
+pl = "Zapisz do pliku"
+fr = "Enregistrer dans un fichier"
+
+[downloader.thumbnail.embedInVideo]
+en = "Embed in video"
+pl = "Osadź w wideo"
+fr = "Intégrer dans la vidéo"
+
+[downloader.thumbnail.noPreview]
+en = "NO PREVIEW"
+pl = "BRAK PODGLĄDU"
+fr = "PAS D'APERÇU"
+
+[downloader.thumbnail.saveFailed]
+en = "Failed to save thumbnail."
+pl = "Nie udało się zapisać miniatury. Sprawdź konsolę."
+fr = "Échec de l'enregistrement de la miniature. Vérifiez la console pour plus de détails."
+
+[downloader.actions.download]
+en = "DOWNLOAD"
+pl = "POBIERZ"
+fr = "TÉLÉCHARGER"
+
+[downloader.errors.searchFailed]
+en = "Search failed."
+pl = "Wyszukiwanie nie powiodło się."
+fr = "Échec de la recherche."
+
+[downloader.languages.global]
+en = "Global"
+pl = "Globalny"
+fr = "Global"
+
+[converter.path.placeholder]
+en = "Select a file to convert..."
+pl = "Wybierz plik do konwersji..."
+fr = "Sélectionnez un fichier à convertir..."
+
+[converter.actions.convert]
+en = "CONVERT"
+pl = "KONWERTUJ"
+fr = "CONVERTIR"
+
+[converter.bulk.removeFile]
+en = "Remove file from batch"
+pl = "Usuń plik z paczki"
+fr = "Retirer le fichier du lot"
+
+[converter.bulk.mixedCategoryError]
+en = "All selected files must belong to the same category."
+pl = "Wszystkie wybrane pliki muszą należeć do tej samej kategorii."
+fr = "Tous les fichiers sélectionnés doivent appartenir à la même catégorie."
+
+[converter.options.convertTo]
+en = "CONVERT TO"
+pl = "KONWERTUJ NA"
+fr = "CONVERTIR EN"
+
+[converter.options.videoQuality]
+en = "Video quality"
+pl = "Jakość wideo"
+fr = "Qualité vidéo"
+
+[converter.options.videoBitrate]
+en = "Video bitrate"
+pl = "Bitrate wideo"
+fr = "Débit binaire vidéo"
+
+[converter.options.fps]
+en = "FPS"
+pl = "FPS"
+fr = "FPS"
+
+[converter.options.audioBitrate]
+en = "Audio bitrate"
+pl = "Bitrate audio"
+fr = "Débit binaire audio"
+
+[converter.options.resolution]
+en = "Resolution"
+pl = "Rozdzielczość"
+fr = "Résolution"
+
+[converter.options.widthPlaceholder]
+en = "Width"
+pl = "Szerokość"
+fr = "Largeur"
+
+[converter.options.heightPlaceholder]
+en = "Height"
+pl = "Wysokość"
+fr = "Hauteur"
+
+[converter.options.quality]
+en = "Quality"
+pl = "Jakość"
+fr = "Qualité"
+
+[converter.drop.text]
+en = "Drop files to convert"
+pl = "Upuść pliki, aby je przekonwertować"
+fr = "Déposez le fichier à convertir"
+
+[compressor.path.placeholder]
+en = "Select file to compress..."
+pl = "Wybierz plik do kompresji..."
+fr = "Sélectionnez un fichier à compresser..."
+
+[compressor.actions.compress]
+en = "COMPRESS"
+pl = "KOMPRESUJ"
+fr = "COMPRESSER"
+
+[compressor.bulk.removeFile]
+en = "Remove file from batch"
+pl = "Usuń plik z paczki"
+fr = "Retirer le fichier du lot"
+
+[compressor.bulk.mixedCategoryError]
+en = "Selection cancelled: all selected files must belong to the same category (Images, Video, or Audio)."
+pl = "Wycofano wybór: wszystkie wybrane pliki muszą należeć do tej samej kategorii (Obrazy, Wideo lub Audio)."
+fr = "Sélection annulée : tous les fichiers sélectionnés doivent appartenir à la même catégorie (Images, Vidéo ou Audio)."
+
+[compressor.mode.percent]
+en = "PERCENT"
+pl = "PROCENT"
+fr = "POURCENTAGE"
+
+[compressor.mode.size]
+en = "SIZE"
+pl = "ROZMIAR"
+fr = "TAILLE"
+
+[compressor.mode.quality]
+en = "QUALITY"
+pl = "JAKOŚĆ"
+fr = "QUALITÉ"
+
+[compressor.size.placeholder]
+en = "Approx. target size"
+pl = "Docelowy rozmiar (orientacyjnie)"
+fr = "Taille cible (approx.)"
+
+[compressor.options.compressBy]
+en = "COMPRESS BY"
+pl = "KOMPRESUJ WEDŁUG"
+fr = "COMPRESSER PAR"
+
+[compressor.crf.bestQuality]
+en = "0 - Best quality"
+pl = "0 - Najlepsza jakość"
+fr = "0 - Meilleure qualité"
+
+[compressor.crf.balance]
+en = "26 - Balance"
+pl = "26 - Balans"
+fr = "26 - Équilibré"
+
+[compressor.crf.bestCompression]
+en = "51 - Best compression"
+pl = "51 - Najlepsza kompresja"
+fr = "51 - Meilleure compression"
+
+[compressor.drop.text]
+en = "Drop files to compress"
+pl = "Upuść pliki, aby je skompresować"
+fr = "Déposez le fichier à compresser"
+
+[queue.title]
+en = "Queue"
+pl = "Kolejka"
+fr = "File d'attente"
+
+[queue.stages.downloading]
+en = "Downloading"
+pl = "Pobieranie"
+
+[queue.stages.converting]
+en = "Converting"
+pl = "Konwertowanie"
+
+[queue.stages.finished]
+en = "Finished"
+pl = "Zakończono"
+
+[queue.stages.processing]
+en = "Processing"
+pl = "Przetwarzanie"
+
+[queue.actions.startAll]
+en = "Start all"
+pl = "Uruchom wszystkie"
+fr = "Tout lancer"
+
+[queue.actions.stopAll]
+en = "Stop all"
+pl = "Zatrzymaj wszystkie"
+fr = "Tout arrêter"
+
+[queue.actions.clearQueue]
+en = "Clear queue"
+pl = "Wyczyść kolejkę"
+fr = "Vider la file"
+
+[queue.empty]
+en = "Queue is empty."
+pl = "Kolejka jest pusta."
+fr = "La file d'attente est vide."
+
+[queue.itemActions.start]
+en = "Start"
+pl = "Uruchom"
+fr = "Lancer"
+
+[queue.itemActions.stop]
+en = "Stop"
+pl = "Zatrzymaj"
+fr = "Arrêter"
+
+[queue.itemActions.remove]
+en = "Remove"
+pl = "Usuń"
+fr = "Retirer"
+
+[queue.itemActions.retry]
+en = "Retry"
+pl = "Spróbuj ponownie"
+fr = "Réessayer"
+
+[queue.itemActions.openLocation]
+en = "Open location"
+pl = "Otwórz lokalizację"
+fr = "Ouvrir l'emplacement"
+
+[queue.notifications.downloadCompleted]
+en = "Download completed successfully."
+pl = "Pobieranie zakończone pomyślnie."
+fr = "Téléchargement terminé avec succès."
+
+[queue.notifications.convertCompleted]
+en = "Conversion completed successfully."
+pl = "Konwersja zakończona pomyślnie."
+fr = "Conversion terminée avec succès."
+
+[queue.notifications.compressCompleted]
+en = "Compression completed successfully."
+pl = "Kompresja zakończona pomyślnie."
+fr = "Compression terminée avec succès."
+
+[queue.notifications.queueCompleted]
+en = "Queue elements completed successfully."
+pl = "Elementy kolejki zakończone pomyślnie."
+fr = "Éléments de la file d'attente terminés avec succès."
+
+[queue.notifications.downloadFailed]
+en = "Download failed.{suffix}"
+pl = "Pobieranie nie powiodło się.{suffix}"
+fr = "Échec du téléchargement.{suffix}"
+
+[queue.notifications.convertFailed]
+en = "Conversion failed.{suffix}"
+pl = "Konwersja nie powiodła się.{suffix}"
+fr = "Échec de la conversion.{suffix}"
+
+[queue.notifications.compressFailed]
+en = "Compression failed.{suffix}"
+pl = "Kompresja nie powiodła się.{suffix}"
+fr = "Échec de la compression.{suffix}"
+
+[queue.notifications.errorSuffix]
+en = " Error code: {code}"
+pl = " Kod błędu: {code}"
+fr = " Code d'erreur : {code}"
+
+[queue.notifications.downloadStopped]
+en = "Download stopped by user."
+pl = "Pobieranie zatrzymane przez użytkownika."
+fr = "Téléchargement arrêté par l'utilisateur."
+
+[settings.title]
+en = "Settings"
+pl = "Ustawienia"
+fr = "Paramètres"
+
+[settings.general]
+en = "General"
+pl = "Ogólne"
+fr = "Général"
+
+[settings.appearance]
+en = "Appearance"
+pl = "Wygląd"
+fr = "Apparence"
+
+[settings.theme]
+en = "Theme"
+pl = "Motyw"
+fr = "Thème"
+
+[settings.themeOptions.system]
+en = "System"
+pl = "Systemowy"
+fr = "Système"
+
+[settings.themeOptions.dark]
+en = "Dark"
+pl = "Ciemny"
+fr = "Sombre"
+
+[settings.themeOptions.light]
+en = "Light"
+pl = "Jasny"
+fr = "Clair"
+
+[settings.language]
+en = "Language"
+pl = "Język"
+fr = "Langue"
+
+[settings.closeBehavior]
+en = "When I close Pulsar:"
+pl = "Gdy zamykam Pulsara:"
+fr = "Quand je ferme Pulsar :"
+
+[settings.closeBehaviorOptions.hide]
+en = "Hide"
+pl = "Ukryj"
+fr = "Masquer"
+
+[settings.closeBehaviorOptions.exit]
+en = "Exit"
+pl = "Zamknij"
+fr = "Quitter"
+
+[settings.systemNotifications]
+en = "System notifications"
+pl = "Powiadomienia systemowe"
+fr = "Notifications système"
+
+[settings.advancedMode]
+en = "Advanced mode"
+pl = "Tryb zaawansowany"
+fr = "Mode avancé"
+
+[settings.advanced]
+en = "Advanced"
+pl = "Zaawansowane"
+
+[settings.advancedModeNote]
+en = "Shows advanced options like own arguments for yt-dlp or FFmpeg."
+pl = "Wyświetla opcje zaawansowane, takie jak własne argumenty dla yt-dlp lub FFmpeg."
+
+[settings.runtimeLogs]
+en = "Runtime logs"
+pl = "Logi działania"
+
+[settings.runtimeLogsNote]
+en = "This will allow Pulsar to log information to console. Can be useful for bug reporting and debugging."
+pl = "Pozwala Pulsarowi zapisywać informacje w konsoli. Może to pomóc przy zgłaszaniu błędów i debugowaniu."
+
+[settings.idleAnimation]
+en = "Idle animation"
+pl = "Animacja bezczynności"
+fr = "Animation d'inactivité"
+
+[settings.codecs.title]
+en = "Codecs"
+pl = "Kodeki"
+fr = "Codecs"
+
+[settings.codecs.copyCodecIfPossible]
+en = "Copy codec if possible"
+pl = "Kopiuj kodek jeśli to możliwe"
+fr = "Copier le codec si possible"
+
+[settings.codecs.defaultVideoCodec]
+en = "Default video codec"
+pl = "Domyślny kodek wideo"
+fr = "Codec vidéo par défaut"
+
+[settings.codecs.defaultAudioCodec]
+en = "Default audio codec"
+pl = "Domyślny kodek audio"
+fr = "Codec audio par défaut"
+
+[settings.requirements]
+en = "Requirements"
+pl = "Wymagania"
+fr = "Prérequis"
+
+[settings.currentVersion]
+en = "Current version: {version}"
+pl = "Aktualna wersja: {version}"
+fr = "Version actuelle : {version}"
+
+[settings.autoUpdateApp]
+en = "Auto-update Pulsar"
+pl = "Automatyczne aktualizacje Pulsara"
+fr = "Mise à jour auto de Pulsar"
+
+[settings.autoUpdateBridge]
+en = "Auto-update Bridge"
+pl = "Automatyczne aktualizacje Bridge"
+fr = "Mise à jour auto de Bridge"
+
+[settings.autoUpdateFfmpeg]
+en = "Auto-update FFmpeg"
+pl = "Automatyczne aktualizacje FFmpeg"
+fr = "Mise à jour auto de FFmpeg"
+
+[settings.ffmpegHwAccel]
+en = "FFmpeg hardware acceleration"
+pl = "Akceleracja sprzętowa FFmpeg"
+fr = "Accélération matérielle FFmpeg"
+
+[settings.updateCooldown]
+en = "Update check cooldown (minutes)"
+pl = "Odstęp między sprawdzaniem aktualizacji (minuty)"
+fr = "Délai de vérification des mises à jour (minutes)"
+
+[settings.downloadSettings]
+en = "Download settings"
+pl = "Ustawienia pobierania"
+fr = "Paramètres de téléchargement"
+
+[settings.defaultSavePath]
+en = "Default save path"
+pl = "Domyślna ścieżka zapisu"
+
+[settings.cookiesFromBrowser]
+en = "Cookies from browser"
+pl = "Ciasteczka z przeglądarki"
+fr = "Cookies du navigateur"
+
+[settings.cookiesFromBrowserNote]
+en = "Allows using your browser cookies to download restricted videos you have access to."
+pl = "Pozwala używać ciasteczek z przeglądarki do pobierania ograniczonych filmów, do których masz dostęp."
+fr = "Permet d'utiliser les cookies de votre navigateur pour télécharger des vidéos restreintes auxquelles vous avez accès."
+
+[settings.maximumConcurrentProcesses]
+en = "Maximum concurrent processes"
+pl = "Maksymalna liczba równoczesnych procesów"
+fr = "Nombre maximum de processus simultanés"
+
+[settings.maximumSearchResults]
+en = "Maximum search results"
+pl = "Maksymalna liczba wyników wyszukiwania"
+fr = "Nombre maximum de résultats de recherche"
+
+[settings.preferDownloadingWithFfmpeg]
+en = "Prefer downloading with FFmpeg"
+pl = "Preferuj pobieranie przez FFmpeg"
+
+[settings.whileConvertingMedia]
+en = "While converting media"
+pl = "Podczas konwersji multimediów"
+
+[settings.whileConvertingMediaNote]
+en = "Pass the online source directly to FFmpeg during conversion. This can improve download speed and output quality depending on the source and encoder."
+pl = "Przekazuje źródło online bezpośrednio do FFmpeg podczas konwersji. Może to poprawić szybkość pobierania i jakość wyniku, zależnie od źródła i kodera."
+
+[settings.whileDownloadingMedia]
+en = "While downloading media"
+pl = "Podczas pobierania multimediów"
+
+[settings.whileDownloadingMediaNote]
+en = "Let FFmpeg fetch online media instead of yt-dlp. This can affect speed, source compatibility, and output quality."
+pl = "Pozwala FFmpeg pobierać multimedia online zamiast yt-dlp. Może to wpłynąć na szybkość, zgodność ze źródłami i jakość wyniku."
+
+[settings.presetsManager.title]
+en = "Presets Manager"
+pl = "Menedżer presetów"
+fr = "Gestionnaire de préréglages"
+
+[settings.presetsManager.count]
+en = "{count} presets"
+pl = "{count} presetów"
+fr = "{count} préréglages"
+
+[settings.presetsManager.empty]
+en = "No presets yet."
+pl = "Brak presetów."
+fr = "Aucun préréglage pour le moment."
+
+[settings.presetsManager.untitled]
+en = "Untitled"
+pl = "Bez tytułu"
+fr = "Sans titre"
+
+[settings.presetsManager.noSummary]
+en = "No summary"
+pl = "Brak opisu"
+fr = "Aucun résumé"
+
+[settings.presetsManager.types.downloader]
+en = "Downloader"
+pl = "Pobieraj"
+fr = "Téléchargeur"
+
+[settings.presetsManager.types.converter]
+en = "Converter"
+pl = "Konwertuj"
+fr = "Convertisseur"
+
+[settings.presetsManager.types.compressor]
+en = "Compressor"
+pl = "Kompresuj"
+fr = "Compresseur"
+
+[settings.presetsManager.actions.add]
+en = "New preset"
+pl = "Nowy preset"
+fr = "Nouveau préréglage"
+
+[settings.presetsManager.actions.import]
+en = "Import"
+pl = "Importuj"
+fr = "Importer"
+
+[settings.presetsManager.actions.edit]
+en = "Edit"
+pl = "Edytuj"
+fr = "Modifier"
+
+[settings.presetsManager.actions.export]
+en = "Export"
+pl = "Eksportuj"
+fr = "Exporter"
+
+[settings.presetsManager.actions.delete]
+en = "Delete"
+pl = "Usuń"
+fr = "Supprimer"
+
+[settings.presetsManager.actions.hide]
+en = "Hidden"
+pl = "Ukryte"
+fr = "Masqué"
+
+[settings.titleConstructor]
+en = "Title Constructor"
+pl = "Konstruktor tytułu"
+fr = "Constructeur de titre"
+
+[settings.titleConstructorNote]
+en = "Not every tag is available for all media."
+pl = "Nie każdy tag jest dostępny dla wszystkich mediów."
+fr = "Toutes les balises ne sont pas disponibles pour tous les médias."
+
+[settings.titleConstructorRemoveTag]
+en = "Click to remove tag"
+pl = "Kliknij, aby usunąć tag"
+fr = "Cliquez pour retirer la balise"
+
+[settings.titleConstructorCategories.video]
+en = "Video"
+pl = "Wideo"
+fr = "Vidéo"
+
+[settings.titleConstructorCategories.statsDates]
+en = "Stats & Dates"
+pl = "Statystyki i daty"
+fr = "Stats & Dates"
+
+[settings.titleConstructorCategories.playlist]
+en = "Playlist"
+pl = "Lista odtwarzania"
+fr = "Playlist"
+
+[settings.titleConstructorCategories.music]
+en = "Music"
+pl = "Muzyka"
+fr = "Musique"
+
+[settings.titleConstructorTags.title]
+en = "Title"
+pl = "Tytuł"
+fr = "Titre"
+
+[settings.titleConstructorTags.id]
+en = "Video ID"
+pl = "ID wideo"
+fr = "ID de la vidéo"
+
+[settings.titleConstructorTags.resolution]
+en = "Resolution"
+pl = "Rozdzielczość"
+fr = "Résolution"
+
+[settings.titleConstructorTags.durationString]
+en = "Duration"
+pl = "Czas trwania"
+fr = "Durée"
+
+[settings.titleConstructorTags.fps]
+en = "FPS"
+pl = "FPS"
+fr = "FPS"
+
+[settings.titleConstructorTags.uploadDate]
+en = "Upload Date"
+pl = "Data publikacji"
+fr = "Date d'envoi"
+
+[settings.titleConstructorTags.viewCount]
+en = "View Count"
+pl = "Liczba wyświetleń"
+fr = "Nombre de vues"
+
+[settings.titleConstructorTags.likeCount]
+en = "Like Count"
+pl = "Liczba polubień"
+fr = "Nombre de j'aime"
+
+[settings.titleConstructorTags.uploader]
+en = "Uploader"
+pl = "Autor"
+fr = "Auteur du transfert"
+
+[settings.titleConstructorTags.playlist]
+en = "Playlist Name"
+pl = "Nazwa playlisty"
+fr = "Nom de la playlist"
+
+[settings.titleConstructorTags.playlistIndex]
+en = "Playlist Index"
+pl = "Numer w playliście"
+fr = "Index dans la playlist"
+
+[settings.titleConstructorTags.videoAutonumber]
+en = "Queue Number"
+pl = "Numer w kolejce"
+fr = "Numéro dans la file"
+
+[settings.titleConstructorTags.track]
+en = "Track Name"
+pl = "Nazwa utworu"
+fr = "Nom de la piste"
+
+[settings.titleConstructorTags.artist]
+en = "Artist"
+pl = "Wykonawca"
+fr = "Artiste"
+
+[settings.titleConstructorTags.album]
+en = "Album"
+pl = "Album"
+fr = "Album"
+
+[settings.titleConstructorTags.releaseYear]
+en = "Release Year"
+pl = "Rok wydania"
+fr = "Année de sortie"
+
+[settings.support]
+en = "Support"
+pl = "Wsparcie"
+fr = "Soutien"
+
+[settings.supportText]
+en = "Show your support!"
+pl = "Pokaż wsparcie!"
+fr = "Affichez votre soutien !"
+
+[settings.supportButton]
+en = "Support Project"
+pl = "Wesprzyj projekt"
+fr = "Soutenir le projet"
+
+[presetCreator.title.new]
+en = "Create Preset"
+pl = "Utwórz preset"
+fr = "Créer un préréglage"
+
+[presetCreator.title.edit]
+en = "Edit Preset"
+pl = "Edytuj preset"
+fr = "Modifier le préréglage"
+
+[presetCreator.sections.basic]
+en = "Preset Details"
+pl = "Szczegóły presetu"
+fr = "Détails du préréglage"
+
+[presetCreator.sections.type]
+en = "Preset Type"
+pl = "Typ presetu"
+fr = "Type de préréglage"
+
+[presetCreator.sections.format]
+en = "Format"
+pl = "Format"
+fr = "Format"
+
+[presetCreator.sections.compression]
+en = "Compression"
+pl = "Kompresja"
+fr = "Compression"
+
+[presetCreator.sections.misc]
+en = "Misc"
+pl = "Różne"
+fr = "Divers"
+
+[presetCreator.sections.videoAudio]
+en = "Video & Audio"
+pl = "Wideo i audio"
+fr = "Vidéo & Audio"
+
+[presetCreator.fields.title]
+en = "Title"
+pl = "Tytuł"
+fr = "Titre"
+
+[presetCreator.fields.summary]
+en = "Summary"
+pl = "Opis"
+fr = "Résumé"
+
+[presetCreator.fields.icon]
+en = "Icon"
+pl = "Ikona"
+fr = "Icône"
+
+[presetCreator.fields.path]
+en = "Save path"
+pl = "Ścieżka zapisu"
+fr = "Dossier de sauvegarde"
+
+[presetCreator.fields.videoQuality]
+en = "Video quality"
+pl = "Jakość wideo"
+fr = "Qualité vidéo"
+
+[presetCreator.fields.videoBitrate]
+en = "Video bitrate"
+pl = "Bitrate wideo"
+fr = "Débit binaire vidéo"
+
+[presetCreator.fields.videoFps]
+en = "FPS"
+pl = "FPS"
+fr = "FPS"
+
+[presetCreator.fields.audioSampleRate]
+en = "Audio sample rate"
+pl = "Częstotliwość próbkowania audio"
+fr = "Taux d'échantillonnage audio"
+
+[presetCreator.fields.audioBitrate]
+en = "Audio bitrate"
+pl = "Bitrate audio"
+fr = "Débit binaire audio"
+
+[presetCreator.fields.crf]
+en = "CRF"
+pl = "CRF"
+fr = "CRF"
+
+[presetCreator.placeholders.title]
+en = "Preset title"
+pl = "Tytuł presetu"
+fr = "Titre du préréglage"
+
+[presetCreator.placeholders.summary]
+en = "Short description"
+pl = "Krótki opis"
+fr = "Brève description"
+
+[presetCreator.placeholders.format]
+en = "Type format"
+pl = "Typ formatu"
+fr = "Saisir le format"
+
+[presetCreator.placeholders.bitrate]
+en = "Auto"
+pl = "Auto"
+fr = "Auto"
+
+[presetCreator.icon.title]
+en = "Drop icon here"
+pl = "Upuść ikonę tutaj"
+fr = "Déposez l'icône ici"
+
+[presetCreator.icon.hint]
+en = "1:1 ratio, PNG/JPG/SVG"
+pl = "Proporcje 1:1, PNG/JPG/SVG"
+fr = "Format 1:1, PNG/JPG/SVG"
+
+[presetCreator.toggles.downloadSubtitles]
+en = "Download subtitles"
+pl = "Pobierz napisy"
+fr = "Télécharger les sous-titres"
+
+[presetCreator.toggles.embedSubtitles]
+en = "Embed subtitles"
+pl = "Osadź napisy"
+fr = "Intégrer les sous-titres"
+
+[presetCreator.toggles.subtitlesCode]
+en = "Code (optional)"
+pl = "Kod (opcjonalnie)"
+fr = "Code (optionnel)"
+
+[presetCreator.toggles.embedMetadata]
+en = "Embed metadata"
+pl = "Osadź metadane"
+fr = "Intégrer les métadonnées"
+
+[presetCreator.toggles.embedThumbnail]
+en = "Embed thumbnail"
+pl = "Osadź miniaturę"
+fr = "Intégrer la miniature"
+
+[presetCreator.toggles.skipSponsors]
+en = "Skip sponsors"
+pl = "Pomijaj sponsorów"
+
+[presetCreator.toggles.muteAudio]
+en = "Mute audio"
+pl = "Wycisz audio"
+fr = "Couper le son"
+
+[presetCreator.actions.save]
+en = "Save Preset"
+pl = "Zapisz preset"
+fr = "Enregistrer le préréglage"
+
+[presetCreator.actions.export]
+en = "Export Preset"
+pl = "Eksportuj preset"
+fr = "Exporter le préréglage"
+
+[presetCreator.select.auto]
+en = "Auto"
+pl = "Auto"
+fr = "Auto"
