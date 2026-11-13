@@ -575,12 +575,6 @@ async fn check_app_update(
     }
 
     if !auto_update_enabled {
-        emit_status(
-            window,
-            "Update available (auto-update disabled)",
-            false,
-            false,
-        );
         return Ok(AppUpdateResult::NotUpdated);
     }
 
@@ -638,7 +632,6 @@ async fn check_app_update(
         .await
         .map_err(|e| e.to_string())?;
 
-    emit_status(window, "Update installed. Restarting...", false, false);
     Ok(AppUpdateResult::Updated(target_version))
 }
 

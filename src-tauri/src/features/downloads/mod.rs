@@ -529,6 +529,7 @@ pub fn start_download(
         args,
     };
 
+    drop(config);
     state.send_command(&app_handle, cmd)?;
 
     Ok(task_id)

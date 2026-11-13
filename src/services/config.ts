@@ -7,6 +7,7 @@ export interface PulsarConfig {
   language: string;
   system_notifications: boolean;
   advanced_mode: boolean;
+  runtime_logs: boolean;
   idle_animation: boolean;
   update_app: boolean;
   update_app_cooldown_minutes: number;
@@ -31,6 +32,7 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   language: "en",
   system_notifications: true,
   advanced_mode: false,
+  runtime_logs: false,
   idle_animation: true,
   update_app: true,
   update_app_cooldown_minutes: 30,
@@ -129,6 +131,7 @@ export async function loadConfig(): Promise<PulsarConfig> {
         language: String(raw.language ?? DEFAULT_CONFIG.language),
         system_notifications: Boolean(raw.system_notifications ?? raw.systemNotifications ?? DEFAULT_CONFIG.system_notifications),
         advanced_mode: Boolean(raw.advanced_mode ?? raw.advancedMode ?? DEFAULT_CONFIG.advanced_mode),
+        runtime_logs: Boolean(raw.runtime_logs ?? raw.runtimeLogs ?? DEFAULT_CONFIG.runtime_logs),
         idle_animation: Boolean(raw.idle_animation ?? raw.idleAnimation ?? DEFAULT_CONFIG.idle_animation),
         update_app: Boolean(raw.update_app ?? raw.updateApp ?? DEFAULT_CONFIG.update_app),
         update_app_cooldown_minutes: Number(raw.update_app_cooldown_minutes ?? raw.updateAppCooldownMinutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),
@@ -166,6 +169,7 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
     language: String(merged.language ?? DEFAULT_CONFIG.language),
     system_notifications: Boolean(merged.system_notifications ?? DEFAULT_CONFIG.system_notifications),
     advanced_mode: Boolean(merged.advanced_mode ?? DEFAULT_CONFIG.advanced_mode),
+    runtime_logs: Boolean(merged.runtime_logs ?? DEFAULT_CONFIG.runtime_logs),
     idle_animation: Boolean(merged.idle_animation ?? DEFAULT_CONFIG.idle_animation),
     update_app: Boolean(merged.update_app ?? DEFAULT_CONFIG.update_app),
     update_app_cooldown_minutes: Number(merged.update_app_cooldown_minutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),

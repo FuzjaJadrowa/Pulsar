@@ -101,14 +101,11 @@
       "codecs": "CODECS",
       "videoCodec": "Video codec",
       "audioCodec": "Audio codec",
-      "showAdvanced": "Advanced options",
-      "hideAdvanced": "Hide advanced options",
-      "qualityOptions": "Quality options",
+      "properties": "PROPERTIES",
       "videoBitrate": "Video bitrate (kbps)",
       "audioBitrate": "Audio bitrate (kbps)",
       "fps": "Frame rate (FPS)",
-      "sampleRate": "Audio sample rate (Hz)",
-      "properties": "PROPERTIES"
+      "sampleRate": "Audio sample rate (Hz)"
     },
     "thumbnail": {
       "none": "None",
@@ -116,7 +113,7 @@
       "embedInVideo": "Embed in video",
       "alt": "Thumbnail",
       "noPreview": "NO PREVIEW",
-      "saveFailed": "Failed to save thumbnail. Check console for details."
+      "saveFailed": "Failed to save thumbnail."
     },
     "actions": {
       "download": "DOWNLOAD"
@@ -211,12 +208,7 @@
       "stop": "Stop",
       "remove": "Remove",
       "retry": "Retry",
-      "openLocation": "Open location",
-      "console": "Console"
-    },
-    "console": {
-      "title": "Console - {id}",
-      "empty": "No console output yet."
+      "openLocation": "Open location"
     },
     "subtitles": {
       "on": "ON",
@@ -260,7 +252,10 @@
     },
     "systemNotifications": "System notifications",
     "advancedMode": "Advanced mode",
-    "advancedModeNote": "Shows advanced options and console access.",
+    "advanced": "Advanced",
+    "advancedModeNote": "Shows advanced options like own arguments for yt-dlp or FFmpeg.",
+    "runtimeLogs": "Runtime logs",
+    "runtimeLogsNote": "This will allow Pulsar to log information to console. Can be useful for bug reporting and debugging.",
     "idleAnimation": "Idle animation",
     "codecs": {
       "title": "Codecs",

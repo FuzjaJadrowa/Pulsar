@@ -26,9 +26,6 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     if (trimmed === "Checking...") return t("index.splash.checking");
     if (trimmed === "Checking for updates...") return t("index.splash.checkingForUpdates");
     if (trimmed === "Extracting...") return t("index.splash.extracting");
-    if (trimmed === "Update installed. Restarting...") return t("index.splash.updateInstalledRestarting");
-    if (trimmed === "Update available (auto-update disabled)") return t("index.splash.updateAvailableAutoDisabled");
-
     const updateCheckFailedPrefix = "Update check failed: ";
     if (trimmed.startsWith(updateCheckFailedPrefix)) {
       const error = trimmed.slice(updateCheckFailedPrefix.length);

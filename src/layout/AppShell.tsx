@@ -4,7 +4,6 @@ import { minimizeWindow, maximizeWindow, closeWindow } from "../services/tauri";
 import { useQueue } from "../features/queue/queue";
 import { DataSeaCanvas } from "./DataSeaCanvas";
 import { NotificationContainer } from "../components/NotificationContainer";
-import { ConsoleModal } from "../components/ConsoleModal";
 import { QueuePanel } from "../components/QueuePanel";
 import { Home } from "../features/home/Home";
 import { Settings } from "../features/settings/Settings";
@@ -121,9 +120,7 @@ export const AppShell: React.FC = () => {
       
       const isInsideQueue = target.closest("#queue-panel");
       const isInsideQueueBtn = target.closest("#btn-queue");
-      const isInsideConsole = target.closest(".queue-console-overlay");
-
-      if (!isInsideQueue && !isInsideQueueBtn && !isInsideConsole) {
+      if (!isInsideQueue && !isInsideQueueBtn) {
         setQueueVisible(false);
       }
     };
@@ -338,7 +335,6 @@ export const AppShell: React.FC = () => {
       </div>
 
       <NotificationContainer />
-      <ConsoleModal />
     </div>
   );
 };

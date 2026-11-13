@@ -62,6 +62,7 @@ pub fn fetch_metadata_downloader(
         args,
     };
 
+    drop(config);
     state.send_raw_command(&app_handle, &cmd)?;
 
     Ok(task_id)
@@ -139,6 +140,7 @@ pub fn search(
         args,
     };
 
+    drop(config);
     state.send_raw_command(&app_handle, &cmd)?;
 
     Ok(task_id)

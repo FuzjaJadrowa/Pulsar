@@ -692,8 +692,6 @@ listen<QueueBridgeEvent>("download-event", (event) => {
   const item = state.items.find((i) => i.status === "downloading" && i.taskId === String(payload.id));
   if (!item) return;
 
-  window.queueConsole?.log(item.id, payload);
-
   const changes = applyQueueEventToItem(item, payload);
   if (changes.progressUpdated) {
     notifyListeners();

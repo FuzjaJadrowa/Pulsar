@@ -16,6 +16,8 @@ pub struct AppConfig {
     pub close_behavior: String,
     #[serde(default, alias = "advanced_mode")]
     pub advanced_mode: bool,
+    #[serde(default, alias = "runtime_logs")]
+    pub runtime_logs: bool,
     #[serde(default, alias = "system_notifications")]
     pub system_notifications: bool,
     #[serde(default, alias = "idle_animation")]
@@ -79,6 +81,7 @@ impl Default for AppConfig {
             language: "en".to_string(),
             close_behavior: "hide".to_string(),
             advanced_mode: false,
+            runtime_logs: false,
             system_notifications: true,
             idle_animation: true,
             update_app: true,
@@ -92,7 +95,7 @@ impl Default for AppConfig {
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
             title_template: "%(title)s [%(id)s]".to_string(),
-            prefer_ffmpeg_while_converting: false,
+            prefer_ffmpeg_while_converting: true,
             prefer_ffmpeg_while_downloading: false,
             copy_codec_if_possible: false,
             default_video_codec: "auto".to_string(),
@@ -188,6 +191,7 @@ impl ConfigManager {
                         .get("advanced_mode")
                         .map(|v| v == "true")
                         .unwrap_or(false);
+                    config.runtime_logs = section.get("runtime_logs").map(|v| v == "true").unwrap_or(false);
                     config.system_notifications = section
                         .get("system_notifications")
                         .map(|v| v == "true")
@@ -294,6 +298,7 @@ impl ConfigManager {
                     "false"
                 },
             )
+            .set("runtime_logs", if config.runtime_logs { "true" } else { "false" })
             .set(
                 "system_notifications",
                 if config.system_notifications {

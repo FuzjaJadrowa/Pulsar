@@ -2,8 +2,6 @@ import React from "react";
 import { useQueue, QueueItem } from "../features/queue/queue";
 import { useTranslation } from "../services/i18n";
 import { formatBytes, detectSourceFromUrl } from "../utils/format";
-import { useConfig } from "../services/config";
-import { openConsole } from "../services/console";
 
 import { ICONS, SOURCE_ICONS, SourceIcon } from "../utils/icons";
 
@@ -35,7 +33,6 @@ function getQueueItemOutputFolder(item: QueueItem): string {
 
 export const QueuePanel: React.FC = () => {
   const { t } = useTranslation();
-  const { config } = useConfig();
   const {
     items,
     startItem,
@@ -282,16 +279,6 @@ export const QueuePanel: React.FC = () => {
                         {ICONS.trash}
                       </button>
                     </>
-                  )}
-
-                  {config.advanced_mode && (
-                    <button
-                      className="queue-icon-btn"
-                      onClick={() => openConsole(item.id)}
-                      title={t("queue.itemActions.console")}
-                    >
-                      {ICONS.console}
-                    </button>
                   )}
                 </div>
 

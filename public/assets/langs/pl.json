@@ -260,7 +260,10 @@
     },
     "systemNotifications": "Powiadomienia systemowe",
     "advancedMode": "Tryb zaawansowany",
-    "advancedModeNote": "Pokazuje zaawansowane opcje oraz dostęp do konsoli.",
+    "advanced": "Zaawansowane",
+    "advancedModeNote": "Wyświetla opcje zaawansowane, takie jak własne argumenty dla yt-dlp lub FFmpeg.",
+    "runtimeLogs": "Logi działania",
+    "runtimeLogsNote": "Pozwala Pulsarowi zapisywać informacje w konsoli. Może to pomóc przy zgłaszaniu błędów i debugowaniu.",
     "idleAnimation": "Animacja bezczynności",
     "codecs": {
       "title": "Kodeki",

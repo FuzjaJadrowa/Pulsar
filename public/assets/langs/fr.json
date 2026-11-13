@@ -243,7 +243,6 @@
     },
     "systemNotifications": "Notifications système",
     "advancedMode": "Mode avancé",
-    "advancedModeNote": "Affiche les options avancées et l'accès à la console.",
     "idleAnimation": "Animation d'inactivité",
     "codecs": {
       "title": "Codecs",

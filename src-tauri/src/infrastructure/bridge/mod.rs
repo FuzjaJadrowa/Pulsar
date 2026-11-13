@@ -1,3 +1,4 @@
+use crate::app::config::ConfigManager;
 use crate::infrastructure::platform::get_requirements_path;
 use serde::Serialize;
 use serde_json::Value;
@@ -8,9 +9,18 @@ use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use std::time::Duration;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
 pub const BRIDGE_PROTOCOL_VERSION: u64 = 1;
+
+fn runtime_logs_enabled(app_handle: &AppHandle) -> bool {
+    app_handle
+        .state::<ConfigManager>()
+        .config
+        .lock()
+        .map(|config| config.runtime_logs)
+        .unwrap_or(false)
+}
 
 #[derive(Serialize)]
 pub struct BridgeCommand {
@@ -205,12 +215,16 @@ impl BridgeState {
                 }
             }
             Some(Ok(Some(status))) => {
-                eprintln!("Pulsar bridge exited with status {status}; restarting it.");
+                if runtime_logs_enabled(app_handle) {
+                    eprintln!("Pulsar bridge exited with status {status}; restarting it.");
+                }
                 process_guard.take();
                 *self.stdin.lock().unwrap() = None;
             }
             Some(Err(error)) => {
-                eprintln!("Could not check Pulsar bridge status: {error}; restarting it.");
+                if runtime_logs_enabled(app_handle) {
+                    eprintln!("Could not check Pulsar bridge status: {error}; restarting it.");
+                }
                 if let Some(child) = process_guard.as_mut() {
                     let _ = child.kill();
                 }
@@ -268,7 +282,9 @@ impl BridgeState {
             for line in reader.lines() {
                 match line {
                     Ok(l) => {
-                        println!("[BRIDGE OUT]: {}", l);
+                        if runtime_logs_enabled(&app_handle_clone) {
+                            println!("[BRIDGE OUT]: {}", l);
+                        }
                         if let Ok(mut json_val) = serde_json::from_str::<Value>(&l) {
                             if json_val.get("type").and_then(Value::as_str) == Some("ready") {
                                 let remote_version = json_val.get("protocol_version").and_then(Value::as_u64);
@@ -284,7 +300,6 @@ impl BridgeState {
                             if json_val.get("type").and_then(|v| v.as_str())
                                 == Some("progress_ffmpeg")
                             {
-                                // Add percent/ETA only when we know the requested trim duration.
                                 if let Some(id) = json_val.get("id").and_then(|v| v.as_str()) {
                                     if let Some(total) = ffmpeg_ranges
                                         .lock()
@@ -334,7 +349,11 @@ impl BridgeState {
                             let _ = app_handle_clone.emit("download-event", json_val);
                         }
                     }
-                    Err(e) => eprintln!("Error reading bridge stdout: {}", e),
+                    Err(e) => {
+                        if runtime_logs_enabled(&app_handle_clone) {
+                            eprintln!("Error reading bridge stdout: {}", e);
+                        }
+                    }
                 }
             }
             for id in process_limiter.take_all() {
@@ -356,11 +375,14 @@ impl BridgeState {
             }
         });
 
+        let stderr_app_handle = app_handle.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stderr);
             for line in reader.lines() {
                 if let Ok(l) = line {
-                    eprintln!("[BRIDGE ERR]: {}", l);
+                    if runtime_logs_enabled(&stderr_app_handle) {
+                        eprintln!("[BRIDGE ERR]: {}", l);
+                    }
                 }
             }
         });
@@ -368,7 +390,9 @@ impl BridgeState {
         *self.stdin.lock().unwrap() = Some(stdin);
         *process_guard = Some(child);
 
-        println!("Bridge process started successfully.");
+        if runtime_logs_enabled(app_handle) {
+            println!("Bridge process started successfully.");
+        }
         Ok(())
     }
 
@@ -406,7 +430,9 @@ impl BridgeState {
                         let _ = app_handle.emit("download-event", payload);
                     }
                 }
-                println!("[RUST -> BRIDGE]: {}", json);
+                if runtime_logs_enabled(app_handle) {
+                    println!("[RUST -> BRIDGE]: {}", json);
+                }
                 Ok(())
             } else {
                 Err("Bridge stdin not available".to_string())
