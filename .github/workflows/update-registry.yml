@@ -2,7 +2,7 @@ name: Update Registry
 
 on:
   workflow_run:
-    workflows: ["Build Apps"]
+    workflows: ["Build"]
     types: [completed]
 
 permissions:
