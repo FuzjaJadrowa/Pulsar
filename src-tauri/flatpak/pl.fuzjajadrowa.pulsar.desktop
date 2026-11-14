@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Pulsar
-Comment=Media downloader, converter and compressor
+Comment=Fast and modern media manager.
 Exec=Pulsar
 Icon=pl.fuzjajadrowa.pulsar
 Terminal=false

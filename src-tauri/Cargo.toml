@@ -16,7 +16,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2.11.5", features = ["tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
 tauri-plugin-updater = "2"
-tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-single-instance = "2"
 serde = { version = "1.0", features = ["derive"] }
@@ -35,3 +34,9 @@ arboard = "3"
 [target.'cfg(windows)'.dependencies]
 tauri-winrt-notification = "0.7"
 windows-registry = "0.6"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tauri-plugin-dialog = { version = "2", default-features = false, features = ["xdg-portal"] }
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+tauri-plugin-dialog = "2"

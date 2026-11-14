@@ -566,6 +566,10 @@ pl = "Pobieranie"
 en = "Converting"
 pl = "Konwertowanie"
 
+[queue.stages.completed]
+en = "Completed"
+pl = "Ukończono"
+
 [queue.stages.finished]
 en = "Finished"
 pl = "Zakończono"

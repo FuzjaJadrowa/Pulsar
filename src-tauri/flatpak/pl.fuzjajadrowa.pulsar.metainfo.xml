@@ -1,18 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <component type="desktop-application">
   <id>pl.fuzjajadrowa.pulsar</id>
-  <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0-only</project_license>
   <name>Pulsar</name>
   <summary>Fast and modern media manager.</summary>
   <developer id="pl.fuzjajadrowa">
     <name>Fuzja Jadrowa</name>
   </developer>
-  <launchable type="desktop-id">pl.fuzjajadrowa.pulsar.desktop</launchable>
-  <branding>
-    <color type="primary" scheme_preference="light">#764fdf</color>
-    <color type="primary" scheme_preference="dark">#2d123d</color>
-  </branding>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
   <description>
     <p>Pulsar is a desktop app for downloading media, converting formats, and compressing files.</p>
     <ul>
@@ -22,31 +17,46 @@
       <li>Manage multiple processes in a queue.</li>
     </ul>
   </description>
-  <content_rating type="oars-1.1"/>
-  <url type="homepage">https://fuzjajadrowa.pl/projects/pulsar</url>
-  <url type="bugtracker">https://github.com/fuzjajadrowa/Pulsar/issues</url>
-  <url type="vcs-browser">https://github.com/fuzjajadrowa/Pulsar</url>
-  <url type="donation">https://ko-fi.com/fuzjajadrowa</url>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/01-home.png</image>
-      <caption>Home screen</caption>
+      <caption>Home</caption>
+      <image type="source">https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/01-home.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/02-downloader.png</image>
       <caption>Downloader</caption>
+      <image type="source">https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/02-downloader.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/03-converter.png</image>
       <caption>Converter</caption>
+      <image type="source">https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/03-converter.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/04-compressor.png</image>
       <caption>Compressor</caption>
+      <image type="source">https://raw.githubusercontent.com/fuzjajadrowa/Pulsar/v3.1.0/.github/assets/04-compressor.png</image>
     </screenshot>
   </screenshots>
   <releases>
-    <release version="3.1.0" date="2026-09-05"/>
-    <release version="3.0.1" date="2026-04-16"/>
+    <release version="3.2.0" date="2026-11-14" type="stable"/>
+    <release version="3.1.0" date="2026-09-05" type="stable"/>
+    <release version="3.0.1" date="2026-04-16" type="stable"/>
   </releases>
+  <url type="homepage">https://fuzjajadrowa.pl/projects/pulsar</url>
+  <url type="bugtracker">https://github.com/fuzjajadrowa/Pulsar/issues</url>
+  <url type="donation">https://ko-fi.com/fuzjajadrowa</url>
+  <url type="vcs-browser">https://github.com/fuzjajadrowa/Pulsar</url>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Utility</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <provides/>
+  <keywords>
+    <keyword>video</keyword>
+    <keyword>audio</keyword>
+    <keyword>download</keyword>
+    <keyword>convert</keyword>
+    <keyword>compress</keyword>
+    <keyword>ffmpeg</keyword>
+    <keyword>yt-dlp</keyword>
+  </keywords>
 </component>

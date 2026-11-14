@@ -242,7 +242,12 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     try {
       const selected = await invoke<string[]>("pick_convert_files");
       if (selected && selected.length > 0) {
-        handleFilesSelected(selected);
+        const cleanPaths = selected.map((path) => String(path || "").trim()).filter(Boolean);
+        if (cleanPaths.length === 0) return;
+
+        resetView();
+        setFilePath(cleanPaths.join("; "));
+        pathInputRef.current?.focus();
       }
     } catch (e) {
       console.error("Pick compressor files failed:", e);

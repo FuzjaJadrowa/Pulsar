@@ -575,7 +575,7 @@ fn populate_flatpak_versions(versions: &mut Versions, app_version: &str, req_pat
             .local_versions
             .insert("pulsar".to_string(), app_version.to_string());
     }
-    let bridge_version_path = req_path.join("bridge").join("bridge-version.txt");
+    let bridge_version_path = req_path.join("bridge-version.txt");
     match fs::read_to_string(bridge_version_path) {
         Ok(version) if !version.trim().is_empty() => {
             versions
