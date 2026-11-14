@@ -1,6 +1,6 @@
-import { ICON_ASSETS } from "../utils/icons";
+import { ICON_ASSETS } from "../../utils/icons";
 import React from "react";
-import { invoke } from "../services/tauri";
+import { invoke } from "../../services/tauri";
 
 interface PathSelectorProps {
   value: string;

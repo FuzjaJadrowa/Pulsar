@@ -62,7 +62,7 @@
     color: rgba(220, 220, 220, 0.6);
     margin: -6px 0 12px;
 }
-:local(.scope) :global(.title-constructor > .settings-note) {
+:local(.scope) :global(.settings-subsection > .settings-note) {
     margin-top: -15px;
 }
 :local(.scope) :global(.anim-btn) {
@@ -123,7 +123,7 @@
 :local(.scope) :global(.select-wrapper) { position: relative; user-select: none; width: 100%; font-family: "Manrope", "Montserrat", sans-serif; font-size: 13px; }
 :local(.scope) :global(.select-wrapper.select-open) { z-index: 1200; }
 
-:local(.scope) :global(.title-constructor) {
+:local(.scope) :global(.settings-subsection) {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -131,7 +131,7 @@
     padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
-:local(.scope) :global(.title-constructor-title) {
+:local(.scope) :global(.settings-subsection-title) {
     font-size: 13px;
     letter-spacing: 0.6px;
     text-transform: uppercase;
@@ -404,10 +404,10 @@
     background-color: rgba(76, 111, 255, 0.2);
     color: #1d2330;
 }
-:global(body.theme-light) :local(.scope) :global(.title-constructor) {
+:global(body.theme-light) :local(.scope) :global(.settings-subsection) {
     border-top-color: rgba(0, 0, 0, 0.08);
 }
-:global(body.theme-light) :local(.scope) :global(.title-constructor-title) {
+:global(body.theme-light) :local(.scope) :global(.settings-subsection-title) {
     color: rgba(29, 35, 48, 0.7);
 }
 :global(body.theme-light) :local(.scope) :global(.title-template-input) {

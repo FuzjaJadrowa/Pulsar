@@ -1,7 +1,7 @@
-import { ICON_ASSETS } from "../utils/icons";
+import { ICON_ASSETS } from "../../utils/icons";
 import React from "react";
-import { formatBytes } from "../utils/format";
-import type { MediaFileMetadata } from "../types/media";
+import { formatBytes } from "../../utils/format";
+import type { MediaFileMetadata } from "../../types/media";
 import styles from "./BatchFilesList.module.css";
 
 interface BatchFilesListProps {

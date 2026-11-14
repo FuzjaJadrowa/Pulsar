@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { CustomSelect } from "../../../components/CustomSelect";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { useConfig } from "../../../services/config";
 import { useTranslation } from "../../../services/i18n";
 import { SettingsSection } from "../SettingsSection";
@@ -97,8 +97,8 @@ export const DownloadSettingsSection: React.FC = () => {
           />
         </div>
 
-        <div className="title-constructor">
-          <div className="title-constructor-title">{t("settings.preferDownloadingWithFfmpeg")}</div>
+        <div className="settings-subsection">
+          <div className="settings-subsection-title">{t("settings.preferDownloadingWithFfmpeg")}</div>
           <div className="form-row">
             <span>{t("settings.whileConvertingMedia")}</span>
             <ToggleSwitch checked={config.prefer_ffmpeg_while_converting} onChange={(checked) => updateConfig({ prefer_ffmpeg_while_converting: checked })} />

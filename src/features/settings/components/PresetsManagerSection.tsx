@@ -1,6 +1,6 @@
 import React from "react";
-import { PresetIconPreview } from "../../../components/PresetIconPreview";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { PresetIconPreview } from "../../../components/presets/PresetIconPreview";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { PRESET_DEFAULT_ICON } from "../../../utils/icons";
 import type { Preset } from "../../../services/presets";
 import { useTranslation } from "../../../services/i18n";

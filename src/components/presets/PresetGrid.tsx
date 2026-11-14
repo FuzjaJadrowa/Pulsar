@@ -1,7 +1,7 @@
 import React from "react";
-import { Preset } from "../services/presets";
-import { t } from "../services/i18n";
-import { PRESET_DEFAULT_ICON } from "../utils/icons";
+import { Preset } from "../../services/presets";
+import { t } from "../../services/i18n";
+import { PRESET_DEFAULT_ICON } from "../../utils/icons";
 import { PresetIconPreview } from "./PresetIconPreview";
 
 interface PresetGridProps {

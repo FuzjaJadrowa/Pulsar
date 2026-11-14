@@ -1,17 +1,17 @@
 import { ICON_ASSETS } from "../../../utils/icons";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "../../../services/i18n";
-import { invoke } from "../../../services/tauri";
-import { Preset, exportPreset, getPresetFromCache } from "../../../services/presets";
-import { CustomSelect } from "../../../components/CustomSelect";
+import { exportPreset, getPresetFromCache, loadPreset, savePreset, type Preset } from "../../../services/presets";
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { sanitizeBitrateInput } from "../../../utils/bitrate";
 import styles from "./PresetCreatorModal.module.css";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
-import { PathSelector } from "../../../components/PathSelector";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
+import { PathSelector } from "../../../components/ui/PathSelector";
 import { useUiState } from "../../../services/uiState";
 import { loadFormatCatalog, type FormatEntry } from "../../../services/formats";
-import { PresetIconField } from "../../../components/PresetIconField";
+import { PresetIconField } from "../../../components/presets/PresetIconField";
 import { PRESET_DEFAULT_ICON } from "../../../utils/icons";
+import { buildPresetPayload, isPresetFormValid } from "../presetPayload";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -173,12 +173,8 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   useEffect(() => {
     if (isOpen && mode === "edit" && presetId) {
-      invoke<Preset>("load_preset", { id: presetId })
-        .then((preset) => {
-          if (preset) {
-            applyPresetData(preset);
-          }
-        })
+      loadPreset(presetId)
+        .then(applyPresetData)
         .catch((err) => {
           console.error("Failed to load preset details:", err);
         });
@@ -204,84 +200,52 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   const isFormatValid = presetType === "compressor" || (selectedFormatLower.length > 0 && !!currentFormatMeta);
 
   const isFormValid = () => {
-    if (!title.trim()) return false;
-    
-    if (presetType === "downloader" || presetType === "converter") {
-      if (!selectedFormatLower) return false;
-      if (!isFormatValid) return false;
-    }
-    
-    if (presetType === "compressor") {
-      if (!compressMode) return false;
-      if (compressMode === "percent") {
-        return typeof compressPercent === "number" && compressPercent >= 1 && compressPercent <= 100;
-      }
-      if (compressMode === "size") {
-        return compressSize.trim().length > 0;
-      }
-      if (compressMode === "quality") {
-        return !!compressCrf;
-      }
-    }
-    
-    return true;
+    return isPresetFormValid({
+      title,
+      presetType,
+      format,
+      compressMode,
+      compressPercent,
+      compressSize,
+      compressCrf,
+    }, isFormatValid);
   };
+
+  const buildPayload = () => buildPresetPayload({
+    mode,
+    presetId,
+    title,
+    summary,
+    iconDataUrl,
+    presetType,
+    format,
+    compressMode,
+    compressPercent,
+    compressSize,
+    compressCrf,
+    savePath,
+    downloadSubs,
+    embedSubs,
+    subsCode,
+    embedMetadata,
+    embedThumbnail,
+    skipSponsors,
+    muteAudio,
+    videoQuality,
+    videoCodec,
+    videoBitrate,
+    videoFps,
+    audioSampleRate,
+    audioCodec,
+    audioBitrate,
+  });
 
   const handleExport = async () => {
     if (!isFormValid()) return;
-
-    const payload: Preset = {
-      id: mode === "edit" ? presetId || undefined : undefined,
-      title: title.trim(),
-      summary: summary.trim(),
-      icon_data_url: iconDataUrl,
-      preset_type: presetType,
-      hidden: false,
-    };
-
-    if (presetType === "downloader") {
-      payload.downloader = {
-        mode: "video",
-        format: format.trim().toLowerCase(),
-        path: savePath.trim() || undefined,
-        video_quality: videoQuality || undefined,
-        download_subtitles: downloadSubs,
-        embed_subtitles: downloadSubs && embedSubs,
-        subtitles_code: downloadSubs && subsCode.trim() ? subsCode.trim() : undefined,
-        embed_metadata: embedMetadata,
-        embed_thumbnail: embedThumbnail,
-        skip_sponsors: skipSponsors,
-        mute_audio: muteAudio,
-        video_codec: videoCodec || undefined,
-        audio_codec: audioCodec || undefined,
-        video_bitrate: videoBitrate || undefined,
-        audio_bitrate: audioBitrate || undefined,
-        video_fps: videoFps || undefined,
-        audio_sample_rate: audioSampleRate || undefined,
-      };
-    } else if (presetType === "converter") {
-      payload.converter = {
-        format: format.trim().toLowerCase(),
-        path: savePath.trim() || undefined,
-        video_quality: videoQuality || undefined,
-        video_codec: videoCodec || undefined,
-        video_bitrate: videoBitrate || undefined,
-        video_fps: videoFps || undefined,
-        audio_codec: audioCodec || undefined,
-        audio_bitrate: audioBitrate || undefined,
-        audio_sample_rate: audioSampleRate || undefined,
-      };
-    } else if (presetType === "compressor") {
-      payload.compressor = {
-        mode: compressMode,
-        target_percent: compressMode === "percent" ? (typeof compressPercent === "number" ? compressPercent : undefined) : undefined,
-        target_size: compressMode === "size" ? compressSize : undefined,
-        crf: compressMode === "quality" ? parseInt(compressCrf) || undefined : undefined,
-      };
-    }
+    const payload = buildPayload();
 
     try {
-      const savedId = await invoke<string>("save_preset", { preset: payload });
+      const savedId = await savePreset(payload);
       onSaved();
       await exportPreset(savedId);
       onClose();
@@ -292,59 +256,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
   const handleSave = async () => {
     if (!isFormValid()) return;
-
-    const payload: Preset = {
-      id: mode === "edit" ? presetId || undefined : undefined,
-      title: title.trim(),
-      summary: summary.trim(),
-      icon_data_url: iconDataUrl,
-      preset_type: presetType,
-      hidden: false,
-    };
-
-    if (presetType === "downloader") {
-      payload.downloader = {
-        mode: "video",
-        format: format.trim().toLowerCase(),
-        path: savePath.trim() || undefined,
-        video_quality: videoQuality || undefined,
-        download_subtitles: downloadSubs,
-        embed_subtitles: downloadSubs && embedSubs,
-        subtitles_code: downloadSubs && subsCode.trim() ? subsCode.trim() : undefined,
-        embed_metadata: embedMetadata,
-        embed_thumbnail: embedThumbnail,
-        skip_sponsors: skipSponsors,
-        mute_audio: muteAudio,
-        video_codec: videoCodec || undefined,
-        audio_codec: audioCodec || undefined,
-        video_bitrate: videoBitrate || undefined,
-        audio_bitrate: audioBitrate || undefined,
-        video_fps: videoFps || undefined,
-        audio_sample_rate: audioSampleRate || undefined,
-      };
-    } else if (presetType === "converter") {
-      payload.converter = {
-        format: format.trim().toLowerCase(),
-        path: savePath.trim() || undefined,
-        video_quality: videoQuality || undefined,
-        video_codec: videoCodec || undefined,
-        video_bitrate: videoBitrate || undefined,
-        video_fps: videoFps || undefined,
-        audio_codec: audioCodec || undefined,
-        audio_bitrate: audioBitrate || undefined,
-        audio_sample_rate: audioSampleRate || undefined,
-      };
-    } else if (presetType === "compressor") {
-      payload.compressor = {
-        mode: compressMode,
-        target_percent: compressMode === "percent" ? (typeof compressPercent === "number" ? compressPercent : undefined) : undefined,
-        target_size: compressMode === "size" ? compressSize : undefined,
-        crf: compressMode === "quality" ? parseInt(compressCrf) || undefined : undefined,
-      };
-    }
+    const payload = buildPayload();
 
     try {
-      await invoke("save_preset", { preset: payload });
+      await savePreset(payload);
       onSaved();
       onClose();
     } catch (err) {

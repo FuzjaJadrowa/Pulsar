@@ -1,23 +1,29 @@
 import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
+import { MediaFilePickerBar } from "../../components/media/MediaFilePickerBar";
+import { PathSelector } from "../../components/ui/PathSelector";
+import { createFileSelectionHandlers } from "../media/fileSelection";
+import { EstimatedSizeRow } from "../../components/media/EstimatedSizeRow";
+import { OutputCodecField } from "../../components/media/OutputCodecField";
+import { OutputSelectField } from "../../components/media/OutputSelectField";
+import { OutputTextField } from "../../components/media/OutputTextField";
 import { useTranslation } from "../../services/i18n";
 import { useConfig } from "../../services/config";
 import { invoke } from "../../services/tauri";
 import { usePresets } from "../../services/presets";
-import { enqueue, animateQueueOrb } from "../queue/queue";
+import { enqueue } from "../queue/queue";
+import { animateQueueOrb } from "../queue/animation";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { formatBytes } from "../../utils/format";
-import { PathSelector } from "../../components/PathSelector";
-import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
+import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
-import { CustomSelect } from "../../components/CustomSelect";
-import { PresetGrid } from "../../components/PresetGrid";
+import { PresetGrid } from "../../components/presets/PresetGrid";
 import type { FormatEntry } from "../../services/formats";
 import { loadFormatCatalog } from "../../services/formats";
 import type { MediaFileMetadata } from "../../types/media";
 import type { Preset } from "../../services/presets";
-import { BatchInfoCard } from "../../components/BatchInfoCard";
+import { BatchInfoCard } from "../../components/media/BatchInfoCard";
 import styles from "./Converter.module.css";
 import { ConverterFileInfo } from "./components/ConverterFileInfo";
 
@@ -51,44 +57,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       showNotification(t("common.error"), err, "error");
     }
   });
-
-  const handleFilesSelected = async (inputPaths: string | string[]) => {
-    const rawPaths = Array.isArray(inputPaths) ? inputPaths : [inputPaths];
-    const cleanPaths = rawPaths.map(p => String(p || "").trim()).filter(Boolean);
-    if (cleanPaths.length === 0) return;
-
-    if (cleanPaths.length === 1) {
-      setLoadedFiles([]);
-      setFilePath(cleanPaths[0]);
-      triggerFetchMetadata(cleanPaths[0]);
-      return;
-    }
-
-    // Multiple files (Bulk Mode)
-    try {
-      const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
-      const results = await Promise.all(metaPromises);
-      const validMeta = results.filter((m): m is MediaFileMetadata => Boolean(m && m.path && m.category));
-      if (validMeta.length === 0) {
-        showNotification(t("common.error"), t("common.errors.invalidFileOrLink"), "error");
-        return;
-      }
-
-      // Category Consistency Check
-      const categories = new Set(validMeta.map(m => String(m.category || "").toLowerCase()));
-      if (categories.size > 1) {
-        showNotification(t("common.info"), t("converter.bulk.mixedCategoryError"), "info");
-        return;
-      }
-
-      setLoadedFiles(validMeta);
-      setFilePath(validMeta.map(m => m.path).join("; "));
-      handleMetadataLoaded(validMeta[0]);
-    } catch (e) {
-      console.error("Bulk fetch metadata failed:", e);
-      showNotification(t("common.error"), String(e), "error");
-    }
-  };
 
   const { showDropOverlay } = useFileDragDrop({
     pageClass: "page-converter",
@@ -206,55 +174,6 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }, 150);
   };
 
-  const handleConfirmPath = () => {
-    const raw = filePath.trim();
-    if (!raw) {
-      triggerShakeInput();
-      return;
-    }
-    const paths = raw.split(";").map(s => s.trim()).filter(Boolean);
-    handleFilesSelected(paths);
-  };
-
-  const triggerShakeInput = () => {
-    if (pathInputRef.current) {
-      pathInputRef.current.classList.remove("shake-feedback");
-      void pathInputRef.current.offsetWidth;
-      pathInputRef.current.classList.add("shake-feedback");
-    }
-  };
-
-  const openPicker = async () => {
-    try {
-      const selected = await invoke<string[]>("pick_convert_files");
-      if (selected && selected.length > 0) {
-        const cleanPaths = selected.map((path) => String(path || "").trim()).filter(Boolean);
-        if (cleanPaths.length === 0) return;
-
-        resetView();
-        setFilePath(cleanPaths.join("; "));
-        pathInputRef.current?.focus();
-      }
-    } catch (e) {
-      console.error("Pick converter files failed:", e);
-    }
-  };
-
-  const removeFileFromBatch = (indexToRemove: number) => {
-    const updated = loadedFiles.filter((_, idx) => idx !== indexToRemove);
-    if (updated.length === 0) {
-      resetView();
-    } else if (updated.length === 1) {
-      setLoadedFiles([]);
-      handleMetadataLoaded(updated[0]);
-      setFilePath(updated[0].path);
-    } else {
-      setLoadedFiles(updated);
-      setMetadata(updated[0]);
-      setFilePath(updated.map(m => m.path).join("; "));
-    }
-  };
-
   const clearActivePreset = () => {
     setActivePresetId(null);
   };
@@ -270,6 +189,23 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     setSavePath("");
     clearActivePreset();
   };
+
+  const { handleFilesSelected, handleConfirmPath, openPicker, removeFileFromBatch } = createFileSelectionHandlers({
+    filePath,
+    loadedFiles,
+    inputRef: pathInputRef,
+    pageName: "converter",
+    errorTitle: t("common.error"),
+    infoTitle: t("common.info"),
+    invalidFilesMessage: t("common.errors.invalidFileOrLink"),
+    mixedCategoryMessage: t("converter.bulk.mixedCategoryError"),
+    setFilePath,
+    setLoadedFiles,
+    setMetadata,
+    fetchMetadata: triggerFetchMetadata,
+    onMetadataLoaded: handleMetadataLoaded,
+    resetView,
+  });
 
   const runEstimate = async () => {
     if (!selectedFormat || !metadata) {
@@ -579,84 +515,28 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   return (
     <div className={`${styles.scope} page-root converter-page`}>
       <div className="page-scroll app-scroll">
-        <div id="convert-search-section" className={`search-section ${!isDashboardVisible ? "centered converter-zen" : "sticky"}`}>
-          <div className="search-box-row converter-bar" id="converter-bar">
-            <input
-              type="text"
-              id="convert-path-input"
-              ref={pathInputRef}
-              placeholder={t("converter.path.placeholder")}
-              value={filePath}
-              onChange={(e) => {
-                setFilePath(e.target.value);
-                if (e.target.value.trim() === "") {
-                  resetView();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleConfirmPath();
-                }
-              }}
-              autoComplete="off"
-            />
-            <span
-              id="convert-browse-btn"
-              className="bar-icon"
-              title={t("common.browse")}
-              role="button"
-              tabIndex={0}
-              onClick={openPicker}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["folder-browse"]} /></svg>
-            </span>
-            {filePath && (
-              <button
-                type="button"
-                className="bar-icon clear-selection-btn"
-                title={t("common.clearSelection")}
-                aria-label={t("common.clearSelection")}
-                onClick={resetView}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><use href={ICON_ASSETS["window-close"]} /></svg>
-              </button>
-            )}
-            <button
-              id="convert-confirm-btn"
-              className={`bar-action ${isConfirmLoading ? "loading" : ""}`}
-              onClick={handleConfirmPath}
-              disabled={isConfirmLoading}
-            >
-              {isConfirmLoading ? (
-                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["clear-selection"]} /></svg>
-              )}
-            </button>
-          </div>
-          {!isDashboardVisible && (
-            <div
-              className="drop-hint convert-drop-hint"
-              onClick={openPicker}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openPicker();
-                }
-              }}
-            >
-              <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
-              </span>
-              <span className="drop-hint-text">{t("common.dropHint")}</span>
-              <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
-              </span>
-            </div>
-          )}
-        </div>
+        <MediaFilePickerBar
+          idPrefix="convert"
+          pageClass="converter-bar"
+          zenClass="converter-zen"
+          dropHintClass="convert-drop-hint"
+          placeholder={t("converter.path.placeholder")}
+          value={filePath}
+          isLoading={isConfirmLoading}
+          hasMetadata={Boolean(metadata)}
+          isDashboardVisible={isDashboardVisible}
+          inputRef={pathInputRef}
+          browseTitle={t("common.browse")}
+          clearTitle={t("common.clearSelection")}
+          dropHint={t("common.dropHint")}
+          onValueChange={(value) => {
+            setFilePath(value);
+            if (!value.trim()) resetView();
+          }}
+          onConfirm={handleConfirmPath}
+          onBrowse={openPicker}
+          onClear={resetView}
+        />
 
         {/* Converter Dashboard */}
         {isDashboardVisible && metadata && (
@@ -743,7 +623,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               </div>
 
               {/* Details Settings Panel */}
-              <div id="convert-details-panel" className={`converter-details-panel ${selectedFormat ? "" : "hidden"}`}>
+                            <div id="convert-details-panel" className={`converter-details-panel ${selectedFormat ? "" : "hidden"}`}>
                 <div id="convert-specs-panel" className="converter-specs-card fade-in">
                   <div className="converter-specs-grid">
                     <div className="converter-specs-column" data-side="output">
@@ -755,10 +635,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         id="convert-save-path-input"
                         placeholder={t("common.noSavePathSelected")}
                         value={savePath}
-                        onChange={(selected) => {
-                          setSavePath(selected);
-                          clearActivePreset();
-                        }}
+                        onChange={(path) => { setSavePath(path); clearActivePreset(); }}
                         pickerCommand="pick_download_directory"
                         title={t("common.browse")}
                         useLastPathTitle={t("common.useLastPath")}
@@ -768,177 +645,50 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {/* VIDEO Specs */}
                       {targetCategory === "video" && (
                         <div className="converter-specs-section" data-section="video">
-                          <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.options.estimatedSize")}</span>
-                            <span id="convert-output-video-size" className="converter-specs-value">{estimatedSize || "-"}</span>
-                          </div>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.videoQuality")}</span>
-                            <div className="converter-specs-control">
-                              <CustomSelect
-                                options={[
-                                  { value: "", label: t("common.auto") },
-                                  { value: "2160p", label: "2160p" },
-                                  { value: "1440p", label: "1440p" },
-                                  { value: "1080p", label: "1080p" },
-                                  { value: "720p", label: "720p" },
-                                  { value: "480p", label: "480p" },
-                                  { value: "360p", label: "360p" },
-                                  { value: "240p", label: "240p" },
-                                  { value: "144p", label: "144p" },
-                                ]}
-                                value={videoQuality}
-                                onChange={(val) => {
-                                  setVideoQuality(val);
-                                  clearActivePreset();
-                                }}
-                                width="100%"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.videoCodec")}</span>
-                            <div className="converter-specs-control">
-                              <CustomSelect
-                                options={[
-                                  { value: "", label: t("common.auto") },
-                                  { value: "copy", label: "Copy (Pass-through)" },
-                                  ...(selectedFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
-                                ]}
-                                value={videoCodec}
-                                onChange={(val) => {
-                                  setVideoCodec(val);
-                                  clearActivePreset();
-                                }}
-                                width="100%"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.videoBitrate")}</span>
-                            <div className="converter-specs-control">
-                              <input
-                                id="convert-output-video-bitrate"
-                                className="custom-input"
-                                type="text"
-                                placeholder={t("common.auto")}
-                                value={videoBitrate}
-                                onChange={(e) => {
-                                  setVideoBitrate(e.target.value);
-                                  clearActivePreset();
-                                }}
-                                autoComplete="off"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.fps")}</span>
-                            <div className="converter-specs-control">
-                              <CustomSelect
-                                options={[
-                                  { value: "", label: t("common.auto") },
-                                  { value: "60", label: "60" },
-                                  { value: "30", label: "30" },
-                                  { value: "24", label: "24" },
-                                ]}
-                                value={videoFps}
-                                onChange={(val) => {
-                                  setVideoFps(val);
-                                  clearActivePreset();
-                                }}
-                                width="100%"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.audioCodec")}</span>
-                            <div className="converter-specs-control">
-                              <CustomSelect
-                                options={[
-                                  { value: "", label: t("common.auto") },
-                                  { value: "copy", label: "Copy (Pass-through)" },
-                                  ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
-                                ]}
-                                value={videoAudioCodec}
-                                onChange={(val) => {
-                                  setVideoAudioCodec(val);
-                                  clearActivePreset();
-                                }}
-                                width="100%"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.audioBitrate")}</span>
-                            <div className="converter-specs-control">
-                              <input
-                                id="convert-output-video-audio-bitrate"
-                                className="custom-input"
-                                type="text"
-                                placeholder="Auto"
-                                value={videoAudioBitrate}
-                                onChange={(e) => {
-                                  setVideoAudioBitrate(e.target.value);
-                                  clearActivePreset();
-                                }}
-                                autoComplete="off"
-                              />
-                            </div>
-                          </label>
+                          <EstimatedSizeRow classPrefix="converter" id="convert-output-video-size" value={estimatedSize} />
+                          <OutputSelectField
+                            classPrefix="converter"
+                            label={t("common.videoQuality")}
+                            options={["", "2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"].map((quality) => ({
+                              value: quality,
+                              label: quality || t("common.auto"),
+                            }))}
+                            value={videoQuality}
+                            onChange={(value) => {
+                              setVideoQuality(value);
+                              clearActivePreset();
+                            }}
+                          />
+                          <OutputCodecField classPrefix="converter" label={t("common.videoCodec")} codecs={selectedFormatMeta?.video_codecs || []} value={videoCodec} includeCopyOption onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />
+                          <OutputTextField classPrefix="converter" id="convert-output-video-bitrate" label={t("common.videoBitrate")} placeholder={t("common.auto")} value={videoBitrate} onChange={(value) => { setVideoBitrate(value); clearActivePreset(); }} />
+                          <OutputSelectField
+                            classPrefix="converter"
+                            label={t("common.fps")}
+                            options={["", "60", "30", "24"].map((fps) => ({ value: fps, label: fps || t("common.auto") }))}
+                            value={videoFps}
+                            onChange={(value) => {
+                              setVideoFps(value);
+                              clearActivePreset();
+                            }}
+                          />
+                          <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={videoAudioCodec} includeCopyOption onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />
+                          <OutputTextField classPrefix="converter" id="convert-output-video-audio-bitrate" label={t("common.audioBitrate")} placeholder="Auto" value={videoAudioBitrate} onChange={(value) => { setVideoAudioBitrate(value); clearActivePreset(); }} />
                         </div>
                       )}
 
                       {/* AUDIO Specs */}
                       {targetCategory === "audio" && (
                         <div className="converter-specs-section" data-section="audio">
-                          <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.options.estimatedSize")}</span>
-                            <span id="convert-output-audio-size" className="converter-specs-value">{estimatedSize || "-"}</span>
-                          </div>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.audioCodec")}</span>
-                            <div className="converter-specs-control">
-                              <CustomSelect
-                                options={[
-                                  { value: "", label: t("common.auto") },
-                                  ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
-                                ]}
-                                value={audioCodec}
-                                onChange={(val) => {
-                                  setAudioCodec(val);
-                                  clearActivePreset();
-                                }}
-                                width="100%"
-                              />
-                            </div>
-                          </label>
-                          <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.audioBitrate")}</span>
-                            <div className="converter-specs-control">
-                              <input
-                                id="convert-output-audio-bitrate"
-                                className="custom-input"
-                                type="text"
-                                placeholder="Auto"
-                                value={audioBitrate}
-                                onChange={(e) => {
-                                  setAudioBitrate(e.target.value);
-                                  clearActivePreset();
-                                }}
-                                autoComplete="off"
-                              />
-                            </div>
-                          </label>
+                          <EstimatedSizeRow classPrefix="converter" id="convert-output-audio-size" value={estimatedSize} />
+                          <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={audioCodec} onChange={(value) => { setAudioCodec(value); clearActivePreset(); }} />
+                          <OutputTextField classPrefix="converter" id="convert-output-audio-bitrate" label={t("common.audioBitrate")} placeholder="Auto" value={audioBitrate} onChange={(value) => { setAudioBitrate(value); clearActivePreset(); }} />
                         </div>
                       )}
 
                       {/* IMAGE Specs */}
                       {targetCategory === "image" && (
                         <div className="converter-specs-section" data-section="image">
-                          <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.options.estimatedSize")}</span>
-                            <span id="convert-output-image-size" className="converter-specs-value">{estimatedSize || "-"}</span>
-                          </div>
+                          <EstimatedSizeRow classPrefix="converter" id="convert-output-image-size" value={estimatedSize} />
                           <label className="converter-specs-row">
                             <span className="converter-specs-label">{t("converter.options.resolution")}</span>
                             <div className="converter-specs-control converter-resolution-inputs">
@@ -1059,10 +809,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                       {/* OTHER Specs */}
                       {targetCategory === "other" && (
                         <div className="converter-specs-section" data-section="other">
-                          <div className="converter-specs-row">
-                            <span className="converter-specs-label">{t("common.options.estimatedSize")}</span>
-                            <span id="convert-output-other-size" className="converter-specs-value">{estimatedSize || "-"}</span>
-                          </div>
+                          <EstimatedSizeRow classPrefix="converter" id="convert-output-other-size" value={estimatedSize} />
                         </div>
                       )}
 

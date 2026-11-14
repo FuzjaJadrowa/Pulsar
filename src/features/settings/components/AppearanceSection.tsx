@@ -1,6 +1,6 @@
 import React from "react";
-import { CustomSelect } from "../../../components/CustomSelect";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { useConfig } from "../../../services/config";
 import { useTranslation } from "../../../services/i18n";
 import { SettingsSection } from "../SettingsSection";

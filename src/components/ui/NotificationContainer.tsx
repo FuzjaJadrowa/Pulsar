@@ -1,6 +1,6 @@
-import { ICON_ASSETS } from "../utils/icons";
+import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState } from "react";
-import { useNotifications, dismissNotification, Toast } from "../services/notifications";
+import { useNotifications, dismissNotification, Toast } from "../../services/notifications";
 import styles from "./NotificationContainer.module.css";
 
 const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {

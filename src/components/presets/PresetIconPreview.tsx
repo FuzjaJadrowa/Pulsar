@@ -1,5 +1,5 @@
 import React from "react";
-import { sanitizeSvg } from "../utils/security";
+import { sanitizeSvg } from "../../utils/security";
 
 interface PresetIconPreviewProps {
   src: string;

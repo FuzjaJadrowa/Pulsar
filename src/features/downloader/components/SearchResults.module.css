@@ -14,7 +14,6 @@
 .headerTitle { margin: 0; font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.25rem; letter-spacing: 1px; }
 .count { font-size: 0.85rem; color: var(--c-text-dim); }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.loading { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; min-height: 160px; color: var(--c-text-dim); letter-spacing: 0.6px; }
 .empty { grid-column: 1 / -1; text-align: center; color: var(--c-text-dim); padding: 30px 0; }
 
 .card {
@@ -75,8 +74,8 @@
 .action:disabled { cursor: not-allowed; opacity: 0.7; }
 .actionIcon { display: inline-flex; }
 .actionSpinner { display: none; }
-.action.loading .actionIcon { display: none; }
-.action.loading .actionSpinner { display: inline-flex; }
+.actionLoading .actionIcon { display: none; }
+.actionLoading .actionSpinner { display: inline-flex; }
 
 .spinner {
     width: 18px;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { useConfig } from "../../../services/config";
 import { useTranslation } from "../../../services/i18n";
 import { ICON_ASSETS } from "../../../utils/icons";

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { useQueue } from "../features/queue/queue";
+import { useQueue } from "../features/queue/hooks/useQueue";
 import { DataSeaCanvas } from "./DataSeaCanvas";
 import { TitleBar } from "./TitleBar";
-import { NotificationContainer } from "../components/NotificationContainer";
+import { NotificationContainer } from "../components/ui/NotificationContainer";
 import { QueuePanel } from "../features/queue/components/QueuePanel";
 import { Home } from "../features/home/Home";
 import { Settings } from "../features/settings/Settings";

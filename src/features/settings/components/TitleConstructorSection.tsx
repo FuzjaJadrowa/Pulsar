@@ -70,8 +70,8 @@ export const TitleConstructorSection: React.FC = () => {
   };
 
   return (
-            <div className="title-constructor">
-          <div className="title-constructor-title">{t("settings.titleConstructor")}</div>
+            <div className="settings-subsection">
+          <div className="settings-subsection-title">{t("settings.titleConstructor")}</div>
           <div className="title-constructor-input-row">
             <div
               className="title-template-input"

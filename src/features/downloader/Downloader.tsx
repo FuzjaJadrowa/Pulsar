@@ -4,13 +4,14 @@ import { useTranslation } from "../../services/i18n";
 import { invoke, listen } from "../../services/tauri";
 import { useConfig } from "../../services/config";
 import { usePresets } from "../../services/presets";
-import { enqueue, animateQueueOrb } from "../queue/queue";
+import { enqueue } from "../queue/queue";
+import { animateQueueOrb } from "../queue/animation";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { detectSourceFromUrl, formatDuration } from "../../utils/format";
-import { PathSelector } from "../../components/PathSelector";
-import { CustomSelect } from "../../components/CustomSelect";
-import { PresetGrid } from "../../components/PresetGrid";
+import { PathSelector } from "../../components/ui/PathSelector";
+import { CustomSelect } from "../../components/ui/CustomSelect";
+import { PresetGrid } from "../../components/presets/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { sanitizeBitrateInput } from "../../utils/bitrate";
 import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderSearchResult, SubtitleOption } from "./types";
@@ -18,30 +19,18 @@ import styles from "./Downloader.module.css";
 import { SearchResults } from "./components/SearchResults";
 import { SearchPanel } from "./components/SearchPanel";
 import { MetadataInfo } from "./components/MetadataInfo";
+import {
+  codecMatches,
+  createSubtitleOptions,
+  getVideoQualityOptions,
+  hasCodec,
+  isAudioOnlySourceUrl,
+  metadataHasOnlyAudioSources,
+} from "./metadata";
 
-const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
 const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
-
-const hasCodec = (codec?: string | null) => !!codec?.trim() && codec.trim().toLowerCase() !== "none";
-
-const codecMatches = (requested: string, source?: string | null) => {
-  const wanted = requested.trim().toLowerCase();
-  const found = (source || "").trim().toLowerCase();
-  if (!wanted || !found || found === "none") return false;
-  const prefixes: Record<string, string[]> = {
-    h264: ["h264", "avc1", "avc3"], h265: ["h265", "hevc", "hev1", "hvc1"], hevc: ["h265", "hevc", "hev1", "hvc1"],
-    av1: ["av1", "av01"], vp9: ["vp9", "vp09"], vp8: ["vp8", "vp08"], aac: ["aac", "mp4a"], opus: ["opus"],
-    vorbis: ["vorbis"], mp3: ["mp3"], flac: ["flac"], alac: ["alac"],
-  };
-  return (prefixes[wanted] || [wanted]).some((prefix) => found.startsWith(prefix));
-};
-
-const metadataHasOnlyAudioSources = (formats: DownloaderFormat[] = []) => {
-  const codecFormats = formats.filter((format) => hasCodec(format.vcodec) || hasCodec(format.acodec));
-  return codecFormats.length > 0 && codecFormats.every((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec));
-};
 
 import { getFormatEntrySync, loadFormatCatalog } from "../../services/formats";
 
@@ -243,11 +232,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return /^https?:\/\//i.test(value.trim());
   };
 
-  const isAudioOnlySourceUrl = (rawUrl: string) => {
-    const source = detectSourceFromUrl(rawUrl);
-    return source !== null && source !== "youtube" && source !== "soundcloud";
-  };
-
   const applySourceConstraints = (rawUrl: string) => {
     const audioOnly = isAudioOnlySourceUrl(rawUrl);
     setIsAudioOnlySource(audioOnly);
@@ -304,79 +288,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const generateSubtitleOptions = (data: DownloaderMetadata): SubtitleOption[] => {
-    const all = [...(data.subtitles_langs || []), ...(data.auto_captions_langs || [])];
-    const unique = [...new Set(all.map((c) => String(c).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-    return unique.map((code: string) => {
-      const cleanCode = code.trim();
-      const normalizedCode = cleanCode.replace("_", "-");
-      const parts = normalizedCode.split("-");
-      const language = parts[0].toLowerCase();
-      const region = (parts.find((p) => p.length === 2 && /^[a-zA-Z]{2}$/.test(p)) || "").toUpperCase();
-
-      let languageName = language;
-      let countryName = region;
-
-      try {
-        const langDisplay = new Intl.DisplayNames([config?.language || "en"], { type: "language" });
-        const langResolved = langDisplay.of(language);
-        if (langResolved) languageName = langResolved;
-      } catch (_) {}
-
-      if (region) {
-        try {
-          const regionDisplay = new Intl.DisplayNames([config?.language || "en"], { type: "region" });
-          const regionResolved = regionDisplay.of(region);
-          if (regionResolved) countryName = regionResolved;
-        } catch (_) {}
-      }
-
-      const flag = region
-        ? String.fromCodePoint(...region.split("").map((c) => 127397 + c.charCodeAt(0)))
-        : "GLB";
-
-      return {
-        code: cleanCode,
-        languageName,
-        countryName: countryName || t("downloader.languages.global"),
-        flag
-      };
-    });
-  };
-
-  const parseVideoQuality = (formats: DownloaderFormat[] = []) => {
-    const found = new Map<string, number>();
-    formats.forEach((format) => {
-      if (format.vcodec?.trim().toLowerCase() === "none") return;
-
-      const note = String(format.format_note || format.note || "");
-      const resolution = String(format.resolution || "");
-      const resolutionMatch = resolution.match(/\d+x(\d{2,5})/i);
-      const noteMatch = note.match(/(\d{2,5})p/i);
-      const formatIdMatch = String(format.format_id || "").match(/(?:^|[^\d])(\d{2,5})p(?:\d+)?(?:$|[^\d])/i);
-      const height = Number(
-        format.height || resolutionMatch?.[1] || noteMatch?.[1] || formatIdMatch?.[1] || 0,
-      );
-      const quality = videoQualities.find((entry) => Number.parseInt(entry, 10) <= height);
-      if (!quality) return;
-
-      const fps = Number(format.fps);
-      const knownFps = Number.isFinite(fps) && fps > 0 ? Math.round(fps) : 0;
-      found.set(quality, Math.max(found.get(quality) || 0, knownFps));
-    });
-
-    if (!found.size) return ["Best"];
-    const highest = videoQualities.find((quality) => found.has(quality));
-    if (!highest) return ["Best"];
-    const ordered = videoQualities.slice(videoQualities.indexOf(highest)).filter((quality) =>
-      Number.parseInt(quality, 10) <= Number.parseInt(highest, 10),
-    );
-    return ordered.map((quality) => {
-      const maxFps = found.get(quality) || 0;
-      return maxFps > 30 ? `${quality}${maxFps}` : quality;
-    });
-  };
-
   const handleMetadataLoaded = (data: DownloaderMetadata) => {
     setMetadata(data);
     setCustomFilename("");
@@ -394,10 +305,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     );
     setIsPlaylist(playlist);
 
-    const parsedVideoQualities = parseVideoQuality(data.formats || []);
+    const parsedVideoQualities = getVideoQualityOptions(data.formats || []);
     setVideoQualityOptions(parsedVideoQualities);
 
-    const subOpts = generateSubtitleOptions(data);
+    const subOpts = createSubtitleOptions(data, config?.language || "en", t("downloader.languages.global"));
     setSubtitleOptions(subOpts);
     const sLangs = data.subtitles_langs?.map((language) => language.trim()).filter(Boolean) || [];
     const aLangs = data.auto_captions_langs?.map((language) => language.trim()).filter(Boolean) || [];
@@ -827,6 +738,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           isSearchMode={isSearchMode}
           isSearching={isSearching}
           isAnalyzing={isAnalyzing}
+          hasMetadata={Boolean(metadata)}
           isSearchQuery={!looksLikeUrl(url)}
           provider={provider}
           inputRef={urlInputRef}
@@ -836,6 +748,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           }}
           onPaste={handlePaste}
           onSubmit={handleFetch}
+          onClear={() => resetToZen()}
           onProviderChange={setProvider}
         />
 
@@ -915,17 +828,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   <div className="grid-column">
                     <label>{t("downloader.options.format")}</label>
                     <div className="tiles-container" id="format-list">
-                      {formatsToRender.map((fmt) => (
+                      {formatsToRender.map((format) => (
                         <button
-                          key={fmt}
+                          key={format}
                           type="button"
-                          className={`tile ${selectedFormat === fmt ? "active" : ""}`}
-                          onClick={() => {
-                            setSelectedFormat(fmt);
-                            clearActivePreset();
-                          }}
+                          className={`tile ${selectedFormat === format ? "active" : ""}`}
+                          onClick={() => { setSelectedFormat(format); clearActivePreset(); }}
                         >
-                          <span>{fmt}</span>
+                          <span>{format}</span>
                         </button>
                       ))}
                     </div>
@@ -933,17 +843,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   <div className="grid-column">
                     <label>{t("downloader.options.quality")}</label>
                     <div className="tiles-container" id="quality-list">
-                      {qualitiesToRender.map((q) => (
+                      {qualitiesToRender.map((quality) => (
                         <button
-                          key={q}
+                          key={quality}
                           type="button"
-                          className={`tile ${selectedQuality === q ? "active" : ""}`}
-                          onClick={() => {
-                            setSelectedQuality(q);
-                            clearActivePreset();
-                          }}
+                          className={`tile ${selectedQuality === quality ? "active" : ""}`}
+                          onClick={() => { setSelectedQuality(quality); clearActivePreset(); }}
                         >
-                          <span>{q}</span>
+                          <span>{quality}</span>
                         </button>
                       ))}
                     </div>
@@ -1010,7 +917,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
               {/* Options group (Thumbnail, subtitles, sponsors, metadata, advanced) */}
               <div className="extras-section fade-in">
-                {/* Thumbnail Action */}
                 <div className="thumb-container">
                   <span className="option-label">{t("downloader.options.thumbnail")}</span>
                   <div className="thumb-preview">
@@ -1051,7 +957,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </div>
                 </div>
 
-                {/* Other settings */}
                 <div className="option-group">
                   <span className="option-label">{t("downloader.options.other")}</span>
                   <div className="form-row">
@@ -1112,7 +1017,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   )}
                 </div>
 
-                {/* Subtitles settings */}
                 <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-start" }}>
                   <span className="option-label">{t("downloader.options.subtitles")}</span>
                   <div className="form-row subtitles-row">

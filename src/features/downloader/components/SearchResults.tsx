@@ -52,7 +52,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
               >
                 <button
                   type="button"
-                  className={`${styles.action} ${isItemLoading ? styles.loading : ""}`}
+                  className={`${styles.action} ${isItemLoading ? styles.actionLoading : ""}`}
                   aria-label="Select"
                   disabled={isAnalyzing}
                   onClick={() => onSelect(entry)}

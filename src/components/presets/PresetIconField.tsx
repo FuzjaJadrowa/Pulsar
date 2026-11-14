@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useTranslation } from "../services/i18n";
+import { useTranslation } from "../../services/i18n";
 import { PresetIconPreview } from "./PresetIconPreview";
 import styles from "./PresetIconField.module.css";
 

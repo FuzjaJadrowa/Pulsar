@@ -1,5 +1,5 @@
 import React from "react";
-import type { MediaFileMetadata } from "../types/media";
+import type { MediaFileMetadata } from "../../types/media";
 import { BatchFilesList } from "./BatchFilesList";
 import styles from "./BatchInfoCard.module.css";
 

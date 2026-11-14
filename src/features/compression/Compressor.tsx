@@ -1,33 +1,45 @@
 import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
+import { MediaFilePickerBar } from "../../components/media/MediaFilePickerBar";
+import { createFileSelectionHandlers } from "../media/fileSelection";
 import { useTranslation } from "../../services/i18n";
 import { useConfig } from "../../services/config";
-import { invoke } from "../../services/tauri";
 import { usePresets } from "../../services/presets";
-import { enqueue, animateQueueOrb } from "../queue/queue";
+import { enqueue } from "../queue/queue";
+import { animateQueueOrb } from "../queue/animation";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { formatBytes } from "../../utils/format";
-import { PathSelector } from "../../components/PathSelector";
-import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
+import { PathSelector } from "../../components/ui/PathSelector";
+import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
-import { CustomSelect } from "../../components/CustomSelect";
-import { PresetGrid } from "../../components/PresetGrid";
+import { PresetGrid } from "../../components/presets/PresetGrid";
 import type { FormatEntry } from "../../services/formats";
 import { loadFormatCatalog } from "../../services/formats";
 import type { MediaFileMetadata } from "../../types/media";
 import type { Preset } from "../../services/presets";
-import { BatchInfoCard } from "../../components/BatchInfoCard";
+import { BatchInfoCard } from "../../components/media/BatchInfoCard";
 
 import { PRESET_DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
 import { extractFileName, extractFolderPath, normalizeFormatKey, parseSizeInput } from "./files";
 import styles from "./Compressor.module.css";
 import { CompressorFileInfo } from "./components/CompressorFileInfo";
+import { CompressorModeControls } from "./components/CompressorModeControls";
+import { EstimatedSizeRow } from "../../components/media/EstimatedSizeRow";
+import { OutputCodecField } from "../../components/media/OutputCodecField";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
 const SUPPORTED_IMAGE_FORMATS = new Set([
   "bmp", "gif", "jfif", "jpg", "jpeg", "png", "tga", "tif", "tiff", "webp"
 ]);
+
+const isSupportedCompressorMetadata = (metadata: MediaFileMetadata) => {
+  const category = String(metadata.category || "").toLowerCase();
+  if (!SUPPORTED_CATEGORIES.has(category)) return false;
+  if (category !== "image") return true;
+  const extension = normalizeFormatKey(metadata.extension || metadata.format || "");
+  return SUPPORTED_IMAGE_FORMATS.has(extension);
+};
 
 interface CompressorProps {
   active?: boolean;
@@ -51,19 +63,10 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   } = useTauriMetadata<MediaFileMetadata>({
     pickerCommand: "fetch_metadata_converter",
     onSuccess: (data) => {
-      const category = String(data.category || "").toLowerCase();
-      if (!SUPPORTED_CATEGORIES.has(category)) {
+      if (!isSupportedCompressorMetadata(data)) {
         showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
         resetView();
         return;
-      }
-      if (category === "image") {
-        const ext = normalizeFormatKey(data.extension || data.format || "");
-        if (!SUPPORTED_IMAGE_FORMATS.has(ext)) {
-          showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
-          resetView();
-          return;
-        }
       }
       handleMetadataLoaded(data);
     },
@@ -71,54 +74,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       showNotification(t("common.error"), err, "error");
     }
   });
-
-  const handleFilesSelected = async (inputPaths: string | string[]) => {
-    const rawPaths = Array.isArray(inputPaths) ? inputPaths : [inputPaths];
-    const cleanPaths = rawPaths.map(p => String(p || "").trim()).filter(Boolean);
-    if (cleanPaths.length === 0) return;
-
-    if (cleanPaths.length === 1) {
-      setLoadedFiles([]);
-      setFilePath(cleanPaths[0]);
-      triggerFetchMetadata(cleanPaths[0]);
-      return;
-    }
-
-    // Multiple files (Bulk Mode)
-    try {
-      const metaPromises = cleanPaths.map(path => fetchSingleFileMetadata(path));
-      const results = await Promise.all(metaPromises);
-      const validMeta = results.filter((m): m is MediaFileMetadata => {
-        if (!m || !m.path || !m.category) return false;
-        const category = String(m.category || "").toLowerCase();
-        if (!SUPPORTED_CATEGORIES.has(category)) return false;
-        if (category === "image") {
-          const ext = normalizeFormatKey(m.extension || m.format || "");
-          if (!SUPPORTED_IMAGE_FORMATS.has(ext)) return false;
-        }
-        return true;
-      });
-
-      if (validMeta.length === 0) {
-        showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
-        return;
-      }
-
-      // Category Consistency Check
-      const categories = new Set(validMeta.map(m => String(m.category || "").toLowerCase()));
-      if (categories.size > 1) {
-        showNotification(t("common.info"), t("compressor.bulk.mixedCategoryError"), "info");
-        return;
-      }
-
-      setLoadedFiles(validMeta);
-      setFilePath(validMeta.map(m => m.path).join("; "));
-      handleMetadataLoaded(validMeta[0]);
-    } catch (e) {
-      console.error("Bulk fetch metadata failed:", e);
-      showNotification(t("common.error"), String(e), "error");
-    }
-  };
 
   const { showDropOverlay } = useFileDragDrop({
     pageClass: "page-compressor",
@@ -220,55 +175,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }, 150);
   };
 
-  const handleConfirmPath = () => {
-    const raw = filePath.trim();
-    if (!raw) {
-      triggerShakeInput();
-      return;
-    }
-    const paths = raw.split(";").map(s => s.trim()).filter(Boolean);
-    handleFilesSelected(paths);
-  };
-
-  const triggerShakeInput = () => {
-    if (pathInputRef.current) {
-      pathInputRef.current.classList.remove("shake-feedback");
-      void pathInputRef.current.offsetWidth;
-      pathInputRef.current.classList.add("shake-feedback");
-    }
-  };
-
-  const openPicker = async () => {
-    try {
-      const selected = await invoke<string[]>("pick_convert_files");
-      if (selected && selected.length > 0) {
-        const cleanPaths = selected.map((path) => String(path || "").trim()).filter(Boolean);
-        if (cleanPaths.length === 0) return;
-
-        resetView();
-        setFilePath(cleanPaths.join("; "));
-        pathInputRef.current?.focus();
-      }
-    } catch (e) {
-      console.error("Pick compressor files failed:", e);
-    }
-  };
-
-  const removeFileFromBatch = (indexToRemove: number) => {
-    const updated = loadedFiles.filter((_, idx) => idx !== indexToRemove);
-    if (updated.length === 0) {
-      resetView();
-    } else if (updated.length === 1) {
-      setLoadedFiles([]);
-      handleMetadataLoaded(updated[0]);
-      setFilePath(updated[0].path);
-    } else {
-      setLoadedFiles(updated);
-      setMetadata(updated[0]);
-      setFilePath(updated.map(m => m.path).join("; "));
-    }
-  };
-
   const clearActivePreset = () => {
     setActivePresetId(null);
   };
@@ -282,6 +188,24 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     setSavePath("");
     clearActivePreset();
   };
+
+  const { handleFilesSelected, handleConfirmPath, openPicker, removeFileFromBatch } = createFileSelectionHandlers({
+    filePath,
+    loadedFiles,
+    inputRef: pathInputRef,
+    pageName: "compressor",
+    errorTitle: t("common.error"),
+    infoTitle: t("common.info"),
+    invalidFilesMessage: t("common.errors.unsupportedFormat"),
+    mixedCategoryMessage: t("compressor.bulk.mixedCategoryError"),
+    setFilePath,
+    setLoadedFiles,
+    setMetadata,
+    fetchMetadata: triggerFetchMetadata,
+    onMetadataLoaded: handleMetadataLoaded,
+    resetView,
+    isSupportedMetadata: isSupportedCompressorMetadata,
+  });
 
   const estimateFromCrf = (sizeBytes: number, crf: number) => {
     if (!Number.isFinite(sizeBytes) || !Number.isFinite(crf)) return null;
@@ -489,13 +413,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     }
   };
 
-  const getCrfLabel = (i: number) => {
-    if (i === 0) return t("compressor.crf.bestQuality");
-    if (i === 26) return t("compressor.crf.balance");
-    if (i === 51) return t("compressor.crf.bestCompression");
-    return String(i);
-  };
-
   const initialCategory = metadata ? String(metadata.category || "").toLowerCase() : "";
   const extKey = metadata ? normalizeFormatKey(metadata.extension || metadata.format || "") : "";
   const extFormatMeta = formatData.find((format) => format.id.toLowerCase() === extKey);
@@ -506,9 +423,6 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const hasDuration = initialCategory === "video" || initialCategory === "audio";
   const targetCategory = metadata ? resolveSpecsCategory(metadata.category || "") : "other";
 
-  const pctVal = typeof percentValue === "number" ? percentValue : 60;
-  const percentFillRatio = (pctVal - 1) / (100 - 1);
-
   const isValid = !!(metadata && (selectedMode !== "size" || Number.isFinite(parseSizeInput(sizeInputValue))));
 
   return (
@@ -516,79 +430,28 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       <div className="page-scroll app-scroll">
 
         {/* Picker / Input Bar */}
-        <div id="compress-search-section" className={`search-section ${!isDashboardVisible ? "centered compressor-zen" : "sticky"}`}>
-          <div className="search-box-row compressor-bar" id="compressor-bar">
-            <input
-              type="text"
-              id="compress-path-input"
-              ref={pathInputRef}
-              placeholder={t("compressor.path.placeholder")}
-              value={filePath}
-              onChange={(e) => {
-                setFilePath(e.target.value);
-                if (e.target.value.trim() === "") {
-                  resetView();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleConfirmPath();
-                }
-              }}
-              autoComplete="off"
-            />
-            <span
-              id="compress-browse-btn"
-              className="bar-icon"
-              title={t("common.browse")}
-              onClick={openPicker}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openPicker();
-                }
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["folder-browse"]} /></svg>
-            </span>
-            {filePath && (
-              <button
-                type="button"
-                className="bar-icon clear-selection-btn"
-                title={t("common.clearSelection")}
-                aria-label={t("common.clearSelection")}
-                onClick={resetView}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><use href={ICON_ASSETS["window-close"]} /></svg>
-              </button>
-            )}
-            <button
-              id="compress-confirm-btn"
-              className={`bar-action ${isConfirmLoading ? "loading" : ""}`}
-              onClick={handleConfirmPath}
-              disabled={isConfirmLoading}
-            >
-              {isConfirmLoading ? (
-                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><use href={ICON_ASSETS["clear-selection"]} /></svg>
-              )}
-            </button>
-          </div>
-          {!isDashboardVisible && (
-            <div className="drop-hint compress-drop-hint" onClick={openPicker}>
-              <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
-              </span>
-              <span className="drop-hint-text">{t("common.dropHint")}</span>
-              <span className="drop-hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
-              </span>
-            </div>
-          )}
-        </div>
+        <MediaFilePickerBar
+          idPrefix="compress"
+          pageClass="compressor-bar"
+          zenClass="compressor-zen"
+          dropHintClass="compress-drop-hint"
+          placeholder={t("compressor.path.placeholder")}
+          value={filePath}
+          isLoading={isConfirmLoading}
+          hasMetadata={Boolean(metadata)}
+          isDashboardVisible={isDashboardVisible}
+          inputRef={pathInputRef}
+          browseTitle={t("common.browse")}
+          clearTitle={t("common.clearSelection")}
+          dropHint={t("common.dropHint")}
+          onValueChange={(value) => {
+            setFilePath(value);
+            if (!value.trim()) resetView();
+          }}
+          onConfirm={handleConfirmPath}
+          onBrowse={openPicker}
+          onClear={resetView}
+        />
 
         {/* Dashboard area */}
         {isDashboardVisible && metadata && (
@@ -630,142 +493,17 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
               </div>
             )}
 
-            {/* Controls Panel */}
-            <div className="compressor-controls-panel fade-in">
-              <span className="option-label compressor-options-title">{t("compressor.options.compressBy")}</span>
-              <div id="compress-mode-toggle" className="compressor-mode-toggle mode-switcher" role="group" aria-label="Compression mode">
-                <button
-                  type="button"
-                  className={`switch-option ${selectedMode === "percent" ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedMode("percent");
-                    clearActivePreset();
-                  }}
-                  aria-pressed={selectedMode === "percent" ? "true" : "false"}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-percent"]} /></svg>
-                  <span>{t("compressor.mode.percent")}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`switch-option ${selectedMode === "size" ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedMode("size");
-                    clearActivePreset();
-                  }}
-                  aria-pressed={selectedMode === "size" ? "true" : "false"}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-size"]} /></svg>
-                  <span>{t("compressor.mode.size")}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`switch-option ${selectedMode === "quality" ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedMode("quality");
-                    clearActivePreset();
-                  }}
-                  aria-pressed={selectedMode === "quality" ? "true" : "false"}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["compression-quality"]} /></svg>
-                  <span>{t("compressor.mode.quality")}</span>
-                </button>
-              </div>
-
-              <div className="compressor-mode-panels">
-                {/* PERCENT PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "percent" ? "" : "hidden"}`} data-mode="percent">
-                  <div className="compressor-percent-control">
-                    <div className="compressor-slider-track">
-                      <div className="track-bg"></div>
-                      <div
-                        className="track-fill"
-                        id="compress-percent-fill"
-                        style={{ width: `${percentFillRatio * 100}%` }}
-                      ></div>
-                      <input
-                        type="range"
-                        id="compress-percent-range"
-                        min="1"
-                        max="100"
-                        value={percentValue}
-                        onChange={(e) => {
-                          setPercentValue(Number(e.target.value));
-                          clearActivePreset();
-                        }}
-                        step="1"
-                        aria-label="Percent"
-                      />
-                    </div>
-                    <input
-                      id="compress-percent-input"
-                      className="custom-input compressor-percent-input"
-                      type="number"
-                      value={percentValue}
-                      onChange={(e) => {
-                        if (e.target.value === "") {
-                          setPercentValue("");
-                          clearActivePreset();
-                          return;
-                        }
-                        let val = parseInt(e.target.value, 10);
-                        if (!isNaN(val) && val > 100) {
-                          val = 100;
-                        }
-                        setPercentValue(val);
-                        clearActivePreset();
-                      }}
-                      onBlur={() => {
-                        let val = typeof percentValue === "number" ? percentValue : parseInt(String(percentValue), 10);
-                        if (isNaN(val)) val = 60;
-                        if (val < 1) val = 1;
-                        if (val > 100) val = 100;
-                        setPercentValue(val);
-                      }}
-                      autoComplete="off"
-                    />
-                    <span className="compressor-percent-suffix">%</span>
-                  </div>
-                </div>
-
-                {/* SIZE PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "size" ? "" : "hidden"}`} data-mode="size">
-                  <div className="compressor-size-control">
-                    <input
-                      id="compress-size-input"
-                      className="custom-input"
-                      type="text"
-                      placeholder={t("compressor.size.placeholder")}
-                      value={sizeInputValue}
-                      onChange={(e) => {
-                        setSizeInputValue(e.target.value);
-                        clearActivePreset();
-                      }}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-
-                {/* QUALITY PANEL */}
-                <div className={`compressor-mode-panel ${selectedMode === "quality" ? "" : "hidden"}`} data-mode="quality">
-                  <div className="compressor-quality-control">
-                    <span className="compressor-crf-label">CRF</span>
-                    <CustomSelect
-                      options={Array.from({ length: 52 }, (_, i) => ({
-                        value: String(i),
-                        label: getCrfLabel(i)
-                      }))}
-                      value={crfValue}
-                      onChange={(val) => {
-                        setCrfValue(val);
-                        clearActivePreset();
-                      }}
-                      width="100%"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CompressorModeControls
+              selectedMode={selectedMode}
+              percentValue={percentValue}
+              sizeInputValue={sizeInputValue}
+              crfValue={crfValue}
+              setSelectedMode={setSelectedMode}
+              setPercentValue={setPercentValue}
+              setSizeInputValue={setSizeInputValue}
+              setCrfValue={setCrfValue}
+              clearActivePreset={clearActivePreset}
+            />
 
             {/* Options Panel */}
             <div className="compressor-options-panel fade-in">
@@ -794,91 +532,31 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                     {/* VIDEO SPECS */}
                     {targetCategory === "video" && (
                       <div className="compressor-specs-section" data-section="video">
-                        <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
-                          <span id="compress-estimated-video-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
-                        </div>
-                        <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.videoCodec")}</span>
-                          <div className="compressor-specs-control">
-                            <CustomSelect
-                              options={[
-                                { value: "", label: t("common.auto") },
-                                ...videoCodecsOptions.map((c: string) => ({ value: c, label: c }))
-                              ]}
-                              value={videoCodec}
-                              onChange={(val) => {
-                                setVideoCodec(val);
-                                clearActivePreset();
-                              }}
-                              width="100%"
-                            />
-                          </div>
-                        </label>
-                        <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.audioCodec")}</span>
-                          <div className="compressor-specs-control">
-                            <CustomSelect
-                              options={[
-                                { value: "", label: t("common.auto") },
-                                ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
-                              ]}
-                              value={videoAudioCodec}
-                              onChange={(val) => {
-                                setVideoAudioCodec(val);
-                                clearActivePreset();
-                              }}
-                              width="100%"
-                            />
-                          </div>
-                        </label>
+                        <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-video-size" value={estimatedSize} />
+                        <OutputCodecField classPrefix="compressor" label={t("common.videoCodec")} codecs={videoCodecsOptions} value={videoCodec} onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />
+                        <OutputCodecField classPrefix="compressor" label={t("common.audioCodec")} codecs={audioCodecsOptions} value={videoAudioCodec} onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />
                       </div>
                     )}
 
                     {/* AUDIO SPECS */}
                     {targetCategory === "audio" && (
                       <div className="compressor-specs-section" data-section="audio">
-                        <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
-                          <span id="compress-estimated-audio-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
-                        </div>
-                        <label className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.audioCodec")}</span>
-                          <div className="compressor-specs-control">
-                            <CustomSelect
-                              options={[
-                                { value: "", label: t("common.auto") },
-                                ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
-                              ]}
-                              value={audioCodec}
-                              onChange={(val) => {
-                                setAudioCodec(val);
-                                clearActivePreset();
-                              }}
-                              width="100%"
-                            />
-                          </div>
-                        </label>
+                        <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-audio-size" value={estimatedSize} />
+                        <OutputCodecField classPrefix="compressor" label={t("common.audioCodec")} codecs={audioCodecsOptions} value={audioCodec} onChange={(value) => { setAudioCodec(value); clearActivePreset(); }} />
                       </div>
                     )}
 
                     {/* IMAGE SPECS */}
                     {targetCategory === "image" && (
                       <div className="compressor-specs-section" data-section="image">
-                        <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
-                          <span id="compress-estimated-image-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
-                        </div>
+                        <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-image-size" value={estimatedSize} />
                       </div>
                     )}
 
                     {/* OTHER SPECS */}
                     {targetCategory === "other" && (
                       <div className="compressor-specs-section" data-section="other">
-                        <div className="compressor-specs-row">
-                          <span className="compressor-specs-label">{t("common.options.estimatedSize")}</span>
-                          <span id="compress-estimated-other-size" className="compressor-specs-value">{estimatedSize || "-"}</span>
-                        </div>
+                        <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-other-size" value={estimatedSize} />
                       </div>
                     )}
                   </div>

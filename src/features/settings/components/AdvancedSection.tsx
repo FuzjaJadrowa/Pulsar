@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { useConfig } from "../../../services/config";
 import { useTranslation } from "../../../services/i18n";
 import { SettingsSection } from "../SettingsSection";
