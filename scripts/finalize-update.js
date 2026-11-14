@@ -32,34 +32,49 @@ function expectedSignatureFileHint(platform, currentVersion) {
     return '';
 }
 
+if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
+    console.error('VERSION must be set to a release version such as 3.2.0');
+    process.exit(1);
+}
+
 if (!fs.existsSync(updateJsonPath)) {
     console.error('update.json not found');
     process.exit(1);
 }
 
-let updateData = JSON.parse(fs.readFileSync(updateJsonPath, 'utf8'));
+const signatures = {};
+for (const platform of Object.keys(sigFiles)) {
+    const sigPath = path.join(rootDir, 'sigs', sigFiles[platform]);
+    if (!fs.existsSync(sigPath)) {
+        console.error(`Required signature file not found: ${sigPath}`);
+        process.exit(1);
+    }
+
+    const signature = fs.readFileSync(sigPath, 'utf8').trim();
+    const decodedSignature = decodeSignatureText(signature);
+    const expectedHint = expectedSignatureFileHint(platform, version);
+    if (!decodedSignature || !decodedSignature.includes(expectedHint)) {
+        console.error(`Invalid ${platform} signature: expected signed file hint ${expectedHint}.`);
+        process.exit(1);
+    }
+    signatures[platform] = signature;
+}
+
+const updateData = JSON.parse(fs.readFileSync(updateJsonPath, 'utf8'));
+const baseUrl = `https://github.com/FuzjaJadrowa/Pulsar/releases/download/v${version}`;
+for (const [platform, signature] of Object.entries(signatures)) {
+    if (!updateData.platforms[platform]) {
+        console.error(`Platform entry not found in update.json: ${platform}`);
+        process.exit(1);
+    }
+
+    updateData.platforms[platform].signature = signature;
+    const fileName = platform === 'windows-x86_64' ? `Pulsar-${version}-win64.exe` :
+        `Pulsar-${version}-MacOS.app.tar.gz`;
+    updateData.platforms[platform].url = `${baseUrl}/${fileName}`;
+}
 updateData.version = version;
 updateData.pub_date = new Date().toISOString();
 
-Object.keys(sigFiles).forEach(platform => {
-    const sigPath = path.join(rootDir, 'sigs', sigFiles[platform]);
-    if (fs.existsSync(sigPath)) {
-        const signature = fs.readFileSync(sigPath, 'utf8').trim();
-        const decodedSignature = decodeSignatureText(signature);
-        const expectedHint = expectedSignatureFileHint(platform, version);
-        if (!decodedSignature || (expectedHint && !decodedSignature.includes(expectedHint))) {
-            console.warn(`Skipping ${platform} signature update: signature payload does not match expected file hint (${expectedHint}).`);
-            return;
-        }
-        if (updateData.platforms[platform]) {
-            updateData.platforms[platform].signature = signature;
-            const baseUrl = `https://github.com/FuzjaJadrowa/Pulsar/releases/download/v${version}`;
-            const fileName = platform === 'windows-x86_64' ? `Pulsar-${version}-win64.exe` :
-                `Pulsar-${version}-MacOS.app.tar.gz`;
-            updateData.platforms[platform].url = `${baseUrl}/${fileName}`;
-        }
-    }
-});
-
 fs.writeFileSync(updateJsonPath, JSON.stringify(updateData, null, 2));
-console.log('update.json updated with signatures!');
+console.log(`update.json updated with validated ${version} signatures.`);

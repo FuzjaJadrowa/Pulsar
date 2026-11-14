@@ -101,11 +101,17 @@ jobs:
         shell: pwsh
         run: |
           $ver = "${{ env.VERSION }}"
-          $installer = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*.exe" | Select-Object -First 1
+          $installer = "src-tauri/target/release/bundle/nsis/Pulsar_${ver}_x64-setup.exe"
+          $sigFile = "$installer.sig"
+          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+            throw "Expected installer not found: $installer"
+          }
+          if (-not (Test-Path -LiteralPath $sigFile -PathType Leaf)) {
+            throw "Expected updater signature not found: $sigFile"
+          }
           $installerName = "Pulsar-$ver-win64.exe"
-          Copy-Item $installer.FullName -Destination $installerName
-          $sigFile = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*.exe.sig" | Select-Object -First 1
-          Copy-Item $sigFile.FullName -Destination "Pulsar-win64.sig"
+          Copy-Item -LiteralPath $installer -Destination $installerName
+          Copy-Item -LiteralPath $sigFile -Destination "Pulsar-win64.sig"
           $portableName = "Pulsar-$ver-win64.zip"
           Compress-Archive -Path "src-tauri/target/release/pulsar.exe" -DestinationPath $portableName
           "ASSET_INSTALLER=$installerName" >> $env:GITHUB_ENV
