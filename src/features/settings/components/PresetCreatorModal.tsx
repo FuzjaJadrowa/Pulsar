@@ -1,16 +1,17 @@
-import { ICON_ASSETS } from "../utils/icons";
+import { ICON_ASSETS } from "../../../utils/icons";
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "../services/i18n";
-import { invoke } from "../services/tauri";
-import { Preset, exportPreset, getPresetFromCache } from "../services/presets";
-import { CustomSelect } from "./CustomSelect";
-import { sanitizeBitrateInput } from "../utils/bitrate";
-import { ToggleSwitch } from "./ToggleSwitch";
-import { PathSelector } from "./PathSelector";
-import { useUiState } from "../services/uiState";
-import { loadFormatCatalog, type FormatEntry } from "../services/formats";
-import { PresetIconField } from "./presets/PresetIconField";
-import { PRESET_DEFAULT_ICON } from "../utils/icons";
+import { useTranslation } from "../../../services/i18n";
+import { invoke } from "../../../services/tauri";
+import { Preset, exportPreset, getPresetFromCache } from "../../../services/presets";
+import { CustomSelect } from "../../../components/CustomSelect";
+import { sanitizeBitrateInput } from "../../../utils/bitrate";
+import styles from "./PresetCreatorModal.module.css";
+import { ToggleSwitch } from "../../../components/ToggleSwitch";
+import { PathSelector } from "../../../components/PathSelector";
+import { useUiState } from "../../../services/uiState";
+import { loadFormatCatalog, type FormatEntry } from "../../../services/formats";
+import { PresetIconField } from "../../../components/PresetIconField";
+import { PRESET_DEFAULT_ICON } from "../../../utils/icons";
 
 interface PresetCreatorModalProps {
   isOpen: boolean;
@@ -353,12 +354,12 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
 
 
   const videoCodecOptions = [
-    { value: "", label: t("presetCreator.select.auto") },
+    { value: "", label: t("common.auto") },
     ...(currentFormatMeta?.video_codecs || []).map((vc) => ({ value: vc, label: vc }))
   ];
 
   const audioCodecOptions = [
-    { value: "", label: t("presetCreator.select.auto") },
+    { value: "", label: t("common.auto") },
     ...(currentFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
   ];
   
@@ -396,7 +397,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
   if (!activeModal) return null;
 
   return (
-    <div className={`preset-modal-overlay ${isClosing ? "closing" : "open"}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={`${styles.scope} preset-modal-overlay ${isClosing ? "closing" : "open"}`} id="preset-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="preset-modal" role="dialog" aria-modal="true">
         <div className="preset-modal-header">
           <div className="preset-modal-title">
@@ -633,7 +634,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   {presetType === "downloader" && (
                     <>
                       <div className="preset-toggle-item">
-                        <span>{t("presetCreator.toggles.downloadSubtitles")}</span>
+                        <span>{t("common.downloadSubtitles")}</span>
                         <ToggleSwitch
                           checked={downloadSubs}
                           onChange={setDownloadSubs}
@@ -642,14 +643,14 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                       {downloadSubs && (
                         <>
                           <div className="preset-toggle-item preset-subs-extra visible">
-                            <span>{t("presetCreator.toggles.embedSubtitles")}</span>
+                            <span>{t("common.embedSubtitles")}</span>
                             <ToggleSwitch
                               checked={embedSubs}
                               onChange={setEmbedSubs}
                             />
                           </div>
                           <div className="preset-toggle-item preset-toggle-code preset-subs-extra visible">
-                            <span>{t("presetCreator.toggles.subtitlesCode")}</span>
+                            <span>{t("common.codeOptional")}</span>
                             <input
                               className="custom-input"
                               type="text"
@@ -664,7 +665,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   )}
 
                   <div className="preset-toggle-item">
-                    <span>{t("presetCreator.toggles.embedMetadata")}</span>
+                    <span>{t("common.embedMetadata")}</span>
                     <ToggleSwitch
                       checked={embedMetadata}
                       onChange={setEmbedMetadata}
@@ -678,7 +679,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     />
                   </div>
                   <div className="preset-toggle-item">
-                    <span>{t("presetCreator.toggles.skipSponsors")}</span>
+                    <span>{t("common.skipSponsors")}</span>
                     <ToggleSwitch
                       checked={skipSponsors}
                       onChange={setSkipSponsors}
@@ -686,7 +687,7 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                   </div>
                   {presetType === "downloader" && selectedFormatLower !== "gif" && (
                     <div className="preset-toggle-item">
-                      <span>{t("presetCreator.toggles.muteAudio")}</span>
+                      <span>{t("common.muteAudio")}</span>
                       <ToggleSwitch
                         checked={muteAudio}
                         onChange={setMuteAudio}
@@ -710,10 +711,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     </div>
                     <div className="preset-media-grid preset-media-grid-video">
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.videoQuality")}</span>
+                        <span>{t("common.videoQuality")}</span>
                         <CustomSelect
                           options={[
-                            { value: "", label: t("presetCreator.select.auto") },
+                            { value: "", label: t("common.auto") },
                             { value: "best", label: "Best" },
                             { value: "2160p", label: "2160p" },
                             { value: "1440p", label: "1440p" },
@@ -739,21 +740,21 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                         />
                       </label>
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.videoBitrate")}</span>
+                        <span>{t("common.videoBitrate")}</span>
                         <input
                           className="custom-input"
                           type="text"
                           value={videoBitrate}
                           inputMode="numeric"
                           onChange={(e) => setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000))}
-                          placeholder={t("presetCreator.placeholders.bitrate")}
+                          placeholder={t("common.auto")}
                         />
                       </label>
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.videoFps")}</span>
+                        <span>{t("common.fps")}</span>
                         <CustomSelect
                           options={[
-                            { value: "", label: t("presetCreator.select.auto") },
+                            { value: "", label: t("common.auto") },
                             { value: "60", label: "60" },
                             { value: "30", label: "30" },
                             { value: "24", label: "24" },
@@ -774,10 +775,10 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                     </div>
                     <div className="preset-media-grid preset-media-grid-audio">
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.audioSampleRate")}</span>
+                        <span>{t("common.audioSampleRate")}</span>
                         <CustomSelect
                           options={[
-                            { value: "", label: t("presetCreator.select.auto") },
+                            { value: "", label: t("common.auto") },
                             { value: "32000", label: "32000" },
                             { value: "44100", label: "44100" },
                             { value: "48000", label: "48000" },
@@ -798,14 +799,14 @@ export const PresetCreatorModal: React.FC<PresetCreatorModalProps> = ({
                         />
                       </label>
                       <label className="preset-field">
-                        <span>{t("presetCreator.fields.audioBitrate")}</span>
+                        <span>{t("common.audioBitrate")}</span>
                         <input
                           className="custom-input"
                           type="text"
                           value={audioBitrate}
                           inputMode="numeric"
                           onChange={(e) => setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000))}
-                          placeholder={t("presetCreator.placeholders.bitrate")}
+                          placeholder={t("common.auto")}
                         />
                       </label>
                     </div>

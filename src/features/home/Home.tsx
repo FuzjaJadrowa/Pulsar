@@ -1,6 +1,7 @@
 import { ICON_ASSETS } from "../../utils/icons";
 import React from "react";
 import { useTranslation } from "../../services/i18n";
+import styles from "./Home.module.css";
 
 interface HomeProps {
   onNavigate?: (pageName: string, index: number) => void;
@@ -15,7 +16,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
   return (
     <div className="page-scroll app-scroll">
-      <div className="home-page">
+      <div className={`${styles.scope} home-page`}>
         <div className="home-hero">
           <h1 className="home-title">
             {t("home.title")}

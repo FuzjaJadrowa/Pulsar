@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "./ToggleSwitch.module.css";
 
 interface ToggleSwitchProps {
   checked: boolean;
@@ -16,7 +17,7 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   className = "",
 }) => {
   return (
-    <label className={`switch ${className} ${disabled ? "is-disabled disabled" : ""}`}>
+    <label className={`switch ${styles.switch} ${className} ${disabled ? `is-disabled disabled ${styles["is-disabled"]} ${styles.disabled}` : ""}`}>
       <input
         type="checkbox"
         id={id}
@@ -24,7 +25,7 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         onChange={(e) => !disabled && onChange(e.target.checked)}
         disabled={disabled}
       />
-      <span className="slider"></span>
+      <span className={`slider ${styles.slider}`}></span>
     </label>
   );
 };

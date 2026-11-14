@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
-import { useTranslation } from "../../services/i18n";
-import { PresetIconPreview } from "../PresetIconPreview";
+import { useTranslation } from "../services/i18n";
+import { PresetIconPreview } from "./PresetIconPreview";
+import styles from "./PresetIconField.module.css";
 
 interface PresetIconFieldProps {
   value: string;
@@ -32,26 +33,26 @@ export const PresetIconField: React.FC<PresetIconFieldProps> = ({ value, title, 
   };
 
   return (
-    <div className="preset-field preset-field-icon">
+    <div className={`preset-field ${styles.field}`}>
       <span>{t("presetCreator.fields.icon")}</span>
       <div
-        className="preset-icon-drop"
+        className={styles.drop}
         onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); }}
         onDrop={handleDrop}
       >
-        <div className="preset-icon-preview">
+        <div className={styles.preview}>
           <PresetIconPreview src={value} alt={title || "preset"} fallback={fallback} />
         </div>
-        <div className="preset-icon-meta">
-          <div className="preset-icon-title">{t("presetCreator.icon.title")}</div>
-          <div className="preset-icon-hint">{t("presetCreator.icon.hint")}</div>
-          <button type="button" className="anim-btn preset-icon-browse" onClick={() => fileInputRef.current?.click()}>
+        <div className={styles.meta}>
+          <div className={styles.title}>{t("presetCreator.icon.title")}</div>
+          <div className={styles.hint}>{t("presetCreator.icon.hint")}</div>
+          <button type="button" className={`anim-btn ${styles.browse}`} onClick={() => fileInputRef.current?.click()}>
             {t("common.browse")}
           </button>
         </div>
         <input
           ref={fileInputRef}
-          className="preset-icon-file"
+          className={styles.file}
           type="file"
           accept="image/*,.svg"
           onChange={(event) => {

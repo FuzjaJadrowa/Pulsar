@@ -1,9 +1,10 @@
 import React from "react";
-import { useQueue, QueueItem } from "../features/queue/queue";
-import { useTranslation } from "../services/i18n";
-import { formatBytes, detectSourceFromUrl } from "../utils/format";
+import { useQueue, QueueItem } from "../queue";
+import { useTranslation } from "../../../services/i18n";
+import { formatBytes, detectSourceFromUrl } from "../../../utils/format";
 
-import { ICONS, SOURCE_ICONS, SourceIcon } from "../utils/icons";
+import { ICONS, SOURCE_ICONS, SourceIcon } from "../../../utils/icons";
+import "../Queue.css";
 
 function getParentFolder(filePath: string): string {
   const normalized = filePath.trim().replace(/\\/g, "/");

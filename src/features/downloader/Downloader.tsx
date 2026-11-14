@@ -1,6 +1,5 @@
 import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "../../services/i18n";
 import { invoke, listen } from "../../services/tauri";
 import { useConfig } from "../../services/config";
@@ -9,13 +8,16 @@ import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
 import { detectSourceFromUrl, formatDuration } from "../../utils/format";
-import { SOURCE_ICONS, SourceIcon } from "../../utils/icons";
 import { PathSelector } from "../../components/PathSelector";
 import { CustomSelect } from "../../components/CustomSelect";
 import { PresetGrid } from "../../components/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { sanitizeBitrateInput } from "../../utils/bitrate";
 import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderSearchResult, SubtitleOption } from "./types";
+import styles from "./Downloader.module.css";
+import { SearchResults } from "./components/SearchResults";
+import { SearchPanel } from "./components/SearchPanel";
+import { MetadataInfo } from "./components/MetadataInfo";
 
 const videoQualities = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
@@ -95,7 +97,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const currentFormatEntry = selectedFormat ? getFormatEntrySync(selectedFormat, false) : null;
 
   const downloaderVideoCodecOptions = [
-    { value: "", label: t("presetCreator.select.auto") },
+    { value: "", label: t("common.auto") },
     ...(currentFormatEntry?.video_codecs || []).map((vc) => ({
       value: vc.toLowerCase(),
       label: vc,
@@ -103,7 +105,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   ];
 
   const downloaderAudioCodecOptions = [
-    { value: "", label: t("presetCreator.select.auto") },
+    { value: "", label: t("common.auto") },
     ...(currentFormatEntry?.audio_codecs || []).map((ac) => ({
       value: ac.toLowerCase(),
       label: ac,
@@ -816,158 +818,42 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const currentSource = detectSourceFromUrl(metadata?.webpage_url || url);
 
   return (
-    <div className="page-root downloader-page">
+    <div className={`${styles.scope} page-root downloader-page`}>
       <div className="page-scroll app-scroll">
 
-        {/* Search Section */}
-        <div id="search-section" className={`search-section ${!isDashboardVisible && !isSearchMode ? "centered" : "sticky"} ${!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url) ? "has-provider-panel" : ""}`}>
-          <div className="search-box-row">
-            <input
-              type="text"
-              id="url-input"
-              ref={urlInputRef}
-              placeholder={t("downloader.search.urlPlaceholder")}
-              value={url}
-              onChange={(e) => {
-                const nextUrl = e.target.value;
-                if (!nextUrl.trim()) {
-                  resetToZen();
-                } else {
-                  updateUrlFromInput(nextUrl);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleFetch();
-                  if (urlInputRef.current) urlInputRef.current.blur();
-                }
-              }}
-              autoComplete="off"
-            />
-            <span
-              id="paste-icon"
-              className="paste-icon bar-icon"
-              title={t("downloader.search.pasteTitle")}
-              role="button"
-              tabIndex={0}
-              onClick={handlePaste}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["search"]} /></svg>
-            </span>
-            <button
-              id="fetch-btn"
-              className={`bar-action ${(isAnalyzing || isSearching) ? "loading" : ""}`}
-              onClick={handleFetch}
-              disabled={isAnalyzing || isSearching}
-            >
-              {(isAnalyzing || isSearching) ? (
-                <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["clear-selection"]} /></svg>
-              )}
-            </button>
-          </div>
-
-          {/* Search Provider selection */}
-          <div
-            id="search-provider-panel"
-            className={`search-provider-panel ${!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url) ? "visible" : ""}`}
-            aria-hidden={!(!isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && !looksLikeUrl(url))}
-          >
-            <span className="provider-label">{t("downloader.search.providerLabel")}</span>
-            <div className="provider-buttons">
-              <button
-                type="button"
-                className={`provider-btn ${provider === "ytsearch" ? "active" : ""}`}
-                onClick={() => setProvider("ytsearch")}
-              >
-                <SourceIcon source="youtube" className="provider-icon youtube-icon" />
-                <span>YouTube</span>
-              </button>
-              <button
-                type="button"
-                className={`provider-btn ${provider === "ytmsearch" ? "active" : ""}`}
-                onClick={() => setProvider("ytmsearch")}
-              >
-                <SourceIcon source="ytmusic" className="provider-icon ytmusic-icon" />
-                <span>YouTube Music</span>
-              </button>
-              <button
-                type="button"
-                className={`provider-btn ${provider === "scsearch" ? "active" : ""}`}
-                onClick={() => setProvider("scsearch")}
-              >
-                <SourceIcon source="soundcloud" className="provider-icon soundcloud-icon" />
-                <span>SoundCloud</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <SearchPanel
+          url={url}
+          isDashboardVisible={isDashboardVisible}
+          isSearchMode={isSearchMode}
+          isSearching={isSearching}
+          isAnalyzing={isAnalyzing}
+          isSearchQuery={!looksLikeUrl(url)}
+          provider={provider}
+          inputRef={urlInputRef}
+          onUrlChange={(nextUrl) => {
+            if (!nextUrl.trim()) resetToZen();
+            else updateUrlFromInput(nextUrl);
+          }}
+          onPaste={handlePaste}
+          onSubmit={handleFetch}
+          onProviderChange={setProvider}
+        />
 
         {/* Dashboard Section */}
         <div id="dashboard-section" className={`dashboard-section ${isDashboardVisible ? "" : "hidden"}`}>
           {metadata && (
             <>
-              {/* Metadata Title/Uploader */}
-              <div className="meta-info fade-in">
-                <div className="meta-title-row">
-                  {isEditingFilename ? (
-                    <input
-                      id="custom-filename-input"
-                      className="meta-title-input"
-                      type="text"
-                      value={filenameDraft}
-                      onChange={(event) => setFilenameDraft(event.target.value)}
-                      onBlur={finishFilenameEdit}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") finishFilenameEdit();
-                      }}
-                      autoFocus
-                    />
-                  ) : (
-                    <h2 id="meta-title">{customFilename.trim() || metadata.title || t("common.unknownTitle")}</h2>
-                  )}
-                  <button
-                    type="button"
-                    className="downloader-rename-btn"
-                    onClick={beginFilenameEdit}
-                    title={t("common.output.editTitle")}
-                    aria-label={t("common.output.editTitle")}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["edit"]} /></svg>
-                  </button>
-                </div>
-                <p className="meta-line">
-                  <span
-                    id="meta-author"
-                    className={`meta-author ${metadata.uploader_url ? "meta-author-link" : ""}`}
-                    role={metadata.uploader_url ? "button" : undefined}
-                    tabIndex={metadata.uploader_url ? 0 : -1}
-                    onClick={() => {
-                      if (metadata.uploader_url) {
-                        openUrl(metadata.uploader_url).catch((error) => {
-                          console.error("Failed to open uploader channel:", error);
-                        });
-                      }
-                    }}
-                  >
-                    {currentSource && currentSource in SOURCE_ICONS && (
-                      <span className={`meta-source-icon ${currentSource}-icon`}>
-                        <SourceIcon source={currentSource} />
-                      </span>
-                    )}
-                    <span className="meta-author-name">
-                      {metadata.channel || metadata.uploader || t("common.unknownChannel")}
-                    </span>
-                  </span>
-                  <span className="meta-separator">-</span>
-                  <span id="meta-duration">
-                    {metadata.duration_string || formatDuration(duration)}
-                  </span>
-                </p>
-              </div>
-
+              <MetadataInfo
+                metadata={metadata}
+                duration={duration}
+                currentSource={currentSource}
+                isEditingFilename={isEditingFilename}
+                customFilename={customFilename}
+                filenameDraft={filenameDraft}
+                onFilenameDraftChange={setFilenameDraft}
+                onFinishFilenameEdit={finishFilenameEdit}
+                onBeginFilenameEdit={beginFilenameEdit}
+              />
               {/* Presets List */}
               {downloaderPresets.length > 0 && (
                 <div className="preset-section fade-in" id="preset-section">
@@ -1179,7 +1065,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("downloader.options.skipSponsors")}</span>
+                    <span className="toggle-text">{t("common.skipSponsors")}</span>
                   </div>
                   <div className="form-row">
                     <input
@@ -1192,7 +1078,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("downloader.options.embedMetadata")}</span>
+                    <span className="toggle-text">{t("common.embedMetadata")}</span>
                   </div>
                   {mode === "video" && (
                     <div className="form-row video-only">
@@ -1207,7 +1093,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           clearActivePreset();
                         }}
                       />
-                      <span className="toggle-text">{t("downloader.options.muteAudio")}</span>
+                      <span className="toggle-text">{t("common.muteAudio")}</span>
                     </div>
                   )}
                   {!!config?.advanced_mode && (
@@ -1230,7 +1116,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-start" }}>
                   <span className="option-label">{t("downloader.options.subtitles")}</span>
                   <div className="form-row subtitles-row">
-                    <span className="toggle-text">{t("downloader.options.downloadSubtitles")}</span>
+                    <span className="toggle-text">{t("common.downloadSubtitles")}</span>
                     <input
                       type="checkbox"
                       id="subs-toggle"
@@ -1260,7 +1146,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
                   {/* Embed Subtitles */}
                   <div className={`form-row embed-subs-row ${downloadSubs ? "visible" : ""}`} id="embed-subs-row">
-                    <span className="toggle-text">{t("downloader.options.embedSubtitles")}</span>
+                    <span className="toggle-text">{t("common.embedSubtitles")}</span>
                     <input
                       type="checkbox"
                       id="embed-subs-toggle"
@@ -1278,7 +1164,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     <input
                       type="text"
                       className="lang-input"
-                      placeholder={t("downloader.options.codeOptional")}
+                      placeholder={t("common.codeOptional")}
                       value={subsLang}
                       onChange={(e) => setSubsLang(e.target.value)}
                       onFocus={() => setShowLangSuggestions(true)}
@@ -1346,20 +1232,20 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               <section key={`${metadata?.webpage_url || "properties"}-${isDashboardVisible}`} className="downloader-properties fade-in">
                 <h3>{t("downloader.options.properties")}</h3>
                 {mode === "video" && <label className="downloader-property-field">
-                  <span>{t("downloader.options.videoBitrate")}</span>
-                  <input className="custom-input" type="text" inputMode="numeric" value={videoBitrate} onChange={(e) => { setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000)); clearActivePreset(); }} placeholder={t("presetCreator.placeholders.bitrate")} />
+                  <span>{t("common.videoBitrate")}</span>
+                  <input className="custom-input" type="text" inputMode="numeric" value={videoBitrate} onChange={(e) => { setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000)); clearActivePreset(); }} placeholder={t("common.auto")} />
                 </label>}
                 {mode === "video" && <label className="downloader-property-field">
-                  <span>{t("downloader.options.fps")}</span>
-                  <CustomSelect options={[{ value: "", label: t("presetCreator.select.auto") }, { value: "60", label: "60" }, { value: "30", label: "30" }, { value: "24", label: "24" }]} value={videoFps} onChange={(value) => { setVideoFps(value); clearActivePreset(); }} />
+                  <span>{t("common.fps")}</span>
+                  <CustomSelect options={[{ value: "", label: t("common.auto") }, { value: "60", label: "60" }, { value: "30", label: "30" }, { value: "24", label: "24" }]} value={videoFps} onChange={(value) => { setVideoFps(value); clearActivePreset(); }} />
                 </label>}
                 {showAudioCodec && <label className="downloader-property-field">
-                  <span>{t("downloader.options.sampleRate")}</span>
-                  <CustomSelect options={[{ value: "", label: t("presetCreator.select.auto") }, { value: "32000", label: "32000" }, { value: "44100", label: "44100" }, { value: "48000", label: "48000" }, { value: "96000", label: "96000" }]} value={audioSampleRate} onChange={(value) => { setAudioSampleRate(value); clearActivePreset(); }} />
+                  <span>{t("common.audioSampleRate")}</span>
+                  <CustomSelect options={[{ value: "", label: t("common.auto") }, { value: "32000", label: "32000" }, { value: "44100", label: "44100" }, { value: "48000", label: "48000" }, { value: "96000", label: "96000" }]} value={audioSampleRate} onChange={(value) => { setAudioSampleRate(value); clearActivePreset(); }} />
                 </label>}
                 {showAudioCodec && <label className="downloader-property-field">
-                  <span>{t("downloader.options.audioBitrate")}</span>
-                  <input className="custom-input" type="text" inputMode="numeric" value={audioBitrate} onChange={(e) => { setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000)); clearActivePreset(); }} placeholder={t("presetCreator.placeholders.bitrate")} />
+                  <span>{t("common.audioBitrate")}</span>
+                  <input className="custom-input" type="text" inputMode="numeric" value={audioBitrate} onChange={(e) => { setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000)); clearActivePreset(); }} placeholder={t("common.auto")} />
                 </label>}
               </section>
 
@@ -1388,58 +1274,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           )}
         </div>
 
-        {/* Search Results Section */}
-        <div id="search-results-section" className={`search-results-section ${isSearchMode ? "" : "hidden"} ${searchExiting ? "exiting" : ""}`}>
-          <div className="search-results-header fade-in" style={{ animationDelay: "0.1s" }}>
-            <h3 id="search-results-title">{t("downloader.search.resultsTitle")}</h3>
-            <span id="search-results-count">
-              {searchResults.length > 0 ? t("downloader.search.resultsCount",  { count: searchResults.length }) : ""}
-            </span>
-          </div>
-
-          <div id="search-results-grid" className="search-results-grid">
-            {searchResults.length === 0 ? (
-              <div className="search-results-empty">{t("downloader.search.empty")}</div>
-            ) : (
-              searchResults.map((entry, idx) => {
-                const isItemLoading = isAnalyzing && pendingMetadataUrl === resolveResultUrl(entry);
-                return (
-                  <div
-                    key={entry.url || entry.id}
-                    className="search-result-card fade-in"
-                    style={{
-                      "--thumb-url": `url('${entry.thumbnail || ""}')`,
-                      animationDelay: `${0.12 + idx * 0.05}s`
-                    } as React.CSSProperties}
-                  >
-                    <button
-                      type="button"
-                      className={`search-result-action ${isItemLoading ? "loading" : ""}`}
-                      aria-label="Select"
-                      disabled={isAnalyzing}
-                      onClick={() => handleSelectSearchResult(entry)}
-                    >
-                      <span className="action-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["download-progress"]} /></svg>
-                      </span>
-                      <span className="action-spinner">
-                        <span className="search-action-spinner"></span>
-                      </span>
-                    </button>
-                    <div className="search-result-content">
-                      <div className="search-result-title">
-                        {entry.title || t("common.unknownTitle")}
-                      </div>
-                      <div className="search-result-meta">
-                        {`${entry.uploader || entry.channel || t("common.unknownChannel")} • ${entry.duration_string || formatDuration(entry.duration)}`}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <SearchResults
+          entries={searchResults}
+          isVisible={isSearchMode}
+          isExiting={searchExiting}
+          isAnalyzing={isAnalyzing}
+          pendingMetadataUrl={pendingMetadataUrl}
+          resolveResultUrl={resolveResultUrl}
+          onSelect={handleSelectSearchResult}
+        />
 
       </div>
     </div>

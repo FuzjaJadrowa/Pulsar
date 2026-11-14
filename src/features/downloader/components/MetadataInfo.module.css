@@ -1,0 +1,31 @@
+.info { text-align: center; margin-bottom: 1.5rem; animation-delay: 0.1s; }
+.titleRow { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.title { min-width: 0; margin: 0; overflow-wrap: anywhere; font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.4rem; }
+.titleInput { width: min(500px, 75vw); box-sizing: border-box; font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.2rem; text-align: center; }
+
+.renameButton {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.renameButton svg { width: 18px; height: 18px; }
+.renameButton:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.28); color: #fff; }
+.details { display: flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2; color: var(--c-text-dim); margin: 5px 0 0; font-size: 0.9rem; }
+.separator { opacity: 0.7; }
+.author { display: inline-flex; align-items: center; gap: 6px; }
+.authorLink { color: inherit; text-decoration: none; cursor: inherit; }
+.sourceIcon { display: inline-flex; width: 16px; height: 16px; color: #bfbfbf; align-items: center; justify-content: center; }
+.sourceIcon svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+
+:global(body.theme-light) .renameButton { background: rgba(0, 0, 0, 0.04); border-color: rgba(0, 0, 0, 0.08); color: rgba(29, 35, 48, 0.7); }
+:global(body.theme-light) .renameButton:hover { background: rgba(0, 0, 0, 0.08); color: #1d2330; }

@@ -1,0 +1,30 @@
+.card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(10px);
+}
+
+.title {
+    color: #aaa;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+:global(body.theme-light) .card {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+:global(body.theme-light) .title {
+    color: rgba(29, 35, 48, 0.6);
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}

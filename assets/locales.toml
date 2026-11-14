@@ -163,6 +163,62 @@ en = "Audio codec"
 pl = "Kodek audio"
 fr = "Codec audio"
 
+[common.auto]
+en = "Auto"
+pl = "Auto"
+fr = "Auto"
+
+[common.videoQuality]
+en = "Video quality"
+pl = "Jakość wideo"
+fr = "Qualité vidéo"
+
+[common.videoBitrate]
+en = "Video bitrate (kbps)"
+pl = "Bitrate wideo (kbps)"
+
+[common.fps]
+en = "FPS"
+pl = "FPS"
+fr = "FPS"
+
+[common.audioSampleRate]
+en = "Audio sample rate (Hz)"
+pl = "Częstotliwość próbkowania audio (Hz)"
+
+[common.audioBitrate]
+en = "Audio bitrate (kbps)"
+pl = "Bitrate audio (kbps)"
+
+[common.downloadSubtitles]
+en = "Download subtitles"
+pl = "Pobierz napisy"
+fr = "Télécharger les sous-titres"
+
+[common.embedSubtitles]
+en = "Embed subtitles"
+pl = "Osadź napisy"
+fr = "Intégrer les sous-titres"
+
+[common.codeOptional]
+en = "Code (optional)"
+pl = "Kod (opcjonalnie)"
+fr = "Code (optionnel)"
+
+[common.embedMetadata]
+en = "Embed metadata"
+pl = "Osadź metadane"
+fr = "Intégrer les métadonnées"
+
+[common.skipSponsors]
+en = "Skip sponsors"
+pl = "Pomijaj sponsorów"
+
+[common.muteAudio]
+en = "Mute audio"
+pl = "Wycisz audio"
+fr = "Couper le son"
+
 [connection.noInternet]
 en = "No internet connection. Some app features may be unavailable."
 pl = "Brak połączenia z internetem. Niektóre funkcje aplikacji mogą być niedostępne."
@@ -313,20 +369,6 @@ en = "OTHER"
 pl = "INNE"
 fr = "AUTRE"
 
-[downloader.options.skipSponsors]
-en = "Skip sponsors"
-pl = "Pomijaj sponsorów"
-
-[downloader.options.embedMetadata]
-en = "Embed metadata"
-pl = "Osadź metadane"
-fr = "Intégrer les métadonnées"
-
-[downloader.options.muteAudio]
-en = "Mute audio"
-pl = "Wycisz audio"
-fr = "Couper le son"
-
 [downloader.options.customArgs]
 en = "Custom args"
 pl = "Własne argumenty"
@@ -342,25 +384,10 @@ en = "SUBTITLES"
 pl = "NAPISY"
 fr = "SOUS-TITRES"
 
-[downloader.options.downloadSubtitles]
-en = "Download subtitles"
-pl = "Pobierz napisy"
-fr = "Télécharger les sous-titres"
-
-[downloader.options.embedSubtitles]
-en = "Embed subtitles"
-pl = "Osadź napisy"
-fr = "Intégrer les sous-titres"
-
 [downloader.options.downloadLiveChat]
 en = "Download live chat"
 pl = "Pobierz czat na żywo"
 fr = "Télécharger le chat en direct"
-
-[downloader.options.codeOptional]
-en = "Code (optional)"
-pl = "Kod (opcjonalnie)"
-fr = "Code (optionnel)"
 
 [downloader.options.codecs]
 en = "CODECS"
@@ -370,22 +397,6 @@ fr = "CODECS"
 [downloader.options.properties]
 en = "PROPERTIES"
 pl = "Właściwości"
-
-[downloader.options.videoBitrate]
-en = "Video bitrate (kbps)"
-pl = "Bitrate wideo (kbps)"
-
-[downloader.options.audioBitrate]
-en = "Audio bitrate (kbps)"
-pl = "Bitrate audio (kbps)"
-
-[downloader.options.fps]
-en = "Frame rate (FPS)"
-pl = "Klatki na sekundę (FPS)"
-
-[downloader.options.sampleRate]
-en = "Audio sample rate (Hz)"
-pl = "Częstotliwość próbkowania audio (Hz)"
 
 [downloader.thumbnail.none]
 en = "None"
@@ -451,26 +462,6 @@ fr = "Tous les fichiers sélectionnés doivent appartenir à la même catégorie
 en = "CONVERT TO"
 pl = "KONWERTUJ NA"
 fr = "CONVERTIR EN"
-
-[converter.options.videoQuality]
-en = "Video quality"
-pl = "Jakość wideo"
-fr = "Qualité vidéo"
-
-[converter.options.videoBitrate]
-en = "Video bitrate"
-pl = "Bitrate wideo"
-fr = "Débit binaire vidéo"
-
-[converter.options.fps]
-en = "FPS"
-pl = "FPS"
-fr = "FPS"
-
-[converter.options.audioBitrate]
-en = "Audio bitrate"
-pl = "Bitrate audio"
-fr = "Débit binaire audio"
 
 [converter.options.resolution]
 en = "Resolution"
@@ -1123,31 +1114,6 @@ en = "Save path"
 pl = "Ścieżka zapisu"
 fr = "Dossier de sauvegarde"
 
-[presetCreator.fields.videoQuality]
-en = "Video quality"
-pl = "Jakość wideo"
-fr = "Qualité vidéo"
-
-[presetCreator.fields.videoBitrate]
-en = "Video bitrate"
-pl = "Bitrate wideo"
-fr = "Débit binaire vidéo"
-
-[presetCreator.fields.videoFps]
-en = "FPS"
-pl = "FPS"
-fr = "FPS"
-
-[presetCreator.fields.audioSampleRate]
-en = "Audio sample rate"
-pl = "Częstotliwość próbkowania audio"
-fr = "Taux d'échantillonnage audio"
-
-[presetCreator.fields.audioBitrate]
-en = "Audio bitrate"
-pl = "Bitrate audio"
-fr = "Débit binaire audio"
-
 [presetCreator.fields.crf]
 en = "CRF"
 pl = "CRF"
@@ -1168,11 +1134,6 @@ en = "Type format"
 pl = "Typ formatu"
 fr = "Saisir le format"
 
-[presetCreator.placeholders.bitrate]
-en = "Auto"
-pl = "Auto"
-fr = "Auto"
-
 [presetCreator.icon.title]
 en = "Drop icon here"
 pl = "Upuść ikonę tutaj"
@@ -1183,39 +1144,10 @@ en = "1:1 ratio, PNG/JPG/SVG"
 pl = "Proporcje 1:1, PNG/JPG/SVG"
 fr = "Format 1:1, PNG/JPG/SVG"
 
-[presetCreator.toggles.downloadSubtitles]
-en = "Download subtitles"
-pl = "Pobierz napisy"
-fr = "Télécharger les sous-titres"
-
-[presetCreator.toggles.embedSubtitles]
-en = "Embed subtitles"
-pl = "Osadź napisy"
-fr = "Intégrer les sous-titres"
-
-[presetCreator.toggles.subtitlesCode]
-en = "Code (optional)"
-pl = "Kod (opcjonalnie)"
-fr = "Code (optionnel)"
-
-[presetCreator.toggles.embedMetadata]
-en = "Embed metadata"
-pl = "Osadź metadane"
-fr = "Intégrer les métadonnées"
-
 [presetCreator.toggles.embedThumbnail]
 en = "Embed thumbnail"
 pl = "Osadź miniaturę"
 fr = "Intégrer la miniature"
-
-[presetCreator.toggles.skipSponsors]
-en = "Skip sponsors"
-pl = "Pomijaj sponsorów"
-
-[presetCreator.toggles.muteAudio]
-en = "Mute audio"
-pl = "Wycisz audio"
-fr = "Couper le son"
 
 [presetCreator.actions.save]
 en = "Save Preset"
@@ -1226,8 +1158,3 @@ fr = "Enregistrer le préréglage"
 en = "Export Preset"
 pl = "Eksportuj preset"
 fr = "Exporter le préréglage"
-
-[presetCreator.select.auto]
-en = "Auto"
-pl = "Auto"
-fr = "Auto"

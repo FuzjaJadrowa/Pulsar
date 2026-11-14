@@ -2,11 +2,4 @@
 @import "./base.css";
 @import "./layout.css";
 @import "./components.css";
-
-@import "../features/home/styles.css";
-@import "../features/downloader/styles.css";
-@import "../features/conversion/styles.css";
-@import "../features/compression/styles.css";
-@import "../features/settings/styles.css";
-@import "../features/queue/styles.css";
-@import "../features/settings/preset_creator.css";
+@import "./page-effects.css";

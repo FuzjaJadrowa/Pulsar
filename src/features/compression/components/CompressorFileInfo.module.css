@@ -1,0 +1,90 @@
+.card {
+    width: min(500px, 90vw);
+    box-sizing: border-box;
+    margin: 12px 0 0;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    animation-delay: 0.1s;
+}
+
+.nameRow { display: flex; align-items: center; gap: 10px; }
+
+.nameText {
+    flex: 1;
+    min-width: 0;
+    font-family: "Montserrat", "Manrope", sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #f5f5f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nameInput {
+    display: none;
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    color: #f5f5f5;
+    font-size: 1rem;
+    font-weight: 800;
+    font-family: "Montserrat", "Manrope", sans-serif;
+    outline: none;
+    padding: 6px 8px;
+}
+
+.nameInput::placeholder { color: rgba(255, 255, 255, 0.45); font-weight: 500; }
+.isEditing .nameText { display: none; }
+.isEditing .nameInput { display: block; }
+
+.renameButton {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.renameButton svg { width: 18px; height: 18px; }
+.renameButton:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.3); color: #fff; }
+
+.categoryRow { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 600; color: rgba(255, 255, 255, 0.8); }
+.categoryIcon { width: 22px; height: 22px; color: rgba(255, 255, 255, 0.9); display: inline-flex; align-items: center; justify-content: center; }
+.categoryIcon svg { width: 100%; height: 100%; display: block; }
+.categoryIcon svg * { stroke: currentColor; }
+.categoryIcon svg [fill]:not([fill="none"]) { fill: currentColor; }
+
+.metaRow { display: grid; gap: 8px; }
+.metaItem { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+.metaLabel { color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.6px; font-size: 0.68rem; font-weight: 700; }
+.metaValue { color: rgba(255, 255, 255, 0.9); font-weight: 600; }
+.locationValue { max-width: 65%; text-align: right; overflow-wrap: anywhere; word-break: break-word; }
+.noDuration .duration { display: none; }
+
+:global(body.theme-light) .card { background: rgba(255, 255, 255, 0.82); border-color: rgba(0, 0, 0, 0.08); box-shadow: 0 10px 22px rgba(31, 44, 77, 0.16); }
+:global(body.theme-light) .nameText { color: #1d2330; }
+:global(body.theme-light) .nameInput { color: #1d2330; background: rgba(0, 0, 0, 0.04); border-color: rgba(0, 0, 0, 0.12); }
+:global(body.theme-light) .nameInput::placeholder { color: rgba(29, 35, 48, 0.45); }
+:global(body.theme-light) .renameButton { background: rgba(0, 0, 0, 0.04); border-color: rgba(0, 0, 0, 0.08); color: rgba(29, 35, 48, 0.7); }
+:global(body.theme-light) .renameButton:hover { background: rgba(0, 0, 0, 0.08); color: #1d2330; }
+:global(body.theme-light) .categoryRow, :global(body.theme-light) .categoryIcon { color: rgba(29, 35, 48, 0.8); }
+:global(body.theme-light) .metaLabel { color: rgba(29, 35, 48, 0.55); }
+:global(body.theme-light) .metaValue { color: rgba(29, 35, 48, 0.9); }
+
+@media (max-width: 700px) { .card { padding: 18px; } }

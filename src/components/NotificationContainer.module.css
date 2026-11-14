@@ -1,0 +1,118 @@
+
+
+:local(.scope):global(#notification-container) {
+    position: fixed;
+    top: calc(var(--titlebar-height) + 10px);
+    right: 20px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+:local(.scope) :global(.notification-toast) {
+    background: var(--notification-toast-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    color: var(--notification-toast-text);
+    position: relative;
+    pointer-events: auto;
+    overflow: hidden;
+    animation: slideInNotification 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+:local(.scope) :global(.notification-toast.hiding) {
+    animation: slideOutNotification 0.3s forwards;
+}
+
+:local(.scope) :global(.notification-toast.type-info) {
+    background: linear-gradient(90deg, rgba(41, 121, 255, 0.1) 0%, var(--notification-toast-bg) 100%);
+}
+
+:local(.scope) :global(.notification-toast.type-success) {
+    background: linear-gradient(90deg, rgba(0, 230, 118, 0.1) 0%, var(--notification-toast-bg) 100%);
+}
+
+:local(.scope) :global(.notification-toast.type-error) {
+    background: linear-gradient(90deg, rgba(255, 23, 68, 0.1) 0%, var(--notification-toast-bg) 100%);
+}
+
+:local(.scope) :global(.notif-content) {
+    flex: 1;
+    min-width: 0;
+}
+
+:local(.scope) :global(.notif-header) {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+:local(.scope) :global(.notif-title) {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+:local(.scope) :global(.notif-message) {
+    font-size: 13px;
+    color: var(--notification-toast-msg);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+:local(.scope) :global(.notif-actions) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+:local(.scope) :global(.notif-close),:local(.scope) :global(.notif-copy) {
+    background: none;
+    border: none;
+    color: var(--notification-toast-close);
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+:local(.scope) :global(.notif-close:hover),:local(.scope) :global(.notif-copy:hover) {
+    color: var(--text-color);
+}
+
+@keyframes slideInNotification {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes slideOutNotification {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+}

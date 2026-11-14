@@ -1,6 +1,7 @@
 import { ICON_ASSETS } from "../utils/icons";
 import React, { useState } from "react";
 import { useNotifications, dismissNotification, Toast } from "../services/notifications";
+import styles from "./NotificationContainer.module.css";
 
 const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {
   const [copied, setCopied] = useState(false);
@@ -78,7 +79,7 @@ export const NotificationContainer: React.FC = () => {
   const { toasts } = useNotifications();
 
   return (
-    <div id="notification-container">
+    <div id="notification-container" className={styles.scope}>
       {toasts.map((toast) => (
         <NotificationItem key={toast.id} toast={toast} />
       ))}

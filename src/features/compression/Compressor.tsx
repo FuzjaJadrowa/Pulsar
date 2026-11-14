@@ -7,7 +7,7 @@ import { usePresets } from "../../services/presets";
 import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
-import { formatBytes, formatDuration } from "../../utils/format";
+import { formatBytes } from "../../utils/format";
 import { PathSelector } from "../../components/PathSelector";
 import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
@@ -17,10 +17,12 @@ import type { FormatEntry } from "../../services/formats";
 import { loadFormatCatalog } from "../../services/formats";
 import type { MediaFileMetadata } from "../../types/media";
 import type { Preset } from "../../services/presets";
-import { BatchFilesList } from "../../components/BatchFilesList";
+import { BatchInfoCard } from "../../components/BatchInfoCard";
 
 import { PRESET_DEFAULT_ICON, CATEGORY_ICONS } from "../../utils/icons";
 import { extractFileName, extractFolderPath, normalizeFormatKey, parseSizeInput } from "./files";
+import styles from "./Compressor.module.css";
+import { CompressorFileInfo } from "./components/CompressorFileInfo";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
 const SUPPORTED_IMAGE_FORMATS = new Set([
@@ -505,7 +507,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const isValid = !!(metadata && (selectedMode !== "size" || Number.isFinite(parseSizeInput(sizeInputValue))));
 
   return (
-    <div className="page-root compressor-page">
+    <div className={`${styles.scope} page-root compressor-page`}>
       <div className="page-scroll app-scroll">
 
         {/* Picker / Input Bar */}
@@ -587,103 +589,32 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
         {isDashboardVisible && metadata && (
           <div id="compress-dashboard" className="compressor-dashboard">
             {loadedFiles.length > 1 ? (
-              <div className="bulk-info-card fade-in">
-                <div className="bulk-header-row">
-                  <div className="bulk-header-title">
-                    <span
-                      className="compressor-category-icon"
-                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || PRESET_DEFAULT_ICON }}
-                    />
-                    <span>
-                      {t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} ({loadedFiles.length})
-                    </span>
-                  </div>
-                </div>
-                <BatchFilesList files={loadedFiles} removeTitle={t("compressor.bulk.removeFile")} onRemove={removeFileFromBatch} />
-              </div>
+              <BatchInfoCard
+                categoryIcon={CATEGORY_ICONS[initialCategory] || PRESET_DEFAULT_ICON}
+                categoryLabel={`${t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${loadedFiles.length})`}
+                files={loadedFiles}
+                removeTitle={t("compressor.bulk.removeFile")}
+                onRemove={removeFileFromBatch}
+              />
             ) : (
-              <div className={`compressor-info-card fade-in ${!hasDuration ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
-                <div className="compressor-name-row">
-                  {isEditingName ? (
-                    <input
-                      id="compress-file-name-input"
-                      className="compressor-name-input"
-                      type="text"
-                      placeholder={t("common.output.placeholder")}
-                      value={nameDraft}
-                      onChange={(e) => setNameDraft(e.target.value)}
-                      onBlur={finishNameEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          finishNameEdit();
-                        } else if (e.key === "Escape") {
-                          setNameDraft(getDefaultOutputName());
-                          setCurrentName(getDefaultOutputName());
-                          setIsEditingName(false);
-                        }
-                      }}
-                      autoFocus
-                      autoComplete="off"
-                    />
-                  ) : (
-                    <span
-                      id="compress-file-name"
-                      className="compressor-name-text"
-                      data-i18n-lock={currentName ? "true" : undefined}
-                      onDoubleClick={beginNameEdit}
-                    >
-                      {currentName || metadata.name || extractFileName(metadata.path || "") || t("common.output.placeholder")}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    id="compress-rename-btn"
-                    className="compressor-rename-btn"
-                    title={t("common.output.editTitle")}
-                    onClick={() => isEditingName ? finishNameEdit() : beginNameEdit()}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["edit"]} /></svg>
-                  </button>
-                </div>
-                <div className="compressor-category-row">
-                  <span
-                    id="compress-category-icon"
-                    className="compressor-category-icon"
-                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || PRESET_DEFAULT_ICON }}
-                  />
-                  <span id="compress-category-label" className="compressor-category-label">
-                    {metadata.extension
-                      ? `${t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")} (${metadata.extension})`
-                      : t(`common.meta.category.${initialCategory}`, initialCategory ? initialCategory.toUpperCase() : "FILE")}
-                  </span>
-                </div>
-                <div className="compressor-meta-row">
-                  <div className="compressor-meta-item compressor-meta-location">
-                    <span className="compressor-meta-label">{t("common.meta.locationLabel")}</span>
-                    <span
-                      id="compress-file-location"
-                      className="compressor-meta-value compressor-meta-location-value"
-                      title={extractFolderPath(metadata.path)}
-                    >
-                      {extractFolderPath(metadata.path) || "-"}
-                    </span>
-                  </div>
-                  <div className="compressor-meta-item">
-                    <span className="compressor-meta-label">{t("common.meta.sizeLabel")}</span>
-                    <span id="compress-file-size" className="compressor-meta-value">
-                      {formatBytes(metadata.size_bytes)}
-                    </span>
-                  </div>
-                  {hasDuration && (
-                    <div className="compressor-meta-item compressor-meta-duration">
-                      <span className="compressor-meta-label">{t("common.meta.durationLabel")}</span>
-                      <span id="compress-file-duration" className="compressor-meta-value">
-                        {metadata.duration_string || formatDuration(metadata.duration_seconds)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <CompressorFileInfo
+                metadata={metadata}
+                currentName={currentName}
+                nameDraft={nameDraft}
+                isEditingName={isEditingName}
+                category={initialCategory}
+                hasDuration={hasDuration}
+                fallbackName={extractFileName(metadata.path || "")}
+                folderPath={extractFolderPath(metadata.path)}
+                onNameDraftChange={setNameDraft}
+                onFinishNameEdit={finishNameEdit}
+                onBeginNameEdit={beginNameEdit}
+                onCancelNameEdit={() => {
+                  setNameDraft(getDefaultOutputName());
+                  setCurrentName(getDefaultOutputName());
+                  setIsEditingName(false);
+                }}
+              />
             )}
 
             {/* Presets Grid */}
@@ -867,7 +798,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto") },
+                                { value: "", label: t("common.auto") },
                                 ...videoCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={videoCodec}
@@ -884,7 +815,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto") },
+                                { value: "", label: t("common.auto") },
                                 ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={videoAudioCodec}
@@ -911,7 +842,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                           <div className="compressor-specs-control">
                             <CustomSelect
                               options={[
-                                { value: "", label: t("presetCreator.select.auto") },
+                                { value: "", label: t("common.auto") },
                                 ...audioCodecsOptions.map((c: string) => ({ value: c, label: c }))
                               ]}
                               value={audioCodec}

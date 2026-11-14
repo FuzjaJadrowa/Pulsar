@@ -121,3 +121,19 @@ body.theme-light {
     --scrollbar-thumb: rgba(0, 0, 0, 0.18);
     --scrollbar-thumb-hover: rgba(0, 0, 0, 0.28);
 }
+
+/* Downloader feature tokens */
+:root {
+    --c-text-dim: #888;
+    --c-tile-bg: rgba(255, 255, 255, 0.08);
+    --c-tile-hover: rgba(255, 255, 255, 0.15);
+    --c-video-primary: #8a2be2;
+    --c-audio-primary: #2ecc71;
+    --browse-hover-bg: rgba(255, 255, 255, 0.2);
+    --browse-hover-text: #ffffff;
+    --c-zen-grad-start: #050a14;
+    --c-zen-grad-end: #0f1c2e;
+    --c-video-bg-gradient: linear-gradient(135deg, #0a0a1e, #1e0528, #280014);
+    --c-audio-bg-gradient: linear-gradient(135deg, #0b1c0e, #0a2118);
+    --active-color: var(--c-video-primary);
+}

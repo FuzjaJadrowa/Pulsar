@@ -1,0 +1,477 @@
+/* Selectors are scoped to this view; global class names remain internal to its root. */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+:local(.scope):global(.compressor-page) {
+    position: relative;
+}
+
+:local(.scope) :global(#compress-confirm-btn.loading svg) {
+    animation: spin 0.7s linear infinite;
+}
+
+:local(.scope) :global(.compressor-dashboard) {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 40px 60px 40px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+:local(.scope) :global(.compressor-dashboard.hidden) {
+    display: none;
+    opacity: 0;
+}
+
+:local(.scope) :global(.preset-section) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 2rem;
+    animation-delay: 0.05s;
+}
+:local(.scope) :global(.preset-section.hidden) {
+    display: none;
+}
+:local(.scope) :global(.preset-section > .option-label) {
+    width: 100%;
+    text-align: center;
+}
+
+:local(.scope):global(.compressor-page):global( .preset-section) {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+:local(.scope) :global(.compressor-controls-panel),:local(.scope) :global(.compressor-options-panel) {
+    width: min(900px, 95vw);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 18px 0 0;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+:local(.scope) :global(.compressor-controls-panel) {
+    margin-top: 16px;
+    animation-delay: 0.2s;
+}
+
+:local(.scope) :global(.compressor-options-panel) {
+    animation-delay: 0.3s;
+}
+
+:local(.scope) :global(.compressor-controls-panel.select-open-panel),:local(.scope) :global(.compressor-options-panel.select-open-panel) {
+    z-index: 6;
+}
+
+:local(.scope) :global(.compressor-mode-toggle.mode-switcher) {
+    width: min(640px, 94vw);
+    margin-bottom: 0;
+}
+
+:local(.scope) :global(.compressor-mode-toggle .switch-option) {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    font-family: "Manrope", "Montserrat", sans-serif;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--c-text-dim);
+    appearance: none;
+}
+
+:local(.scope) :global(.compressor-mode-toggle .switch-option svg) {
+    width: 18px;
+    height: 18px;
+}
+
+:local(.scope) :global(.compressor-mode-toggle .switch-option.active) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--compressor-accent);
+    color: #ffffff;
+}
+
+:local(.scope) :global(.compressor-mode-panels) {
+    width: min(640px, 94vw);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+:local(.scope) :global(.compressor-mode-panels.mode-switching) {
+    overflow: hidden;
+}
+
+:local(.scope) :global(.compressor-mode-panel) {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--compressor-card-bg);
+    border: 1px solid var(--compressor-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    will-change: opacity, transform;
+}
+
+:local(.scope) :global(.compressor-mode-panel.hidden) {
+    display: none;
+}
+
+:local(.scope) :global(.compressor-percent-control) {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:local(.scope) :global(.compressor-slider-track) {
+    position: relative;
+    flex: 1 1 auto;
+    height: 12px;
+    min-width: 140px;
+}
+
+:local(.scope) :global(.compressor-slider-track .track-bg) {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    position: absolute;
+    inset: 0;
+}
+
+:local(.scope) :global(.compressor-slider-track .track-fill) {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: var(--compressor-accent);
+    width: 60%;
+    transition: none;
+}
+
+:local(.scope) :global(.compressor-slider-track input[type="range"]) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    appearance: none;
+    background: none;
+    margin: 0;
+}
+
+:local(.scope) :global(.compressor-slider-track input[type="range"]::-webkit-slider-thumb) {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+
+:local(.scope) :global(.compressor-slider-track input[type="range"]::-moz-range-thumb) {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+
+:local(.scope) :global(.compressor-slider-track input[type="range"]::-moz-range-track) {
+    background: transparent;
+}
+
+:local(.scope) :global(.compressor-percent-input) {
+    width: 60px;
+    text-align: center;
+}
+
+:local(.scope) :global(.compressor-percent-suffix) {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+:local(.scope) :global(.compressor-size-control),:local(.scope) :global(.compressor-quality-control) {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:local(.scope) :global(.compressor-size-control .custom-input),:local(.scope) :global(.compressor-quality-control .custom-select) {
+    width: 100%;
+}
+
+:local(.scope) :global(.compressor-quality-control .select-wrapper) {
+    flex: 1 1 auto;
+}
+
+:local(.scope) :global(.compressor-crf-label) {
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--compressor-text-dim);
+}
+
+:local(.scope) :global(.compressor-options-title) {
+    width: 100%;
+    text-align: center;
+}
+
+:local(.scope) :global(.compressor-path-selector) {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding-right: 5px;
+    width: min(900px, 95vw);
+}
+
+:local(.scope) :global(#compress-save-path-input) {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: #ddd;
+    font-family: "Manrope", "Montserrat", sans-serif;
+    font-size: 0.9rem;
+    padding: 12px 15px;
+    outline: none;
+}
+
+:local(.scope) :global(#compress-save-path-input::placeholder) {
+    font-style: italic;
+    opacity: 0.5;
+}
+
+:local(.scope) :global(.compressor-small-btn) {
+    background: transparent;
+    border: none;
+    color: var(--c-text-dim, #888);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+:local(.scope) :global(.compressor-small-btn:hover) {
+    color: var(--browse-hover-text, #ffffff);
+    background: var(--browse-hover-bg, rgba(255, 255, 255, 0.2));
+}
+
+:local(.scope) :global(.compressor-specs-card) {
+    width: min(900px, 95vw);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+:local(.scope) :global(.compressor-specs-grid) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+:local(.scope) :global(.compressor-specs-column) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+:local(.scope) :global(.compressor-specs-column-title) {
+    font-size: 0.72rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+}
+
+:local(.scope) :global(.compressor-specs-section) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+:local(.scope) :global(.compressor-specs-row) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.82rem;
+}
+
+:local(.scope) :global(.compressor-specs-label) {
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+:local(.scope) :global(.compressor-specs-value) {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    text-align: right;
+}
+
+:local(.scope) :global(.compressor-specs-control) {
+    flex: 0 0 190px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+:local(.scope) :global(.compressor-action-footer) {
+    margin: 8px 0 30px;
+    animation-delay: 0.4s;
+}
+
+:local(.scope) :global(#compress-action-btn.ready) {
+    background: var(--compressor-accent);
+    box-shadow: 0 0 25px rgba(46, 204, 113, 0.35);
+    color: #fff;
+}
+
+:local(.scope) :global(#compress-queue-btn.ready) {
+    background: var(--c-queue-primary, #00d2ff);
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.4);
+    color: #fff;
+}
+
+:local(.scope) :global(.compress-drop-overlay) {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 5000;
+    backdrop-filter: blur(2px);
+}
+
+:local(.scope) :global(.compress-drop-overlay.visible) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+:local(.scope) :global(.compress-drop-content) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+    text-align: center;
+    font-family: "Montserrat", "Manrope", sans-serif;
+}
+
+:local(.scope) :global(.compress-drop-icon) {
+    width: 90px;
+    height: 90px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+:local(.scope) :global(.compress-drop-icon svg) {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+:local(.scope) :global(.compress-drop-text) {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+@media (max-width: 560px) {
+    :local(.scope) :global(.compressor-action-footer) {
+        flex-direction: column;
+    }
+    :local(.scope) :global(.compressor-mode-toggle.mode-switcher) {
+        width: min(640px, 96vw);
+    }
+    :local(.scope) :global(.compressor-mode-panels),:local(.scope) :global(.compressor-path-selector),:local(.scope) :global(.compressor-specs-card) {
+        width: min(640px, 96vw);
+    }
+}
+
+
+/* Light-theme overrides scoped to this feature. */
+:global(body.theme-light) :local(.scope) :global(.compressor-mode-panel) {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-slider-track) .track-bg {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-percent-suffix) {
+    color: rgba(29, 35, 48, 0.55);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-crf-label),
+:global(body.theme-light) :local(.scope) :global(.compressor-specs-column-title),
+:global(body.theme-light) :local(.scope) :global(.compressor-specs-label) {
+    color: rgba(29, 35, 48, 0.6);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-specs-value) {
+    color: rgba(29, 35, 48, 0.9);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-path-selector) {
+    background: rgba(255, 255, 255, 0.62);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+:global(body.theme-light) :local(.scope) :global(#compress-save-path-input) {
+    color: #1d2330;
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-small-btn) {
+    color: rgba(29, 35, 48, 0.6);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compressor-small-btn):hover {
+    color: var(--browse-hover-text, #1d2330);
+    background: var(--browse-hover-bg, #e5e7eb);
+}
+
+:global(body.theme-light) :local(.scope) :global(#compress-action-btn.ready) {
+    box-shadow: 0 0 18px rgba(46, 204, 113, 0.3);
+}
+
+:global(body.theme-light) :local(.scope) :global(#compress-queue-btn.ready) {
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.28);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compress-drop-overlay) {
+    background: rgba(230, 234, 243, 0.9);
+}
+
+:global(body.theme-light) :local(.scope) :global(.compress-drop-content),
+:global(body.theme-light) :local(.scope) :global(.compress-drop-icon) {
+    color: #1d2330;
+}

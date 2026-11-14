@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import styles from "./CustomSelect.module.css";
 
 interface Option {
   value: string;
@@ -127,12 +128,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div
       ref={wrapperRef}
-      className={`select-wrapper ${isOpen ? "select-open" : ""} ${className}`}
+      className={`select-wrapper ${styles["select-wrapper"]} ${isOpen ? `select-open ${styles["select-open"]}` : ""} ${className}`}
       style={{ width }}
     >
       <div
         ref={headRef}
-        className={`select-head ${isOpen ? "open" : ""} ${openUp && isOpen ? "open-up" : ""}`}
+        className={`select-head ${styles["select-head"]} ${isOpen ? `open ${styles.open}` : ""} ${openUp && isOpen ? `open-up ${styles["open-up"]}` : ""}`}
         onClick={toggleOpen}
         style={{
           opacity: disabled ? 0.5 : 1,
@@ -144,13 +145,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {isOpen && createPortal(
         <div
           ref={popupRef}
-          className={`select-list open ${openUp ? "open-up" : ""}`}
+          className={`select-list ${styles["select-list"]} open ${styles.open} ${openUp ? `open-up ${styles["open-up"]}` : ""}`}
           style={popupStyle}
         >
           {options.map((opt) => (
             <div
               key={opt.value}
-              className={`select-item ${opt.value === value ? "selected" : ""}`}
+              className={`select-item ${styles["select-item"]} ${opt.value === value ? `selected ${styles.selected}` : ""}`}
               onClick={() => handleSelect(opt.value)}
             >
               {opt.label}

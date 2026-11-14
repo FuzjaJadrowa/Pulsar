@@ -7,7 +7,7 @@ import { usePresets } from "../../services/presets";
 import { enqueue, animateQueueOrb } from "../queue/queue";
 import { useUiState } from "../../services/uiState";
 import { showNotification } from "../../services/notifications";
-import { formatBytes, formatDuration } from "../../utils/format";
+import { formatBytes } from "../../utils/format";
 import { PathSelector } from "../../components/PathSelector";
 import { useTauriMetadata, fetchSingleFileMetadata } from "../../hooks/useTauriMetadata";
 import { useFileDragDrop } from "../../hooks/useFileDragDrop";
@@ -17,7 +17,9 @@ import type { FormatEntry } from "../../services/formats";
 import { loadFormatCatalog } from "../../services/formats";
 import type { MediaFileMetadata } from "../../types/media";
 import type { Preset } from "../../services/presets";
-import { BatchFilesList } from "../../components/BatchFilesList";
+import { BatchInfoCard } from "../../components/BatchInfoCard";
+import styles from "./Converter.module.css";
+import { ConverterFileInfo } from "./components/ConverterFileInfo";
 
 import { CATEGORY_ICONS } from "../../utils/icons";
 
@@ -570,7 +572,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
   const isValid = !!(selectedFormat && (savePath.trim().length > 0 || metadata));
 
   return (
-    <div className="page-root converter-page">
+    <div className={`${styles.scope} page-root converter-page`}>
       <div className="page-scroll app-scroll">
         <div id="convert-search-section" className={`search-section ${!isDashboardVisible ? "centered converter-zen" : "sticky"}`}>
           <div className="search-box-row converter-bar" id="converter-bar">
@@ -656,83 +658,26 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
           <div id="convert-dashboard" className="converter-dashboard">
             {/* File info card */}
             {loadedFiles.length > 1 ? (
-              <div className="bulk-info-card fade-in">
-                <div className="bulk-header-row">
-                  <div className="bulk-header-title">
-                    <span
-                      className="converter-category-icon"
-                      dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
-                    />
-                    <span>
-                      {t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} ({loadedFiles.length})
-                    </span>
-                  </div>
-                </div>
-                <BatchFilesList files={loadedFiles} removeTitle={t("converter.bulk.removeFile")} onRemove={removeFileFromBatch} />
-              </div>
+              <BatchInfoCard
+                categoryIcon={CATEGORY_ICONS[initialCategory] || ""}
+                categoryLabel={`${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`}
+                files={loadedFiles}
+                removeTitle={t("converter.bulk.removeFile")}
+                onRemove={removeFileFromBatch}
+              />
             ) : (
-              <div className={`converter-info-card fade-in ${!metadata.duration_seconds ? "no-duration" : ""} ${isEditingName ? "name-editing" : ""}`}>
-                <div className="converter-name-row">
-                  {!isEditingName ? (
-                    <>
-                      <span className="converter-name-text">
-                        {currentName || metadata.name || extractFileName(metadata.path || "") || t("common.output.placeholder")}
-                      </span>
-                      <button
-                        type="button"
-                        className="converter-rename-btn"
-                        onClick={beginNameEdit}
-                        title={t("common.output.editTitle")}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["edit"]} /></svg>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <input
-                        className="converter-name-input"
-                        type="text"
-                        value={nameDraft}
-                        onChange={(e) => setNameDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            finishNameEdit();
-                          }
-                        }}
-                        onBlur={finishNameEdit}
-                        autoFocus
-                      />
-                    </>
-                  )}
-                </div>
-                <div className="converter-category-row">
-                  <span
-                    className="converter-category-icon"
-                    dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[initialCategory] || "" }}
-                  />
-                  <span className="converter-category-label">
-                    {metadata.extension ? `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${metadata.extension})` : t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())}
-                  </span>
-                </div>
-                <div className="converter-meta-row">
-                  <div className="converter-meta-item converter-meta-location">
-                    <span className="converter-meta-label">{t("common.meta.locationLabel")}</span>
-                    <span className="converter-meta-value converter-meta-location-value" title={extractFolderPath(metadata.path)}>
-                      {extractFolderPath(metadata.path) || "-"}
-                    </span>
-                  </div>
-                  <div className="converter-meta-item">
-                    <span className="converter-meta-label">{t("common.meta.sizeLabel")}</span>
-                    <span className="converter-meta-value">{formatBytes(metadata.size_bytes)}</span>
-                  </div>
-                  {metadata.duration_seconds && (
-                    <div className="converter-meta-item converter-meta-duration">
-                      <span className="converter-meta-label">{t("common.meta.durationLabel")}</span>
-                      <span className="converter-meta-value">{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ConverterFileInfo
+                metadata={metadata}
+                currentName={currentName}
+                nameDraft={nameDraft}
+                isEditingName={isEditingName}
+                category={initialCategory}
+                fallbackName={extractFileName(metadata.path || "")}
+                folderPath={extractFolderPath(metadata.path)}
+                onNameDraftChange={setNameDraft}
+                onFinishNameEdit={finishNameEdit}
+                onBeginNameEdit={beginNameEdit}
+              />
             )}
 
             {/* Presets List */}
@@ -823,11 +768,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             <span id="convert-output-video-size" className="converter-specs-value">{estimatedSize || "-"}</span>
                           </div>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.videoQuality")}</span>
+                            <span className="converter-specs-label">{t("common.videoQuality")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "", label: t("common.auto") },
                                   { value: "2160p", label: "2160p" },
                                   { value: "1440p", label: "1440p" },
                                   { value: "1080p", label: "1080p" },
@@ -851,7 +796,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "", label: t("common.auto") },
                                   { value: "copy", label: "Copy (Pass-through)" },
                                   ...(selectedFormatMeta?.video_codecs || []).map((vc: string) => ({ value: vc, label: vc }))
                                 ]}
@@ -865,13 +810,13 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.videoBitrate")}</span>
+                            <span className="converter-specs-label">{t("common.videoBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-video-bitrate"
                                 className="custom-input"
                                 type="text"
-                                placeholder={t("presetCreator.placeholders.bitrate")}
+                                placeholder={t("common.auto")}
                                 value={videoBitrate}
                                 onChange={(e) => {
                                   setVideoBitrate(e.target.value);
@@ -882,11 +827,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.fps")}</span>
+                            <span className="converter-specs-label">{t("common.fps")}</span>
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "", label: t("common.auto") },
                                   { value: "60", label: "60" },
                                   { value: "30", label: "30" },
                                   { value: "24", label: "24" },
@@ -905,7 +850,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "", label: t("common.auto") },
                                   { value: "copy", label: "Copy (Pass-through)" },
                                   ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
                                 ]}
@@ -919,7 +864,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioBitrate")}</span>
+                            <span className="converter-specs-label">{t("common.audioBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-video-audio-bitrate"
@@ -950,7 +895,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             <div className="converter-specs-control">
                               <CustomSelect
                                 options={[
-                                  { value: "", label: t("presetCreator.select.auto") },
+                                  { value: "", label: t("common.auto") },
                                   ...(selectedFormatMeta?.audio_codecs || []).map((ac: string) => ({ value: ac, label: ac }))
                                 ]}
                                 value={audioCodec}
@@ -963,7 +908,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.audioBitrate")}</span>
+                            <span className="converter-specs-label">{t("common.audioBitrate")}</span>
                             <div className="converter-specs-control">
                               <input
                                 id="convert-output-audio-bitrate"

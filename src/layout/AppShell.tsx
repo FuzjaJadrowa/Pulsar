@@ -1,11 +1,10 @@
-import { ICON_ASSETS } from "../utils/icons";
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { appWindow, minimizeWindow, maximizeWindow, closeWindow } from "../services/tauri";
 import { useQueue } from "../features/queue/queue";
 import { DataSeaCanvas } from "./DataSeaCanvas";
+import { TitleBar } from "./TitleBar";
 import { NotificationContainer } from "../components/NotificationContainer";
-import { QueuePanel } from "../components/QueuePanel";
+import { QueuePanel } from "../features/queue/components/QueuePanel";
 import { Home } from "../features/home/Home";
 import { Settings } from "../features/settings/Settings";
 import { Downloader } from "../features/downloader/Downloader";
@@ -32,26 +31,11 @@ export const AppShell: React.FC = () => {
     direction: "left" | "right" | null;
   }>({ outgoing: null, direction: null });
   const [queueVisible, setQueueVisible] = useState<boolean>(false);
-  const [windowMaximized, setWindowMaximized] = useState(false);
 
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const protocolMismatchShownRef = useRef(false);
 
   const { updateUiState } = useUiState();
-
-  useEffect(() => {
-    let active = true;
-    let unlisten: (() => void) | undefined;
-    const refreshMaximized = () => {
-      void appWindow.isMaximized().then((value) => { if (active) setWindowMaximized(value); });
-    };
-    refreshMaximized();
-    void appWindow.onResized(refreshMaximized).then((stop) => {
-      if (active) unlisten = stop;
-      else stop();
-    });
-    return () => { active = false; unlisten?.(); };
-  }, []);
 
   useEffect(() => {
     updateUiState({ currentPage });
@@ -177,111 +161,13 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="page-root">
-      <div id="titlebar" data-tauri-drag-region>
-        <button
-          className={`logo-btn ${currentPage === "home" ? "active" : ""}`}
-          onClick={() => navigateTo("home")}
-          aria-label="Home"
-        >
-          <img
-            src={ICON_ASSETS["pulsar-logo"]}
-            className="logo"
-            alt="Pulsar Logo"
-            draggable="false"
-          />
-        </button>
-
-        <button
-          className={`nav-btn ${currentPage === "downloader" ? "active" : ""}`}
-          onClick={() => navigateTo("downloader")}
-          id="nav-downloader"
-          title={t("index.nav.download")}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          ><use href={ICON_ASSETS["download-arrow"]} /></svg>
-        </button>
-
-        <button
-          className={`nav-btn nav-gap ${currentPage === "converter" ? "active" : ""}`}
-          onClick={() => navigateTo("converter")}
-          id="nav-converter"
-          title={t("index.nav.convert")}
-        >
-          <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["convert"]} /></svg>
-        </button>
-
-        <button
-          className={`nav-btn nav-gap ${currentPage === "compressor" ? "active" : ""}`}
-          onClick={() => navigateTo("compressor")}
-          id="nav-compressor"
-          title={t("index.nav.compress")}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["compress"]} /></svg>
-        </button>
-
-        <div style={{ flexGrow: 1 }} data-tauri-drag-region />
-
-        <button
-          className={`nav-btn ${currentPage === "settings" ? "active" : ""}`}
-          onClick={() => navigateTo("settings")}
-          id="nav-settings"
-          title={t("index.nav.settings")}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            fillOpacity="0.18"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          ><use href={ICON_ASSETS["gear"]} /></svg>
-        </button>
-
-        <button
-          className={`nav-btn ${queueVisible ? "active" : ""}`}
-          onClick={() => setQueueVisible((v) => !v)}
-          id="btn-queue"
-          title={t("index.nav.queue")}
-          style={{ display: isQueueBtnVisible ? "flex" : "none" }}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          ><use href={ICON_ASSETS["queue-navigation"]} /></svg>
-        </button>
-
-        <div className="window-controls">
-          <button className="control-btn" onClick={minimizeWindow} aria-label="Minimize">
-            <svg width="16" height="16" viewBox="0 0 24 24"><use href={ICON_ASSETS["window-minimize"]} /></svg>
-          </button>
-          <button className="control-btn" onClick={maximizeWindow} aria-label={windowMaximized ? "Restore" : "Maximize"}>
-            <svg width="16" height="16" viewBox="0 0 24 24"><use href={windowMaximized ? ICON_ASSETS["copy"] : ICON_ASSETS["window-maximize"]} /></svg>
-          </button>
-          <button className="control-btn close" onClick={closeWindow} aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24"><use href={ICON_ASSETS["window-close"]} /></svg>
-          </button>
-        </div>
-      </div>
+      <TitleBar
+        currentPage={currentPage}
+        queueVisible={queueVisible}
+        isQueueBtnVisible={isQueueBtnVisible}
+        onNavigate={navigateTo}
+        onToggleQueue={() => setQueueVisible((visible) => !visible)}
+      />
 
       <div id="content-area">
         {ALL_PAGES.map((pageName) => {

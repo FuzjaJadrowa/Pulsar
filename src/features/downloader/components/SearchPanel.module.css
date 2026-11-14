@@ -1,0 +1,56 @@
+.providerPanel {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0;
+    padding: 0;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    transform-origin: top center;
+    overflow: hidden;
+    pointer-events: none;
+    font-family: "Manrope", "Montserrat", sans-serif;
+    transition: max-height 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), margin-top 0.22s ease;
+    will-change: max-height, opacity, transform;
+    position: relative;
+    z-index: 2;
+}
+
+.providerPanel.visible { max-height: 96px; opacity: 1; transform: translateY(0); margin-top: 8px; padding: 6px 8px; pointer-events: auto; }
+.providerPanel::before { content: none; }
+.providerPanel > * { position: relative; z-index: 1; }
+.providerLabel { font-size: 0.8rem; color: var(--c-text-dim); text-transform: uppercase; letter-spacing: 0.8px; font-family: "Montserrat", "Manrope", sans-serif; font-weight: 700; width: 100%; text-align: center; }
+.providerButtons { margin-left: 0; width: 100%; display: flex; gap: 6px; flex-wrap: nowrap; justify-content: center; }
+
+.providerButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #c0c0c0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: "Manrope", "Montserrat", sans-serif;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.providerButton svg { width: 20px; height: 20px; flex-shrink: 0; fill: currentColor; stroke: none; display: block; }
+.providerButton:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.providerButton.active { background: rgba(255, 255, 255, 0.2); border-color: var(--active-color); color: #f3f3f3; }
+
+:global(body.theme-light) .providerPanel { color: #1d2330; }
+:global(body.theme-light) .providerLabel { color: rgba(29, 35, 48, 0.7); }
+:global(body.theme-light) .providerButton { background: rgba(255, 255, 255, 0.92); border-color: rgba(0, 0, 0, 0.12); color: rgba(29, 35, 48, 0.75); }
+:global(body.theme-light) .providerButton:hover { background: rgba(0, 0, 0, 0.04); color: #1d2330; }
+:global(body.theme-light) .providerButton.active { background: #fff; border-color: var(--active-color); color: #1d2330; box-shadow: 0 6px 14px rgba(31, 44, 77, 0.12); }
