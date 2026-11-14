@@ -191,7 +191,10 @@ impl ConfigManager {
                         .get("advanced_mode")
                         .map(|v| v == "true")
                         .unwrap_or(false);
-                    config.runtime_logs = section.get("runtime_logs").map(|v| v == "true").unwrap_or(false);
+                    config.runtime_logs = section
+                        .get("runtime_logs")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
                     config.system_notifications = section
                         .get("system_notifications")
                         .map(|v| v == "true")
@@ -255,8 +258,14 @@ impl ConfigManager {
                     if let Some(v) = section.get("title_template") {
                         config.title_template = v.to_string();
                     }
-                    config.prefer_ffmpeg_while_converting = section.get("prefer_ffmpeg_while_converting").map(|v| v == "true").unwrap_or(false);
-                    config.prefer_ffmpeg_while_downloading = section.get("prefer_ffmpeg_while_downloading").map(|v| v == "true").unwrap_or(false);
+                    config.prefer_ffmpeg_while_converting = section
+                        .get("prefer_ffmpeg_while_converting")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
+                    config.prefer_ffmpeg_while_downloading = section
+                        .get("prefer_ffmpeg_while_downloading")
+                        .map(|v| v == "true")
+                        .unwrap_or(false);
                 }
                 if let Some(section) = ini.section(Some("Codecs")) {
                     config.copy_codec_if_possible = section
@@ -298,7 +307,10 @@ impl ConfigManager {
                     "false"
                 },
             )
-            .set("runtime_logs", if config.runtime_logs { "true" } else { "false" })
+            .set(
+                "runtime_logs",
+                if config.runtime_logs { "true" } else { "false" },
+            )
             .set(
                 "system_notifications",
                 if config.system_notifications {
@@ -377,8 +389,14 @@ impl ConfigManager {
                 config.maximum_search_results.to_string(),
             )
             .set("title_template", &config.title_template)
-            .set("prefer_ffmpeg_while_converting", config.prefer_ffmpeg_while_converting.to_string())
-            .set("prefer_ffmpeg_while_downloading", config.prefer_ffmpeg_while_downloading.to_string());
+            .set(
+                "prefer_ffmpeg_while_converting",
+                config.prefer_ffmpeg_while_converting.to_string(),
+            )
+            .set(
+                "prefer_ffmpeg_while_downloading",
+                config.prefer_ffmpeg_while_downloading.to_string(),
+            );
 
         if let Err(e) = ini.write_to_file(path) {
             eprintln!("Failed to write config.ini to {:?}: {}", path, e);

@@ -36,7 +36,11 @@ fn parse_sample_rate(value: Option<&str>) -> Option<u32> {
         .filter(|value| *value >= 8_000 && *value <= 192_000)
 }
 
-fn download_video_encoder(requested: &str, format: &str, config: &crate::app::config::AppConfig) -> String {
+fn download_video_encoder(
+    requested: &str,
+    format: &str,
+    config: &crate::app::config::AppConfig,
+) -> String {
     let codec_key = if requested.is_empty() || requested.eq_ignore_ascii_case("auto") {
         match format.to_ascii_lowercase().as_str() {
             "webm" => "vp9",
@@ -51,7 +55,10 @@ fn download_video_encoder(requested: &str, format: &str, config: &crate::app::co
     let hwaccel = if config.ffmpeg_hwaccel == "none" || config.ffmpeg_hwaccel == "false" {
         None
     } else if config.ffmpeg_hwaccel_preferred != "auto"
-        && config.ffmpeg_hwaccels.iter().any(|candidate| candidate == &config.ffmpeg_hwaccel_preferred)
+        && config
+            .ffmpeg_hwaccels
+            .iter()
+            .any(|candidate| candidate == &config.ffmpeg_hwaccel_preferred)
     {
         Some(config.ffmpeg_hwaccel_preferred.as_str())
     } else {
@@ -187,14 +194,24 @@ pub fn start_download(
         .filter(|s| !s.is_empty())
         .unwrap_or_else(generate);
     let explicitly_selected_video_codec = options.video_codec.as_deref().is_some_and(|codec| {
-        !codec.trim().is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy")
+        !codec.trim().is_empty()
+            && !codec.eq_ignore_ascii_case("auto")
+            && !codec.eq_ignore_ascii_case("copy")
     });
     let explicitly_selected_audio_codec = options.audio_codec.as_deref().is_some_and(|codec| {
-        !codec.trim().is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy")
+        !codec.trim().is_empty()
+            && !codec.eq_ignore_ascii_case("auto")
+            && !codec.eq_ignore_ascii_case("copy")
     });
-    let conversion_requested = options.video_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
-        || options.audio_codec.as_deref().is_some_and(|codec| !codec.is_empty() && !codec.eq_ignore_ascii_case("auto") && !codec.eq_ignore_ascii_case("copy"))
-        || options.video_bitrate.is_some()
+    let conversion_requested = options.video_codec.as_deref().is_some_and(|codec| {
+        !codec.is_empty()
+            && !codec.eq_ignore_ascii_case("auto")
+            && !codec.eq_ignore_ascii_case("copy")
+    }) || options.audio_codec.as_deref().is_some_and(|codec| {
+        !codec.is_empty()
+            && !codec.eq_ignore_ascii_case("auto")
+            && !codec.eq_ignore_ascii_case("copy")
+    }) || options.video_bitrate.is_some()
         || options.audio_bitrate.is_some()
         || options.video_fps.is_some()
         || options.audio_sample_rate.is_some();
@@ -524,7 +541,12 @@ pub fn start_download(
     args.push(options.url.clone());
 
     let cmd = BridgeCommand {
-        command: if use_ffmpeg_direct_conversion { "download_ffmpeg" } else { "download" }.to_string(),
+        command: if use_ffmpeg_direct_conversion {
+            "download_ffmpeg"
+        } else {
+            "download"
+        }
+        .to_string(),
         id: task_id.clone(),
         args,
     };

@@ -292,14 +292,26 @@ impl BridgeState {
                         }
                         if let Ok(mut json_val) = serde_json::from_str::<Value>(&l) {
                             if json_val.get("type").and_then(Value::as_str) == Some("ready") {
-                                let remote_version = json_val.get("protocol_version").and_then(Value::as_u64);
+                                let remote_version =
+                                    json_val.get("protocol_version").and_then(Value::as_u64);
                                 if remote_version != Some(BRIDGE_PROTOCOL_VERSION) {
-                                    let component = if remote_version.is_some_and(|v| v > BRIDGE_PROTOCOL_VERSION) { "pulsar" } else { "bridge" };
-                                    let _ = app_handle_clone.emit("bridge-protocol-mismatch", serde_json::json!({"component": component}));
+                                    let component = if remote_version
+                                        .is_some_and(|v| v > BRIDGE_PROTOCOL_VERSION)
+                                    {
+                                        "pulsar"
+                                    } else {
+                                        "bridge"
+                                    };
+                                    let _ = app_handle_clone.emit(
+                                        "bridge-protocol-mismatch",
+                                        serde_json::json!({"component": component}),
+                                    );
                                 }
                                 continue;
                             }
-                            if json_val.get("type").and_then(Value::as_str) == Some("protocol_mismatch") {
+                            if json_val.get("type").and_then(Value::as_str)
+                                == Some("protocol_mismatch")
+                            {
                                 continue;
                             }
                             if json_val.get("type").and_then(|v| v.as_str())
@@ -337,7 +349,8 @@ impl BridgeState {
                                     ffmpeg_ranges.lock().unwrap().remove(id);
                                     process_limiter.release(id);
                                     if let Some(path) = output_paths.lock().unwrap().remove(id) {
-                                        let event_type = json_val.get("type").and_then(Value::as_str);
+                                        let event_type =
+                                            json_val.get("type").and_then(Value::as_str);
                                         let failed = event_type == Some("finished")
                                             && !terminal_event_succeeded(&json_val);
                                         let empty_cancelled_reservation = event_type

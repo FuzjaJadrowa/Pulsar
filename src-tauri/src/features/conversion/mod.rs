@@ -166,7 +166,10 @@ pub fn resolve_unique_output_path(
         format!("{}.{}", base_name, fmt)
     };
     std::fs::create_dir_all(output_dir).map_err(|error| {
-        format!("Unable to create output directory '{}': {error}", output_dir.display())
+        format!(
+            "Unable to create output directory '{}': {error}",
+            output_dir.display()
+        )
     })?;
     let mut counter = 0;
     loop {
@@ -210,11 +213,7 @@ fn build_output_path(options: &ConvertOptions, output_format: &str) -> Result<St
     if name.trim().is_empty() {
         name = "output".to_string();
     }
-    resolve_unique_output_path(
-        &output_dir,
-        &name,
-        output_format,
-    )
+    resolve_unique_output_path(&output_dir, &name, output_format)
 }
 
 use self::input::{parse_kbps, parse_numeric};
@@ -491,7 +490,10 @@ pub fn start_convert(
         payload,
     };
 
-    state.register_output_path(task_id.clone(), Path::new(&output_path_for_cleanup).to_path_buf());
+    state.register_output_path(
+        task_id.clone(),
+        Path::new(&output_path_for_cleanup).to_path_buf(),
+    );
     if let Err(error) = state.send_raw_command(&app_handle, &cmd) {
         state.unregister_output_path(&task_id);
         let _ = std::fs::remove_file(output_path_for_cleanup);

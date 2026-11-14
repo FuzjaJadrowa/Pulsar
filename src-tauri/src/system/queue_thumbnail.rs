@@ -9,11 +9,9 @@ pub async fn generate_queue_thumbnail(
     category: String,
     duration_seconds: Option<f64>,
 ) -> String {
-    tokio::task::spawn_blocking(move || {
-        generate_thumbnail(&path, &category, duration_seconds)
-    })
-    .await
-    .unwrap_or_default()
+    tokio::task::spawn_blocking(move || generate_thumbnail(&path, &category, duration_seconds))
+        .await
+        .unwrap_or_default()
 }
 
 fn generate_thumbnail(path: &str, category: &str, duration_seconds: Option<f64>) -> String {
