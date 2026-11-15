@@ -87,7 +87,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       const rect = head.getBoundingClientRect();
       const titleBar = document.getElementById("titlebar");
       const contentTop = Math.max(8, (titleBar?.getBoundingClientRect().bottom ?? 0) + 8);
-      const contentBottom = window.innerHeight - 8;
+      const modalFooter = head.closest(".preset-modal")?.querySelector<HTMLElement>(".preset-modal-footer");
+      const footerTop = modalFooter?.getBoundingClientRect().top;
+      const contentBottom = Math.min(
+        window.innerHeight - 8,
+        footerTop === undefined ? window.innerHeight - 8 : footerTop - 8,
+      );
       const spaceAbove = Math.max(0, rect.top - contentTop);
       const spaceBelow = Math.max(0, contentBottom - rect.bottom);
       const estimatedHeight = Math.min(options.length * 40 + 10, 240);
