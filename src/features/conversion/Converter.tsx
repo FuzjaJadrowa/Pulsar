@@ -26,6 +26,7 @@ import type { Preset } from "../../services/presets";
 import { BatchInfoCard } from "../../components/media/BatchInfoCard";
 import styles from "./Converter.module.css";
 import { ConverterFileInfo } from "./components/ConverterFileInfo";
+import { sanitizeBitrateInput } from "../../utils/bitrate";
 
 import { CATEGORY_ICONS } from "../../utils/icons";
 
@@ -214,7 +215,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     }
 
     const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
-    const targetCategory = formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
+    const targetCategory = selectedFormat?.toLowerCase() === "gif" && metadata.category === "video" ? "video" : formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
 
     const payload = {
       source_size_bytes: Number.isFinite(Number(metadata.size_bytes)) ? Number(metadata.size_bytes) : null,
@@ -225,11 +226,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       category: targetCategory,
       format: String(selectedFormat).trim(),
       video_quality: targetCategory === "video" ? videoQuality : "",
-      video_codec: targetCategory === "video" ? videoCodec : "",
-      video_bitrate: targetCategory === "video" ? videoBitrate : "",
+      video_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
+      video_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
       video_fps: targetCategory === "video" ? videoFps : "",
-      audio_codec: targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-      audio_bitrate: targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
+      audio_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
+      audio_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
       image_width: targetCategory === "image" ? (parseInt(String(imageWidth)) || null) : null,
       image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
       image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null
@@ -349,7 +350,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     if (!selectedFormat || !metadata) return null;
 
     const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
-    const targetCategory = formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
+    const targetCategory = selectedFormat?.toLowerCase() === "gif" && metadata.category === "video" ? "video" : formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
     if (!targetCategory) return null;
 
     const outputFormat = normalizeOutputFormat(selectedFormat);
@@ -379,11 +380,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
       image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null,
       video_quality: targetCategory === "video" ? videoQuality : "",
-      video_codec: targetCategory === "video" ? videoCodec : "",
-      video_bitrate: targetCategory === "video" ? videoBitrate : "",
+      video_codec: outputFormat === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
+      video_bitrate: outputFormat === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
       video_fps: targetCategory === "video" ? videoFps : "",
-      audio_codec: targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-      audio_bitrate: targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
+      audio_codec: outputFormat === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
+      audio_bitrate: outputFormat === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
       source_duration_seconds: Number.isFinite(Number(metadata.duration_seconds)) ? Number(metadata.duration_seconds) : null,
       source_size_bytes: Number.isFinite(Number(metadata.size_bytes)) ? Number(metadata.size_bytes) : null,
       source_format: String(metadata.extension || ""),
@@ -404,7 +405,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       }
 
       const payloads = loadedFiles.map(file => {
-        const targetCategory = formatMeta?.type || (file.category === "video" ? selectedMode : file.category);
+        const targetCategory = selectedFormat?.toLowerCase() === "gif" && file.category === "video" ? "video" : formatMeta?.type || (file.category === "video" ? selectedMode : file.category);
     const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(file.path);
         const rawName = sanitizeOutputName(file.name || extractFileName(file.path) || "output");
 
@@ -426,11 +427,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
           image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
           image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null,
           video_quality: targetCategory === "video" ? videoQuality : "",
-          video_codec: targetCategory === "video" ? videoCodec : "",
-          video_bitrate: targetCategory === "video" ? videoBitrate : "",
+          video_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
+          video_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
           video_fps: targetCategory === "video" ? videoFps : "",
-          audio_codec: targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-          audio_bitrate: targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
+          audio_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
+          audio_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
           source_duration_seconds: Number.isFinite(Number(file.duration_seconds)) ? Number(file.duration_seconds) : null,
           source_size_bytes: Number.isFinite(Number(file.size_bytes)) ? Number(file.size_bytes) : null,
           source_format: String(file.extension || "")
@@ -501,11 +502,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   // Selected format metadata
   const selectedFormatMeta = selectedFormat ? formatData.find(f => f.id.toLowerCase() === selectedFormat.toLowerCase()) : null;
-  const targetCategory = selectedFormatMeta?.type || (isVideoSource ? selectedMode : initialCategory);
+  const isGifOutput = selectedFormat?.toLowerCase() === "gif" && metadata?.category === "video";
+  const targetCategory = isGifOutput ? "video" : selectedFormatMeta?.type || (isVideoSource ? selectedMode : initialCategory);
 
   const formatsToRender = formatData.filter(f => {
     if (isVideoSource) {
-      return f.type === selectedMode;
+      return f.type === selectedMode || (selectedMode === "video" && f.id.toLowerCase() === "gif");
     }
     return f.type === initialCategory;
   });
@@ -659,8 +661,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                               clearActivePreset();
                             }}
                           />
-                          <OutputCodecField classPrefix="converter" label={t("common.videoCodec")} codecs={selectedFormatMeta?.video_codecs || []} value={videoCodec} includeCopyOption onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />
-                          <OutputTextField classPrefix="converter" id="convert-output-video-bitrate" label={t("common.videoBitrate")} placeholder={t("common.auto")} value={videoBitrate} onChange={(value) => { setVideoBitrate(value); clearActivePreset(); }} />
+                          {!isGifOutput && <OutputCodecField classPrefix="converter" label={t("common.videoCodec")} codecs={selectedFormatMeta?.video_codecs || []} value={videoCodec} includeCopyOption onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />}
+                          {!isGifOutput && <OutputTextField classPrefix="converter" id="convert-output-video-bitrate" label={t("common.videoBitrate")} placeholder={t("common.auto")} value={videoBitrate} onChange={(value) => { setVideoBitrate(sanitizeBitrateInput(value, 100000)); clearActivePreset(); }} />}
                           <OutputSelectField
                             classPrefix="converter"
                             label={t("common.fps")}
@@ -671,8 +673,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                               clearActivePreset();
                             }}
                           />
-                          <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={videoAudioCodec} includeCopyOption onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />
-                          <OutputTextField classPrefix="converter" id="convert-output-video-audio-bitrate" label={t("common.audioBitrate")} placeholder="Auto" value={videoAudioBitrate} onChange={(value) => { setVideoAudioBitrate(value); clearActivePreset(); }} />
+                          {!isGifOutput && <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={videoAudioCodec} includeCopyOption onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />}
+                          {!isGifOutput && <OutputTextField classPrefix="converter" id="convert-output-video-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={videoAudioBitrate} onChange={(value) => { setVideoAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />}
                         </div>
                       )}
 
@@ -681,7 +683,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         <div className="converter-specs-section" data-section="audio">
                           <EstimatedSizeRow classPrefix="converter" id="convert-output-audio-size" value={estimatedSize} />
                           <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={audioCodec} onChange={(value) => { setAudioCodec(value); clearActivePreset(); }} />
-                          <OutputTextField classPrefix="converter" id="convert-output-audio-bitrate" label={t("common.audioBitrate")} placeholder="Auto" value={audioBitrate} onChange={(value) => { setAudioBitrate(value); clearActivePreset(); }} />
+                          <OutputTextField classPrefix="converter" id="convert-output-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={audioBitrate} onChange={(value) => { setAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />
                         </div>
                       )}
 

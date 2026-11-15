@@ -6,10 +6,9 @@ body {
     color: var(--text-color);
     overflow: hidden;
 
-    background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
-    background-size: cover;
+    background-color: var(--bg-color);
     background-attachment: fixed;
-    transition: background 0.5s ease;
+    transition: background-color 0.35s ease;
 
     user-select: none;
 }

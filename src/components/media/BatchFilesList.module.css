@@ -50,3 +50,16 @@
 .removeButton:hover {
     background: rgba(239, 68, 68, 0.2);
 }
+
+:global(body.theme-light) .item {
+    background: rgba(29, 35, 48, 0.04);
+    border-color: rgba(29, 35, 48, 0.1);
+}
+
+:global(body.theme-light) .name {
+    color: #1d2330;
+}
+
+:global(body.theme-light) .size {
+    color: rgba(29, 35, 48, 0.65);
+}

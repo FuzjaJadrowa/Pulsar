@@ -28,6 +28,65 @@ export const isAudioOnlySourceUrl = (url: string) => {
   return source !== null && source !== "youtube" && source !== "soundcloud";
 };
 
+function formatHeight(format: DownloaderFormat): number {
+  const resolutionHeight = String(format.resolution || "").match(/\d+x(\d{2,5})/i)?.[1];
+  return Number(format.height || resolutionHeight || 0);
+}
+
+function codecPreference(codec?: string | null): number {
+  const value = String(codec || "").toLowerCase();
+  if (value.startsWith("av01") || value.startsWith("av1")) return 5;
+  if (value.startsWith("vp09") || value.startsWith("vp9")) return 4;
+  if (value.startsWith("hev1") || value.startsWith("hvc1") || value.startsWith("hevc")) return 3;
+  if (value.startsWith("avc1") || value.startsWith("avc3") || value.startsWith("h264")) return 2;
+  if (value.startsWith("vp08") || value.startsWith("vp8")) return 1;
+  return 0;
+}
+
+function fitsVideoQuality(format: DownloaderFormat, quality?: string | null): boolean {
+  const match = String(quality || "").match(/^(\d+)p(\d+)?$/i);
+  if (!match) return true;
+  const height = formatHeight(format);
+  const fps = Number(format.fps || 0);
+  return (!height || height <= Number(match[1])) && (!fps || !match[2] || fps <= Number(match[2]));
+}
+
+/** Approximate the source streams selected by the downloader's bv+ba/b selector for queue display. */
+export function getQueueSourceCodecs(
+  formats: DownloaderFormat[] = [],
+  quality?: string | null,
+  audioOnly = false,
+): { videoCodec?: string; audioCodec?: string } {
+  const eligible = formats.filter((format) => fitsVideoQuality(format, quality));
+  const candidates = eligible.length ? eligible : formats;
+  const rankVideo = (a: DownloaderFormat, b: DownloaderFormat) =>
+    formatHeight(b) - formatHeight(a)
+    || Number(b.fps || 0) - Number(a.fps || 0)
+    || codecPreference(b.vcodec) - codecPreference(a.vcodec)
+    || Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0);
+  const best = (items: DownloaderFormat[], compare: (a: DownloaderFormat, b: DownloaderFormat) => number) =>
+    [...items].sort(compare)[0];
+
+  const audio = best(candidates.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)),
+    (a, b) => Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0));
+  if (audioOnly) {
+    const anyAudio = audio || best(candidates.filter((format) => hasCodec(format.acodec)),
+      (a, b) => Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0));
+    return { audioCodec: anyAudio?.acodec || undefined };
+  }
+
+  const video = best(candidates.filter((format) => hasCodec(format.vcodec) && !hasCodec(format.acodec)), rankVideo);
+  if (video && audio) {
+    return { videoCodec: video.vcodec || undefined, audioCodec: audio.acodec || undefined };
+  }
+
+  const combined = best(candidates.filter((format) => hasCodec(format.vcodec) && hasCodec(format.acodec)), rankVideo);
+  if (combined) {
+    return { videoCodec: combined.vcodec || undefined, audioCodec: combined.acodec || undefined };
+  }
+  return { videoCodec: video?.vcodec || undefined, audioCodec: audio?.acodec || undefined };
+}
+
 export function createSubtitleOptions(
   metadata: DownloaderMetadata,
   locale: string,

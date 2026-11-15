@@ -33,6 +33,21 @@ function getQueueItemOutputFolder(item: QueueItem): string {
   return getParentFolder(outputFile) || asPath(payload.save_path);
 }
 
+function formatCodecName(value: unknown): string {
+  const codec = String(value || "").trim();
+  const normalized = codec.toLowerCase();
+  if (!normalized) return "";
+  if (/^(avc1|avc3|h264|x264)(\.|$)/.test(normalized)) return "H264";
+  if (/^(hev1|hvc1|hevc|h265|x265)(\.|$)/.test(normalized)) return "H265";
+  if (/^(mp4a|aac)(\.|$)/.test(normalized)) return "AAC";
+  if (/^(vp09|vp9)(\.|$)/.test(normalized)) return "VP9";
+  if (/^(vp08|vp8)(\.|$)/.test(normalized)) return "VP8";
+  if (/^(av01|av1)(\.|$)/.test(normalized)) return "AV1";
+  if (/^(opus)(\.|$)/.test(normalized)) return "Opus";
+  if (/^(vorbis)(\.|$)/.test(normalized)) return "Vorbis";
+  return codec.toUpperCase();
+}
+
 export const QueuePanel: React.FC = () => {
   const { t } = useTranslation();
   const {
@@ -115,8 +130,8 @@ export const QueuePanel: React.FC = () => {
           ? String(item.payload?.audio_quality || "--")
           : String(item.payload?.video_quality || "--");
       const codec = dMode === "audio"
-        ? String(item.payload?.display_audio_codec || item.payload?.audio_codec || "").toUpperCase()
-        : [item.payload?.display_video_codec || item.payload?.video_codec, item.payload?.display_audio_codec || item.payload?.audio_codec].filter(Boolean).map((value) => String(value).toUpperCase()).join("/");
+        ? formatCodecName(item.payload?.display_audio_codec || item.payload?.audio_codec)
+        : [item.payload?.display_video_codec || item.payload?.video_codec, item.payload?.display_audio_codec || item.payload?.audio_codec].map(formatCodecName).filter(Boolean).join("/");
       const output = codec && codec !== format ? `${format} - ${codec}` : format;
       const estimatedSize = formatBytes(item.payload?.estimated_size_bytes);
       text = `${quality} | ${output} | ${estimatedSize}`;

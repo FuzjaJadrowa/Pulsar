@@ -2,6 +2,16 @@ use super::quality::{clamp, qscale_from_crf, qscale_from_percent};
 use super::CompressOptions;
 use crate::infrastructure::ffmpeg::codecs::{map_audio_codec, map_video_codec, map_video_codec_hw};
 
+fn parse_kbps(value: Option<&str>, max: u32) -> Option<u32> {
+    value?
+        .trim()
+        .trim_end_matches("kbps")
+        .trim()
+        .parse::<u32>()
+        .ok()
+        .filter(|value| *value > 0 && *value <= max)
+}
+
 fn resolve_target_bytes(options: &CompressOptions, mode: &str) -> Option<u64> {
     match mode {
         "size" => options.target_size_bytes,
@@ -227,6 +237,17 @@ pub(super) fn build_ffmpeg_args(
         }
     } else {
         return Err("Target size could not be resolved.".to_string());
+    }
+
+    if let Some(kbps) = parse_kbps(options.video_bitrate.as_deref(), 100_000) {
+        if category == "video" && options.video_codec.as_deref().unwrap_or("") != "copy" {
+            args.extend(["-b:v".to_string(), format!("{kbps}k")]);
+        }
+    }
+    if let Some(kbps) = parse_kbps(options.audio_bitrate.as_deref(), 1_000) {
+        if options.audio_codec.as_deref().unwrap_or("") != "copy" {
+            args.extend(["-b:a".to_string(), format!("{kbps}k")]);
+        }
     }
 
     args.push(output_path.to_string());

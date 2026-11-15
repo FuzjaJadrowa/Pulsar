@@ -31,6 +31,10 @@ pub struct CompressOptions {
     pub video_codec: Option<String>,
     #[serde(default, alias = "audio_codec")]
     pub audio_codec: Option<String>,
+    #[serde(default, alias = "video_bitrate")]
+    pub video_bitrate: Option<String>,
+    #[serde(default, alias = "audio_bitrate")]
+    pub audio_bitrate: Option<String>,
     #[serde(default, alias = "source_duration_seconds")]
     pub source_duration_seconds: Option<f64>,
     #[serde(default, alias = "source_size_bytes")]

@@ -168,6 +168,10 @@ en = "Auto"
 pl = "Auto"
 fr = "Auto"
 
+[common.copy]
+en = "Copy"
+pl = "Kopiuj"
+
 [common.videoQuality]
 en = "Video quality"
 pl = "Jakość wideo"

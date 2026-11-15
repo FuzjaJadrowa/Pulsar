@@ -27,6 +27,8 @@ import { CompressorFileInfo } from "./components/CompressorFileInfo";
 import { CompressorModeControls } from "./components/CompressorModeControls";
 import { EstimatedSizeRow } from "../../components/media/EstimatedSizeRow";
 import { OutputCodecField } from "../../components/media/OutputCodecField";
+import { OutputTextField } from "../../components/media/OutputTextField";
+import { sanitizeBitrateInput } from "../../utils/bitrate";
 
 const SUPPORTED_CATEGORIES = new Set(["video", "audio", "image"]);
 const SUPPORTED_IMAGE_FORMATS = new Set([
@@ -96,6 +98,9 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
   const [videoCodec, setVideoCodec] = useState("");
   const [videoAudioCodec, setVideoAudioCodec] = useState("");
   const [audioCodec, setAudioCodec] = useState("");
+  const [videoBitrate, setVideoBitrate] = useState("");
+  const [videoAudioBitrate, setVideoAudioBitrate] = useState("");
+  const [audioBitrate, setAudioBitrate] = useState("");
 
   // Local size estimation
   const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
@@ -168,6 +173,9 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     setVideoCodec("");
     setVideoAudioCodec("");
     setAudioCodec("");
+    setVideoBitrate("");
+    setVideoAudioBitrate("");
+    setAudioBitrate("");
     setActivePresetId(null);
 
     setTimeout(() => {
@@ -186,6 +194,9 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
     resetMetadataState();
     setCurrentName("");
     setSavePath("");
+    setVideoBitrate("");
+    setVideoAudioBitrate("");
+    setAudioBitrate("");
     clearActivePreset();
   };
 
@@ -306,6 +317,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
       audio_codec: category === "audio"
         ? audioCodec
         : (category === "video" ? videoAudioCodec : ""),
+      video_bitrate: category === "video" ? videoBitrate : "",
+      audio_bitrate: category === "audio" ? audioBitrate : (category === "video" ? videoAudioBitrate : ""),
       source_duration_seconds: Number.isFinite(Number(metadata.duration_seconds))
         ? Number(metadata.duration_seconds)
         : null,
@@ -349,6 +362,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
           audio_codec: category === "audio"
             ? audioCodec
             : (category === "video" ? videoAudioCodec : ""),
+          video_bitrate: category === "video" ? videoBitrate : "",
+          audio_bitrate: category === "audio" ? audioBitrate : (category === "video" ? videoAudioBitrate : ""),
           source_duration_seconds: Number.isFinite(Number(file.duration_seconds)) ? Number(file.duration_seconds) : null,
           source_size_bytes: Number.isFinite(Number(file.size_bytes)) ? Number(file.size_bytes) : null,
           source_format: String(file.extension || "")
@@ -535,6 +550,8 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                         <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-video-size" value={estimatedSize} />
                         <OutputCodecField classPrefix="compressor" label={t("common.videoCodec")} codecs={videoCodecsOptions} value={videoCodec} onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />
                         <OutputCodecField classPrefix="compressor" label={t("common.audioCodec")} codecs={audioCodecsOptions} value={videoAudioCodec} onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />
+                        <OutputTextField classPrefix="compressor" id="compress-output-video-bitrate" label={t("common.videoBitrate")} placeholder={t("common.auto")} value={videoBitrate} onChange={(value) => { setVideoBitrate(sanitizeBitrateInput(value, 100000)); clearActivePreset(); }} />
+                        <OutputTextField classPrefix="compressor" id="compress-output-video-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={videoAudioBitrate} onChange={(value) => { setVideoAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />
                       </div>
                     )}
 
@@ -543,6 +560,7 @@ export const Compressor: React.FC<CompressorProps> = ({ active = true }) => {
                       <div className="compressor-specs-section" data-section="audio">
                         <EstimatedSizeRow classPrefix="compressor" id="compress-estimated-audio-size" value={estimatedSize} />
                         <OutputCodecField classPrefix="compressor" label={t("common.audioCodec")} codecs={audioCodecsOptions} value={audioCodec} onChange={(value) => { setAudioCodec(value); clearActivePreset(); }} />
+                        <OutputTextField classPrefix="compressor" id="compress-output-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={audioBitrate} onChange={(value) => { setAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />
                       </div>
                     )}
 

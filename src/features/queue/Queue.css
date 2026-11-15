@@ -483,6 +483,16 @@ body.theme-light .queue-status-icon {
     border-color: rgba(0, 0, 0, 0.1);
 }
 
+body.theme-light .queue-status-icon.success {
+    background: #16804a;
+    color: #ffffff;
+}
+
+body.theme-light .queue-status-icon.failed {
+    background: #c9342b;
+    color: #ffffff;
+}
+
 body.theme-light .queue-page-btn {
     background: rgba(0, 0, 0, 0.04);
     color: #1d2330;

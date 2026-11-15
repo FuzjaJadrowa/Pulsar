@@ -610,4 +610,5 @@
 
 :global(body.theme-light) :local(.scope) :global(.converter-format-tile.active) {
     box-shadow: 0 6px 16px rgba(31, 44, 77, 0.18);
+    color: #54228a;
 }

@@ -23,6 +23,7 @@ import {
   codecMatches,
   createSubtitleOptions,
   getVideoQualityOptions,
+  getQueueSourceCodecs,
   hasCodec,
   isAudioOnlySourceUrl,
   metadataHasOnlyAudioSources,
@@ -405,14 +406,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         updateUrlFromInput(clipboardText.trim());
       }
     } catch (e) {
-      try {
-        const clipboardText = await navigator.clipboard.readText();
-        if (clipboardText) {
-          updateUrlFromInput(clipboardText.trim());
-        }
-      } catch (err) {
-        console.error("Failed to read from clipboard:", err);
-      }
+      console.error("Failed to read from clipboard:", e);
     }
   };
 
@@ -482,39 +476,47 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   };
 
   const parseTimeToSeconds = (str: string) => {
-    const parts = str.split(":").map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return 0;
+    const parts = str.trim().split(":");
+    if (parts.some((part) => !/^\d+$/.test(part))) return Number.NaN;
+    const values = parts.map(Number);
+    if (values.length === 3 && values[1] < 60 && values[2] < 60) {
+      return values[0] * 3600 + values[1] * 60 + values[2];
+    }
+    if (values.length === 2 && values[1] < 60) return values[0] * 60 + values[1];
+    return Number.NaN;
   };
 
   const handleTimeStartChange = (val: string) => {
-    setTimeStart(val);
-    if (duration > 0) {
+    let nextValue = val;
+    if (duration > 0 && Number.isFinite(parseTimeToSeconds(val))) {
       const seconds = parseTimeToSeconds(val);
       let pct = (seconds / duration) * 100;
       pct = Math.max(0, Math.min(100, pct));
       if (pct > rangeEnd) {
         setRangeStart(rangeEnd);
+        nextValue = formatDuration(duration * (rangeEnd / 100));
       } else {
         setRangeStart(pct);
       }
     }
+    setTimeStart(nextValue);
     clearActivePreset();
   };
 
   const handleTimeEndChange = (val: string) => {
-    setTimeEnd(val);
-    if (duration > 0) {
+    let nextValue = val;
+    if (duration > 0 && Number.isFinite(parseTimeToSeconds(val))) {
       const seconds = parseTimeToSeconds(val);
       let pct = (seconds / duration) * 100;
       pct = Math.max(0, Math.min(100, pct));
       if (pct < rangeStart) {
         setRangeEnd(rangeStart);
+        nextValue = formatDuration(duration * (rangeStart / 100));
       } else {
         setRangeEnd(pct);
       }
     }
+    setTimeEnd(nextValue);
     clearActivePreset();
   };
 
@@ -598,8 +600,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         + largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)));
     const bestVideoSource = [...estimatedFormats].filter((format) => hasCodec(format.vcodec)).sort((a, b) => (b.height || 0) - (a.height || 0))[0];
     const bestAudioSource = [...estimatedFormats].filter((format) => hasCodec(format.acodec)).sort((a, b) => Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0))[0];
-    const preferredVideoCodec = videoCodec || (config.default_video_codec.toLowerCase() === "auto" ? "" : config.default_video_codec);
-    const preferredAudioCodec = audioCodec || (config.default_audio_codec.toLowerCase() === "auto" ? "" : config.default_audio_codec);
+    const preferredVideoCodec = videoCodec;
+    const preferredAudioCodec = audioCodec;
+    const queueSourceCodecs = getQueueSourceCodecs(metadata?.formats, selectedQuality, mode === "audio");
     const videoCodecAlreadyAvailable = !!preferredVideoCodec && codecMatches(preferredVideoCodec, bestVideoSource?.vcodec);
     const audioCodecAlreadyAvailable = !!preferredAudioCodec && codecMatches(preferredAudioCodec, bestAudioSource?.acodec);
     const otherTranscodeOptions = !!videoBitrate || !!audioBitrate || !!videoFps || !!audioSampleRate;
@@ -614,8 +617,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       audio_quality: mode === "audio" ? selectedQuality : null,
       video_codec: mode === "video" && (!videoCodecAlreadyAvailable || otherTranscodeOptions) ? (preferredVideoCodec || undefined) : undefined,
       audio_codec: !audioCodecAlreadyAvailable || otherTranscodeOptions ? (preferredAudioCodec || undefined) : undefined,
-      display_video_codec: preferredVideoCodec || bestVideoSource?.vcodec || undefined,
-      display_audio_codec: preferredAudioCodec || bestAudioSource?.acodec || undefined,
+      display_video_codec: preferredVideoCodec || queueSourceCodecs.videoCodec,
+      display_audio_codec: preferredAudioCodec || queueSourceCodecs.audioCodec,
       video_bitrate: videoBitrate || undefined,
       audio_bitrate: audioBitrate || undefined,
       video_fps: videoFps || undefined,
@@ -870,7 +873,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       onChange={(e) => handleTimeStartChange(e.target.value)}
                       onBlur={() => {
                         const secs = parseTimeToSeconds(timeStart);
-                        setTimeStart(formatDuration(secs));
+                        if (Number.isFinite(secs)) setTimeStart(formatDuration(secs));
                       }}
                     />
                     <div className="slider-track-container">
@@ -908,7 +911,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       onChange={(e) => handleTimeEndChange(e.target.value)}
                       onBlur={() => {
                         const secs = parseTimeToSeconds(timeEnd);
-                        setTimeEnd(formatDuration(secs));
+                        if (Number.isFinite(secs)) setTimeEnd(formatDuration(secs));
                       }}
                     />
                   </div>

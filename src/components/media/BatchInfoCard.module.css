@@ -44,3 +44,17 @@
 .categoryIcon svg { width: 100%; height: 100%; display: block; }
 .categoryIcon svg * { stroke: currentColor; }
 .categoryIcon svg [fill]:not([fill="none"]) { fill: currentColor; }
+
+:global(body.theme-light) .card {
+    background: rgba(255, 255, 255, 0.86);
+    border-color: rgba(29, 35, 48, 0.12);
+    box-shadow: 0 12px 28px rgba(31, 44, 77, 0.12);
+}
+
+:global(body.theme-light) .headerRow {
+    border-bottom-color: rgba(29, 35, 48, 0.12);
+}
+
+:global(body.theme-light) .headerTitle {
+    color: #1d2330;
+}

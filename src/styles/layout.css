@@ -183,7 +183,7 @@
 }
 
 body.theme-light .nav-btn.active {
-    color: #fff;
+    color: var(--titlebar-accent);
 }
 
 #nav-downloader:hover svg {

@@ -9,6 +9,7 @@
 body, body.theme-dark {
     --bg-start: #1a0b1c;
     --bg-end: #0d1b2a;
+    --bg-color: #130f1b;
     --text-color: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.65);
     --accent-color: #8a2be2;
@@ -46,6 +47,7 @@ body, body.theme-dark {
     --titlebar-bg: rgba(10, 10, 15, 0.15);
     --titlebar-border: rgba(255, 255, 255, 0.06);
     --nav-btn-color: rgba(255, 255, 255, 0.7);
+    --nav-btn-active-bg: rgba(138, 43, 226, 0.18);
     --control-btn-color: #e0e0e0;
     --control-btn-hover-bg: rgba(255, 255, 255, 0.15);
     --win-controls-bg: rgba(255, 255, 255, 0.04);
@@ -67,9 +69,11 @@ body, body.theme-dark {
 body.theme-light {
     --bg-start: #f4f6fb;
     --bg-end: #e8ecf5;
+    --bg-color: #e9ebf7;
     --text-color: #1d2330;
     --text-muted: rgba(29, 35, 48, 0.6);
     --accent-color: #4c6fff;
+    --browse-hover-text: #1d2330;
     --success-color: #19a86b;
     --c-video-primary: #8a2be2;
     --c-audio-primary: #2ecc71;
@@ -101,9 +105,10 @@ body.theme-light {
     --card-summary: rgba(29, 35, 48, 0.6);
     --card-icon-color: #1d2330;
 
-    --titlebar-bg: rgba(255, 255, 255, 0.72);
+    --titlebar-bg: rgba(255, 255, 255, 0.44);
     --titlebar-border: rgba(0, 0, 0, 0.08);
-    --nav-btn-color: rgba(29, 35, 48, 0.65);
+    --nav-btn-color: rgba(29, 35, 48, 0.72);
+    --nav-btn-active-bg: rgba(76, 111, 255, 0.12);
     --control-btn-color: #3b3f4b;
     --control-btn-hover-bg: rgba(0, 0, 0, 0.08);
     --win-controls-bg: rgba(0, 0, 0, 0.04);
@@ -122,7 +127,6 @@ body.theme-light {
     --scrollbar-thumb-hover: rgba(0, 0, 0, 0.28);
 }
 
-/* Downloader feature tokens */
 :root {
     --c-text-dim: #888;
     --c-tile-bg: rgba(255, 255, 255, 0.08);
@@ -133,7 +137,7 @@ body.theme-light {
     --browse-hover-text: #ffffff;
     --c-zen-grad-start: #050a14;
     --c-zen-grad-end: #0f1c2e;
-    --c-video-bg-gradient: linear-gradient(135deg, #0a0a1e, #1e0528, #280014);
-    --c-audio-bg-gradient: linear-gradient(135deg, #0b1c0e, #0a2118);
+    --c-video-bg-color: #210423;
+    --c-audio-bg-color: #0d1912;
     --active-color: var(--c-video-primary);
 }

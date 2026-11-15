@@ -100,6 +100,7 @@
     padding: 10px 0; text-align: left; font-size: 13px; display: flex; align-items: center;
 }
 :local(.scope) :global(.advanced-toggle:hover) { color: #fff; }
+:global(body.theme-light) :local(.scope) :global(.advanced-toggle:hover) { color: #1d2330; }
 :local(.scope) :global(.advanced-content) {
     max-height: 0; overflow: hidden; opacity: 0;
     transition: max-height 0.3s cubic-bezier(0,1,0,1), opacity 0.3s;

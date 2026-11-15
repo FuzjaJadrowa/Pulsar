@@ -403,11 +403,11 @@ pub fn start_download(
             .to_lowercase();
         let gif = fmt == "gif";
         let (height, quality_fps) = parse_quality_limits(options.video_quality.as_deref());
-        let target_fps = options
+        let requested_fps = options
             .video_fps
             .as_deref()
-            .and_then(|value| value.trim().parse::<u32>().ok())
-            .or(quality_fps);
+            .and_then(|value| value.trim().parse::<u32>().ok());
+        let target_fps = requested_fps.or(quality_fps);
         let selector = video_format_selector(height, target_fps, gif);
         args.extend(["-f".to_string(), selector]);
 
@@ -440,7 +440,7 @@ pub fn start_download(
                 || video_bitrate.is_some()
                 || audio_bitrate.is_some()
                 || sample_rate.is_some()
-                || target_fps.is_some();
+                || requested_fps.is_some();
             if needs_encode {
                 args.extend(["--merge-output-format".to_string(), fmt.clone()]);
                 args.extend(["--recode-video".to_string(), fmt.clone()]);
@@ -469,7 +469,7 @@ pub fn start_download(
                 if let Some(bitrate) = video_bitrate {
                     pp_args.extend(["-b:v".to_string(), format!("{bitrate}k")]);
                 }
-                if let Some(fps) = target_fps {
+                if let Some(fps) = requested_fps {
                     pp_args.extend(["-r".to_string(), fps.to_string()]);
                 }
                 if let Some(height) = height {

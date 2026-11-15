@@ -209,14 +209,17 @@
     position: relative;
     height: 40px;
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
 }
 :local(.scope) :global(.embed-subs-row:not(.visible)),:local(.scope) :global(.lang-input-wrapper:not(.visible)),:local(.scope) :global(.audio-codec-row:not(.visible)) { display: none; }
 :local(.scope) :global(.embed-subs-row.visible),:local(.scope) :global(.audio-codec-row.visible) { display: flex; height: 40px; }
 :local(.scope) :global(.lang-input-wrapper.visible) { display: flex; }
 :local(.scope) :global(.lang-input) {
-    width: 100%; background: transparent; border: none; border-bottom: 1px solid #555;
-    color: white; padding: 5px; text-align: left; font-size: 0.9rem; transition: 0.2s;
+    width: 100%; min-width: 0; height: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; color: white; padding: 9px 12px; text-align: left;
+    font-family: "Manrope", "Montserrat", sans-serif; font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s, background 0.2s;
 }
 :local(.scope) :global(.lang-suggestions) {
     position: absolute;
@@ -256,3 +259,12 @@
 :local(.scope) :global(.big-action-btn.ready:active) { transform: translateY(0); }
 :local(.scope) :global(#download-btn.ready) { background: var(--active-color); box-shadow: 0 0 25px rgba(138, 43, 226, 0.4); }
 :local(.scope) :global(#queue-btn.ready) { background: #00d2ff; box-shadow: 0 0 25px rgba(0, 210, 255, 0.4); }
+
+:global(body.theme-light) :local(.scope) :global(.downloader-property-field),
+:global(body.theme-light) :local(.scope) :global(.toggle-text) {
+    color: rgba(29, 35, 48, 0.78);
+}
+
+:global(body.theme-light) :local(.scope) :global(#queue-btn.ready) {
+    color: #ffffff;
+}

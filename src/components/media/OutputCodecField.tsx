@@ -22,7 +22,7 @@ export const OutputCodecField: React.FC<OutputCodecFieldProps> = ({
   const { t } = useTranslation();
   const options = [
     { value: "", label: t("common.auto") },
-    ...(includeCopyOption ? [{ value: "copy", label: "Copy (Pass-through)" }] : []),
+    ...(includeCopyOption ? [{ value: "copy", label: t("common.copy") }] : []),
     ...codecs.map((codec) => ({ value: codec, label: codec })),
   ];
 

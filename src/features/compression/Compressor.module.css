@@ -465,6 +465,11 @@
 
 :global(body.theme-light) :local(.scope) :global(#compress-queue-btn.ready) {
     box-shadow: 0 0 14px rgba(0, 210, 255, 0.28);
+    color: #ffffff;
+}
+
+:global(body.theme-light) :local(.scope) :global(#compress-action-btn.ready) {
+    color: #123321;
 }
 
 :global(body.theme-light) :local(.scope) :global(.compress-drop-overlay) {

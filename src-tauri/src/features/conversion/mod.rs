@@ -311,14 +311,18 @@ fn build_ffmpeg_args(
             args.push("-c:v".to_string());
             args.push("copy".to_string());
         } else {
-            let codec_to_use = if raw_codec.is_empty() || raw_codec == "auto" {
+            let codec_to_use = if output_format == "gif" {
+                "gif".to_string()
+            } else if raw_codec.is_empty() || raw_codec == "auto" {
                 default_video_codec_for_format(&output_format)
             } else {
                 map_video_codec(&raw_codec)
             };
 
             args.push("-c:v".to_string());
-            let mapped_codec = if let Some(ref accel) = hwaccel {
+            let mapped_codec = if output_format == "gif" {
+                "gif".to_string()
+            } else if let Some(ref accel) = hwaccel {
                 if raw_codec.is_empty() || raw_codec == "auto" {
                     map_video_codec_hw("h264", accel)
                 } else {
@@ -329,7 +333,10 @@ fn build_ffmpeg_args(
             };
             args.push(mapped_codec.clone());
 
-            if (mapped_codec == "libx264" || mapped_codec == "libx265") && raw_codec != "copy" {
+            if output_format != "gif"
+                && (mapped_codec == "libx264" || mapped_codec == "libx265")
+                && raw_codec != "copy"
+            {
                 args.push("-preset".to_string());
                 args.push("veryfast".to_string());
             }
