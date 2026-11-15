@@ -458,28 +458,6 @@
         transform: translateY(0);
     }
 }
-:local(.scope) :global(.preset-format-item) {
-    padding: 9px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-:local(.scope) :global(.preset-format-item:hover) {
-    background: var(--accent-color, #8a2be2);
-    color: #ffffff;
-}
-:local(.scope) :global(.preset-format-label) {
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    color: inherit;
-}
-:local(.scope) :global(.preset-format-desc) {
-    display: none;
-}
 :local(.scope) :global(.preset-advanced) {
     max-height: 0;
     opacity: 0;
@@ -705,14 +683,12 @@
     background: #ffffff;
     border-color: rgba(0, 0, 0, 0.1);
 }
-:global(body.theme-light) :local(.scope) :global(.preset-format-item:hover) {
-    background: rgba(0, 0, 0, 0.05);
-}
-:global(body.theme-light) :local(.scope) :global(.preset-format-label) {
+:global(body.theme-light) :local(.scope) :global(.suggestion-item) {
     color: #1d2330;
 }
-:global(body.theme-light) :local(.scope) :global(.preset-format-desc) {
-    color: rgba(29, 35, 48, 0.6);
+:global(body.theme-light) :local(.scope) :global(.suggestion-item:hover) {
+    background: var(--accent-color, #8a2be2);
+    color: #ffffff;
 }
 :global(body.theme-light) :local(.scope) :global(.preset-type-switcher) {
     background: rgba(255, 255, 255, 0.7);
@@ -723,8 +699,8 @@
     color: rgba(29, 35, 48, 0.7);
 }
 :global(body.theme-light) :local(.scope) :global(.preset-choice.active) {
-    background: rgba(76, 111, 255, 0.16);
-    border-color: #4c6fff;
+    background: rgba(138, 43, 226, 0.16);
+    border-color: var(--accent-color, #8a2be2);
     color: #1d2330;
 }
 :global(body.theme-light) :local(.scope) :global(.preset-media-icon) {
@@ -738,4 +714,7 @@
     background: rgba(29, 35, 48, 0.06);
     border-color: rgba(29, 35, 48, 0.14);
     color: #1d2330;
+}
+:global(body.theme-light) :local(.scope) :global(.preset-modal-footer .preset-save-btn) {
+    color: #ffffff;
 }

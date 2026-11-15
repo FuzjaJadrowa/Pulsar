@@ -83,10 +83,9 @@
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.35);
     border-top-color: #fff;
-    animation: spin 0.7s linear infinite;
+    animation: :global(spin) 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
 
 :global(body.theme-light) .title { color: #f9fafb; }
 :global(body.theme-light) .meta { color: rgba(255, 255, 255, 0.78); }

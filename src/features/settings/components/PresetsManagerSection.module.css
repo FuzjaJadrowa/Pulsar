@@ -72,7 +72,7 @@
 :global(body.theme-light) .presetTitle { color: #1d2330; }
 :global(body.theme-light) .summary { color: rgba(29, 35, 48, 0.6); }
 :global(body.theme-light) .icon { background: transparent; color: #1d2330; }
-:global(body.theme-light) .badge { background: rgba(76, 111, 255, 0.22); border: 1px solid rgba(76, 111, 255, 0.4); color: #1d2330; }
+:global(body.theme-light) .badge { background: rgba(138, 43, 226, 0.16); border: 1px solid rgba(138, 43, 226, 0.32); color: #1d2330; }
 :global(body.theme-light) .itemButton { background: rgba(29, 35, 48, 0.08); border-color: rgba(29, 35, 48, 0.14); color: #1d2330; }
 :global(body.theme-light) .itemButton:hover { background: rgba(29, 35, 48, 0.14); }
 :global(body.theme-light) .itemToggle { color: rgba(29, 35, 48, 0.6); }

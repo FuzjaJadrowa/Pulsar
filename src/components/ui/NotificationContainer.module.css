@@ -24,7 +24,6 @@
     pointer-events: auto;
     overflow: hidden;
     animation: slideInNotification 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    transition: all 0.3s ease;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;

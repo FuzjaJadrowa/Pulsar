@@ -123,20 +123,6 @@ body.theme-light.mode-audio .icon-btn-small.active {
     color: #123321;
 }
 
-body.theme-light .toggle-switch {
-    background: #cfd6e0;
-    border-color: rgba(0, 0, 0, 0.08);
-}
-
-body.theme-light .toggle-switch::after { background: #ffffff; }
-
-body.theme-light .toggle-switch:checked {
-    background: var(--active-color);
-    border-color: var(--active-color);
-}
-
-body.theme-light .toggle-switch:checked::after { background: #ffffff; }
-
 body.theme-light .toggle-text { color: rgba(29, 35, 48, 0.7); }
 
 body.theme-light .custom-args-input {
@@ -162,7 +148,7 @@ body.theme-light .lang-suggestion-item {
 
 body.theme-light .lang-suggestion-item:hover,
 body.theme-light .lang-suggestion-item.active {
-    background: rgba(76, 111, 255, 0.12);
+    background: rgba(138, 43, 226, 0.12);
     color: #1d2330;
 }
 

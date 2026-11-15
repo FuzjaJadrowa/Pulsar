@@ -398,11 +398,11 @@
     border-top-color: rgba(0, 0, 0, 0.04);
 }
 :global(body.theme-light) :local(.scope) :global(.select-item:hover) {
-    background-color: rgba(76, 111, 255, 0.12);
+    background-color: rgba(138, 43, 226, 0.1);
     color: #1d2330;
 }
 :global(body.theme-light) :local(.scope) :global(.select-item.selected) {
-    background-color: rgba(76, 111, 255, 0.2);
+    background-color: rgba(138, 43, 226, 0.18);
     color: #1d2330;
 }
 :global(body.theme-light) :local(.scope) :global(.settings-subsection) {
@@ -435,7 +435,7 @@
     background: rgba(29, 35, 48, 0.12);
 }
 :global(body.theme-light) :local(.scope) :global(.title-pill) {
-    background: rgba(76, 111, 255, 0.16);
-    border-color: rgba(76, 111, 255, 0.4);
+    background: rgba(138, 43, 226, 0.16);
+    border-color: rgba(138, 43, 226, 0.4);
     color: #1d2330;
 }

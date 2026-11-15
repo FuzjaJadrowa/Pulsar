@@ -1,8 +1,4 @@
 /* Selectors are scoped to this view; global class names remain internal to its root. */
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
 :local(.scope) :global(.search-section.sticky.has-provider-panel) { height: calc(var(--search-section-sticky-height) + 60px); }
 :local(.scope) :global(.drop-hint) {
     display: inline-flex;
@@ -25,7 +21,7 @@
     pointer-events: none;
 }
 :local(.scope) :global(#fetch-btn.loading svg) {
-    animation: spin 0.7s linear infinite;
+    animation: :global(spin) 0.7s linear infinite;
 }
 :local(.scope) :global(.search-section.sticky .bar-action) { width: 0; padding: 0; opacity: 0; pointer-events: none; }
 :local(.scope) :global(.dashboard-section.hidden) { display: none; opacity: 0; }
@@ -43,7 +39,7 @@
     display: flex; align-items: center;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px; margin-bottom: 2rem;
-    padding-right: 5px; animation-delay: 0.15s;
+    padding-right: 5px; animation-delay: 0.38s;
 }
 :local(.scope) :global(#path-input) {
     flex-grow: 1; background: transparent; border: none; color: #ddd;
@@ -77,7 +73,7 @@
 }
 :local(.scope) :global(.grid-column label) { font-size: 0.75rem; color: var(--c-text-dim); display: block; margin-bottom: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
 :local(.scope) :global(.tiles-container) { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-:local(.scope) :global(.timeline-section) { margin-bottom: 2.5rem; animation-delay: 0.4s; }
+:local(.scope) :global(.timeline-section) { margin-bottom: 2.5rem; animation-delay: 0.46s; }
 :local(.scope) :global(.time-inputs) { display: flex; align-items: center; gap: 15px; }
 :local(.scope) :global(.time-box) {
     background: var(--input-bg);
@@ -120,7 +116,7 @@
 :local(.scope) :global(.slider-track-container input[type="range"]::-webkit-slider-thumb:hover) { transform: scale(1.1); }
 :local(.scope) :global(.extras-section) {
     display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
-    gap: 24px; margin: 0 auto 2rem; animation-delay: 0.5s;
+    gap: 24px; margin: 0 auto 2rem; animation-delay: 0.54s;
     width: 100%;
 }
 :local(.scope) :global(.extras-section > *) { flex: 0 0 200px; width: 219px; max-width: 219px; }
@@ -148,7 +144,8 @@
     display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
     gap: 18px; text-align: left;
 }
-:local(.scope) :global(.downloader-properties.fade-in) { animation-delay: 0.55s; }
+:local(.scope) :global(.downloader-properties.fade-in) { animation-delay: 0.62s; }
+:local(.scope) :global(.action-footer.fade-in) { animation-delay: 0.7s; }
 :local(.scope) :global(.downloader-properties h3) { flex: 0 0 100%; margin: 0 0 2px; text-align: center; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-text-dim); }
 :local(.scope) :global(.downloader-property-field) { display: flex; flex: 1 1 190px; flex-direction: column; gap: 8px; width: auto; max-width: 220px; min-width: 0; align-items: stretch; text-align: left; font-size: 0.8rem; color: #aaa; }
 :local(.scope) :global(.downloader-property-field > .custom-input),:local(.scope) :global(.downloader-property-field > .select-wrapper) { width: 100% !important; min-width: 0; box-sizing: border-box; }
@@ -175,19 +172,6 @@
     transition: 0.2s;
 }
 :local(.scope) :global(.custom-args-input:focus) { border-color: var(--active-color); }
-:local(.scope) :global(.toggle-switch) {
-    position: relative; width: 50px; height: 26px;
-    appearance: none; background: #333; border-radius: 20px;
-    cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1);
-}
-:local(.scope) :global(.toggle-switch::after) {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 20px; height: 20px; background: #fff; border-radius: 50%;
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-:local(.scope) :global(.toggle-switch:checked) { background: var(--active-color); border-color: var(--active-color); }
-:local(.scope) :global(.toggle-switch:checked::after) { left: 26px; }
-:local(.scope) :global(.toggle-switch:disabled) { cursor: not-allowed; opacity: 0.65; }
 :local(.scope) :global(.lang-input:focus) { border-color: var(--active-color); outline: none; }
 
 :local(.scope) :global(.toggle-text) { font-size: 0.85rem; color: #aaa; }
@@ -251,7 +235,7 @@
     padding: 16px 40px; border-radius: 50px;
     font-size: 1rem; font-weight: bold;
     display: inline-flex; align-items: center; gap: 10px;
-    cursor: not-allowed; transition: all 0.2s ease;
+    cursor: not-allowed; transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     min-width: 200px; justify-content: center;
 }

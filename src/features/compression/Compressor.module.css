@@ -1,14 +1,10 @@
 /* Selectors are scoped to this view; global class names remain internal to its root. */
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
 :local(.scope):global(.compressor-page) {
     position: relative;
 }
 
 :local(.scope) :global(#compress-confirm-btn.loading svg) {
-    animation: spin 0.7s linear infinite;
+    animation: :global(spin) 0.7s linear infinite;
 }
 
 :local(.scope) :global(.compressor-dashboard) {

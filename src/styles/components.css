@@ -47,7 +47,7 @@ input[type="text"]:focus {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     padding: 0 20px;
     z-index: 10;
     flex-shrink: 0;
@@ -114,7 +114,7 @@ input[type="text"]:focus {
     border: 1px solid var(--search-bar-border);
     overflow: hidden;
     backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 2;
@@ -132,7 +132,7 @@ input[type="text"]:focus {
 }
 
 body.theme-light .search-box-row:focus-within {
-    border-color: rgba(76, 111, 255, 0.42);
+    border-color: rgba(138, 43, 226, 0.42);
 }
 
 .search-box-row input[type="text"] {
@@ -289,7 +289,7 @@ body.theme-light .search-box-row .bar-action:hover {
     align-items: center;
     gap: 10px;
     cursor: not-allowed;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
     min-width: 200px;
     justify-content: center;

@@ -11,6 +11,7 @@ import { showNotification } from "../../services/notifications";
 import { detectSourceFromUrl, formatDuration } from "../../utils/format";
 import { PathSelector } from "../../components/ui/PathSelector";
 import { CustomSelect } from "../../components/ui/CustomSelect";
+import { ToggleSwitch } from "../../components/ui/ToggleSwitch";
 import { PresetGrid } from "../../components/presets/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { sanitizeBitrateInput } from "../../utils/bitrate";
@@ -778,21 +779,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 </div>
               )}
 
-              {/* Save Path input */}
-              <PathSelector
-                className="path-selector fade-in"
-                id="path-input"
-                placeholder={t("common.noSavePathSelected")}
-                value={savePath}
-                onChange={(selected) => {
-                  setSavePath(selected);
-                  clearActivePreset();
-                }}
-                pickerCommand="pick_download_directory"
-                title={t("common.browse")}
-                useLastPathTitle={t("common.useLastPath")}
-              />
-
               {/* Mode Switcher */}
               <div className="mode-switcher fade-in">
                 <div
@@ -860,6 +846,21 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Save Path input */}
+              <PathSelector
+                className="path-selector fade-in"
+                id="path-input"
+                placeholder={t("common.noSavePathSelected")}
+                value={savePath}
+                onChange={(selected) => {
+                  setSavePath(selected);
+                  clearActivePreset();
+                }}
+                pickerCommand="pick_download_directory"
+                title={t("common.browse")}
+                useLastPathTitle={t("common.useLastPath")}
+              />
 
               {/* Timeline Slicing */}
               {!isPlaylist && (
@@ -963,26 +964,22 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 <div className="option-group">
                   <span className="option-label">{t("downloader.options.other")}</span>
                   <div className="form-row">
-                    <input
-                      type="checkbox"
+                    <ToggleSwitch
                       id="skip-sponsors-toggle"
-                      className="toggle-switch"
                       checked={skipSponsors}
-                      onChange={(e) => {
-                        setSkipSponsors(e.target.checked);
+                      onChange={(checked) => {
+                        setSkipSponsors(checked);
                         clearActivePreset();
                       }}
                     />
                     <span className="toggle-text">{t("common.skipSponsors")}</span>
                   </div>
                   <div className="form-row">
-                    <input
-                      type="checkbox"
+                    <ToggleSwitch
                       id="metadata-toggle"
-                      className="toggle-switch"
                       checked={embedMetadata}
-                      onChange={(e) => {
-                        setEmbedMetadata(e.target.checked);
+                      onChange={(checked) => {
+                        setEmbedMetadata(checked);
                         clearActivePreset();
                       }}
                     />
@@ -990,14 +987,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </div>
                   {mode === "video" && (
                     <div className="form-row video-only">
-                      <input
-                        type="checkbox"
+                      <ToggleSwitch
                         id="mute-audio-toggle"
-                        className="toggle-switch"
-                      checked={isGifFormat || muteAudio}
-                      disabled={isGifFormat}
-                        onChange={(e) => {
-                          setMuteAudio(isGifFormat || e.target.checked);
+                        checked={isGifFormat || muteAudio}
+                        disabled={isGifFormat}
+                        onChange={(checked) => {
+                          setMuteAudio(isGifFormat || checked);
                           clearActivePreset();
                         }}
                       />
@@ -1024,14 +1019,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   <span className="option-label">{t("downloader.options.subtitles")}</span>
                   <div className="form-row subtitles-row">
                     <span className="toggle-text">{t("common.downloadSubtitles")}</span>
-                    <input
-                      type="checkbox"
+                    <ToggleSwitch
                       id="subs-toggle"
-                      className="toggle-switch"
                       checked={downloadSubs}
                       disabled={!subtitlesAvailable}
-                      onChange={(e) => {
-                        setDownloadSubs(e.target.checked);
+                      onChange={(checked) => {
+                        setDownloadSubs(checked);
                         clearActivePreset();
                       }}
                     />
@@ -1041,12 +1034,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   {subtitleOptions.some((s) => s.code.toLowerCase() === "live_chat") && (
                     <div className={`form-row live-chat-row ${downloadSubs ? "" : "hidden"}`} id="live-chat-row">
                       <span className="toggle-text">{t("downloader.options.downloadLiveChat")}</span>
-                      <input
-                        type="checkbox"
+                      <ToggleSwitch
                         id="chat-toggle"
-                        className="toggle-switch"
                         checked={downloadChat}
-                        onChange={(e) => setDownloadChat(e.target.checked)}
+                        onChange={setDownloadChat}
                       />
                     </div>
                   )}
@@ -1054,13 +1045,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   {/* Embed Subtitles */}
                   <div className={`form-row embed-subs-row ${downloadSubs ? "visible" : ""}`} id="embed-subs-row">
                     <span className="toggle-text">{t("common.embedSubtitles")}</span>
-                    <input
-                      type="checkbox"
+                    <ToggleSwitch
                       id="embed-subs-toggle"
-                      className="toggle-switch"
                       checked={embedSubs}
-                      onChange={(e) => {
-                        setEmbedSubs(e.target.checked);
+                      onChange={(checked) => {
+                        setEmbedSubs(checked);
                         clearActivePreset();
                       }}
                     />
