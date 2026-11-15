@@ -40,7 +40,6 @@ body.theme-transition .notification-toast {
         box-shadow 0.35s ease;
 }
 
-/* Global Unified Scrollbar */
 * {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;

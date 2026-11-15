@@ -35,6 +35,24 @@ input[type="text"]:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
+input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#fetch-btn.loading svg,
+#convert-confirm-btn.loading svg,
+#compress-confirm-btn.loading svg,
+.spin-animation {
+    animation: spin 0.7s linear infinite;
+}
+
 .converter-bar + .drop-hint,
 .compressor-bar + .drop-hint {
     margin-top: 12px;
@@ -64,7 +82,6 @@ input[type="text"]:focus {
     padding-bottom: 10px;
 }
 
-/* Format and quality tiles are shared by downloader and converter views. */
 .tile {
     height: 60px;
     display: flex;

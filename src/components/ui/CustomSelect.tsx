@@ -28,7 +28,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
-  const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const headRef = useRef<HTMLDivElement | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
@@ -77,41 +76,68 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   useLayoutEffect(() => {
     if (!isOpen) return;
 
+    let placement: boolean | null = null;
+    let frameId = 0;
+
     const updatePopupPosition = () => {
       const head = headRef.current;
-      if (!head) return;
+      const popup = popupRef.current;
+      if (!head || !popup) return;
 
       const rect = head.getBoundingClientRect();
-      const spaceAbove = Math.max(0, rect.top - 8);
-      const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - 8);
+      const titleBar = document.getElementById("titlebar");
+      const contentTop = Math.max(8, (titleBar?.getBoundingClientRect().bottom ?? 0) + 8);
+      const contentBottom = window.innerHeight - 8;
+      const spaceAbove = Math.max(0, rect.top - contentTop);
+      const spaceBelow = Math.max(0, contentBottom - rect.bottom);
       const estimatedHeight = Math.min(options.length * 40 + 10, 240);
-      const shouldOpenUp = direction === "up"
-        ? true
-        : direction === "down"
-          ? false
-          : spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
-      const availableHeight = shouldOpenUp ? spaceAbove : spaceBelow;
+
+      if (rect.bottom <= contentTop || rect.top >= contentBottom) {
+        setIsOpen(false);
+        return;
+      }
+
+      if (placement === null) {
+        placement = direction === "up"
+          ? true
+          : direction === "down"
+            ? false
+            : spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+        setOpenUp(placement);
+      }
+
+      const availableHeight = placement ? spaceAbove : spaceBelow;
+      if (availableHeight < 48) {
+        setIsOpen(false);
+        return;
+      }
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
 
-      setOpenUp(shouldOpenUp);
-      setPopupStyle({
-        position: "fixed",
-        left,
-        top: shouldOpenUp ? undefined : rect.bottom,
-        bottom: shouldOpenUp ? window.innerHeight - rect.top : undefined,
-        minWidth: rect.width,
-        maxWidth: window.innerWidth - 16,
-        maxHeight: Math.max(80, Math.min(240, availableHeight)),
-        zIndex: 20000,
+      popup.style.position = "fixed";
+      popup.style.left = `${left}px`;
+      popup.style.top = placement ? "auto" : `${rect.bottom}px`;
+      popup.style.bottom = placement ? `${window.innerHeight - rect.top}px` : "auto";
+      popup.style.minWidth = `${rect.width}px`;
+      popup.style.maxWidth = `${window.innerWidth - 16}px`;
+      popup.style.maxHeight = `${Math.min(240, availableHeight)}px`;
+      popup.style.zIndex = "20000";
+    };
+
+    const schedulePositionUpdate = () => {
+      if (frameId !== 0) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        updatePopupPosition();
       });
     };
 
     updatePopupPosition();
-    window.addEventListener("resize", updatePopupPosition);
-    window.addEventListener("scroll", updatePopupPosition, true);
+    window.addEventListener("resize", schedulePositionUpdate);
+    window.addEventListener("scroll", schedulePositionUpdate, true);
     return () => {
-      window.removeEventListener("resize", updatePopupPosition);
-      window.removeEventListener("scroll", updatePopupPosition, true);
+      if (frameId !== 0) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", schedulePositionUpdate);
+      window.removeEventListener("scroll", schedulePositionUpdate, true);
     };
   }, [direction, isOpen, options.length]);
 
@@ -146,7 +172,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <div
           ref={popupRef}
           className={`select-list ${styles["select-list"]} open ${styles.open} ${openUp ? `open-up ${styles["open-up"]}` : ""}`}
-          style={popupStyle}
+          style={{ zIndex: 20000 }}
         >
           {options.map((opt) => (
             <div

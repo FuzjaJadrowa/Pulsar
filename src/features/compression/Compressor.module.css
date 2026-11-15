@@ -1,10 +1,5 @@
-/* Selectors are scoped to this view; global class names remain internal to its root. */
 :local(.scope):global(.compressor-page) {
     position: relative;
-}
-
-:local(.scope) :global(#compress-confirm-btn.loading svg) {
-    animation: :global(spin) 0.7s linear infinite;
 }
 
 :local(.scope) :global(.compressor-dashboard) {
@@ -118,7 +113,6 @@
     border-radius: 14px;
     padding: 12px 14px;
     box-sizing: border-box;
-    will-change: opacity, transform;
 }
 
 :local(.scope) :global(.compressor-mode-panel.hidden) {
@@ -412,8 +406,6 @@
     }
 }
 
-
-/* Light-theme overrides scoped to this feature. */
 :global(body.theme-light) :local(.scope) :global(.compressor-mode-panel) {
     background: rgba(255, 255, 255, 0.7);
     border-color: rgba(0, 0, 0, 0.08);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { listen } from "../services/tauri";
 import type { Event } from "@tauri-apps/api/event";
 
@@ -13,6 +13,8 @@ interface UseFileDragDropOptions {
 
 export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOptions) {
   const [showDropOverlay, setShowDropOverlay] = useState(false);
+  const onFileDropRef = useRef(onFileDrop);
+  onFileDropRef.current = onFileDrop;
 
   useEffect(() => {
     let active = true;
@@ -36,9 +38,9 @@ export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOption
 
       const paths = event.payload?.paths || event.payload;
       if (Array.isArray(paths) && paths.length > 0) {
-        onFileDrop(paths.length === 1 ? paths[0] : paths);
+        onFileDropRef.current(paths.length === 1 ? paths[0] : paths);
       } else if (typeof paths === "string" && paths.trim()) {
-        onFileDrop(paths.trim());
+        onFileDropRef.current(paths.trim());
       }
     };
 
@@ -57,7 +59,7 @@ export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOption
         promise.then((unsub) => unsub());
       });
     };
-  }, [pageClass, onFileDrop]);
+  }, [pageClass]);
 
   return {
     showDropOverlay,

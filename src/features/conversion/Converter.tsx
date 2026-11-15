@@ -625,7 +625,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               </div>
 
               {/* Details Settings Panel */}
-                            <div id="convert-details-panel" className={`converter-details-panel ${selectedFormat ? "" : "hidden"}`}>
+              <div id="convert-details-panel" className={`converter-details-panel ${selectedFormat ? "open" : ""}`} aria-hidden={!selectedFormat}>
                 <div id="convert-specs-panel" className="converter-specs-card fade-in">
                   <div className="converter-specs-grid">
                     <div className="converter-specs-column" data-side="output">

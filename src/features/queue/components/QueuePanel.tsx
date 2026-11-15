@@ -1,6 +1,15 @@
 import React from "react";
 import { useQueue } from "../hooks/useQueue";
-import type { QueueItem } from "../queue";
+import {
+  cancelItem,
+  clearQueue,
+  openInFileManager,
+  removeItem,
+  startAll,
+  startItemById,
+  stopAll,
+  type QueueItem,
+} from "../queue";
 import { useTranslation } from "../../../services/i18n";
 import { formatBytes, detectSourceFromUrl } from "../../../utils/format";
 
@@ -48,34 +57,13 @@ function formatCodecName(value: unknown): string {
   return codec.toUpperCase();
 }
 
-export const QueuePanel: React.FC = () => {
-  const { t } = useTranslation();
-  const {
-    items,
-    startItem,
-    cancelItem,
-    removeItem,
-    clearQueue,
-    startAll,
-    stopAll,
-    openInFileManager,
-  } = useQueue();
+function getThumbnailStyle(thumb?: string): React.CSSProperties {
+  const clean = String(thumb || "").trim().replace(/\\/g, "/");
+  if (!clean) return { background: "#242730" };
+  return { backgroundImage: `url("${clean.replace(/"/g, '\\"')}")` };
+}
 
-  const getThumbnailStyle = (thumb?: string) => {
-    const clean = String(thumb || "").trim().replace(/\\/g, "/");
-    if (!clean) {
-      return {
-        background: "#242730",
-      };
-    }
-    return {
-      backgroundImage: `url("${clean.replace(/"/g, '\\"')}")`,
-    };
-  };
-
-  const displayItems = [...items].reverse();
-
-  const getModeInfo = (item: QueueItem) => {
+function getModeInfo(item: QueueItem) {
     const itemType = item.itemType;
     const payloadCategory = String(
       item.payload?.category || ""
@@ -153,7 +141,98 @@ export const QueuePanel: React.FC = () => {
         </>
       ),
     };
-  };
+}
+
+type QueueTranslator = ReturnType<typeof useTranslation>["t"];
+
+const QueueItemRow = React.memo(({ item, t }: { item: QueueItem; t: QueueTranslator }) => {
+  const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
+
+  return (
+    <div
+      className={`queue-item status-${item.status || "pending"} ${item.thumbnail ? "has-thumbnail" : "no-thumbnail"}`}
+      data-id={item.id}
+    >
+      <div className="queue-item-bg" style={getThumbnailStyle(item.thumbnail)}></div>
+      <div className="queue-item-content">
+        <div className="queue-item-title-row">
+          <span className="queue-mode-icon">{modeIcon}</span>
+          {sourceIcon}
+          <div className="queue-item-title">{item.title}</div>
+        </div>
+        <div className="queue-item-details">{infoMarkup}</div>
+        <div className="queue-item-progress-wrap">
+          <div className="queue-progress-bar">
+            <div className="queue-progress-fill" style={{ width: `${Math.round(item.progress)}%` }}></div>
+          </div>
+          <div className="queue-progress-meta">
+            <span>
+              {item.stage ? `${t(`queue.stages.${item.stage}`)} - ` : ""}{Math.round(item.progress)}%
+              {item.listProgress ? ` (${item.listProgress})` : ""}
+            </span>
+            <span>{t("common.eta")} {item.eta || "--"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="queue-item-actions">
+        {item.status === "pending" && (
+          <>
+            <button className="queue-icon-btn" onClick={() => startItemById(item.id, "queue-manual")} title={t("queue.itemActions.start")}>
+              {ICONS.play}
+            </button>
+            <button className="queue-icon-btn" onClick={() => removeItem(item.id)} title={t("queue.itemActions.remove")}>
+              {ICONS.trash}
+            </button>
+          </>
+        )}
+        {item.status === "downloading" && (
+          <button className="queue-icon-btn" onClick={() => cancelItem(item.id)} disabled={Boolean(item.cancelRequested)} title={t("queue.itemActions.stop")}>
+            {ICONS.stop}
+          </button>
+        )}
+        {item.status === "failed" && (
+          <>
+            <button className="queue-icon-btn" onClick={() => startItemById(item.id, "queue-manual", true)} title={t("queue.itemActions.retry")}>
+              {ICONS.retry}
+            </button>
+            <button className="queue-icon-btn" onClick={() => removeItem(item.id)} title={t("queue.itemActions.remove")}>
+              {ICONS.trash}
+            </button>
+            <button className="queue-icon-btn" onClick={() => openInFileManager(getQueueItemOutputFolder(item))} title={t("queue.itemActions.openLocation")}>
+              {ICONS.open}
+            </button>
+          </>
+        )}
+        {item.status === "completed" && (
+          <>
+            <button className="queue-icon-btn" onClick={() => openInFileManager(getQueueItemOutputFolder(item))} title={t("queue.itemActions.openLocation")}>
+              {ICONS.open}
+            </button>
+            <button className="queue-icon-btn" onClick={() => removeItem(item.id)} title={t("queue.itemActions.remove")}>
+              {ICONS.trash}
+            </button>
+          </>
+        )}
+      </div>
+
+      {(item.status === "completed" || item.status === "failed") && (
+        <div className={`queue-status-icon ${item.status === "completed" ? "success" : "failed"}`}>
+          {item.status === "completed" ? ICONS.check : ICONS.cross}
+        </div>
+      )}
+    </div>
+  );
+});
+
+interface QueuePanelProps {
+  active?: boolean;
+}
+
+export const QueuePanel: React.FC<QueuePanelProps> = ({ active = true }) => {
+  const { t } = useTranslation();
+  const { items } = useQueue(active);
+  const displayItems = items.slice().reverse();
 
   return (
     <div className="queue-panel-inner">
@@ -181,136 +260,9 @@ export const QueuePanel: React.FC = () => {
         {displayItems.length === 0 ? (
           <div className="queue-empty">{t("queue.empty")}</div>
         ) : (
-          displayItems.map((item) => {
-            if (!item || !item.id) return null;
-            const { modeIcon, sourceIcon, infoMarkup } = getModeInfo(item);
-
-            return (
-              <div
-                key={item.id}
-                className={`queue-item status-${item.status || "pending"} ${item.thumbnail ? "has-thumbnail" : "no-thumbnail"}`}
-                data-id={item.id}
-              >
-                <div
-                  className="queue-item-bg"
-                  style={getThumbnailStyle(item.thumbnail)}
-                ></div>
-                <div className="queue-item-content">
-                  <div className="queue-item-title-row">
-                    <span className="queue-mode-icon">{modeIcon}</span>
-                    {sourceIcon}
-                    <div className="queue-item-title">{item.title}</div>
-                  </div>
-                  <div className="queue-item-details">{infoMarkup}</div>
-                  <div className="queue-item-progress-wrap">
-                    <div className="queue-progress-bar">
-                      <div
-                        className="queue-progress-fill"
-                        style={{ width: `${Math.round(item.progress)}%` }}
-                      ></div>
-                    </div>
-                    <div className="queue-progress-meta">
-                      <span>
-                        {item.stage ? `${t(`queue.stages.${item.stage}`)} - ` : ""}{Math.round(item.progress)}%
-                        {item.listProgress ? ` (${item.listProgress})` : ""}
-                      </span>
-                      <span>
-                        {t("common.eta")} {item.eta || "--"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="queue-item-actions">
-                  {item.status === "pending" && (
-                    <>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() => startItem(item.id, "queue-manual")}
-                        title={t("queue.itemActions.start")}
-                      >
-                        {ICONS.play}
-                      </button>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove")}
-                      >
-                        {ICONS.trash}
-                      </button>
-                    </>
-                  )}
-                  {item.status === "downloading" && (
-                    <button
-                      className="queue-icon-btn"
-                      onClick={() => cancelItem(item.id)}
-                      disabled={Boolean(item.cancelRequested)}
-                      title={t("queue.itemActions.stop")}
-                    >
-                      {ICONS.stop}
-                    </button>
-                  )}
-                  {item.status === "failed" && (
-                    <>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() => startItem(item.id, "queue-manual", true)}
-                        title={t("queue.itemActions.retry")}
-                      >
-                        {ICONS.retry}
-                      </button>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove")}
-                      >
-                        {ICONS.trash}
-                      </button>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() =>
-                          openInFileManager(getQueueItemOutputFolder(item))
-                        }
-                        title={t("queue.itemActions.openLocation")}
-                      >
-                        {ICONS.open}
-                      </button>
-                    </>
-                  )}
-                  {item.status === "completed" && (
-                    <>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() =>
-                          openInFileManager(getQueueItemOutputFolder(item))
-                        }
-                        title={t("queue.itemActions.openLocation")}
-                      >
-                        {ICONS.open}
-                      </button>
-                      <button
-                        className="queue-icon-btn"
-                        onClick={() => removeItem(item.id)}
-                        title={t("queue.itemActions.remove")}
-                      >
-                        {ICONS.trash}
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {(item.status === "completed" || item.status === "failed") && (
-                  <div
-                    className={`queue-status-icon ${
-                      item.status === "completed" ? "success" : "failed"
-                    }`}
-                  >
-                    {item.status === "completed" ? ICONS.check : ICONS.cross}
-                  </div>
-                )}
-              </div>
-            );
-          })
+          displayItems.map((item) => item?.id
+            ? <QueueItemRow key={item.id} item={item} t={t} />
+            : null)
         )}
       </div>
     </div>

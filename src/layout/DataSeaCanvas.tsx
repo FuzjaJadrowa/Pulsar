@@ -1,98 +1,135 @@
 import React, { useEffect, useRef } from "react";
 
-interface DataSeaCanvasProps {
-  currentPage?: string;
-}
-
-export const DataSeaCanvas: React.FC<DataSeaCanvasProps> = () => {
+export const DataSeaCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const waveOffsetBackRef = useRef(0);
   const waveOffsetFrontRef = useRef(0);
-  const lastTsRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const body = document.body;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
 
     let width = 0;
     let height = 0;
-    let dpr = 1;
     let rafId: number | null = null;
-
-    const backSpeed = 0.55;
-    const frontSpeed = 0.9;
+    let stopTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastTimestamp: number | null = null;
+    let isRunning = false;
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const resize = () => {
-      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
-      dpr = window.devicePixelRatio || 1;
+      const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    window.addEventListener("resize", resize);
-    resize();
+    const systemAllowsAnimation = () => !document.hidden && !motionPreference.matches;
+    const shouldAnimate = () =>
+      systemAllowsAnimation() &&
+      body.classList.contains("wave-page") &&
+      body.classList.contains("zen-mode") &&
+      body.classList.contains("idle-anim-enabled") &&
+      !body.classList.contains("search-mode");
 
-    const waveY = (x: number, base: number, amplitude: number, wavelength: number, offset: number) => {
-      return (
-        base +
-        Math.sin(x / wavelength + offset) * amplitude +
-        Math.sin(x / (wavelength * 0.55) + offset * 1.7) * amplitude * 0.35
-      );
+    const stopAnimation = () => {
+      if (stopTimer !== null) {
+        clearTimeout(stopTimer);
+        stopTimer = null;
+      }
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      isRunning = false;
+      lastTimestamp = null;
+      context.clearRect(0, 0, width, height);
     };
+
+    const waveY = (x: number, base: number, amplitude: number, wavelength: number, offset: number) =>
+      base +
+      Math.sin(x / wavelength + offset) * amplitude +
+      Math.sin(x / (wavelength * 0.55) + offset * 1.7) * amplitude * 0.35;
 
     const drawWave = (color: string, base: number, amplitude: number, wavelength: number, offset: number) => {
       const step = Math.max(10, Math.floor(width / 140));
-      ctx.beginPath();
-      ctx.moveTo(0, height);
+      context.beginPath();
+      context.moveTo(0, height);
       for (let x = 0; x <= width; x += step) {
-        const y = waveY(x, base, amplitude, wavelength, offset);
-        ctx.lineTo(x, y);
+        context.lineTo(x, waveY(x, base, amplitude, wavelength, offset));
       }
       const edgeY = waveY(width, base, amplitude, wavelength, offset);
-      ctx.lineTo(width, edgeY);
-      ctx.lineTo(width, height);
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
+      context.lineTo(width, edgeY);
+      context.lineTo(width, height);
+      context.closePath();
+      context.fillStyle = color;
+      context.fill();
     };
 
-    const tick = (ts: number) => {
-      if (lastTsRef.current === null) lastTsRef.current = ts;
-      const dt = Math.min(60, ts - lastTsRef.current) / 1000;
-      lastTsRef.current = ts;
+    const tick = (timestamp: number) => {
+      rafId = null;
+      if (!systemAllowsAnimation() || !isRunning) return;
 
-      waveOffsetBackRef.current += backSpeed * dt;
-      waveOffsetFrontRef.current += frontSpeed * dt;
+      if (lastTimestamp === null) lastTimestamp = timestamp;
+      const delta = Math.min(60, timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+      const backOffset = waveOffsetBackRef.current + 0.55 * delta;
+      const frontOffset = waveOffsetFrontRef.current + 0.9 * delta;
+      waveOffsetBackRef.current = backOffset;
+      waveOffsetFrontRef.current = frontOffset;
 
-      ctx.clearRect(0, 0, width, height);
-
-      const backBase = height * 0.45;
-      const frontBase = height * 0.58;
-      const backAmp = height * 0.08;
-      const frontAmp = height * 0.12;
-      const backWavelength = Math.max(180, width * 0.32);
-      const frontWavelength = Math.max(160, width * 0.26);
-
-      drawWave("rgba(0, 150, 200, 0.4)", backBase, backAmp, backWavelength, waveOffsetBackRef.current);
-      drawWave("rgba(0, 120, 180, 1)", frontBase, frontAmp, frontWavelength, waveOffsetFrontRef.current);
+      context.clearRect(0, 0, width, height);
+      drawWave("rgba(0, 150, 200, 0.4)", height * 0.45, height * 0.08, Math.max(180, width * 0.32), backOffset);
+      drawWave("rgba(0, 120, 180, 1)", height * 0.58, height * 0.12, Math.max(160, width * 0.26), frontOffset);
 
       rafId = window.requestAnimationFrame(tick);
     };
 
-    rafId = window.requestAnimationFrame(tick);
+    const syncAnimation = () => {
+      if (shouldAnimate()) {
+        if (stopTimer !== null) {
+          clearTimeout(stopTimer);
+          stopTimer = null;
+        }
+        if (!isRunning) {
+          resize();
+          isRunning = true;
+          lastTimestamp = null;
+          rafId = window.requestAnimationFrame(tick);
+        }
+      } else if (!systemAllowsAnimation()) {
+        stopAnimation();
+      } else if (isRunning && stopTimer === null) {
+        // Keep painting during CSS's slide-out so the wave can move below the viewport.
+        stopTimer = setTimeout(stopAnimation, 650);
+        if (rafId === null) rafId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const observer = new MutationObserver(syncAnimation);
+    observer.observe(body, { attributes: true, attributeFilter: ["class"] });
+    const handleMotionPreferenceChange = () => syncAnimation();
+    const handleVisibilityChange = () => syncAnimation();
+    const handleResize = () => {
+      if (shouldAnimate()) resize();
+    };
+
+    motionPreference.addEventListener("change", handleMotionPreferenceChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("resize", handleResize);
+    syncAnimation();
 
     return () => {
-      window.removeEventListener("resize", resize);
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
+      observer.disconnect();
+      motionPreference.removeEventListener("change", handleMotionPreferenceChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("resize", handleResize);
+      stopAnimation();
     };
   }, []);
 

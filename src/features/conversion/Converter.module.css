@@ -1,10 +1,5 @@
-/* Selectors are scoped to this view; global class names remain internal to its root. */
 :local(.scope):global(.converter-page) {
     position: relative;
-}
-
-:local(.scope) :global(#convert-confirm-btn.loading svg) {
-    animation: :global(spin) 0.7s linear infinite;
 }
 
 :local(.scope) :global(.converter-dashboard) {
@@ -183,24 +178,32 @@
 
 :local(.scope) :global(.converter-details-panel) {
     width: min(900px, 95vw);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin: 6px 0 0;
+    display: grid;
+    grid-template-rows: 0fr;
+    margin: 0;
     position: relative;
     z-index: 2;
-    overflow: visible;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-:local(.scope) :global(.converter-details-panel.hidden) {
-    display: none;
-}
-
-:local(.scope) :global(.converter-details-panel.fading-out) {
+    overflow: hidden;
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(-8px);
+    visibility: hidden;
     pointer-events: none;
+    transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1), margin 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, transform 0.32s ease, visibility 0s linear 0.38s;
+}
+
+:local(.scope) :global(.converter-details-panel.open) {
+    grid-template-rows: 1fr;
+    margin-top: 6px;
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+    transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1), margin 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, transform 0.32s ease, visibility 0s;
+}
+
+:local(.scope) :global(.converter-details-panel > .converter-specs-card) {
+    min-height: 0;
+    overflow: hidden;
 }
 
 :local(.scope) :global(.converter-path-selector) {
@@ -211,10 +214,15 @@
     border-radius: 8px;
     padding-right: 5px;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 :local(.scope) :global(#convert-save-path-input) {
-    flex-grow: 1;
+    flex: 1 1 0%;
+    width: 0;
+    min-width: 0;
+    box-sizing: border-box;
     background: transparent;
     border: none;
     color: #ddd;
@@ -520,8 +528,6 @@
     margin-bottom: 12px;
 }
 
-
-/* Light-theme overrides scoped to this feature. */
 :global(body.theme-light) :local(.scope) :global(.converter-options-panel) {
     background: transparent;
     border: none;

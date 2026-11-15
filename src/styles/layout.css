@@ -259,7 +259,6 @@ body.theme-light .nav-btn.active {
     opacity: 0;
     transform: translateY(12vh);
     transition: opacity 0.35s ease-out, transform 0.6s ease;
-    will-change: opacity, transform;
 }
 
 body.wave-page.zen-mode.idle-anim-enabled .zen-data-sea {

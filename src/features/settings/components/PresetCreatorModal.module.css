@@ -1,4 +1,3 @@
-/* Selectors are scoped to this view; global class names remain internal to its root. */
 :local(.scope):global(.preset-modal-overlay) {
     position: fixed;
     inset: 0;

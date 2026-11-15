@@ -91,8 +91,11 @@ export const getQueueItems = () => state.items;
 export const getActiveQueueItemIds = () => state.activeItemIds;
 const pendingRemovalIds = new Set<string>();
 
-function notifyListeners() {
-  listeners.forEach((l) => l([...state.items]));
+function notifyListeners(changedItemId?: string) {
+  const snapshot = state.items.map((item) =>
+    changedItemId === undefined || item.id === changedItemId ? { ...item } : item
+  );
+  listeners.forEach((l) => l(snapshot));
   window.dispatchEvent(new CustomEvent("pulsar-queue-updated", { detail: { count: state.items.length } }));
 }
 
@@ -671,7 +674,7 @@ listen<QueueBridgeEvent>("download-event", (event) => {
 
   const changes = applyQueueEventToItem(item, payload);
   if (changes.progressUpdated) {
-    notifyListeners();
+    notifyListeners(item.id);
     persistSoon();
   }
 

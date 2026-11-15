@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "../services/i18n";
-import { useQueue } from "../features/queue/hooks/useQueue";
+import { useQueueCount } from "../features/queue/hooks/useQueue";
 import { DataSeaCanvas } from "./DataSeaCanvas";
 import { TitleBar } from "./TitleBar";
 import { NotificationContainer } from "../components/ui/NotificationContainer";
@@ -24,7 +24,7 @@ const PAGE_INDICES: Record<string, number> = {
 
 export const AppShell: React.FC = () => {
   const { t } = useTranslation();
-  const { items } = useQueue();
+  const queueCount = useQueueCount();
   const [currentPage, setCurrentPage] = useState<string>("home");
   const [transition, setTransition] = useState<{
     outgoing: string | null;
@@ -132,12 +132,12 @@ export const AppShell: React.FC = () => {
   }, [queueVisible]);
 
   useEffect(() => {
-    if (items.length === 0 && queueVisible) {
+    if (queueCount === 0 && queueVisible) {
       setQueueVisible(false);
     }
-  }, [items.length, queueVisible]);
+  }, [queueCount, queueVisible]);
 
-  const isQueueBtnVisible = items.length > 0;
+  const isQueueBtnVisible = queueCount > 0;
 
   const ALL_PAGES = ["home", "downloader", "converter", "compressor", "settings"];
 
@@ -200,13 +200,13 @@ export const AppShell: React.FC = () => {
         })}
       </div>
 
-      <DataSeaCanvas currentPage={currentPage} />
+      <DataSeaCanvas />
 
       <div
         id="queue-panel"
         className={queueVisible ? "visible" : ""}
       >
-        <QueuePanel />
+        <QueuePanel active={queueVisible} />
       </div>
 
       <NotificationContainer />

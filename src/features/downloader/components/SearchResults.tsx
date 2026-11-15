@@ -61,7 +61,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["download-progress"]} /></svg>
                   </span>
                   <span className={styles.actionSpinner}>
-                    <span className={styles.spinner}></span>
+                    <span className={`${styles.spinner} spin-animation`}></span>
                   </span>
                 </button>
                 <div className={styles.content}>

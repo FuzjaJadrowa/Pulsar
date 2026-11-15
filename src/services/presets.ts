@@ -55,6 +55,8 @@ export interface Preset {
 }
 
 let cachedPresets: Preset[] = [];
+let listPresetsPromise: Promise<Preset[]> | null = null;
+let listPresetsRequestId = 0;
 const listeners = new Set<(presets: Preset[]) => void>();
 
 function notifyListeners() {
@@ -65,22 +67,33 @@ export function getPresetFromCache(id: string): Preset | undefined {
   return cachedPresets.find((p) => p.id === id);
 }
 
-export async function listPresets(): Promise<Preset[]> {
-  try {
-    const list = await invoke<Preset[]>("list_presets");
-    if (Array.isArray(list)) {
-      cachedPresets = list;
-      notifyListeners();
-    }
-  } catch (error) {
-    console.error("Failed to list presets:", error);
+export function listPresets(forceRefresh = false): Promise<Preset[]> {
+  if (forceRefresh || !listPresetsPromise) {
+    const requestId = ++listPresetsRequestId;
+    const request = invoke<Preset[]>("list_presets")
+      .then((list) => {
+        if (requestId === listPresetsRequestId && Array.isArray(list)) {
+          cachedPresets = list;
+          notifyListeners();
+        }
+        return cachedPresets;
+      })
+      .catch((error) => {
+        console.error("Failed to list presets:", error);
+        return cachedPresets;
+      })
+      .finally(() => {
+        if (listPresetsPromise === request) listPresetsPromise = null;
+      });
+    listPresetsPromise = request;
   }
-  return cachedPresets;
+
+  return listPresetsPromise!;
 }
 
 export async function savePreset(preset: Preset): Promise<string> {
   const result = await invoke<string>("save_preset", { preset });
-  await listPresets();
+  await listPresets(true);
   return result;
 }
 
@@ -96,7 +109,7 @@ export async function deletePreset(id: string): Promise<void> {
   } catch (error) {
     console.error("Failed to delete preset:", error);
   }
-  await listPresets();
+  await listPresets(true);
 }
 
 export async function exportPreset(id: string): Promise<void> {
@@ -105,7 +118,7 @@ export async function exportPreset(id: string): Promise<void> {
 
 export async function importPreset(): Promise<void> {
   await invoke("import_preset");
-  await listPresets();
+  await listPresets(true);
 }
 
 export async function setPresetHidden(id: string, hidden: boolean): Promise<void> {
@@ -116,7 +129,7 @@ export async function setPresetHidden(id: string, hidden: boolean): Promise<void
   } catch (error) {
     console.error("Failed to set preset hidden:", error);
   }
-  await listPresets();
+  await listPresets(true);
 }
 
 export function usePresets() {

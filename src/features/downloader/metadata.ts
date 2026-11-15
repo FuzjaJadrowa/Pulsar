@@ -51,7 +51,6 @@ function fitsVideoQuality(format: DownloaderFormat, quality?: string | null): bo
   return (!height || height <= Number(match[1])) && (!fps || !match[2] || fps <= Number(match[2]));
 }
 
-/** Approximate the source streams selected by the downloader's bv+ba/b selector for queue display. */
 export function getQueueSourceCodecs(
   formats: DownloaderFormat[] = [],
   quality?: string | null,

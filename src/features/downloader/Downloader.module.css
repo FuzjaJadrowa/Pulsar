@@ -1,4 +1,3 @@
-/* Selectors are scoped to this view; global class names remain internal to its root. */
 :local(.scope) :global(.search-section.sticky.has-provider-panel) { height: calc(var(--search-section-sticky-height) + 60px); }
 :local(.scope) :global(.drop-hint) {
     display: inline-flex;
@@ -19,9 +18,6 @@
     margin-top: 0;
     transform: translateY(-6px);
     pointer-events: none;
-}
-:local(.scope) :global(#fetch-btn.loading svg) {
-    animation: :global(spin) 0.7s linear infinite;
 }
 :local(.scope) :global(.search-section.sticky .bar-action) { width: 0; padding: 0; opacity: 0; pointer-events: none; }
 :local(.scope) :global(.dashboard-section.hidden) { display: none; opacity: 0; }
