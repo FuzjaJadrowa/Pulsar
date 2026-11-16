@@ -21,9 +21,9 @@ import { SearchResults } from "./components/SearchResults";
 import { SearchPanel } from "./components/SearchPanel";
 import { MetadataInfo } from "./components/MetadataInfo";
 import {
-  codecMatches,
   createSubtitleOptions,
   getVideoQualityOptions,
+  getFormatHeight,
   getQueueSourceCodecs,
   hasCodec,
   isAudioOnlySourceUrl,
@@ -592,21 +592,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
     const qualityHeight = mode === "video" ? Number.parseInt(selectedQuality || "", 10) : undefined;
     const estimatedFormats = (metadata?.formats || []).filter((format) =>
-      !qualityHeight || !format.height || format.height <= qualityHeight
+      !qualityHeight || !getFormatHeight(format) || getFormatHeight(format) <= qualityHeight
     );
     const largestKnownSize = (formats: DownloaderFormat[]) => Math.max(0, ...formats.map((format) => Number(format.filesize || format.filesize_approx || 0)));
     const estimatedBytes = mode === "audio"
       ? largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)))
       : largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.vcodec)))
         + largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)));
-    const bestVideoSource = [...estimatedFormats].filter((format) => hasCodec(format.vcodec)).sort((a, b) => (b.height || 0) - (a.height || 0))[0];
-    const bestAudioSource = [...estimatedFormats].filter((format) => hasCodec(format.acodec)).sort((a, b) => Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0))[0];
     const preferredVideoCodec = videoCodec;
     const preferredAudioCodec = audioCodec;
     const queueSourceCodecs = getQueueSourceCodecs(metadata?.formats, selectedQuality, mode === "audio");
-    const videoCodecAlreadyAvailable = !!preferredVideoCodec && codecMatches(preferredVideoCodec, bestVideoSource?.vcodec);
-    const audioCodecAlreadyAvailable = !!preferredAudioCodec && codecMatches(preferredAudioCodec, bestAudioSource?.acodec);
-    const otherTranscodeOptions = !!videoBitrate || !!audioBitrate || !!videoFps || !!audioSampleRate;
     const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim() || config.default_save_path.trim(),
@@ -616,8 +611,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       video_quality: mode === "video" ? selectedQuality : null,
       audio_format: mode === "audio" ? selectedFormat : null,
       audio_quality: mode === "audio" ? selectedQuality : null,
-      video_codec: mode === "video" && (!videoCodecAlreadyAvailable || otherTranscodeOptions) ? (preferredVideoCodec || undefined) : undefined,
-      audio_codec: !audioCodecAlreadyAvailable || otherTranscodeOptions ? (preferredAudioCodec || undefined) : undefined,
+      video_codec: mode === "video" ? (preferredVideoCodec || undefined) : undefined,
+      audio_codec: preferredAudioCodec || undefined,
       display_video_codec: preferredVideoCodec || queueSourceCodecs.videoCodec,
       display_audio_codec: preferredAudioCodec || queueSourceCodecs.audioCodec,
       video_bitrate: videoBitrate || undefined,

@@ -201,6 +201,20 @@ pub fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
 use std::path::Path;
 use std::process::Command;
 
+pub fn ffmpeg_encoder_smoke_test(ffmpeg_path: &Path, encoder: &str) -> bool {
+    if !ffmpeg_path.exists() || encoder.is_empty() {
+        return false;
+    }
+    let output = Command::new(ffmpeg_path)
+        .args([
+            "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
+            "color=c=black:s=64x64:d=0.1", "-frames:v", "1", "-c:v", encoder,
+            "-f", "null", "-",
+        ])
+        .output();
+    output.is_ok_and(|result| result.status.success())
+}
+
 pub fn validate_ffmpeg_encoders(ffmpeg_path: &Path, args: &[String]) -> Result<(), String> {
     let requested: Vec<&str> = args
         .windows(2)

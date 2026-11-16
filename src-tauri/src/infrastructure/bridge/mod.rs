@@ -421,7 +421,7 @@ impl BridgeState {
         let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
         let process_id = serde_json::from_str::<Value>(&json).ok().and_then(|value| {
             let command = value.get("command")?.as_str()?;
-            matches!(command, "download" | "convert" | "compress")
+            matches!(command, "download" | "download_ffmpeg" | "convert" | "compress")
                 .then(|| value.get("id")?.as_str().map(str::to_owned))?
         });
         if let Some(id) = process_id.as_deref() {

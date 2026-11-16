@@ -28,9 +28,12 @@ export const isAudioOnlySourceUrl = (url: string) => {
   return source !== null && source !== "youtube" && source !== "soundcloud";
 };
 
-function formatHeight(format: DownloaderFormat): number {
+export function getFormatHeight(format: DownloaderFormat): number {
   const resolutionHeight = String(format.resolution || "").match(/\d+x(\d{2,5})/i)?.[1];
-  return Number(format.height || resolutionHeight || 0);
+  const resolutionLabelHeight = String(format.resolution || "").match(/^(\d{2,5})p$/i)?.[1];
+  const noteHeight = String(format.note || format.format_note || "").match(/(\d{2,5})p/i)?.[1];
+  const formatIdHeight = String(format.format_id || "").match(/(?:^|[^\d])(\d{2,5})p(?:\d+)?(?:$|[^\d])/i)?.[1];
+  return Number(format.height || resolutionHeight || resolutionLabelHeight || noteHeight || formatIdHeight || 0);
 }
 
 function codecPreference(codec?: string | null): number {
@@ -46,7 +49,7 @@ function codecPreference(codec?: string | null): number {
 function fitsVideoQuality(format: DownloaderFormat, quality?: string | null): boolean {
   const match = String(quality || "").match(/^(\d+)p(\d+)?$/i);
   if (!match) return true;
-  const height = formatHeight(format);
+  const height = getFormatHeight(format);
   const fps = Number(format.fps || 0);
   return (!height || height <= Number(match[1])) && (!fps || !match[2] || fps <= Number(match[2]));
 }
@@ -56,10 +59,9 @@ export function getQueueSourceCodecs(
   quality?: string | null,
   audioOnly = false,
 ): { videoCodec?: string; audioCodec?: string } {
-  const eligible = formats.filter((format) => fitsVideoQuality(format, quality));
-  const candidates = eligible.length ? eligible : formats;
+  const candidates = formats.filter((format) => fitsVideoQuality(format, quality));
   const rankVideo = (a: DownloaderFormat, b: DownloaderFormat) =>
-    formatHeight(b) - formatHeight(a)
+    getFormatHeight(b) - getFormatHeight(a)
     || Number(b.fps || 0) - Number(a.fps || 0)
     || codecPreference(b.vcodec) - codecPreference(a.vcodec)
     || Number(b.filesize || b.filesize_approx || 0) - Number(a.filesize || a.filesize_approx || 0);
@@ -126,12 +128,7 @@ export function getVideoQualityOptions(formats: DownloaderFormat[] = []): string
   formats.forEach((format) => {
     if (format.vcodec?.trim().toLowerCase() === "none") return;
 
-    const note = String(format.format_note || format.note || "");
-    const resolution = String(format.resolution || "");
-    const resolutionMatch = resolution.match(/\d+x(\d{2,5})/i);
-    const noteMatch = note.match(/(\d{2,5})p/i);
-    const formatIdMatch = String(format.format_id || "").match(/(?:^|[^\d])(\d{2,5})p(?:\d+)?(?:$|[^\d])/i);
-    const height = Number(format.height || resolutionMatch?.[1] || noteMatch?.[1] || formatIdMatch?.[1] || 0);
+    const height = getFormatHeight(format);
     const quality = videoQualities.find((entry) => Number.parseInt(entry, 10) <= height);
     if (!quality) return;
 

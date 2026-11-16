@@ -40,7 +40,8 @@ fn download_video_encoder(
     requested: &str,
     format: &str,
     config: &crate::app::config::AppConfig,
-) -> String {
+    ffmpeg_path: &std::path::Path,
+) -> Result<String, String> {
     let codec_key = if requested.is_empty() || requested.eq_ignore_ascii_case("auto") {
         match format.to_ascii_lowercase().as_str() {
             "webm" => "vp9",
@@ -64,11 +65,34 @@ fn download_video_encoder(
     } else {
         config.ffmpeg_hwaccels.first().map(String::as_str)
     };
-    if let Some(accel) = hwaccel {
-        crate::infrastructure::ffmpeg::codecs::map_video_codec_hw(codec_key, accel)
-    } else {
-        crate::infrastructure::ffmpeg::codecs::map_video_codec(codec_key)
+    let software = crate::infrastructure::ffmpeg::codecs::map_video_codec(codec_key);
+    let Some(accel) = hwaccel else {
+        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
+            ffmpeg_path,
+            &["-c:v".to_string(), software.clone()],
+        )?;
+        return Ok(software);
+    };
+    let hardware = crate::infrastructure::ffmpeg::codecs::map_video_codec_hw(codec_key, accel);
+    if hardware == software {
+        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
+            ffmpeg_path,
+            &["-c:v".to_string(), software.clone()],
+        )?;
+        return Ok(software);
     }
+    let selected = if crate::infrastructure::ffmpeg::codecs::ffmpeg_encoder_smoke_test(
+        ffmpeg_path, &hardware,
+    ) {
+        hardware
+    } else {
+        software
+    };
+    crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
+        ffmpeg_path,
+        &["-c:v".to_string(), selected.clone()],
+    )?;
+    Ok(selected)
 }
 
 fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> String {
@@ -87,6 +111,10 @@ fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> St
     if gif {
         if bounded.is_empty() {
             "bv".to_string()
+        } else if let (Some(height), Some(_)) = (height, fps) {
+            format!("bv{bounded}/bv[height<={height}]")
+        } else if height.is_some() {
+            format!("bv{bounded}")
         } else {
             format!("bv{bounded}/bv")
         }
@@ -101,10 +129,9 @@ fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> St
         if !fps_only.is_empty() {
             choices.push(format!("bv{height_only}+ba/b{height_only}"));
         }
-        if !height_only.is_empty() {
-            choices.push(format!("bv{fps_only}+ba/b{fps_only}"));
+        if height.is_none() {
+            choices.push("bv+ba/b".to_string());
         }
-        choices.push("bv+ba/b".to_string());
         choices.join("/")
     }
 }
@@ -286,7 +313,15 @@ pub fn start_download(
         && !options.embed_subs;
     let use_ffmpeg_direct_conversion = options.prefer_ffmpeg_while_converting
         && conversion_requested
-        && direct_ffmpeg_features_supported;
+        && direct_ffmpeg_features_supported
+        && options
+            .custom_args
+            .as_deref()
+            .map_or(true, |custom_args| {
+                custom_args
+                    .iter()
+                    .all(|arg| arg.trim().is_empty() || arg.trim() == "--")
+            });
     if options.prefer_ffmpeg_while_downloading && !use_ffmpeg_direct_conversion {
         args.extend(["--downloader".to_string(), "ffmpeg".to_string()]);
     }
@@ -309,7 +344,17 @@ pub fn start_download(
     }
 
     args.push("--concurrent-fragments".to_string());
-    args.push("3".to_string());
+    args.push(config.concurrent_fragments.to_string());
+    args.extend([
+        "--retries".to_string(),
+        "5".to_string(),
+        "--fragment-retries".to_string(),
+        "5".to_string(),
+        "--extractor-retries".to_string(),
+        "3".to_string(),
+        "--retry-sleep".to_string(),
+        "fragment:linear=1::3".to_string(),
+    ]);
 
     if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
     {
@@ -444,7 +489,8 @@ pub fn start_download(
             if needs_encode {
                 args.extend(["--merge-output-format".to_string(), fmt.clone()]);
                 args.extend(["--recode-video".to_string(), fmt.clone()]);
-                let video_codec = download_video_encoder(requested_video_codec, &fmt, &config);
+                let video_codec =
+                    download_video_encoder(requested_video_codec, &fmt, &config, &ffmpeg_path)?;
                 let audio_codec = if requested_audio_codec.is_empty()
                     || requested_audio_codec.eq_ignore_ascii_case("auto")
                 {

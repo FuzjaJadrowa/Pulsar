@@ -768,6 +768,11 @@ en = "Copy codec if possible"
 pl = "Kopiuj kodek jeśli to możliwe"
 fr = "Copier le codec si possible"
 
+[settings.codecs.copyCodecIfPossibleNote]
+en = "Applies to conversions. Downloads use the selected source formats and download codec settings."
+pl = "Dotyczy konwersji. Pobieranie korzysta z wybranych formatów źródłowych i ustawień kodeka pobierania."
+fr = "S'applique aux conversions. Les téléchargements utilisent les formats source et les réglages de codec du téléchargeur."
+
 [settings.codecs.defaultVideoCodec]
 en = "Default video codec"
 pl = "Domyślny kodek wideo"
@@ -841,6 +846,11 @@ fr = "Nombre maximum de processus simultanés"
 en = "Maximum search results"
 pl = "Maksymalna liczba wyników wyszukiwania"
 fr = "Nombre maximum de résultats de recherche"
+
+[settings.concurrentFragments]
+en = "Concurrent download fragments"
+pl = "Równoległe fragmenty pobierania"
+fr = "Fragments de téléchargement simultanés"
 
 [settings.preferDownloadingWithFfmpeg]
 en = "Prefer downloading with FFmpeg"

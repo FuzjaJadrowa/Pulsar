@@ -10,12 +10,14 @@ export const DownloadSettingsSection: React.FC = () => {
   const { t } = useTranslation();
   const { config, updateConfig } = useConfig();
   const [localProcesses, setLocalProcesses] = useState("");
+    const [localFragments, setLocalFragments] = useState("");
   const [localSearchResults, setLocalSearchResults] = useState("");
 
   useEffect(() => {
     setLocalProcesses(String(config.maximum_concurrent_processes ?? 3));
+      setLocalFragments(String(config.concurrent_fragments ?? 3));
     setLocalSearchResults(String(config.maximum_search_results ?? 10));
-  }, [config.maximum_concurrent_processes, config.maximum_search_results]);
+  }, [config.maximum_concurrent_processes, config.concurrent_fragments, config.maximum_search_results]);
 
   const browsers = [
     { value: "none", label: "None" },
@@ -69,6 +71,20 @@ export const DownloadSettingsSection: React.FC = () => {
             }}
             style={{ width: "120px" }}
           />
+        </div>
+
+        <div className="form-row">
+            <span>{t("settings.concurrentFragments")}</span>
+            <input className="custom-input" type="number" min="1" max="16" value={localFragments}
+                   onChange={(e) => setLocalFragments(e.target.value)}
+                   onBlur={() => {
+                       let value = Number.parseInt(localFragments, 10);
+                       if (Number.isNaN(value)) value = 3;
+                       value = Math.min(16, Math.max(1, value));
+                       setLocalFragments(String(value));
+                       updateConfig({ concurrent_fragments: value });
+                   }}
+                   style={{ width: "120px" }} />
         </div>
 
         <div className="form-row">
