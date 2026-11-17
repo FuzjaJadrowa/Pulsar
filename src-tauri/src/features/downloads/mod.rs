@@ -343,8 +343,6 @@ pub fn start_download(
         args.push(options.path.clone());
     }
 
-    args.push("--concurrent-fragments".to_string());
-    args.push(config.concurrent_fragments.to_string());
     args.extend([
         "--retries".to_string(),
         "5".to_string(),

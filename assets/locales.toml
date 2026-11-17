@@ -847,11 +847,6 @@ en = "Maximum search results"
 pl = "Maksymalna liczba wyników wyszukiwania"
 fr = "Nombre maximum de résultats de recherche"
 
-[settings.concurrentFragments]
-en = "Concurrent download fragments"
-pl = "Równoległe fragmenty pobierania"
-fr = "Fragments de téléchargement simultanés"
-
 [settings.preferDownloadingWithFfmpeg]
 en = "Prefer downloading with FFmpeg"
 pl = "Preferuj pobieranie przez FFmpeg"

@@ -17,7 +17,6 @@ export interface PulsarConfig {
   cookies_browser: string;
   maximum_concurrent_processes: number;
   maximum_search_results: number;
-  concurrent_fragments: number;
   title_template: string;
   close_behavior: string;
   copy_codec_if_possible: boolean;
@@ -43,7 +42,6 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   cookies_browser: "none",
   maximum_concurrent_processes: 3,
   maximum_search_results: 10,
-  concurrent_fragments: 3,
   title_template: "%(title)s [%(id)s]",
   close_behavior: "hide",
   copy_codec_if_possible: false,
@@ -143,7 +141,6 @@ export async function loadConfig(): Promise<PulsarConfig> {
         cookies_browser: String(raw.cookies_browser ?? raw.cookiesBrowser ?? DEFAULT_CONFIG.cookies_browser),
         maximum_concurrent_processes: Number(raw.maximum_concurrent_processes ?? raw.maximumConcurrentProcesses ?? DEFAULT_CONFIG.maximum_concurrent_processes),
         maximum_search_results: Number(raw.maximum_search_results ?? raw.maximumSearchResults ?? DEFAULT_CONFIG.maximum_search_results),
-        concurrent_fragments: Number(raw.concurrent_fragments ?? raw.concurrentFragments ?? DEFAULT_CONFIG.concurrent_fragments),
         title_template: String(raw.title_template ?? raw.titleTemplate ?? DEFAULT_CONFIG.title_template),
         close_behavior: String(raw.close_behavior ?? raw.closeBehavior ?? DEFAULT_CONFIG.close_behavior),
         copy_codec_if_possible: Boolean(raw.copy_codec_if_possible ?? raw.copyCodecIfPossible ?? DEFAULT_CONFIG.copy_codec_if_possible),
@@ -182,7 +179,6 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
     cookies_browser: String(merged.cookies_browser ?? DEFAULT_CONFIG.cookies_browser),
     maximum_concurrent_processes: Number(merged.maximum_concurrent_processes ?? DEFAULT_CONFIG.maximum_concurrent_processes),
     maximum_search_results: Number(merged.maximum_search_results ?? DEFAULT_CONFIG.maximum_search_results),
-    concurrent_fragments: Number(merged.concurrent_fragments ?? DEFAULT_CONFIG.concurrent_fragments),
     title_template: String(merged.title_template ?? DEFAULT_CONFIG.title_template),
     close_behavior: String(merged.close_behavior ?? DEFAULT_CONFIG.close_behavior),
     copy_codec_if_possible: Boolean(merged.copy_codec_if_possible ?? DEFAULT_CONFIG.copy_codec_if_possible),

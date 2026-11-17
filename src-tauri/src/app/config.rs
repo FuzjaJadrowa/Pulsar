@@ -44,8 +44,6 @@ pub struct AppConfig {
     pub maximum_concurrent_processes: u64,
     #[serde(default, alias = "maximum_search_results")]
     pub maximum_search_results: u64,
-    #[serde(default = "default_concurrent_fragments", alias = "concurrent_fragments")]
-    pub concurrent_fragments: u64,
     #[serde(default, alias = "title_template")]
     pub title_template: String,
     #[serde(default)]
@@ -75,8 +73,6 @@ fn default_close() -> String {
 fn default_codec_auto() -> String {
     "auto".to_string()
 }
-fn default_concurrent_fragments() -> u64 { 3 }
-
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
@@ -97,7 +93,6 @@ impl Default for AppConfig {
             cookies_browser: "none".to_string(),
             maximum_concurrent_processes: 3,
             maximum_search_results: 10,
-            concurrent_fragments: 3,
             title_template: "%(title)s [%(id)s]".to_string(),
             prefer_ffmpeg_while_converting: true,
             prefer_ffmpeg_while_downloading: false,
@@ -116,7 +111,6 @@ impl AppConfig {
         self.maximum_concurrent_processes =
             clamp_range(self.maximum_concurrent_processes, 1, 10, 3);
         self.maximum_search_results = clamp_range(self.maximum_search_results, 1, 50, 10);
-        self.concurrent_fragments = clamp_range(self.concurrent_fragments, 1, 16, 3);
         if self.title_template.trim().is_empty() {
             self.title_template = "%(title)s [%(id)s]".to_string();
         }
@@ -260,10 +254,6 @@ impl ConfigManager {
                         .get("maximum_search_results")
                         .and_then(|v| v.parse::<u64>().ok())
                         .unwrap_or(10);
-                    config.concurrent_fragments = section
-                        .get("concurrent_fragments")
-                        .and_then(|v| v.parse::<u64>().ok())
-                        .unwrap_or(3);
                     if let Some(v) = section.get("title_template") {
                         config.title_template = v.to_string();
                     }
@@ -397,7 +387,6 @@ impl ConfigManager {
                 "maximum_search_results",
                 config.maximum_search_results.to_string(),
             )
-            .set("concurrent_fragments", config.concurrent_fragments.to_string())
             .set("title_template", &config.title_template)
             .set(
                 "prefer_ffmpeg_while_converting",
