@@ -114,6 +114,9 @@ impl AppConfig {
         if self.title_template.trim().is_empty() {
             self.title_template = "%(title)s [%(id)s]".to_string();
         }
+        self.ffmpeg_hwaccels.retain(|accel| {
+            crate::infrastructure::ffmpeg::hwaccel::is_supported_encoding_backend(accel)
+        });
         if self.ffmpeg_hwaccel_preferred.trim().is_empty() {
             self.ffmpeg_hwaccel_preferred = "auto".to_string();
         }
@@ -440,5 +443,20 @@ mod tests {
         assert_eq!(cfg.theme, "light");
         assert_eq!(cfg.cookies_browser, "chrome");
         assert_eq!(cfg.maximum_concurrent_processes, 5);
+    }
+
+    #[test]
+    fn test_sanitize_filters_decode_only_hwaccels() {
+        let mut cfg = AppConfig::default();
+        cfg.ffmpeg_hwaccels = vec![
+            "d3d11va".to_string(),
+            "dxva2".to_string(),
+            "cuda".to_string(),
+            "vulkan".to_string(),
+        ];
+        cfg.ffmpeg_hwaccel_preferred = "d3d11va".to_string();
+        cfg.sanitize();
+        assert_eq!(cfg.ffmpeg_hwaccels, vec!["cuda".to_string()]);
+        assert_eq!(cfg.ffmpeg_hwaccel_preferred, "auto");
     }
 }

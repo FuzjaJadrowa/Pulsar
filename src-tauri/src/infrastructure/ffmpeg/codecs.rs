@@ -40,19 +40,6 @@ pub fn map_audio_codec(value: &str) -> String {
     .to_string()
 }
 
-pub fn default_video_codec_for_format(format: &str) -> String {
-    let fmt = format.trim().trim_start_matches('.').to_lowercase();
-    match fmt.as_str() {
-        "webm" => "libvpx-vp9".to_string(),
-        "ogv" => "libtheora".to_string(),
-        "gif" => "gif".to_string(),
-        "vob" => "mpeg2video".to_string(),
-        "wmv" => "wmv2".to_string(),
-        "prores" => "prores_ks".to_string(),
-        _ => "libx264".to_string(),
-    }
-}
-
 pub fn default_audio_codec_for_format(format: &str) -> String {
     let fmt = format.trim().trim_start_matches('.').to_lowercase();
     match fmt.as_str() {
@@ -179,10 +166,12 @@ pub fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
                 "av1_nvenc".to_string()
             } else if hw_lower.contains("qsv") {
                 "av1_qsv".to_string()
+            } else if hw_lower.contains("amf") {
+                "av1_amf".to_string()
             } else if hw_lower.contains("vaapi") {
                 "av1_vaapi".to_string()
             } else {
-                "libaom-av1".to_string()
+                "libsvtav1".to_string()
             }
         }
         "vp9" => {
@@ -198,35 +187,67 @@ pub fn map_video_codec_hw(codec: &str, hwaccel: &str) -> String {
         other => map_video_codec(other),
     }
 }
-use std::path::Path;
-use std::process::Command;
+use super::hwaccel::find_vaapi_device;
+use crate::infrastructure::platform::new_hidden_command;
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+use std::sync::{OnceLock, RwLock};
+use std::time::UNIX_EPOCH;
 
-pub fn ffmpeg_encoder_smoke_test(ffmpeg_path: &Path, encoder: &str) -> bool {
-    if !ffmpeg_path.exists() || encoder.is_empty() {
-        return false;
-    }
-    let output = Command::new(ffmpeg_path)
-        .args([
-            "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
-            "color=c=black:s=64x64:d=0.1", "-frames:v", "1", "-c:v", encoder,
-            "-f", "null", "-",
-        ])
-        .output();
-    output.is_ok_and(|result| result.status.success())
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct BinaryFingerprint {
+    path: PathBuf,
+    modified_nanos: u128,
+    len: u64,
 }
 
-pub fn validate_ffmpeg_encoders(ffmpeg_path: &Path, args: &[String]) -> Result<(), String> {
-    let requested: Vec<&str> = args
-        .windows(2)
-        .filter(|pair| pair[0] == "-c:v" || pair[0] == "-c:a")
-        .map(|pair| pair[1].as_str())
-        .filter(|codec| *codec != "copy")
-        .collect();
-    if requested.is_empty() {
-        return Ok(());
+pub fn binary_fingerprint(path: &Path) -> Option<BinaryFingerprint> {
+    let metadata = std::fs::metadata(path).ok()?;
+    let modified_nanos = metadata
+        .modified()
+        .ok()
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+    Some(BinaryFingerprint {
+        path: path.to_path_buf(),
+        modified_nanos,
+        len: metadata.len(),
+    })
+}
+
+static ENCODER_LISTING_CACHE: OnceLock<RwLock<HashMap<BinaryFingerprint, HashSet<String>>>> =
+    OnceLock::new();
+static SMOKE_TEST_CACHE: OnceLock<RwLock<HashMap<(BinaryFingerprint, String), bool>>> =
+    OnceLock::new();
+
+fn encoder_listing_cache() -> &'static RwLock<HashMap<BinaryFingerprint, HashSet<String>>> {
+    ENCODER_LISTING_CACHE.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+fn smoke_test_cache() -> &'static RwLock<HashMap<(BinaryFingerprint, String), bool>> {
+    SMOKE_TEST_CACHE.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+fn parse_encoder_listing(listing: &str) -> HashSet<String> {
+    listing
+        .lines()
+        .filter_map(|line| line.split_whitespace().nth(1))
+        .map(str::to_string)
+        .collect()
+}
+
+pub fn get_available_encoders(ffmpeg_path: &Path) -> Result<HashSet<String>, String> {
+    let fingerprint = binary_fingerprint(ffmpeg_path);
+    if let Some(ref fp) = fingerprint {
+        if let Ok(cache) = encoder_listing_cache().read() {
+            if let Some(cached) = cache.get(fp) {
+                return Ok(cached.clone());
+            }
+        }
     }
 
-    let output = Command::new(ffmpeg_path)
+    let output = new_hidden_command(ffmpeg_path)
         .args(["-hide_banner", "-encoders"])
         .output()
         .map_err(|error| format!("Unable to inspect FFmpeg encoders: {error}"))?;
@@ -240,8 +261,115 @@ pub fn validate_ffmpeg_encoders(ffmpeg_path: &Path, args: &[String]) -> Result<(
     }
 
     let listing = String::from_utf8_lossy(&output.stdout);
+    let encoders = parse_encoder_listing(&listing);
+    if let Some(fp) = fingerprint {
+        if let Ok(mut cache) = encoder_listing_cache().write() {
+            cache.insert(fp, encoders.clone());
+        }
+    }
+    Ok(encoders)
+}
+
+pub fn ffmpeg_encoder_smoke_test(ffmpeg_path: &Path, encoder: &str) -> bool {
+    if !ffmpeg_path.exists() || encoder.is_empty() {
+        return false;
+    }
+
+    let fingerprint = binary_fingerprint(ffmpeg_path);
+    if let Some(ref fp) = fingerprint {
+        if let Ok(cache) = smoke_test_cache().read() {
+            if let Some(&cached) = cache.get(&(fp.clone(), encoder.to_string())) {
+                return cached;
+            }
+        }
+    }
+
+    // Avoid spawning a probe when the FFmpeg build does not even include this encoder.
+    if let Ok(available) = get_available_encoders(ffmpeg_path) {
+        if !available.contains(encoder) {
+            if let Some(fp) = fingerprint {
+                if let Ok(mut cache) = smoke_test_cache().write() {
+                    cache.insert((fp, encoder.to_string()), false);
+                }
+            }
+            return false;
+        }
+    }
+
+    let mut cmd = new_hidden_command(ffmpeg_path);
+    if encoder.ends_with("_vaapi") {
+        let Some(device) = find_vaapi_device() else {
+            if let Some(fp) = fingerprint {
+                if let Ok(mut cache) = smoke_test_cache().write() {
+                    cache.insert((fp, encoder.to_string()), false);
+                }
+            }
+            return false;
+        };
+        cmd.args([
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-vaapi_device",
+            &device,
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=black:s=256x256:d=0.1",
+            "-vf",
+            "format=nv12,hwupload",
+            "-frames:v",
+            "1",
+            "-c:v",
+            encoder,
+            "-f",
+            "null",
+            "-",
+        ]);
+    } else {
+        cmd.args([
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=black:s=256x256:d=0.1",
+            "-pix_fmt",
+            "yuv420p",
+            "-frames:v",
+            "1",
+            "-c:v",
+            encoder,
+            "-f",
+            "null",
+            "-",
+        ]);
+    }
+
+    let ok = cmd.output().is_ok_and(|result| result.status.success());
+    if let Some(fp) = fingerprint {
+        if let Ok(mut cache) = smoke_test_cache().write() {
+            cache.insert((fp, encoder.to_string()), ok);
+        }
+    }
+    ok
+}
+
+pub fn validate_ffmpeg_encoders(ffmpeg_path: &Path, args: &[String]) -> Result<(), String> {
+    let requested: Vec<&str> = args
+        .windows(2)
+        .filter(|pair| pair[0] == "-c:v" || pair[0] == "-c:a")
+        .map(|pair| pair[1].as_str())
+        .filter(|codec| *codec != "copy")
+        .collect();
+    if requested.is_empty() {
+        return Ok(());
+    }
+
+    let available = get_available_encoders(ffmpeg_path)?;
     for encoder in requested {
-        if !ffmpeg_listing_has_encoder(&listing, encoder) {
+        if !available.contains(encoder) {
             return Err(format!(
                 "The configured FFmpeg build does not include the '{encoder}' encoder."
             ));
@@ -250,11 +378,9 @@ pub fn validate_ffmpeg_encoders(ffmpeg_path: &Path, args: &[String]) -> Result<(
     Ok(())
 }
 
+#[cfg(test)]
 fn ffmpeg_listing_has_encoder(listing: &str, encoder: &str) -> bool {
-    listing
-        .lines()
-        .filter_map(|line| line.split_whitespace().nth(1))
-        .any(|available| available == encoder)
+    parse_encoder_listing(listing).contains(encoder)
 }
 
 #[cfg(test)]

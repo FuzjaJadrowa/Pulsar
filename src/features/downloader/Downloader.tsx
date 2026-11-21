@@ -15,7 +15,15 @@ import { ToggleSwitch } from "../../components/ui/ToggleSwitch";
 import { PresetGrid } from "../../components/presets/PresetGrid";
 import { useTauriMetadata } from "../../hooks/useTauriMetadata";
 import { sanitizeBitrateInput } from "../../utils/bitrate";
-import type { DownloadPayload, DownloaderEvent, DownloaderFormat, DownloaderMetadata, DownloaderPreset, DownloaderSearchResult, SubtitleOption } from "./types";
+import type {
+  DownloadPayload,
+  DownloaderEvent,
+  DownloaderFormat,
+  DownloaderMetadata,
+  DownloaderPreset,
+  DownloaderSearchResult,
+  SubtitleOption,
+} from "./types";
 import styles from "./Downloader.module.css";
 import { SearchResults } from "./components/SearchResults";
 import { SearchPanel } from "./components/SearchPanel";
@@ -31,7 +39,16 @@ import {
 } from "./metadata";
 
 const videoFormats = ["MP4", "MKV", "WEBM", "MOV", "FLV", "AVI", "GIF"];
-const audioFormats = ["MP3", "M4A", "AAC", "OPUS", "WAV", "FLAC", "AIFF", "OGG"];
+const audioFormats = [
+  "MP3",
+  "M4A",
+  "AAC",
+  "OPUS",
+  "WAV",
+  "FLAC",
+  "AIFF",
+  "OGG",
+];
 const audioQualities = ["320kbps", "256kbps", "192kbps", "128kbps", "96kbps"];
 
 import { getFormatEntrySync, loadFormatCatalog } from "../../services/formats";
@@ -53,17 +70,23 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isDashboardVisible, setIsDashboardVisible] = useState(false);
-  const [searchResults, setSearchResults] = useState<DownloaderSearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<DownloaderSearchResult[]>(
+    [],
+  );
   const [searchExiting, setSearchExiting] = useState(false);
-  const [provider, setProvider] = useState<"ytsearch" | "ytmsearch" | "scsearch">("ytsearch");
-  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(null);
+  const [provider, setProvider] = useState<
+    "ytsearch" | "ytmsearch" | "scsearch"
+  >("ytsearch");
+  const [pendingMetadataUrl, setPendingMetadataUrl] = useState<string | null>(
+    null,
+  );
 
   const {
     metadata,
     isLoading: isAnalyzing,
     fetchMetadata: triggerFetchMetadata,
     reset: resetMetadataState,
-    setMetadata
+    setMetadata,
   } = useTauriMetadata<DownloaderMetadata>({
     pickerCommand: "fetch_metadata_downloader",
     onSuccess: (data) => {
@@ -71,7 +94,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     },
     onError: (err) => {
       showNotification(t("common.error"), err, "error");
-    }
+    },
   });
 
   const [duration, setDuration] = useState(0);
@@ -85,7 +108,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [videoFps, setVideoFps] = useState("");
   const [audioSampleRate, setAudioSampleRate] = useState("");
 
-  const currentFormatEntry = selectedFormat ? getFormatEntrySync(selectedFormat, false) : null;
+  const currentFormatEntry = selectedFormat
+    ? getFormatEntrySync(selectedFormat, false)
+    : null;
 
   const downloaderVideoCodecOptions = [
     { value: "", label: t("common.auto") },
@@ -107,10 +132,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const displayedAudioCodec = audioCodec;
 
   useEffect(() => {
-    if (videoCodec && !downloaderVideoCodecOptions.some((opt) => opt.value === videoCodec)) {
+    if (
+      videoCodec &&
+      !downloaderVideoCodecOptions.some((opt) => opt.value === videoCodec)
+    ) {
       setVideoCodec("");
     }
-    if (audioCodec && !downloaderAudioCodecOptions.some((opt) => opt.value === audioCodec)) {
+    if (
+      audioCodec &&
+      !downloaderAudioCodecOptions.some((opt) => opt.value === audioCodec)
+    ) {
       setAudioCodec("");
     }
   }, [selectedFormat, videoCodec, audioCodec]);
@@ -125,7 +156,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [timeStart, setTimeStart] = useState<string>("00:00:00");
   const [timeEnd, setTimeEnd] = useState<string>("00:00:00");
 
-  const [thumbnailAction, setThumbnailAction] = useState<"none" | "download" | "embed">("none");
+  const [thumbnailAction, setThumbnailAction] = useState<
+    "none" | "download" | "embed"
+  >("none");
   const [skipSponsors, setSkipSponsors] = useState(false);
   const [embedMetadata, setEmbedMetadata] = useState(false);
   const [muteAudio, setMuteAudio] = useState(false);
@@ -148,11 +181,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const [isPlaylist, setIsPlaylist] = useState(false);
 
   const currentSearchIdRef = useRef<string | null>(null);
-  const searchRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const urlInputRef = useRef<HTMLInputElement | null>(null);
 
-  const downloaderPresets = presets.filter(p => p.preset_type === "downloader" && !p.hidden);
+  const downloaderPresets = presets.filter(
+    (p) => p.preset_type === "downloader" && !p.hidden,
+  );
 
   useEffect(() => {
     if (selectedFormat && selectedFormat.toLowerCase() === "gif") {
@@ -160,7 +197,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   }, [selectedFormat]);
 
-  const isGifFormat = mode === "video" && selectedFormat?.toLowerCase() === "gif";
+  const isGifFormat =
+    mode === "video" && selectedFormat?.toLowerCase() === "gif";
   const showAudioCodec = mode !== "video" || (!muteAudio && !isGifFormat);
 
   const { updateUiState } = useUiState();
@@ -173,7 +211,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       downloaderMode: mode,
       downloaderAudioOnlySource: isAudioOnlySource,
     });
-  }, [active, isDashboardVisible, isSearchMode, mode, isAudioOnlySource, updateUiState]);
+  }, [
+    active,
+    isDashboardVisible,
+    isSearchMode,
+    mode,
+    isAudioOnlySource,
+    updateUiState,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -182,7 +227,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       const payload = event.payload;
       if (!payload || !payload.type) return;
 
-      if (payload.type === "search_results" && payload.id === currentSearchIdRef.current) {
+      if (
+        payload.type === "search_results" &&
+        payload.id === currentSearchIdRef.current
+      ) {
         setIsSearching(false);
         setIsDashboardVisible(false);
         resetMetadataState();
@@ -197,9 +245,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         }, 120);
       }
 
-      if (payload.type === "finished" && payload.id === currentSearchIdRef.current && payload.success === false) {
+      if (
+        payload.type === "finished" &&
+        payload.id === currentSearchIdRef.current &&
+        payload.success === false
+      ) {
         setIsSearching(false);
-        showNotification(t("common.error"), payload.error || t("downloader.errors.searchFailed"), "error");
+        showNotification(
+          t("common.error"),
+          payload.error || t("downloader.errors.searchFailed"),
+          "error",
+        );
         setSearchResults([]);
         setIsSearchMode(true);
       }
@@ -220,15 +276,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       setLangSuggestions(subtitleOptions);
       return;
     }
-    const matches = subtitleOptions.filter(entry =>
-      entry.code.toLowerCase().includes(q) ||
-      entry.languageName.toLowerCase().includes(q) ||
-      entry.countryName.toLowerCase().includes(q)
+    const matches = subtitleOptions.filter(
+      (entry) =>
+        entry.code.toLowerCase().includes(q) ||
+        entry.languageName.toLowerCase().includes(q) ||
+        entry.countryName.toLowerCase().includes(q),
     );
     setLangSuggestions(matches);
   }, [subsLang, subtitleOptions]);
-
-
 
   const looksLikeUrl = (value: string) => {
     return /^https?:\/\//i.test(value.trim());
@@ -285,7 +340,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         console.error("Search invocation failed:", error);
         setIsSearching(false);
         currentSearchIdRef.current = null;
-        showNotification(t("common.error"), t("downloader.errors.searchFailed"), "error");
+        showNotification(
+          t("common.error"),
+          t("downloader.errors.searchFailed"),
+          "error",
+        );
       }
     }
   };
@@ -310,10 +369,20 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const parsedVideoQualities = getVideoQualityOptions(data.formats || []);
     setVideoQualityOptions(parsedVideoQualities);
 
-    const subOpts = createSubtitleOptions(data, config?.language || "en", t("downloader.languages.global"));
+    const subOpts = createSubtitleOptions(
+      data,
+      config?.language || "en",
+      t("downloader.languages.global"),
+    );
     setSubtitleOptions(subOpts);
-    const sLangs = data.subtitles_langs?.map((language) => language.trim()).filter(Boolean) || [];
-    const aLangs = data.auto_captions_langs?.map((language) => language.trim()).filter(Boolean) || [];
+    const sLangs =
+      data.subtitles_langs
+        ?.map((language) => language.trim())
+        .filter(Boolean) || [];
+    const aLangs =
+      data.auto_captions_langs
+        ?.map((language) => language.trim())
+        .filter(Boolean) || [];
     setMetaSubLangs(sLangs);
     setMetaAutoLangs(aLangs);
 
@@ -332,7 +401,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     setRangeEnd(100);
 
     const sourceUrl = data.webpage_url || pendingMetadataUrl || url;
-    const audioOnlySource = isAudioOnlySourceUrl(sourceUrl) || metadataHasOnlyAudioSources(data.formats);
+    const audioOnlySource =
+      isAudioOnlySourceUrl(sourceUrl) ||
+      metadataHasOnlyAudioSources(data.formats);
     setIsAudioOnlySource(audioOnlySource);
     const defaultMode = audioOnlySource ? "audio" : "video";
     setMode(defaultMode);
@@ -353,7 +424,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     }
   };
 
-  const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>(["Best"]);
+  const [videoQualityOptions, setVideoQualityOptions] = useState<string[]>([
+    "Best",
+  ]);
 
   const resetToZen = (nextUrl = "") => {
     setUrl(nextUrl);
@@ -434,7 +507,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         setMode(newMode);
 
         setSelectedFormat(d.format ? d.format.toUpperCase() : null);
-        setSelectedQuality((newMode === "video" ? d.video_quality : d.audio_quality) || null);
+        setSelectedQuality(
+          (newMode === "video" ? d.video_quality : d.audio_quality) || null,
+        );
         setVideoCodec(d.video_codec || "");
         setAudioCodec(d.audio_codec || "");
 
@@ -457,7 +532,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const handleRangeStartChange = (val: number) => {
     if (val > rangeEnd) {
       setRangeStart(rangeEnd);
-      if (duration > 0) setTimeStart(formatDuration(duration * (rangeEnd / 100)));
+      if (duration > 0)
+        setTimeStart(formatDuration(duration * (rangeEnd / 100)));
     } else {
       setRangeStart(val);
       if (duration > 0) setTimeStart(formatDuration(duration * (val / 100)));
@@ -468,7 +544,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
   const handleRangeEndChange = (val: number) => {
     if (val < rangeStart) {
       setRangeEnd(rangeStart);
-      if (duration > 0) setTimeEnd(formatDuration(duration * (rangeStart / 100)));
+      if (duration > 0)
+        setTimeEnd(formatDuration(duration * (rangeStart / 100)));
     } else {
       setRangeEnd(val);
       if (duration > 0) setTimeEnd(formatDuration(duration * (val / 100)));
@@ -483,7 +560,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     if (values.length === 3 && values[1] < 60 && values[2] < 60) {
       return values[0] * 3600 + values[1] * 60 + values[2];
     }
-    if (values.length === 2 && values[1] < 60) return values[0] * 60 + values[1];
+    if (values.length === 2 && values[1] < 60)
+      return values[0] * 60 + values[1];
     return Number.NaN;
   };
 
@@ -534,7 +612,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     if (raw) {
       if (/^https?:\/\//i.test(raw)) return raw;
       if (raw.startsWith("www.")) return `https://${raw}`;
-      if (/^[\w-]{11}$/.test(raw)) return `https://www.youtube.com/watch?v=${raw}`;
+      if (/^[\w-]{11}$/.test(raw))
+        return `https://www.youtube.com/watch?v=${raw}`;
       return raw;
     }
     const id = String(entry?.id || "").trim();
@@ -588,30 +667,64 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
 
   const buildDownloadPayload = () => {
     const isTimeRangeActive = !isPlaylist && (rangeStart > 0 || rangeEnd < 100);
-    const parsedArgs = config?.advanced_mode ? parseCustomArgsString(customArgs) : [];
-    const targetUrl = (metadata?.webpage_url || pendingMetadataUrl || url).trim();
-    const qualityHeight = mode === "video" ? Number.parseInt(selectedQuality || "", 10) : undefined;
-    const estimatedFormats = (metadata?.formats || []).filter((format) =>
-      !qualityHeight || !getFormatHeight(format) || getFormatHeight(format) <= qualityHeight
+    const parsedArgs = config?.advanced_mode
+      ? parseCustomArgsString(customArgs)
+      : [];
+    const targetUrl = (
+      metadata?.webpage_url ||
+      pendingMetadataUrl ||
+      url
+    ).trim();
+    const qualityHeight =
+      mode === "video" ? Number.parseInt(selectedQuality || "", 10) : undefined;
+    const estimatedFormats = (metadata?.formats || []).filter(
+      (format) =>
+        !qualityHeight ||
+        !getFormatHeight(format) ||
+        getFormatHeight(format) <= qualityHeight,
     );
-    const largestKnownSize = (formats: DownloaderFormat[]) => Math.max(0, ...formats.map((format) => Number(format.filesize || format.filesize_approx || 0)));
-    const estimatedBytes = mode === "audio"
-      ? largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)))
-      : largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.vcodec)))
-        + largestKnownSize(estimatedFormats.filter((format) => hasCodec(format.acodec) && !hasCodec(format.vcodec)));
+    const largestKnownSize = (formats: DownloaderFormat[]) =>
+      Math.max(
+        0,
+        ...formats.map((format) =>
+          Number(format.filesize || format.filesize_approx || 0),
+        ),
+      );
+    const estimatedBytes =
+      mode === "audio"
+        ? largestKnownSize(
+            estimatedFormats.filter(
+              (format) => hasCodec(format.acodec) && !hasCodec(format.vcodec),
+            ),
+          )
+        : largestKnownSize(
+            estimatedFormats.filter((format) => hasCodec(format.vcodec)),
+          ) +
+          largestKnownSize(
+            estimatedFormats.filter(
+              (format) => hasCodec(format.acodec) && !hasCodec(format.vcodec),
+            ),
+          );
     const preferredVideoCodec = videoCodec;
     const preferredAudioCodec = audioCodec;
-    const queueSourceCodecs = getQueueSourceCodecs(metadata?.formats, selectedQuality, mode === "audio");
+    const queueSourceCodecs = getQueueSourceCodecs(
+      metadata?.formats,
+      selectedQuality,
+      mode === "audio",
+    );
     const payload: DownloadPayload = {
       url: targetUrl,
       path: savePath.trim() || config.default_save_path.trim(),
-      ...(customFilename.trim() ? { custom_filename: customFilename.trim() } : {}),
+      ...(customFilename.trim()
+        ? { custom_filename: customFilename.trim() }
+        : {}),
       mode: mode,
       video_format: mode === "video" ? selectedFormat : null,
       video_quality: mode === "video" ? selectedQuality : null,
       audio_format: mode === "audio" ? selectedFormat : null,
       audio_quality: mode === "audio" ? selectedQuality : null,
-      video_codec: mode === "video" ? (preferredVideoCodec || undefined) : undefined,
+      video_codec:
+        mode === "video" ? preferredVideoCodec || undefined : undefined,
       audio_codec: preferredAudioCodec || undefined,
       display_video_codec: preferredVideoCodec || queueSourceCodecs.videoCodec,
       display_audio_codec: preferredAudioCodec || queueSourceCodecs.audioCodec,
@@ -628,13 +741,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       skip_sponsors: skipSponsors,
       embed_tags: embedMetadata,
       embed_thumbnail: thumbnailAction === "embed",
-      mute_audio: mode === "video" ? (isGifFormat || muteAudio) : false,
+      mute_audio: mode === "video" ? isGifFormat || muteAudio : false,
       download_subs: downloadSubs,
       download_chat: downloadChat,
       subs_code: subsLang.trim(),
       embed_subs: embedSubs,
       meta_sub_langs: metaSubLangs || [],
-      meta_auto_langs: metaAutoLangs || []
+      meta_auto_langs: metaAutoLangs || [],
     };
 
     if (payload.mute_audio) {
@@ -652,7 +765,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     return {
       title: metadata?.title || t("common.unknownTitle"),
       thumbnail: metadata?.thumbnail || "",
-      path: savePath.trim() || config.default_save_path.trim()
+      path: savePath.trim() || config.default_save_path.trim(),
     };
   };
 
@@ -684,7 +797,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const meta = currentMetaSnapshot();
 
     try {
-      await enqueue("download", payload, { ...meta, source: "download" }, { autoStart: true, startReason: "download" });
+      await enqueue(
+        "download",
+        payload,
+        { ...meta, source: "download" },
+        { autoStart: true, startReason: "download" },
+      );
       triggerAnimationOrb(sourceRect);
       resetToZen();
     } catch (error) {
@@ -700,7 +818,12 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
     const meta = currentMetaSnapshot();
 
     try {
-      await enqueue("download", payload, { ...meta, source: "queue" }, { autoStart: false });
+      await enqueue(
+        "download",
+        payload,
+        { ...meta, source: "queue" },
+        { autoStart: false },
+      );
       triggerAnimationOrb(sourceRect);
       resetToZen();
     } catch (error) {
@@ -716,21 +839,29 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
       await invoke("save_thumbnail_to_disk", { url: thumbUrl });
     } catch (e) {
       console.error("Failed to save thumbnail:", e);
-      showNotification(t("common.error"), t("downloader.thumbnail.saveFailed"), "error");
+      showNotification(
+        t("common.error"),
+        t("downloader.thumbnail.saveFailed"),
+        "error",
+      );
     }
   };
 
-  const isValid = !!(selectedFormat && selectedQuality && (savePath.trim().length > 0 || config.default_save_path.trim().length > 0));
+  const isValid = !!(
+    selectedFormat &&
+    selectedQuality &&
+    (savePath.trim().length > 0 || config.default_save_path.trim().length > 0)
+  );
 
   const formatsToRender = mode === "video" ? videoFormats : audioFormats;
-  const qualitiesToRender = mode === "video" ? videoQualityOptions : audioQualities;
+  const qualitiesToRender =
+    mode === "video" ? videoQualityOptions : audioQualities;
 
   const currentSource = detectSourceFromUrl(metadata?.webpage_url || url);
 
   return (
     <div className={`${styles.scope} page-root downloader-page`}>
       <div className="page-scroll app-scroll">
-
         <SearchPanel
           url={url}
           isDashboardVisible={isDashboardVisible}
@@ -752,7 +883,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
         />
 
         {/* Dashboard Section */}
-        <div id="dashboard-section" className={`dashboard-section ${isDashboardVisible ? "" : "hidden"}`}>
+        <div
+          id="dashboard-section"
+          className={`dashboard-section ${isDashboardVisible ? "" : "hidden"}`}
+        >
           {metadata && (
             <>
               <MetadataInfo
@@ -769,8 +903,15 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               {/* Presets List */}
               {downloaderPresets.length > 0 && (
                 <div className="preset-section fade-in" id="preset-section">
-                  <span className="option-label">{t("downloader.options.presets")}</span>
-                  <PresetGrid id="preset-grid" presets={downloaderPresets} activeId={activePresetId} onSelect={handlePresetClick} />
+                  <span className="option-label">
+                    {t("downloader.options.presets")}
+                  </span>
+                  <PresetGrid
+                    id="preset-grid"
+                    presets={downloaderPresets}
+                    activeId={activePresetId}
+                    onSelect={handlePresetClick}
+                  />
                 </div>
               )}
 
@@ -788,7 +929,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   }}
                   id="mode-video"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["video"]} /></svg>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <use href={ICON_ASSETS["video"]} />
+                  </svg>
                   <span>{t("common.mode.video")}</span>
                 </div>
                 <div
@@ -801,7 +949,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   }}
                   id="mode-audio"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["audio"]} /></svg>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <use href={ICON_ASSETS["audio"]} />
+                  </svg>
                   <span>{t("common.mode.audio")}</span>
                 </div>
               </div>
@@ -817,7 +972,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           key={format}
                           type="button"
                           className={`tile ${selectedFormat === format ? "active" : ""}`}
-                          onClick={() => { setSelectedFormat(format); clearActivePreset(); }}
+                          onClick={() => {
+                            setSelectedFormat(format);
+                            clearActivePreset();
+                          }}
                         >
                           <span>{format}</span>
                         </button>
@@ -832,7 +990,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           key={quality}
                           type="button"
                           className={`tile ${selectedQuality === quality ? "active" : ""}`}
-                          onClick={() => { setSelectedQuality(quality); clearActivePreset(); }}
+                          onClick={() => {
+                            setSelectedQuality(quality);
+                            clearActivePreset();
+                          }}
                         >
                           <span>{quality}</span>
                         </button>
@@ -869,7 +1030,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       onChange={(e) => handleTimeStartChange(e.target.value)}
                       onBlur={() => {
                         const secs = parseTimeToSeconds(timeStart);
-                        if (Number.isFinite(secs)) setTimeStart(formatDuration(secs));
+                        if (Number.isFinite(secs))
+                          setTimeStart(formatDuration(secs));
                       }}
                     />
                     <div className="slider-track-container">
@@ -879,7 +1041,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         id="range-fill"
                         style={{
                           left: `${rangeStart}%`,
-                          right: `${100 - rangeEnd}%`
+                          right: `${100 - rangeEnd}%`,
                         }}
                       ></div>
                       <input
@@ -888,7 +1050,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         min="0"
                         max="100"
                         value={rangeStart}
-                        onChange={(e) => handleRangeStartChange(Number(e.target.value))}
+                        onChange={(e) =>
+                          handleRangeStartChange(Number(e.target.value))
+                        }
                       />
                       <input
                         type="range"
@@ -896,7 +1060,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         min="0"
                         max="100"
                         value={rangeEnd}
-                        onChange={(e) => handleRangeEndChange(Number(e.target.value))}
+                        onChange={(e) =>
+                          handleRangeEndChange(Number(e.target.value))
+                        }
                       />
                     </div>
                     <input
@@ -907,7 +1073,8 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       onChange={(e) => handleTimeEndChange(e.target.value)}
                       onBlur={() => {
                         const secs = parseTimeToSeconds(timeEnd);
-                        if (Number.isFinite(secs)) setTimeEnd(formatDuration(secs));
+                        if (Number.isFinite(secs))
+                          setTimeEnd(formatDuration(secs));
                       }}
                     />
                   </div>
@@ -917,12 +1084,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
               {/* Options group (Thumbnail, subtitles, sponsors, metadata, advanced) */}
               <div className="extras-section fade-in">
                 <div className="thumb-container">
-                  <span className="option-label">{t("downloader.options.thumbnail")}</span>
+                  <span className="option-label">
+                    {t("downloader.options.thumbnail")}
+                  </span>
                   <div className="thumb-preview">
                     {metadata.thumbnail ? (
-                      <img src={metadata.thumbnail} alt=""/>
+                      <img src={metadata.thumbnail} alt="" />
                     ) : (
-                      <span className="placeholder">{t("downloader.thumbnail.noPreview")}</span>
+                      <span className="placeholder">
+                        {t("downloader.thumbnail.noPreview")}
+                      </span>
                     )}
                   </div>
                   <div className="thumb-actions">
@@ -934,14 +1105,28 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       }}
                       title={t("downloader.thumbnail.none")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["thumbnail-none"]} /></svg>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <use href={ICON_ASSETS["thumbnail-none"]} />
+                      </svg>
                     </button>
                     <button
                       className="icon-btn-small"
                       onClick={saveThumbnail}
                       title={t("downloader.thumbnail.saveToFile")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["download-arrow"]} /></svg>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <use href={ICON_ASSETS["download-arrow"]} />
+                      </svg>
                     </button>
                     <button
                       className={`icon-btn-small ${thumbnailAction === "embed" ? "active" : ""}`}
@@ -951,13 +1136,22 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       }}
                       title={t("downloader.thumbnail.embedInVideo")}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["image"]} /></svg>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <use href={ICON_ASSETS["image"]} />
+                      </svg>
                     </button>
                   </div>
                 </div>
 
                 <div className="option-group">
-                  <span className="option-label">{t("downloader.options.other")}</span>
+                  <span className="option-label">
+                    {t("downloader.options.other")}
+                  </span>
                   <div className="form-row">
                     <ToggleSwitch
                       id="skip-sponsors-toggle"
@@ -967,7 +1161,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("common.skipSponsors")}</span>
+                    <span className="toggle-text">
+                      {t("common.skipSponsors")}
+                    </span>
                   </div>
                   <div className="form-row">
                     <ToggleSwitch
@@ -978,7 +1174,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     />
-                    <span className="toggle-text">{t("common.embedMetadata")}</span>
+                    <span className="toggle-text">
+                      {t("common.embedMetadata")}
+                    </span>
                   </div>
                   {mode === "video" && (
                     <div className="form-row video-only">
@@ -991,17 +1189,23 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                           clearActivePreset();
                         }}
                       />
-                      <span className="toggle-text">{t("common.muteAudio")}</span>
+                      <span className="toggle-text">
+                        {t("common.muteAudio")}
+                      </span>
                     </div>
                   )}
                   {!!config?.advanced_mode && (
                     <div className="form-row advanced-only">
-                      <span className="toggle-text">{t("downloader.options.customArgs")}</span>
+                      <span className="toggle-text">
+                        {t("downloader.options.customArgs")}
+                      </span>
                       <input
                         type="text"
                         id="custom-args-input"
                         className="custom-args-input"
-                        placeholder={t("downloader.options.customArgsPlaceholder")}
+                        placeholder={t(
+                          "downloader.options.customArgsPlaceholder",
+                        )}
                         value={customArgs}
                         onChange={(e) => setCustomArgs(e.target.value)}
                         autoComplete="off"
@@ -1010,10 +1214,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   )}
                 </div>
 
-                <div className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`} style={{ alignItems: "flex-start" }}>
-                  <span className="option-label">{t("downloader.options.subtitles")}</span>
+                <div
+                  className={`option-group subtitles-group ${!subtitlesAvailable ? "hidden" : ""}`}
+                  style={{ alignItems: "flex-start" }}
+                >
+                  <span className="option-label">
+                    {t("downloader.options.subtitles")}
+                  </span>
                   <div className="form-row subtitles-row">
-                    <span className="toggle-text">{t("common.downloadSubtitles")}</span>
+                    <span className="toggle-text">
+                      {t("common.downloadSubtitles")}
+                    </span>
                     <ToggleSwitch
                       id="subs-toggle"
                       checked={downloadSubs}
@@ -1026,9 +1237,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </div>
 
                   {/* Live Chat Download */}
-                  {subtitleOptions.some((s) => s.code.toLowerCase() === "live_chat") && (
-                    <div className={`form-row live-chat-row ${downloadSubs ? "" : "hidden"}`} id="live-chat-row">
-                      <span className="toggle-text">{t("downloader.options.downloadLiveChat")}</span>
+                  {subtitleOptions.some(
+                    (s) => s.code.toLowerCase() === "live_chat",
+                  ) && (
+                    <div
+                      className={`form-row live-chat-row ${downloadSubs ? "" : "hidden"}`}
+                      id="live-chat-row"
+                    >
+                      <span className="toggle-text">
+                        {t("downloader.options.downloadLiveChat")}
+                      </span>
                       <ToggleSwitch
                         id="chat-toggle"
                         checked={downloadChat}
@@ -1038,8 +1256,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   )}
 
                   {/* Embed Subtitles */}
-                  <div className={`form-row embed-subs-row ${downloadSubs ? "visible" : ""}`} id="embed-subs-row">
-                    <span className="toggle-text">{t("common.embedSubtitles")}</span>
+                  <div
+                    className={`form-row embed-subs-row ${downloadSubs ? "visible" : ""}`}
+                    id="embed-subs-row"
+                  >
+                    <span className="toggle-text">
+                      {t("common.embedSubtitles")}
+                    </span>
                     <ToggleSwitch
                       id="embed-subs-toggle"
                       checked={embedSubs}
@@ -1051,7 +1274,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   </div>
 
                   {/* Language field */}
-                  <div id="lang-wrapper" className={`lang-input-wrapper ${downloadSubs ? "visible" : ""}`}>
+                  <div
+                    id="lang-wrapper"
+                    className={`lang-input-wrapper ${downloadSubs ? "visible" : ""}`}
+                  >
                     <input
                       type="text"
                       className="lang-input"
@@ -1059,14 +1285,19 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                       value={subsLang}
                       onChange={(e) => setSubsLang(e.target.value)}
                       onFocus={() => setShowLangSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowLangSuggestions(false), 200)}
+                      onBlur={() =>
+                        setTimeout(() => setShowLangSuggestions(false), 200)
+                      }
                       id="subs-lang"
                       autoComplete="off"
                     />
 
                     {/* Suggestions list */}
                     {showLangSuggestions && langSuggestions.length > 0 && (
-                      <div className="lang-suggestions visible" id="subs-lang-suggestions">
+                      <div
+                        className="lang-suggestions visible"
+                        id="subs-lang-suggestions"
+                      >
                         {langSuggestions.slice(0, 8).map((entry) => (
                           <div
                             key={entry.code}
@@ -1085,11 +1316,18 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 </div>
 
                 {/* Codecs settings */}
-                <div className="option-group codecs-group" style={{ alignItems: "flex-end" }}>
-                  <span className="option-label">{t("downloader.options.codecs")}</span>
+                <div
+                  className="option-group codecs-group"
+                  style={{ alignItems: "flex-end" }}
+                >
+                  <span className="option-label">
+                    {t("downloader.options.codecs")}
+                  </span>
                   {mode === "video" && (
                     <div className="form-row">
-                      <span className="toggle-text">{t("common.videoCodec")}</span>
+                      <span className="toggle-text">
+                        {t("common.videoCodec")}
+                      </span>
                       <CustomSelect
                         options={downloaderVideoCodecOptions}
                         value={displayedVideoCodec}
@@ -1105,7 +1343,9 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                     className={`form-row audio-codec-row ${showAudioCodec ? "visible" : ""}`}
                     aria-hidden={!showAudioCodec}
                   >
-                    <span className="toggle-text">{t("common.audioCodec")}</span>
+                    <span className="toggle-text">
+                      {t("common.audioCodec")}
+                    </span>
                     <CustomSelect
                       options={downloaderAudioCodecOptions}
                       value={displayedAudioCodec}
@@ -1120,24 +1360,84 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                 </div>
               </div>
 
-              <section key={`${metadata?.webpage_url || "properties"}-${isDashboardVisible}`} className="downloader-properties fade-in">
+              <section
+                key={`${metadata?.webpage_url || "properties"}-${isDashboardVisible}`}
+                className="downloader-properties fade-in"
+              >
                 <h3>{t("downloader.options.properties")}</h3>
-                {mode === "video" && <label className="downloader-property-field">
-                  <span>{t("common.videoBitrate")}</span>
-                  <input className="custom-input" type="text" inputMode="numeric" value={videoBitrate} onChange={(e) => { setVideoBitrate(sanitizeBitrateInput(e.target.value, 100000)); clearActivePreset(); }} placeholder={t("common.auto")} />
-                </label>}
-                {mode === "video" && <label className="downloader-property-field">
-                  <span>{t("common.fps")}</span>
-                  <CustomSelect options={[{ value: "", label: t("common.auto") }, { value: "60", label: "60" }, { value: "30", label: "30" }, { value: "24", label: "24" }]} value={videoFps} onChange={(value) => { setVideoFps(value); clearActivePreset(); }} />
-                </label>}
-                {showAudioCodec && <label className="downloader-property-field">
-                  <span>{t("common.audioSampleRate")}</span>
-                  <CustomSelect options={[{ value: "", label: t("common.auto") }, { value: "32000", label: "32000" }, { value: "44100", label: "44100" }, { value: "48000", label: "48000" }, { value: "96000", label: "96000" }]} value={audioSampleRate} onChange={(value) => { setAudioSampleRate(value); clearActivePreset(); }} />
-                </label>}
-                {showAudioCodec && <label className="downloader-property-field">
-                  <span>{t("common.audioBitrate")}</span>
-                  <input className="custom-input" type="text" inputMode="numeric" value={audioBitrate} onChange={(e) => { setAudioBitrate(sanitizeBitrateInput(e.target.value, 1000)); clearActivePreset(); }} placeholder={t("common.auto")} />
-                </label>}
+                {mode === "video" && (
+                  <label className="downloader-property-field">
+                    <span>{t("common.videoBitrate")}</span>
+                    <input
+                      className="custom-input"
+                      type="text"
+                      inputMode="numeric"
+                      value={videoBitrate}
+                      onChange={(e) => {
+                        setVideoBitrate(
+                          sanitizeBitrateInput(e.target.value, 100000),
+                        );
+                        clearActivePreset();
+                      }}
+                      placeholder={t("common.auto")}
+                    />
+                  </label>
+                )}
+                {mode === "video" && (
+                  <label className="downloader-property-field">
+                    <span>{t("common.fps")}</span>
+                    <CustomSelect
+                      options={[
+                        { value: "", label: t("common.auto") },
+                        { value: "60", label: "60" },
+                        { value: "30", label: "30" },
+                        { value: "24", label: "24" },
+                      ]}
+                      value={videoFps}
+                      onChange={(value) => {
+                        setVideoFps(value);
+                        clearActivePreset();
+                      }}
+                    />
+                  </label>
+                )}
+                {showAudioCodec && (
+                  <label className="downloader-property-field">
+                    <span>{t("common.audioSampleRate")}</span>
+                    <CustomSelect
+                      options={[
+                        { value: "", label: t("common.auto") },
+                        { value: "32000", label: "32000" },
+                        { value: "44100", label: "44100" },
+                        { value: "48000", label: "48000" },
+                        { value: "96000", label: "96000" },
+                      ]}
+                      value={audioSampleRate}
+                      onChange={(value) => {
+                        setAudioSampleRate(value);
+                        clearActivePreset();
+                      }}
+                    />
+                  </label>
+                )}
+                {showAudioCodec && (
+                  <label className="downloader-property-field">
+                    <span>{t("common.audioBitrate")}</span>
+                    <input
+                      className="custom-input"
+                      type="text"
+                      inputMode="numeric"
+                      value={audioBitrate}
+                      onChange={(e) => {
+                        setAudioBitrate(
+                          sanitizeBitrateInput(e.target.value, 1000),
+                        );
+                        clearActivePreset();
+                      }}
+                      placeholder={t("common.auto")}
+                    />
+                  </label>
+                )}
               </section>
 
               {/* Action Footer */}
@@ -1148,7 +1448,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={handleDownload}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["download-arrow"]} /></svg>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <use href={ICON_ASSETS["download-arrow"]} />
+                  </svg>
                   <span>{t("downloader.actions.download")}</span>
                 </button>
                 <button
@@ -1157,7 +1466,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={handleAddToQueue}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["add-to-queue"]} /></svg>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <use href={ICON_ASSETS["add-to-queue"]} />
+                  </svg>
                   <span>{t("common.addToQueue")}</span>
                 </button>
               </div>
@@ -1174,7 +1492,6 @@ export const Downloader: React.FC<DownloaderProps> = ({ active = true }) => {
           resolveResultUrl={resolveResultUrl}
           onSelect={handleSelectSearchResult}
         />
-
       </div>
     </div>
   );

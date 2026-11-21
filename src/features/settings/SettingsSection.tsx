@@ -7,7 +7,11 @@ interface SettingsSectionProps {
   className?: string;
 }
 
-export const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children, className = "" }) => (
+export const SettingsSection: React.FC<SettingsSectionProps> = ({
+  title,
+  children,
+  className = "",
+}) => (
   <section className={`${styles.card} settings-section-card ${className}`}>
     <div className={`${styles.title} settings-section-title`}>{title}</div>
     {children}

@@ -1,5 +1,5 @@
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager};
 
 use crate::app::config::ConfigManager;
 use crate::features::downloads::BridgeState;
@@ -30,31 +30,33 @@ fn resolve_task_id(client_task_id: Option<String>) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn fetch_metadata_downloader(
+pub async fn fetch_metadata_downloader(
     app_handle: AppHandle,
-    state: State<BridgeState>,
-    config_mgr: State<ConfigManager>,
     url: String,
     client_task_id: Option<String>,
 ) -> Result<String, String> {
-    let trimmed_url = url.trim();
+    let trimmed_url = url.trim().to_string();
     if trimmed_url.is_empty() {
         return Err("URL cannot be empty".to_string());
     }
 
     let task_id = resolve_task_id(client_task_id)?;
 
-    let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
     crate::infrastructure::platform::append_js_runtime_args(&mut args);
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
     {
-        args.push("--cookies-from-browser".to_string());
-        args.push(config.cookies_browser.to_lowercase());
+        let config_mgr = app_handle.state::<ConfigManager>();
+        let config = config_mgr.config.lock().unwrap();
+        if config.cookies_browser.to_lowercase() != "none"
+            && !config.cookies_browser.trim().is_empty()
+        {
+            args.push("--cookies-from-browser".to_string());
+            args.push(config.cookies_browser.to_lowercase());
+        }
     }
 
-    args.push(trimmed_url.to_string());
+    args.push(trimmed_url);
 
     let cmd = BridgeCommand {
         command: "metadata_d".to_string(),
@@ -62,20 +64,22 @@ pub fn fetch_metadata_downloader(
         args,
     };
 
-    drop(config);
-    state.send_raw_command(&app_handle, &cmd)?;
-
-    Ok(task_id)
+    tokio::task::spawn_blocking(move || {
+        let state = app_handle.state::<BridgeState>();
+        state.send_raw_command(&app_handle, &cmd)?;
+        Ok(task_id)
+    })
+    .await
+    .map_err(|e| format!("Metadata task failed: {e}"))?
 }
 
 #[tauri::command]
-pub fn fetch_metadata_converter(
+pub async fn fetch_metadata_converter(
     app_handle: AppHandle,
-    state: State<BridgeState>,
     path: String,
     client_task_id: Option<String>,
 ) -> Result<String, String> {
-    let trimmed_path = path.trim();
+    let trimmed_path = path.trim().to_string();
     if trimmed_path.is_empty() {
         return Err("Path cannot be empty".to_string());
     }
@@ -85,44 +89,46 @@ pub fn fetch_metadata_converter(
     let cmd = BridgeCommand {
         command: "metadata_c".to_string(),
         id: task_id.clone(),
-        args: vec![trimmed_path.to_string()],
+        args: vec![trimmed_path],
     };
 
-    state.send_raw_command(&app_handle, &cmd)?;
-
-    Ok(task_id)
+    tokio::task::spawn_blocking(move || {
+        let state = app_handle.state::<BridgeState>();
+        state.send_raw_command(&app_handle, &cmd)?;
+        Ok(task_id)
+    })
+    .await
+    .map_err(|e| format!("Metadata task failed: {e}"))?
 }
 
 #[tauri::command]
-pub fn search(
+pub async fn search(
     app_handle: AppHandle,
-    state: State<BridgeState>,
-    config_mgr: State<ConfigManager>,
     query: String,
     prefix: Option<String>,
 ) -> Result<String, String> {
-    let trimmed_query = query.trim();
+    let trimmed_query = query.trim().to_string();
     if trimmed_query.is_empty() {
         return Err("Query cannot be empty".to_string());
     }
 
-    let task_id = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|e| e.to_string())?
-        .as_millis()
-        .to_string();
+    let task_id = build_task_id()?;
 
-    let config = config_mgr.config.lock().unwrap();
     let mut args: Vec<String> = Vec::new();
     crate::infrastructure::platform::append_js_runtime_args(&mut args);
 
-    if config.cookies_browser.to_lowercase() != "none" && !config.cookies_browser.trim().is_empty()
-    {
-        args.push("--cookies-from-browser".to_string());
-        args.push(config.cookies_browser.to_lowercase());
-    }
+    let max_results = {
+        let config_mgr = app_handle.state::<ConfigManager>();
+        let config = config_mgr.config.lock().unwrap();
+        if config.cookies_browser.to_lowercase() != "none"
+            && !config.cookies_browser.trim().is_empty()
+        {
+            args.push("--cookies-from-browser".to_string());
+            args.push(config.cookies_browser.to_lowercase());
+        }
+        config.maximum_search_results.clamp(1, 50)
+    };
 
-    let max_results = config.maximum_search_results.clamp(1, 50);
     let normalized = prefix.unwrap_or_default().to_lowercase();
     // Strip trailing digits so user-provided prefix still respects current max_results.
     let base_prefix = normalized.trim_end_matches(|c: char| c.is_ascii_digit());
@@ -140,8 +146,11 @@ pub fn search(
         args,
     };
 
-    drop(config);
-    state.send_raw_command(&app_handle, &cmd)?;
-
-    Ok(task_id)
+    tokio::task::spawn_blocking(move || {
+        let state = app_handle.state::<BridgeState>();
+        state.send_raw_command(&app_handle, &cmd)?;
+        Ok(task_id)
+    })
+    .await
+    .map_err(|e| format!("Search task failed: {e}"))?
 }

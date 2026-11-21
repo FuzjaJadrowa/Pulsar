@@ -39,10 +39,18 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   onProviderChange,
 }) => {
   const { t } = useTranslation();
-  const showProviderPanel = !isDashboardVisible && !isSearchMode && !isSearching && url.trim().length > 0 && isSearchQuery;
+  const showProviderPanel =
+    !isDashboardVisible &&
+    !isSearchMode &&
+    !isSearching &&
+    url.trim().length > 0 &&
+    isSearchQuery;
 
   return (
-    <div id="search-section" className={`search-section ${!isDashboardVisible && !isSearchMode ? "centered" : "sticky"} ${showProviderPanel ? "has-provider-panel" : ""}`}>
+    <div
+      id="search-section"
+      className={`search-section ${!isDashboardVisible && !isSearchMode ? "centered" : "sticky"} ${showProviderPanel ? "has-provider-panel" : ""}`}
+    >
       <div className="search-box-row">
         <input
           type="text"
@@ -68,7 +76,18 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           tabIndex={0}
           onClick={onPaste}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS.search} /></svg>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <use href={ICON_ASSETS.search} />
+          </svg>
         </span>
         {(hasMetadata || isSearchMode) && (
           <button
@@ -79,7 +98,18 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             aria-label={t("common.clearSelection")}
             onClick={onClear}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><use href={ICON_ASSETS["window-close"]} /></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <use href={ICON_ASSETS["window-close"]} />
+            </svg>
           </button>
         )}
         <button
@@ -89,9 +119,32 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           disabled={isAnalyzing || isSearching}
         >
           {isAnalyzing || isSearching ? (
-            <svg className="btn-spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["loading-spinner"]} /></svg>
+            <svg
+              className="btn-spinner-icon"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <use href={ICON_ASSETS["loading-spinner"]} />
+            </svg>
           ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["clear-selection"]} /></svg>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <use href={ICON_ASSETS["clear-selection"]} />
+            </svg>
           )}
         </button>
       </div>
@@ -101,18 +154,41 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
         className={`${styles.providerPanel} ${showProviderPanel ? styles.visible : ""}`}
         aria-hidden={!showProviderPanel}
       >
-        <span className={styles.providerLabel}>{t("downloader.search.providerLabel")}</span>
+        <span className={styles.providerLabel}>
+          {t("downloader.search.providerLabel")}
+        </span>
         <div className={styles.providerButtons}>
-          <button type="button" className={`${styles.providerButton} ${provider === "ytsearch" ? styles.active : ""}`} onClick={() => onProviderChange("ytsearch")}>
-            <SourceIcon source="youtube" className="provider-icon youtube-icon" />
+          <button
+            type="button"
+            className={`${styles.providerButton} ${provider === "ytsearch" ? styles.active : ""}`}
+            onClick={() => onProviderChange("ytsearch")}
+          >
+            <SourceIcon
+              source="youtube"
+              className="provider-icon youtube-icon"
+            />
             <span>YouTube</span>
           </button>
-          <button type="button" className={`${styles.providerButton} ${provider === "ytmsearch" ? styles.active : ""}`} onClick={() => onProviderChange("ytmsearch")}>
-            <SourceIcon source="ytmusic" className="provider-icon ytmusic-icon" />
+          <button
+            type="button"
+            className={`${styles.providerButton} ${provider === "ytmsearch" ? styles.active : ""}`}
+            onClick={() => onProviderChange("ytmsearch")}
+          >
+            <SourceIcon
+              source="ytmusic"
+              className="provider-icon ytmusic-icon"
+            />
             <span>YouTube Music</span>
           </button>
-          <button type="button" className={`${styles.providerButton} ${provider === "scsearch" ? styles.active : ""}`} onClick={() => onProviderChange("scsearch")}>
-            <SourceIcon source="soundcloud" className="provider-icon soundcloud-icon" />
+          <button
+            type="button"
+            className={`${styles.providerButton} ${provider === "scsearch" ? styles.active : ""}`}
+            onClick={() => onProviderChange("scsearch")}
+          >
+            <SourceIcon
+              source="soundcloud"
+              className="provider-icon soundcloud-icon"
+            />
             <span>SoundCloud</span>
           </button>
         </div>

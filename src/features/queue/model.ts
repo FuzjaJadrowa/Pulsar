@@ -18,22 +18,41 @@ export function parseProgressValue(value: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent): QueueEventChanges {
-  const changes: QueueEventChanges = { progressUpdated: false, cancelled: false, finished: false };
+export function applyQueueEventToItem(
+  item: QueueItem,
+  event: QueueBridgeEvent,
+): QueueEventChanges {
+  const changes: QueueEventChanges = {
+    progressUpdated: false,
+    cancelled: false,
+    finished: false,
+  };
   if (!event.type || event.type === "metadata") return changes;
 
-  const eventPath = event.filepath || event.path || event.output_path || event.filename;
-  if (typeof eventPath === "string" && eventPath.trim()) item.path = eventPath.trim();
+  const eventPath =
+    event.filepath || event.path || event.output_path || event.filename;
+  if (typeof eventPath === "string" && eventPath.trim())
+    item.path = eventPath.trim();
 
-  if (event.type === "progress" || event.type === "progress_ffmpeg" || event.percent !== undefined || event.progress !== undefined) {
-    if (event.stage || event.status) item.stage = String(event.stage || event.status);
-    const progressValue = event.percent !== undefined
-      ? event.percent
-      : event.progress !== undefined
-        ? event.progress
-        : event.percentage;
+  if (
+    event.type === "progress" ||
+    event.type === "progress_ffmpeg" ||
+    event.percent !== undefined ||
+    event.progress !== undefined
+  ) {
+    if (event.stage || event.status)
+      item.stage = String(event.stage || event.status);
+    const progressValue =
+      event.percent !== undefined
+        ? event.percent
+        : event.progress !== undefined
+          ? event.progress
+          : event.percentage;
     if (progressValue !== undefined) {
-      item.progress = Math.min(Math.max(parseProgressValue(progressValue), 0), 100);
+      item.progress = Math.min(
+        Math.max(parseProgressValue(progressValue), 0),
+        100,
+      );
     }
 
     if (event.eta_seconds !== undefined) {
@@ -41,7 +60,8 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
       const hours = Math.floor(total / 3600);
       const minutes = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
       const seconds = String(total % 60).padStart(2, "0");
-      item.eta = hours > 0 ? `${hours}:${minutes}:${seconds}` : `${minutes}:${seconds}`;
+      item.eta =
+        hours > 0 ? `${hours}:${minutes}:${seconds}` : `${minutes}:${seconds}`;
     } else if (event.eta !== undefined) {
       item.eta = String(event.eta);
     }
@@ -78,11 +98,17 @@ export function applyQueueEventToItem(item: QueueItem, event: QueueBridgeEvent):
   return changes;
 }
 
-export function restoreQueueItems(rawItems: unknown, unknownTitle: string): QueueItem[] {
+export function restoreQueueItems(
+  rawItems: unknown,
+  unknownTitle: string,
+): QueueItem[] {
   if (!Array.isArray(rawItems)) return [];
 
   return rawItems.map((value: unknown) => {
-    const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};
+    const raw =
+      value && typeof value === "object"
+        ? (value as Record<string, unknown>)
+        : {};
     const interrupted = raw.status === "downloading";
     const itemType = raw.itemType ?? raw.item_type;
     const status = raw.status;
@@ -90,25 +116,36 @@ export function restoreQueueItems(rawItems: unknown, unknownTitle: string): Queu
 
     return {
       id: String(raw.id || Math.random().toString(36).substring(2, 9)),
-      itemType: typeof itemType === "string" && ["download", "convert", "compress"].includes(itemType)
-        ? itemType as QueueItem["itemType"]
-        : "download",
+      itemType:
+        typeof itemType === "string" &&
+        ["download", "convert", "compress"].includes(itemType)
+          ? (itemType as QueueItem["itemType"])
+          : "download",
       title: String(raw.title || unknownTitle),
       thumbnail: String(raw.thumbnail || ""),
-      status: interrupted ? "pending" : ["pending", "failed", "completed"].includes(String(status))
-        ? status as QueueItem["status"]
-        : "pending",
-      progress: interrupted || !Number.isFinite(progress) ? 0 : Math.min(Math.max(progress, 0), 100),
+      status: interrupted
+        ? "pending"
+        : ["pending", "failed", "completed"].includes(String(status))
+          ? (status as QueueItem["status"])
+          : "pending",
+      progress:
+        interrupted || !Number.isFinite(progress)
+          ? 0
+          : Math.min(Math.max(progress, 0), 100),
       eta: String(raw.eta || "--"),
       stage: String(raw.stage || ""),
       listProgress: null,
       addedAt: Number(raw.addedAt ?? raw.added_at) || Date.now(),
-      payload: raw.payload && typeof raw.payload === "object" ? raw.payload as QueueItemPayload : {},
+      payload:
+        raw.payload && typeof raw.payload === "object"
+          ? (raw.payload as QueueItemPayload)
+          : {},
       path: String(raw.path || ""),
       taskId: null,
       skippedByStop: Boolean(raw.skippedByStop ?? raw.skipped_by_stop),
       startReason: null,
-      pendingStartReason: raw.pendingStartReason || raw.pending_start_reason || null,
+      pendingStartReason:
+        raw.pendingStartReason || raw.pending_start_reason || null,
       source: String(raw.source || "queue"),
     } as QueueItem;
   });

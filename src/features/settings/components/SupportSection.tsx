@@ -6,7 +6,9 @@ import { SettingsSection } from "../SettingsSection";
 export const SupportSection: React.FC = () => {
   const { t } = useTranslation();
   const handleSupportClick = () => {
-    invoke("open_in_file_manager", { path: "https://ko-fi.com/fuzjajadrowa" }).catch(() => {
+    invoke("open_in_file_manager", {
+      path: "https://ko-fi.com/fuzjajadrowa",
+    }).catch(() => {
       window.open("https://ko-fi.com/fuzjajadrowa", "_blank");
     });
   };
@@ -18,7 +20,11 @@ export const SupportSection: React.FC = () => {
         <button
           className="anim-btn"
           onClick={handleSupportClick}
-          style={{ background: "#E91E63", color: "white", padding: "10px 20px" }}
+          style={{
+            background: "#E91E63",
+            color: "white",
+            padding: "10px 20px",
+          }}
         >
           <span>{t("settings.supportButton")}</span>
         </button>

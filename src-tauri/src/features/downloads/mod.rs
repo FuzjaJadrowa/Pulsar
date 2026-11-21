@@ -7,7 +7,7 @@ pub use crate::infrastructure::bridge::{
     is_terminal_event, terminal_event_succeeded, BridgeCommand, BridgeState,
 };
 use serde::Deserialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager};
 
 fn parse_quality_limits(value: Option<&str>) -> (Option<u32>, Option<u32>) {
     let Some((height, fps)) = value.unwrap_or_default().trim().split_once('p') else {
@@ -39,60 +39,24 @@ fn parse_sample_rate(value: Option<&str>) -> Option<u32> {
 fn download_video_encoder(
     requested: &str,
     format: &str,
-    config: &crate::app::config::AppConfig,
+    config_mgr: &ConfigManager,
     ffmpeg_path: &std::path::Path,
 ) -> Result<String, String> {
-    let codec_key = if requested.is_empty() || requested.eq_ignore_ascii_case("auto") {
-        match format.to_ascii_lowercase().as_str() {
-            "webm" => "vp9",
-            "ogv" => "theora",
-            "gif" => "gif",
-            "prores" => "prores",
-            _ => "h264",
-        }
-    } else {
-        requested
-    };
-    let hwaccel = if config.ffmpeg_hwaccel == "none" || config.ffmpeg_hwaccel == "false" {
-        None
-    } else if config.ffmpeg_hwaccel_preferred != "auto"
-        && config
-            .ffmpeg_hwaccels
-            .iter()
-            .any(|candidate| candidate == &config.ffmpeg_hwaccel_preferred)
-    {
-        Some(config.ffmpeg_hwaccel_preferred.as_str())
-    } else {
-        config.ffmpeg_hwaccels.first().map(String::as_str)
-    };
-    let software = crate::infrastructure::ffmpeg::codecs::map_video_codec(codec_key);
-    let Some(accel) = hwaccel else {
-        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
-            ffmpeg_path,
-            &["-c:v".to_string(), software.clone()],
-        )?;
-        return Ok(software);
-    };
-    let hardware = crate::infrastructure::ffmpeg::codecs::map_video_codec_hw(codec_key, accel);
-    if hardware == software {
-        crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
-            ffmpeg_path,
-            &["-c:v".to_string(), software.clone()],
-        )?;
-        return Ok(software);
-    }
-    let selected = if crate::infrastructure::ffmpeg::codecs::ffmpeg_encoder_smoke_test(
-        ffmpeg_path, &hardware,
-    ) {
-        hardware
-    } else {
-        software
-    };
+    let hwaccel = crate::system::acceleration::ensure_hwaccel_for_task(config_mgr, ffmpeg_path);
+    // yt-dlp postprocessor-args only control output arguments (`ffmpeg_o`), so
+    // VAAPI (which requires pre-input `-vaapi_device` + `hwupload`) stays on software.
+    let resolved = crate::infrastructure::ffmpeg::hwaccel::resolve_video_encoder(
+        ffmpeg_path,
+        format,
+        Some(requested),
+        hwaccel.as_deref(),
+        false,
+    );
     crate::infrastructure::ffmpeg::codecs::validate_ffmpeg_encoders(
         ffmpeg_path,
-        &["-c:v".to_string(), selected.clone()],
+        &["-c:v".to_string(), resolved.encoder.clone()],
     )?;
-    Ok(selected)
+    Ok(resolved.encoder)
 }
 
 fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> String {
@@ -137,8 +101,13 @@ fn video_format_selector(height: Option<u32>, fps: Option<u32>, gif: bool) -> St
 }
 
 #[tauri::command]
-pub fn init_bridge(app_handle: AppHandle, state: State<BridgeState>) -> Result<(), String> {
-    state.init(&app_handle)
+pub async fn init_bridge(app_handle: AppHandle) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        let state = app_handle.state::<BridgeState>();
+        state.init(&app_handle)
+    })
+    .await
+    .map_err(|error| format!("Bridge initialization task failed: {error}"))?
 }
 
 #[derive(Deserialize, Debug)]
@@ -205,13 +174,16 @@ pub struct DownloadOptions {
     client_task_id: Option<String>,
 }
 
-#[tauri::command]
-pub fn start_download(
-    app_handle: AppHandle,
-    state: State<BridgeState>,
-    config_mgr: State<ConfigManager>,
+struct PreparedDownloadCommand {
+    task_id: String,
+    ffmpeg_range_seconds: Option<f64>,
+    cmd: BridgeCommand,
+}
+
+fn prepare_download_command(
+    config_mgr: &ConfigManager,
     options: DownloadOptions,
-) -> Result<String, String> {
+) -> Result<PreparedDownloadCommand, String> {
     println!("Received download request: {:?}", options);
 
     let task_id = options
@@ -242,7 +214,7 @@ pub fn start_download(
         || options.audio_bitrate.is_some()
         || options.video_fps.is_some()
         || options.audio_sample_rate.is_some();
-    let config = config_mgr.config.lock().unwrap();
+    let config = config_mgr.config.lock().unwrap().clone();
     let mut effective_options = options;
     let format_id = if effective_options.mode == "audio" {
         effective_options.audio_format.as_deref()
@@ -314,14 +286,11 @@ pub fn start_download(
     let use_ffmpeg_direct_conversion = options.prefer_ffmpeg_while_converting
         && conversion_requested
         && direct_ffmpeg_features_supported
-        && options
-            .custom_args
-            .as_deref()
-            .map_or(true, |custom_args| {
-                custom_args
-                    .iter()
-                    .all(|arg| arg.trim().is_empty() || arg.trim() == "--")
-            });
+        && options.custom_args.as_deref().map_or(true, |custom_args| {
+            custom_args
+                .iter()
+                .all(|arg| arg.trim().is_empty() || arg.trim() == "--")
+        });
     if options.prefer_ffmpeg_while_downloading && !use_ffmpeg_direct_conversion {
         args.extend(["--downloader".to_string(), "ffmpeg".to_string()]);
     }
@@ -488,7 +457,7 @@ pub fn start_download(
                 args.extend(["--merge-output-format".to_string(), fmt.clone()]);
                 args.extend(["--recode-video".to_string(), fmt.clone()]);
                 let video_codec =
-                    download_video_encoder(requested_video_codec, &fmt, &config, &ffmpeg_path)?;
+                    download_video_encoder(requested_video_codec, &fmt, config_mgr, &ffmpeg_path)?;
                 let audio_codec = if requested_audio_codec.is_empty()
                     || requested_audio_codec.eq_ignore_ascii_case("auto")
                 {
@@ -530,6 +499,7 @@ pub fn start_download(
         }
     }
 
+    let mut ffmpeg_range_seconds = None;
     if options.is_time_range_active {
         if let (Some(start), Some(end)) = (
             parse_time_to_seconds(&options.start_time),
@@ -537,7 +507,7 @@ pub fn start_download(
         ) {
             let total = (end - start).max(0.0);
             if total > 0.0 {
-                state.set_ffmpeg_range(task_id.clone(), total);
+                ffmpeg_range_seconds = Some(total);
             }
         }
         args.push("--download-sections".to_string());
@@ -595,10 +565,36 @@ pub fn start_download(
         args,
     };
 
-    drop(config);
-    state.send_command(&app_handle, cmd)?;
+    Ok(PreparedDownloadCommand {
+        task_id,
+        ffmpeg_range_seconds,
+        cmd,
+    })
+}
 
-    Ok(task_id)
+#[tauri::command]
+pub async fn start_download(
+    app_handle: AppHandle,
+    options: DownloadOptions,
+) -> Result<String, String> {
+    let prep_app = app_handle.clone();
+    let prepared = tokio::task::spawn_blocking(move || {
+        let config_mgr = prep_app.state::<ConfigManager>();
+        prepare_download_command(&config_mgr, options)
+    })
+    .await
+    .map_err(|error| format!("Download preparation task failed: {error}"))??;
+
+    let state = app_handle.state::<BridgeState>();
+    if let Some(total) = prepared.ffmpeg_range_seconds {
+        state.set_ffmpeg_range(prepared.task_id.clone(), total);
+    }
+    if let Err(error) = state.send_command_async(&app_handle, prepared.cmd).await {
+        state.clear_ffmpeg_range(&prepared.task_id);
+        return Err(error);
+    }
+
+    Ok(prepared.task_id)
 }
 
 fn sanitize_custom_filename(filename: &str) -> String {
@@ -617,18 +613,18 @@ fn sanitize_custom_filename(filename: &str) -> String {
         .to_string()
 }
 
-#[tauri::command]
-pub fn cancel_download(
+pub(crate) fn cancel_download_blocking(
     app_handle: AppHandle,
-    state: State<BridgeState>,
     task_id: String,
 ) -> Result<(), String> {
     if task_id.trim().is_empty() {
         return Err("Task ID cannot be empty.".to_string());
     }
 
+    let state = app_handle.state::<BridgeState>();
     let trimmed = task_id.trim().to_string();
     state.cancel_batch(&trimmed);
+    state.cancel_pending_task(&trimmed);
 
     let cmd = BridgeCommand {
         command: "cancel".to_string(),
@@ -639,6 +635,24 @@ pub fn cancel_download(
     let result = state.send_command(&app_handle, cmd);
     state.clear_ffmpeg_range(trimmed.as_str());
     result
+}
+
+#[tauri::command]
+pub async fn cancel_download(app_handle: AppHandle, task_id: String) -> Result<(), String> {
+    if task_id.trim().is_empty() {
+        return Err("Task ID cannot be empty.".to_string());
+    }
+
+    let trimmed = task_id.trim().to_string();
+    {
+        let state = app_handle.state::<BridgeState>();
+        state.cancel_batch(&trimmed);
+        state.cancel_pending_task(&trimmed);
+    }
+
+    tokio::task::spawn_blocking(move || cancel_download_blocking(app_handle, trimmed))
+        .await
+        .map_err(|error| format!("Cancel task failed: {error}"))?
 }
 
 use crate::app::task_id::generate;

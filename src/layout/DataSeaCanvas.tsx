@@ -17,7 +17,9 @@ export const DataSeaCanvas: React.FC = () => {
     let stopTimer: ReturnType<typeof setTimeout> | null = null;
     let lastTimestamp: number | null = null;
     let isRunning = false;
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const motionPreference = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -29,7 +31,8 @@ export const DataSeaCanvas: React.FC = () => {
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    const systemAllowsAnimation = () => !document.hidden && !motionPreference.matches;
+    const systemAllowsAnimation = () =>
+      !document.hidden && !motionPreference.matches;
     const shouldAnimate = () =>
       systemAllowsAnimation() &&
       body.classList.contains("wave-page") &&
@@ -51,12 +54,24 @@ export const DataSeaCanvas: React.FC = () => {
       context.clearRect(0, 0, width, height);
     };
 
-    const waveY = (x: number, base: number, amplitude: number, wavelength: number, offset: number) =>
+    const waveY = (
+      x: number,
+      base: number,
+      amplitude: number,
+      wavelength: number,
+      offset: number,
+    ) =>
       base +
       Math.sin(x / wavelength + offset) * amplitude +
       Math.sin(x / (wavelength * 0.55) + offset * 1.7) * amplitude * 0.35;
 
-    const drawWave = (color: string, base: number, amplitude: number, wavelength: number, offset: number) => {
+    const drawWave = (
+      color: string,
+      base: number,
+      amplitude: number,
+      wavelength: number,
+      offset: number,
+    ) => {
       const step = Math.max(10, Math.floor(width / 140));
       context.beginPath();
       context.moveTo(0, height);
@@ -84,8 +99,20 @@ export const DataSeaCanvas: React.FC = () => {
       waveOffsetFrontRef.current = frontOffset;
 
       context.clearRect(0, 0, width, height);
-      drawWave("rgba(0, 150, 200, 0.4)", height * 0.45, height * 0.08, Math.max(180, width * 0.32), backOffset);
-      drawWave("rgba(0, 120, 180, 1)", height * 0.58, height * 0.12, Math.max(160, width * 0.26), frontOffset);
+      drawWave(
+        "rgba(0, 150, 200, 0.4)",
+        height * 0.45,
+        height * 0.08,
+        Math.max(180, width * 0.32),
+        backOffset,
+      );
+      drawWave(
+        "rgba(0, 120, 180, 1)",
+        height * 0.58,
+        height * 0.12,
+        Math.max(160, width * 0.26),
+        frontOffset,
+      );
 
       rafId = window.requestAnimationFrame(tick);
     };
@@ -126,12 +153,22 @@ export const DataSeaCanvas: React.FC = () => {
 
     return () => {
       observer.disconnect();
-      motionPreference.removeEventListener("change", handleMotionPreferenceChange);
+      motionPreference.removeEventListener(
+        "change",
+        handleMotionPreferenceChange,
+      );
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", handleResize);
       stopAnimation();
     };
   }, []);
 
-  return <canvas ref={canvasRef} id="data-sea-canvas" className="zen-data-sea" aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      id="data-sea-canvas"
+      className="zen-data-sea"
+      aria-hidden="true"
+    />
+  );
 };

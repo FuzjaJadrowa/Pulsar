@@ -21,10 +21,17 @@ export const BatchInfoCard: React.FC<BatchInfoCardProps> = ({
   <div className={`${styles.card} fade-in`}>
     <div className={styles.headerRow}>
       <div className={styles.headerTitle}>
-        <span className={styles.categoryIcon} dangerouslySetInnerHTML={{ __html: categoryIcon }} />
+        <span
+          className={styles.categoryIcon}
+          dangerouslySetInnerHTML={{ __html: categoryIcon }}
+        />
         <span>{categoryLabel}</span>
       </div>
     </div>
-    <BatchFilesList files={files} removeTitle={removeTitle} onRemove={onRemove} />
+    <BatchFilesList
+      files={files}
+      removeTitle={removeTitle}
+      onRemove={onRemove}
+    />
   </div>
 );

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation, getLanguages } from "../../services/i18n";
-import { useConfig, getCurrentConfig, saveConfig, DEFAULT_CONFIG } from "../../services/config";
+import {
+  useConfig,
+  getCurrentConfig,
+  saveConfig,
+  DEFAULT_CONFIG,
+} from "../../services/config";
 import { usePresets } from "../../services/presets";
 import { CustomSelect } from "../../components/ui/CustomSelect";
 import { PresetCreatorModal } from "./components/PresetCreatorModal";
@@ -21,8 +26,6 @@ import { DownloadSettingsSection } from "./components/DownloadSettingsSection";
 export const Settings: React.FC = () => {
   const { t, changeLanguage } = useTranslation();
   const { config, updateConfig } = useConfig();
-
-
 
   useEffect(() => {
     return () => {
@@ -63,7 +66,9 @@ export const Settings: React.FC = () => {
 
     const fetchVersions = async () => {
       try {
-        const reqVersions = await invoke<Record<string, string>>("get_requirements_versions").catch(() => ({} as Record<string, string>));
+        const reqVersions = await invoke<Record<string, string>>(
+          "get_requirements_versions",
+        ).catch(() => ({}) as Record<string, string>);
         setPulsarVersion(reqVersions["pulsar"] || "3.0.1");
         setBridgeVersion(reqVersions["pulsar-bridge"] || "N/A");
         setFfmpegVersion(reqVersions["ffmpeg"] || "N/A");
@@ -79,7 +84,9 @@ export const Settings: React.FC = () => {
     setIsCheckingUpdate(true);
     try {
       await invoke("run_requirement_check", { component });
-      const reqVersions = await invoke<Record<string, string>>("get_requirements_versions");
+      const reqVersions = await invoke<Record<string, string>>(
+        "get_requirements_versions",
+      );
       setPulsarVersion(reqVersions["pulsar"] || "3.0.1");
       setBridgeVersion(reqVersions["pulsar-bridge"] || "N/A");
       setFfmpegVersion(reqVersions["ffmpeg"] || "N/A");
@@ -127,12 +134,11 @@ export const Settings: React.FC = () => {
     }
   };
 
-// ======================
-// ADD NRW LANGUAGE HERE!
-// ======================
+  // ======================
+  // ADD NRW LANGUAGE HERE!
+  // ======================
   const languages = getLanguages();
-// ======================
-
+  // ======================
 
   return (
     <div className={`${styles.scope} page-root page-scroll settings-page`}>
@@ -142,7 +148,6 @@ export const Settings: React.FC = () => {
 
       {/* General Settings */}
       <SettingsSection title={t("settings.general")}>
-
         <div className="form-row">
           <span>{t("settings.language")}</span>
           <CustomSelect
@@ -157,7 +162,9 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="settings-inline-group">
-          <div className="settings-inline-label">{t("settings.closeBehavior")}</div>
+          <div className="settings-inline-label">
+            {t("settings.closeBehavior")}
+          </div>
           <div className="radio-group">
             <label className="custom-radio">
               <input
@@ -198,10 +205,11 @@ export const Settings: React.FC = () => {
           <span>{t("settings.systemNotifications")}</span>
           <ToggleSwitch
             checked={!!config.system_notifications}
-            onChange={(checked) => updateConfig({ system_notifications: checked })}
+            onChange={(checked) =>
+              updateConfig({ system_notifications: checked })
+            }
           />
         </div>
-
       </SettingsSection>
 
       <AppearanceSection />

@@ -48,7 +48,11 @@ export const MetadataInfo: React.FC<MetadataInfoProps> = ({
             autoFocus
           />
         ) : (
-          <h2 id="meta-title" className={styles.title}>{customFilename.trim() || metadata.title || t("common.unknownTitle")}</h2>
+          <h2 id="meta-title" className={styles.title}>
+            {customFilename.trim() ||
+              metadata.title ||
+              t("common.unknownTitle")}
+          </h2>
         )}
         <button
           type="button"
@@ -57,7 +61,15 @@ export const MetadataInfo: React.FC<MetadataInfoProps> = ({
           title={t("common.output.editTitle")}
           aria-label={t("common.output.editTitle")}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS.edit} /></svg>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <use href={ICON_ASSETS.edit} />
+          </svg>
         </button>
       </div>
       <p className={styles.details}>
@@ -80,11 +92,15 @@ export const MetadataInfo: React.FC<MetadataInfoProps> = ({
             </span>
           )}
           <span className="meta-author-name">
-            {metadata.channel || metadata.uploader || t("common.unknownChannel")}
+            {metadata.channel ||
+              metadata.uploader ||
+              t("common.unknownChannel")}
           </span>
         </span>
         <span className={styles.separator}>-</span>
-        <span id="meta-duration">{metadata.duration_string || formatDuration(duration)}</span>
+        <span id="meta-duration">
+          {metadata.duration_string || formatDuration(duration)}
+        </span>
       </p>
     </div>
   );

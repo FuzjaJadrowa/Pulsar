@@ -41,12 +41,29 @@ pub struct BridgeState {
 
 struct ProcessLimiter {
     state: Mutex<ProcessLimitState>,
-    changed: Condvar,
+    changed_sync: Condvar,
+    changed_async: tokio::sync::Notify,
 }
 
 struct ProcessLimitState {
     limit: usize,
     active: HashSet<String>,
+    waiting: HashSet<String>,
+    cancelled_pending: HashSet<String>,
+}
+
+struct WaitingGuard<'a> {
+    limiter: &'a ProcessLimiter,
+    id: String,
+}
+
+impl Drop for WaitingGuard<'_> {
+    fn drop(&mut self) {
+        if let Ok(mut state) = self.limiter.state.lock() {
+            state.waiting.remove(&self.id);
+            state.cancelled_pending.remove(&self.id);
+        }
+    }
 }
 
 impl ProcessLimiter {
@@ -55,15 +72,48 @@ impl ProcessLimiter {
             state: Mutex::new(ProcessLimitState {
                 limit: limit.max(1),
                 active: HashSet::new(),
+                waiting: HashSet::new(),
+                cancelled_pending: HashSet::new(),
             }),
-            changed: Condvar::new(),
+            changed_sync: Condvar::new(),
+            changed_async: tokio::sync::Notify::new(),
         }
+    }
+
+    fn notify_all(&self) {
+        self.changed_sync.notify_all();
+        self.changed_async.notify_waiters();
+    }
+
+    fn register_waiting(&self, id: &str) -> Result<WaitingGuard<'_>, String> {
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| "Process limit lock is unavailable".to_string())?;
+        state.waiting.insert(id.to_string());
+        Ok(WaitingGuard {
+            limiter: self,
+            id: id.to_string(),
+        })
     }
 
     fn set_limit(&self, limit: usize) {
         if let Ok(mut state) = self.state.lock() {
             state.limit = limit.max(1);
-            self.changed.notify_all();
+        }
+        self.notify_all();
+    }
+
+    fn cancel_pending(&self, id: &str) {
+        let mut should_notify = false;
+        if let Ok(mut state) = self.state.lock() {
+            if state.waiting.contains(id) {
+                state.cancelled_pending.insert(id.to_string());
+                should_notify = true;
+            }
+        }
+        if should_notify {
+            self.notify_all();
         }
     }
 
@@ -71,12 +121,13 @@ impl ProcessLimiter {
     where
         F: FnMut() -> bool,
     {
+        let _waiting_guard = self.register_waiting(id)?;
         let mut state = self
             .state
             .lock()
             .map_err(|_| "Process limit lock is unavailable".to_string())?;
         loop {
-            if is_cancelled() {
+            if state.cancelled_pending.remove(id) || is_cancelled() {
                 return Err("Batch was cancelled before its process could start.".to_string());
             }
             if state.active.contains(id) {
@@ -87,28 +138,61 @@ impl ProcessLimiter {
                 return Ok(());
             }
             let (next_state, _) = self
-                .changed
+                .changed_sync
                 .wait_timeout(state, Duration::from_millis(100))
                 .map_err(|_| "Process limit lock is unavailable".to_string())?;
             state = next_state;
         }
     }
 
-    fn release(&self, id: &str) {
-        if let Ok(mut state) = self.state.lock() {
-            if state.active.remove(id) {
-                self.changed.notify_all();
+    async fn acquire_async<F>(&self, id: &str, mut is_cancelled: F) -> Result<(), String>
+    where
+        F: FnMut() -> bool,
+    {
+        let _waiting_guard = self.register_waiting(id)?;
+        loop {
+            let notified = self.changed_async.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            {
+                let mut state = self
+                    .state
+                    .lock()
+                    .map_err(|_| "Process limit lock is unavailable".to_string())?;
+                if state.cancelled_pending.remove(id) || is_cancelled() {
+                    return Err("Task was cancelled before its process could start.".to_string());
+                }
+                if state.active.contains(id) {
+                    return Err(format!("Process ID '{id}' is already active."));
+                }
+                if state.active.len() < state.limit {
+                    state.active.insert(id.to_string());
+                    return Ok(());
+                }
             }
+            let _ = tokio::time::timeout(Duration::from_millis(100), notified).await;
+        }
+    }
+
+    fn release(&self, id: &str) {
+        let removed = self
+            .state
+            .lock()
+            .map(|mut state| state.active.remove(id))
+            .unwrap_or(false);
+        if removed {
+            self.notify_all();
         }
     }
 
     fn take_all(&self) -> Vec<String> {
-        if let Ok(mut state) = self.state.lock() {
-            let active: Vec<String> = state.active.drain().collect();
-            self.changed.notify_all();
-            return active;
-        }
-        Vec::new()
+        let active = self
+            .state
+            .lock()
+            .map(|mut state| state.active.drain().collect::<Vec<String>>())
+            .unwrap_or_default();
+        self.notify_all();
+        active
     }
 
     fn active_count(&self) -> usize {
@@ -183,13 +267,23 @@ impl BridgeState {
     }
 
     pub fn cancel_batch(&self, task_id: &str) -> bool {
-        let guard = self.batch_cancels.lock().unwrap();
-        if let Some(flag) = guard.get(task_id) {
-            flag.store(true, std::sync::atomic::Ordering::SeqCst);
-            true
-        } else {
-            false
+        let cancelled = {
+            let guard = self.batch_cancels.lock().unwrap();
+            if let Some(flag) = guard.get(task_id) {
+                flag.store(true, std::sync::atomic::Ordering::SeqCst);
+                true
+            } else {
+                false
+            }
+        };
+        if cancelled {
+            self.process_limiter.notify_all();
         }
+        cancelled
+    }
+
+    pub fn cancel_pending_task(&self, task_id: &str) {
+        self.process_limiter.cancel_pending(task_id);
     }
 
     pub fn unregister_batch_cancel(&self, task_id: &str) {
@@ -325,7 +419,15 @@ impl BridgeState {
                                             if total > 0.0 {
                                                 let percent =
                                                     (elapsed / total * 100.0).clamp(0.0, 100.0);
-                                                let eta_seconds = (total - elapsed).max(0.0);
+                                                let remaining = (total - elapsed).max(0.0);
+                                                let eta_seconds =
+                                                    match parse_ffmpeg_speed(json_val.get("speed"))
+                                                    {
+                                                        Some(speed) if speed > 0.0 => {
+                                                            remaining / speed
+                                                        }
+                                                        _ => remaining,
+                                                    };
                                                 json_val["percent"] = Value::from(percent);
                                                 json_val["eta_seconds"] = Value::from(eta_seconds);
                                             }
@@ -413,50 +515,85 @@ impl BridgeState {
         self.send_raw_command(app_handle, &cmd)
     }
 
+    pub async fn send_command_async(
+        &self,
+        app_handle: &AppHandle,
+        cmd: BridgeCommand,
+    ) -> Result<(), String> {
+        self.send_raw_command_async(app_handle, &cmd).await
+    }
+
+    fn write_json_to_bridge(&self, app_handle: &AppHandle, json: &str) -> Result<(), String> {
+        self.init(app_handle)?;
+        let mut stdin_guard = self.stdin.lock().unwrap();
+        if let Some(stdin) = stdin_guard.as_mut() {
+            writeln!(stdin, "{}", json).map_err(|e| format!("Failed to write to bridge: {}", e))?;
+            if let Ok(mut payload) = serde_json::from_str::<Value>(json) {
+                if payload.get("id").is_some() {
+                    payload["type"] = Value::from("bridge_command");
+                    payload["direction"] = Value::from("RUST -> BRIDGE");
+                    payload["raw"] = Value::from(json.to_string());
+                    let _ = app_handle.emit("download-event", payload);
+                }
+            }
+            if runtime_logs_enabled(app_handle) {
+                println!("[RUST -> BRIDGE]: {}", json);
+            }
+            Ok(())
+        } else {
+            Err("Bridge stdin not available".to_string())
+        }
+    }
+
     pub fn send_raw_command<T: Serialize>(
         &self,
         app_handle: &AppHandle,
         cmd: &T,
     ) -> Result<(), String> {
         let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
-        let process_id = serde_json::from_str::<Value>(&json).ok().and_then(|value| {
-            let command = value.get("command")?.as_str()?;
-            matches!(command, "download" | "download_ffmpeg" | "convert" | "compress")
-                .then(|| value.get("id")?.as_str().map(str::to_owned))?
-        });
+        let process_id = extract_limited_process_id(&json);
         if let Some(id) = process_id.as_deref() {
             self.process_limiter
                 .acquire(id, || self.is_batch_cancelled_for_task(id))?;
         }
 
-        let result = (|| {
-            self.init(app_handle)?;
-            let mut stdin_guard = self.stdin.lock().unwrap();
-            if let Some(stdin) = stdin_guard.as_mut() {
-                writeln!(stdin, "{}", json)
-                    .map_err(|e| format!("Failed to write to bridge: {}", e))?;
-                if let Ok(mut payload) = serde_json::from_str::<Value>(&json) {
-                    if payload.get("id").is_some() {
-                        payload["type"] = Value::from("bridge_command");
-                        payload["direction"] = Value::from("RUST -> BRIDGE");
-                        payload["raw"] = Value::from(json.clone());
-                        let _ = app_handle.emit("download-event", payload);
-                    }
-                }
-                if runtime_logs_enabled(app_handle) {
-                    println!("[RUST -> BRIDGE]: {}", json);
-                }
-                Ok(())
-            } else {
-                Err("Bridge stdin not available".to_string())
-            }
-        })();
+        let result = self.write_json_to_bridge(app_handle, &json);
         if result.is_err() {
             if let Some(id) = process_id.as_deref() {
                 self.process_limiter.release(id);
             }
         }
         result
+    }
+
+    pub async fn send_raw_command_async<T: Serialize>(
+        &self,
+        app_handle: &AppHandle,
+        cmd: &T,
+    ) -> Result<(), String> {
+        let json = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
+        let process_id = extract_limited_process_id(&json);
+        if let Some(id) = process_id.as_deref() {
+            self.process_limiter
+                .acquire_async(id, || self.is_batch_cancelled_for_task(id))
+                .await?;
+        }
+
+        let app_clone = app_handle.clone();
+        let json_clone = json.clone();
+        let write_result = tokio::task::spawn_blocking(move || {
+            let bridge_state = app_clone.state::<BridgeState>();
+            bridge_state.write_json_to_bridge(&app_clone, &json_clone)
+        })
+        .await
+        .map_err(|error| format!("Bridge write task failed: {error}"))?;
+
+        if write_result.is_err() {
+            if let Some(id) = process_id.as_deref() {
+                self.process_limiter.release(id);
+            }
+        }
+        write_result
     }
 
     fn is_batch_cancelled_for_task(&self, task_id: &str) -> bool {
@@ -485,12 +622,27 @@ impl BridgeState {
     }
 }
 
+fn extract_limited_process_id(json: &str) -> Option<String> {
+    serde_json::from_str::<Value>(json).ok().and_then(|value| {
+        let command = value.get("command")?.as_str()?;
+        matches!(
+            command,
+            "download" | "download_ffmpeg" | "convert" | "compress"
+        )
+        .then(|| value.get("id")?.as_str().map(str::to_owned))?
+    })
+}
+
 struct FfmpegRange {
     total_seconds: f64,
 }
 
 pub(crate) fn parse_time_to_seconds(input: &str) -> Option<f64> {
-    let parts: Vec<&str> = input.trim().split(':').collect();
+    let trimmed = input.trim();
+    if trimmed.is_empty() || trimmed.eq_ignore_ascii_case("N/A") {
+        return None;
+    }
+    let parts: Vec<&str> = trimmed.split(':').collect();
     if parts.is_empty() {
         return None;
     }
@@ -508,31 +660,54 @@ pub(crate) fn parse_time_to_seconds(input: &str) -> Option<f64> {
     Some(total)
 }
 
+fn parse_microseconds_value(value: &Value) -> Option<f64> {
+    let parsed = if let Some(n) = value.as_f64() {
+        Some(n)
+    } else if let Some(s) = value.as_str() {
+        let trimmed = s.trim();
+        if trimmed.is_empty() || trimmed.eq_ignore_ascii_case("N/A") {
+            None
+        } else {
+            trimmed.parse::<f64>().ok()
+        }
+    } else {
+        None
+    }?;
+    (parsed >= 0.0).then_some(parsed / 1_000_000.0)
+}
+
+fn parse_ffmpeg_speed(value: Option<&Value>) -> Option<f64> {
+    let value = value?;
+    if let Some(n) = value.as_f64() {
+        return (n > 0.0).then_some(n);
+    }
+    let raw = value.as_str()?.trim().trim_end_matches(['x', 'X']).trim();
+    if raw.is_empty() || raw.eq_ignore_ascii_case("N/A") {
+        return None;
+    }
+    raw.parse::<f64>().ok().filter(|n| *n > 0.0)
+}
+
 fn extract_ffmpeg_elapsed_seconds(payload: &Value) -> Option<f64> {
     if let Some(t) = payload.get("time").and_then(|v| v.as_str()) {
-        return parse_time_to_seconds(t);
+        if let Some(secs) = parse_time_to_seconds(t).filter(|s| *s >= 0.0) {
+            return Some(secs);
+        }
     }
     if let Some(t) = payload.get("out_time").and_then(|v| v.as_str()) {
-        return parse_time_to_seconds(t);
-    }
-    if let Some(v) = payload.get("out_time_ms") {
-        if let Some(n) = v.as_f64() {
-            return Some(n / 1000.0);
-        }
-        if let Some(s) = v.as_str() {
-            if let Ok(n) = s.parse::<f64>() {
-                return Some(n / 1000.0);
-            }
+        if let Some(secs) = parse_time_to_seconds(t).filter(|s| *s >= 0.0) {
+            return Some(secs);
         }
     }
     if let Some(v) = payload.get("out_time_us") {
-        if let Some(n) = v.as_f64() {
-            return Some(n / 1_000_000.0);
+        if let Some(secs) = parse_microseconds_value(v) {
+            return Some(secs);
         }
-        if let Some(s) = v.as_str() {
-            if let Ok(n) = s.parse::<f64>() {
-                return Some(n / 1_000_000.0);
-            }
+    }
+    if let Some(v) = payload.get("out_time_ms") {
+        // FFmpeg emits `out_time_ms` in microseconds despite the field name.
+        if let Some(secs) = parse_microseconds_value(v) {
+            return Some(secs);
         }
     }
     None
@@ -560,8 +735,13 @@ pub fn terminal_event_succeeded(payload: &Value) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::terminal_event_succeeded;
+    use super::{
+        extract_ffmpeg_elapsed_seconds, parse_ffmpeg_speed, terminal_event_succeeded,
+        ProcessLimiter,
+    };
     use serde_json::json;
+    use std::sync::Arc;
+    use std::time::Duration;
 
     #[test]
     fn terminal_event_outcome_requires_success_true() {
@@ -572,5 +752,58 @@ mod tests {
             &json!({ "type": "finished", "success": false })
         ));
         assert!(!terminal_event_succeeded(&json!({ "type": "progress" })));
+    }
+
+    #[test]
+    fn extract_ffmpeg_elapsed_treats_out_time_ms_as_microseconds() {
+        let elapsed = extract_ffmpeg_elapsed_seconds(&json!({ "out_time_ms": "15000000" }));
+        assert_eq!(elapsed, Some(15.0));
+
+        let elapsed_num = extract_ffmpeg_elapsed_seconds(&json!({ "out_time_ms": 2_500_000 }));
+        assert_eq!(elapsed_num, Some(2.5));
+    }
+
+    #[test]
+    fn extract_ffmpeg_elapsed_skips_na_and_negative_values() {
+        let elapsed = extract_ffmpeg_elapsed_seconds(&json!({
+            "time": "N/A",
+            "out_time": "-577014:32:22.775808",
+            "out_time_us": "N/A",
+            "out_time_ms": "12000000"
+        }));
+        assert_eq!(elapsed, Some(12.0));
+    }
+
+    #[test]
+    fn parse_ffmpeg_speed_handles_valid_and_invalid_values() {
+        assert_eq!(parse_ffmpeg_speed(Some(&json!("2.5x"))), Some(2.5));
+        assert_eq!(parse_ffmpeg_speed(Some(&json!("0x"))), None);
+        assert_eq!(parse_ffmpeg_speed(Some(&json!("N/A"))), None);
+    }
+
+    #[tokio::test]
+    async fn process_limiter_async_wakes_on_release_and_cancel() {
+        let limiter = Arc::new(ProcessLimiter::new(1));
+        limiter.acquire("slot-1", || false).unwrap();
+
+        let limiter_release = limiter.clone();
+        let waiter =
+            tokio::spawn(async move { limiter_release.acquire_async("slot-2", || false).await });
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        limiter.release("slot-1");
+        waiter.await.unwrap().unwrap();
+        assert_eq!(limiter.active_count(), 1);
+
+        let limiter_cancel = limiter.clone();
+        let cancelled_waiter =
+            tokio::spawn(async move { limiter_cancel.acquire_async("slot-3", || false).await });
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        limiter.cancel_pending("slot-3");
+        let cancel_result = tokio::time::timeout(Duration::from_secs(1), cancelled_waiter)
+            .await
+            .expect("cancel_pending should wake acquire_async immediately")
+            .unwrap();
+        assert!(cancel_result.is_err());
+        limiter.release("slot-2");
     }
 }

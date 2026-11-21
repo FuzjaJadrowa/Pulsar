@@ -18,8 +18,8 @@ export default defineConfig(async () => ({
   ],
   publicDir: false,
   assetsInlineLimit: 0,
-    clearScreen: false,
-    server: {
+  clearScreen: false,
+  server: {
     port: 1420,
     strictPort: true,
     host: host || false,
@@ -31,7 +31,7 @@ export default defineConfig(async () => ({
         }
       : undefined,
     watch: {
-        ignored: ["**/src-tauri/**"],
+      ignored: ["**/src-tauri/**"],
     },
   },
 }));

@@ -17,7 +17,9 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   className = "",
 }) => {
   return (
-    <label className={`switch ${styles.switch} ${className} ${disabled ? `is-disabled disabled ${styles["is-disabled"]} ${styles.disabled}` : ""}`}>
+    <label
+      className={`switch ${styles.switch} ${className} ${disabled ? `is-disabled disabled ${styles["is-disabled"]} ${styles.disabled}` : ""}`}
+    >
       <input
         type="checkbox"
         id={id}

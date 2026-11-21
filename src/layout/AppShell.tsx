@@ -44,14 +44,18 @@ export const AppShell: React.FC = () => {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     let active = true;
-    void listen<{ component: "pulsar" | "bridge" }>("bridge-protocol-mismatch", (event) => {
-      if (protocolMismatchShownRef.current) return;
-      protocolMismatchShownRef.current = true;
-      const message = event.payload.component === "bridge"
-        ? t("bridgeProtocol.updateBridge")
-        : t("bridgeProtocol.updatePulsar");
-      showNotification(t("common.info"), message, "info", true);
-    }).then((stop) => {
+    void listen<{ component: "pulsar" | "bridge" }>(
+      "bridge-protocol-mismatch",
+      (event) => {
+        if (protocolMismatchShownRef.current) return;
+        protocolMismatchShownRef.current = true;
+        const message =
+          event.payload.component === "bridge"
+            ? t("bridgeProtocol.updateBridge")
+            : t("bridgeProtocol.updatePulsar");
+        showNotification(t("common.info"), message, "info", true);
+      },
+    ).then((stop) => {
       if (active) unlisten = stop;
       else stop();
     });
@@ -73,7 +77,11 @@ export const AppShell: React.FC = () => {
     };
 
     const handleOnline = () => {
-      showNotification(t("common.success"), t("connection.restored"), "success");
+      showNotification(
+        t("common.success"),
+        t("connection.restored"),
+        "success",
+      );
     };
 
     window.addEventListener("offline", handleOffline);
@@ -117,7 +125,7 @@ export const AppShell: React.FC = () => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!queueVisible) return;
       const target = e.target as HTMLElement;
-      
+
       const isInsideQueue = target.closest("#queue-panel");
       const isInsideQueueBtn = target.closest("#btn-queue");
       if (!isInsideQueue && !isInsideQueueBtn) {
@@ -139,7 +147,13 @@ export const AppShell: React.FC = () => {
 
   const isQueueBtnVisible = queueCount > 0;
 
-  const ALL_PAGES = ["home", "downloader", "converter", "compressor", "settings"];
+  const ALL_PAGES = [
+    "home",
+    "downloader",
+    "converter",
+    "compressor",
+    "settings",
+  ];
 
   const renderSinglePage = (pageName: string) => {
     const isActive = pageName === currentPage;
@@ -176,7 +190,11 @@ export const AppShell: React.FC = () => {
 
           if (!isActive && !isOutgoing) {
             return (
-              <div key={pageName} className="view-container" style={{ display: "none" }}>
+              <div
+                key={pageName}
+                className="view-container"
+                style={{ display: "none" }}
+              >
                 {renderSinglePage(pageName)}
               </div>
             );
@@ -184,9 +202,15 @@ export const AppShell: React.FC = () => {
 
           let animClass = "";
           if (isActive && transition.direction) {
-            animClass = transition.direction === "right" ? "slide-in-from-right" : "slide-in-from-left";
+            animClass =
+              transition.direction === "right"
+                ? "slide-in-from-right"
+                : "slide-in-from-left";
           } else if (isOutgoing && transition.direction) {
-            animClass = transition.direction === "right" ? "slide-out-to-left" : "slide-out-to-right";
+            animClass =
+              transition.direction === "right"
+                ? "slide-out-to-left"
+                : "slide-out-to-right";
           }
 
           return (
@@ -202,10 +226,7 @@ export const AppShell: React.FC = () => {
 
       <DataSeaCanvas />
 
-      <div
-        id="queue-panel"
-        className={queueVisible ? "visible" : ""}
-      >
+      <div id="queue-panel" className={queueVisible ? "visible" : ""}>
         <QueuePanel active={queueVisible} />
       </div>
 

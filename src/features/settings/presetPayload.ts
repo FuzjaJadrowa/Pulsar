@@ -48,7 +48,10 @@ export function buildPresetPayload(values: PresetFormValues): Preset {
       video_quality: values.videoQuality || undefined,
       download_subtitles: values.downloadSubs,
       embed_subtitles: values.downloadSubs && values.embedSubs,
-      subtitles_code: values.downloadSubs && values.subsCode.trim() ? values.subsCode.trim() : undefined,
+      subtitles_code:
+        values.downloadSubs && values.subsCode.trim()
+          ? values.subsCode.trim()
+          : undefined,
       embed_metadata: values.embedMetadata,
       embed_thumbnail: values.embedThumbnail,
       skip_sponsors: values.skipSponsors,
@@ -75,11 +78,18 @@ export function buildPresetPayload(values: PresetFormValues): Preset {
   } else {
     const compressor: PresetCompressorOptions = {
       mode: values.compressMode,
-      target_percent: values.compressMode === "percent"
-        ? (typeof values.compressPercent === "number" ? values.compressPercent : undefined)
-        : undefined,
-      target_size: values.compressMode === "size" ? values.compressSize : undefined,
-      crf: values.compressMode === "quality" ? parseInt(values.compressCrf) || undefined : undefined,
+      target_percent:
+        values.compressMode === "percent"
+          ? typeof values.compressPercent === "number"
+            ? values.compressPercent
+            : undefined
+          : undefined,
+      target_size:
+        values.compressMode === "size" ? values.compressSize : undefined,
+      crf:
+        values.compressMode === "quality"
+          ? parseInt(values.compressCrf) || undefined
+          : undefined,
     };
     payload.compressor = compressor;
   }
@@ -88,16 +98,34 @@ export function buildPresetPayload(values: PresetFormValues): Preset {
 }
 
 export function isPresetFormValid(
-  values: Pick<PresetFormValues, "title" | "presetType" | "format" | "compressMode" | "compressPercent" | "compressSize" | "compressCrf">,
+  values: Pick<
+    PresetFormValues,
+    | "title"
+    | "presetType"
+    | "format"
+    | "compressMode"
+    | "compressPercent"
+    | "compressSize"
+    | "compressCrf"
+  >,
   isFormatValid: boolean,
 ): boolean {
   if (!values.title.trim()) return false;
-  if (values.presetType !== "compressor" && (!values.format.trim() || !isFormatValid)) return false;
+  if (
+    values.presetType !== "compressor" &&
+    (!values.format.trim() || !isFormatValid)
+  )
+    return false;
 
   if (values.presetType !== "compressor") return true;
   if (values.compressMode === "percent") {
-    return typeof values.compressPercent === "number" && values.compressPercent >= 1 && values.compressPercent <= 100;
+    return (
+      typeof values.compressPercent === "number" &&
+      values.compressPercent >= 1 &&
+      values.compressPercent <= 100
+    );
   }
-  if (values.compressMode === "size") return values.compressSize.trim().length > 0;
+  if (values.compressMode === "size")
+    return values.compressSize.trim().length > 0;
   return Boolean(values.compressCrf);
 }

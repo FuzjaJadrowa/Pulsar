@@ -14,6 +14,8 @@ export interface PulsarConfig {
   update_ytdlp: boolean;
   update_ffmpeg: boolean;
   ffmpeg_hwaccel: string;
+  ffmpeg_hwaccels: string[];
+  ffmpeg_hwaccel_preferred: string;
   cookies_browser: string;
   maximum_concurrent_processes: number;
   maximum_search_results: number;
@@ -39,6 +41,8 @@ export const DEFAULT_CONFIG: PulsarConfig = {
   update_ytdlp: true,
   update_ffmpeg: true,
   ffmpeg_hwaccel: "none",
+  ffmpeg_hwaccels: [],
+  ffmpeg_hwaccel_preferred: "auto",
   cookies_browser: "none",
   maximum_concurrent_processes: 3,
   maximum_search_results: 10,
@@ -129,26 +133,108 @@ export async function loadConfig(): Promise<PulsarConfig> {
       const normalized: PulsarConfig = {
         theme: String(raw.theme ?? DEFAULT_CONFIG.theme),
         language: String(raw.language ?? DEFAULT_CONFIG.language),
-        system_notifications: Boolean(raw.system_notifications ?? raw.systemNotifications ?? DEFAULT_CONFIG.system_notifications),
-        advanced_mode: Boolean(raw.advanced_mode ?? raw.advancedMode ?? DEFAULT_CONFIG.advanced_mode),
-        runtime_logs: Boolean(raw.runtime_logs ?? raw.runtimeLogs ?? DEFAULT_CONFIG.runtime_logs),
-        idle_animation: Boolean(raw.idle_animation ?? raw.idleAnimation ?? DEFAULT_CONFIG.idle_animation),
-        update_app: Boolean(raw.update_app ?? raw.updateApp ?? DEFAULT_CONFIG.update_app),
-        update_app_cooldown_minutes: Number(raw.update_app_cooldown_minutes ?? raw.updateAppCooldownMinutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),
-        update_ytdlp: Boolean(raw.update_ytdlp ?? raw.updateYtdlp ?? DEFAULT_CONFIG.update_ytdlp),
-        update_ffmpeg: Boolean(raw.update_ffmpeg ?? raw.updateFfmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
-        ffmpeg_hwaccel: String(raw.ffmpeg_hwaccel ?? raw.ffmpegHwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
-        cookies_browser: String(raw.cookies_browser ?? raw.cookiesBrowser ?? DEFAULT_CONFIG.cookies_browser),
-        maximum_concurrent_processes: Number(raw.maximum_concurrent_processes ?? raw.maximumConcurrentProcesses ?? DEFAULT_CONFIG.maximum_concurrent_processes),
-        maximum_search_results: Number(raw.maximum_search_results ?? raw.maximumSearchResults ?? DEFAULT_CONFIG.maximum_search_results),
-        title_template: String(raw.title_template ?? raw.titleTemplate ?? DEFAULT_CONFIG.title_template),
-        close_behavior: String(raw.close_behavior ?? raw.closeBehavior ?? DEFAULT_CONFIG.close_behavior),
-        copy_codec_if_possible: Boolean(raw.copy_codec_if_possible ?? raw.copyCodecIfPossible ?? DEFAULT_CONFIG.copy_codec_if_possible),
-        default_video_codec: String(raw.default_video_codec ?? raw.defaultVideoCodec ?? DEFAULT_CONFIG.default_video_codec),
-        default_audio_codec: String(raw.default_audio_codec ?? raw.defaultAudioCodec ?? DEFAULT_CONFIG.default_audio_codec),
-        default_save_path: String(raw.default_save_path ?? raw.defaultSavePath ?? DEFAULT_CONFIG.default_save_path),
-        prefer_ffmpeg_while_converting: Boolean(raw.prefer_ffmpeg_while_converting ?? raw.preferFfmpegWhileConverting ?? DEFAULT_CONFIG.prefer_ffmpeg_while_converting),
-        prefer_ffmpeg_while_downloading: Boolean(raw.prefer_ffmpeg_while_downloading ?? raw.preferFfmpegWhileDownloading ?? DEFAULT_CONFIG.prefer_ffmpeg_while_downloading),
+        system_notifications: Boolean(
+          raw.system_notifications ??
+          raw.systemNotifications ??
+          DEFAULT_CONFIG.system_notifications,
+        ),
+        advanced_mode: Boolean(
+          raw.advanced_mode ?? raw.advancedMode ?? DEFAULT_CONFIG.advanced_mode,
+        ),
+        runtime_logs: Boolean(
+          raw.runtime_logs ?? raw.runtimeLogs ?? DEFAULT_CONFIG.runtime_logs,
+        ),
+        idle_animation: Boolean(
+          raw.idle_animation ??
+          raw.idleAnimation ??
+          DEFAULT_CONFIG.idle_animation,
+        ),
+        update_app: Boolean(
+          raw.update_app ?? raw.updateApp ?? DEFAULT_CONFIG.update_app,
+        ),
+        update_app_cooldown_minutes: Number(
+          raw.update_app_cooldown_minutes ??
+            raw.updateAppCooldownMinutes ??
+            DEFAULT_CONFIG.update_app_cooldown_minutes,
+        ),
+        update_ytdlp: Boolean(
+          raw.update_ytdlp ?? raw.updateYtdlp ?? DEFAULT_CONFIG.update_ytdlp,
+        ),
+        update_ffmpeg: Boolean(
+          raw.update_ffmpeg ?? raw.updateFfmpeg ?? DEFAULT_CONFIG.update_ffmpeg,
+        ),
+        ffmpeg_hwaccel: String(
+          raw.ffmpeg_hwaccel ??
+            raw.ffmpegHwaccel ??
+            DEFAULT_CONFIG.ffmpeg_hwaccel,
+        ),
+        ffmpeg_hwaccels: Array.isArray(
+          raw.ffmpeg_hwaccels ?? raw.ffmpegHwaccels,
+        )
+          ? ((raw.ffmpeg_hwaccels ?? raw.ffmpegHwaccels) as unknown[])
+              .map((item) => String(item ?? "").trim())
+              .filter(Boolean)
+          : [...DEFAULT_CONFIG.ffmpeg_hwaccels],
+        ffmpeg_hwaccel_preferred: String(
+          raw.ffmpeg_hwaccel_preferred ??
+            raw.ffmpegHwaccelPreferred ??
+            DEFAULT_CONFIG.ffmpeg_hwaccel_preferred,
+        ),
+        cookies_browser: String(
+          raw.cookies_browser ??
+            raw.cookiesBrowser ??
+            DEFAULT_CONFIG.cookies_browser,
+        ),
+        maximum_concurrent_processes: Number(
+          raw.maximum_concurrent_processes ??
+            raw.maximumConcurrentProcesses ??
+            DEFAULT_CONFIG.maximum_concurrent_processes,
+        ),
+        maximum_search_results: Number(
+          raw.maximum_search_results ??
+            raw.maximumSearchResults ??
+            DEFAULT_CONFIG.maximum_search_results,
+        ),
+        title_template: String(
+          raw.title_template ??
+            raw.titleTemplate ??
+            DEFAULT_CONFIG.title_template,
+        ),
+        close_behavior: String(
+          raw.close_behavior ??
+            raw.closeBehavior ??
+            DEFAULT_CONFIG.close_behavior,
+        ),
+        copy_codec_if_possible: Boolean(
+          raw.copy_codec_if_possible ??
+          raw.copyCodecIfPossible ??
+          DEFAULT_CONFIG.copy_codec_if_possible,
+        ),
+        default_video_codec: String(
+          raw.default_video_codec ??
+            raw.defaultVideoCodec ??
+            DEFAULT_CONFIG.default_video_codec,
+        ),
+        default_audio_codec: String(
+          raw.default_audio_codec ??
+            raw.defaultAudioCodec ??
+            DEFAULT_CONFIG.default_audio_codec,
+        ),
+        default_save_path: String(
+          raw.default_save_path ??
+            raw.defaultSavePath ??
+            DEFAULT_CONFIG.default_save_path,
+        ),
+        prefer_ffmpeg_while_converting: Boolean(
+          raw.prefer_ffmpeg_while_converting ??
+          raw.preferFfmpegWhileConverting ??
+          DEFAULT_CONFIG.prefer_ffmpeg_while_converting,
+        ),
+        prefer_ffmpeg_while_downloading: Boolean(
+          raw.prefer_ffmpeg_while_downloading ??
+          raw.preferFfmpegWhileDownloading ??
+          DEFAULT_CONFIG.prefer_ffmpeg_while_downloading,
+        ),
       };
       globalConfig = normalized;
       applyTheme(globalConfig.theme, false);
@@ -162,31 +248,80 @@ export async function loadConfig(): Promise<PulsarConfig> {
   return globalConfig;
 }
 
-export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<PulsarConfig> {
+export async function saveConfig(
+  newConfig: Partial<PulsarConfig>,
+): Promise<PulsarConfig> {
   const merged = { ...globalConfig, ...newConfig };
   const updated: PulsarConfig = {
     theme: String(merged.theme ?? DEFAULT_CONFIG.theme),
     language: String(merged.language ?? DEFAULT_CONFIG.language),
-    system_notifications: Boolean(merged.system_notifications ?? DEFAULT_CONFIG.system_notifications),
-    advanced_mode: Boolean(merged.advanced_mode ?? DEFAULT_CONFIG.advanced_mode),
+    system_notifications: Boolean(
+      merged.system_notifications ?? DEFAULT_CONFIG.system_notifications,
+    ),
+    advanced_mode: Boolean(
+      merged.advanced_mode ?? DEFAULT_CONFIG.advanced_mode,
+    ),
     runtime_logs: Boolean(merged.runtime_logs ?? DEFAULT_CONFIG.runtime_logs),
-    idle_animation: Boolean(merged.idle_animation ?? DEFAULT_CONFIG.idle_animation),
+    idle_animation: Boolean(
+      merged.idle_animation ?? DEFAULT_CONFIG.idle_animation,
+    ),
     update_app: Boolean(merged.update_app ?? DEFAULT_CONFIG.update_app),
-    update_app_cooldown_minutes: Number(merged.update_app_cooldown_minutes ?? DEFAULT_CONFIG.update_app_cooldown_minutes),
+    update_app_cooldown_minutes: Number(
+      merged.update_app_cooldown_minutes ??
+        DEFAULT_CONFIG.update_app_cooldown_minutes,
+    ),
     update_ytdlp: Boolean(merged.update_ytdlp ?? DEFAULT_CONFIG.update_ytdlp),
-    update_ffmpeg: Boolean(merged.update_ffmpeg ?? DEFAULT_CONFIG.update_ffmpeg),
-    ffmpeg_hwaccel: String(merged.ffmpeg_hwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel),
-    cookies_browser: String(merged.cookies_browser ?? DEFAULT_CONFIG.cookies_browser),
-    maximum_concurrent_processes: Number(merged.maximum_concurrent_processes ?? DEFAULT_CONFIG.maximum_concurrent_processes),
-    maximum_search_results: Number(merged.maximum_search_results ?? DEFAULT_CONFIG.maximum_search_results),
-    title_template: String(merged.title_template ?? DEFAULT_CONFIG.title_template),
-    close_behavior: String(merged.close_behavior ?? DEFAULT_CONFIG.close_behavior),
-    copy_codec_if_possible: Boolean(merged.copy_codec_if_possible ?? DEFAULT_CONFIG.copy_codec_if_possible),
-    default_video_codec: String(merged.default_video_codec ?? DEFAULT_CONFIG.default_video_codec),
-    default_audio_codec: String(merged.default_audio_codec ?? DEFAULT_CONFIG.default_audio_codec),
-    default_save_path: String(merged.default_save_path ?? DEFAULT_CONFIG.default_save_path),
-    prefer_ffmpeg_while_converting: Boolean(merged.prefer_ffmpeg_while_converting ?? DEFAULT_CONFIG.prefer_ffmpeg_while_converting),
-    prefer_ffmpeg_while_downloading: Boolean(merged.prefer_ffmpeg_while_downloading ?? DEFAULT_CONFIG.prefer_ffmpeg_while_downloading),
+    update_ffmpeg: Boolean(
+      merged.update_ffmpeg ?? DEFAULT_CONFIG.update_ffmpeg,
+    ),
+    ffmpeg_hwaccel: String(
+      merged.ffmpeg_hwaccel ?? DEFAULT_CONFIG.ffmpeg_hwaccel,
+    ),
+    ffmpeg_hwaccels: Array.isArray(merged.ffmpeg_hwaccels)
+      ? merged.ffmpeg_hwaccels
+          .map((item) => String(item ?? "").trim())
+          .filter(Boolean)
+      : [...DEFAULT_CONFIG.ffmpeg_hwaccels],
+    ffmpeg_hwaccel_preferred: String(
+      merged.ffmpeg_hwaccel_preferred ??
+        DEFAULT_CONFIG.ffmpeg_hwaccel_preferred,
+    ),
+    cookies_browser: String(
+      merged.cookies_browser ?? DEFAULT_CONFIG.cookies_browser,
+    ),
+    maximum_concurrent_processes: Number(
+      merged.maximum_concurrent_processes ??
+        DEFAULT_CONFIG.maximum_concurrent_processes,
+    ),
+    maximum_search_results: Number(
+      merged.maximum_search_results ?? DEFAULT_CONFIG.maximum_search_results,
+    ),
+    title_template: String(
+      merged.title_template ?? DEFAULT_CONFIG.title_template,
+    ),
+    close_behavior: String(
+      merged.close_behavior ?? DEFAULT_CONFIG.close_behavior,
+    ),
+    copy_codec_if_possible: Boolean(
+      merged.copy_codec_if_possible ?? DEFAULT_CONFIG.copy_codec_if_possible,
+    ),
+    default_video_codec: String(
+      merged.default_video_codec ?? DEFAULT_CONFIG.default_video_codec,
+    ),
+    default_audio_codec: String(
+      merged.default_audio_codec ?? DEFAULT_CONFIG.default_audio_codec,
+    ),
+    default_save_path: String(
+      merged.default_save_path ?? DEFAULT_CONFIG.default_save_path,
+    ),
+    prefer_ffmpeg_while_converting: Boolean(
+      merged.prefer_ffmpeg_while_converting ??
+      DEFAULT_CONFIG.prefer_ffmpeg_while_converting,
+    ),
+    prefer_ffmpeg_while_downloading: Boolean(
+      merged.prefer_ffmpeg_while_downloading ??
+      DEFAULT_CONFIG.prefer_ffmpeg_while_downloading,
+    ),
   };
   globalConfig = updated;
 
@@ -199,7 +334,9 @@ export async function saveConfig(newConfig: Partial<PulsarConfig>): Promise<Puls
   try {
     await invoke("save_config", { newConfig: updated });
     // Notify window components or other managers
-    window.dispatchEvent(new CustomEvent("pulsar-config-updated", { detail: updated }));
+    window.dispatchEvent(
+      new CustomEvent("pulsar-config-updated", { detail: updated }),
+    );
   } catch (error) {
     console.error("Failed to save config to Tauri:", error);
   }

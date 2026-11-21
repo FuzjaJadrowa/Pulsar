@@ -1,16 +1,16 @@
 body {
-    margin: 0;
-    padding: 0;
-    position: relative;
-    font-family: "Manrope", "Montserrat", sans-serif;
-    color: var(--text-color);
-    overflow: hidden;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  font-family: "Manrope", "Montserrat", sans-serif;
+  color: var(--text-color);
+  overflow: hidden;
 
-    background-color: var(--bg-color);
-    background-attachment: fixed;
-    transition: background-color 0.35s ease;
+  background-color: var(--bg-color);
+  background-attachment: fixed;
+  transition: background-color 0.35s ease;
 
-    user-select: none;
+  user-select: none;
 }
 
 body.theme-transition,
@@ -32,45 +32,45 @@ body.theme-transition #queue-panel,
 body.theme-transition .queue-item,
 body.theme-transition .queue-item::after,
 body.theme-transition .notification-toast {
-    transition:
-        background 0.35s ease,
-        background-color 0.35s ease,
-        color 0.35s ease,
-        border-color 0.35s ease,
-        box-shadow 0.35s ease;
+  transition:
+    background 0.35s ease,
+    background-color 0.35s ease,
+    color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 4px;
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thumb-hover);
+  background: var(--scrollbar-thumb-hover);
 }
 @font-face {
-    font-family: "Manrope";
-    src: url("../../assets/fonts/Manrope.ttf") format("truetype");
-    font-style: normal;
-    font-weight: 200 800;
-    font-display: swap;
+  font-family: "Manrope";
+  src: url("../../assets/fonts/Manrope.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: "Montserrat";
-    src: url("../../assets/fonts/Montserrat.ttf") format("truetype");
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
+  font-family: "Montserrat";
+  src: url("../../assets/fonts/Montserrat.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
 }

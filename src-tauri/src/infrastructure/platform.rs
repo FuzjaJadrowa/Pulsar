@@ -1,5 +1,18 @@
 use directories::BaseDirs;
+use std::ffi::OsStr;
 use std::path::PathBuf;
+use std::process::Command;
+
+pub fn new_hidden_command<S: AsRef<OsStr>>(program: S) -> Command {
+    let mut cmd = Command::new(program);
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd
+}
 
 pub fn is_flatpak() -> bool {
     if cfg!(target_os = "linux") {

@@ -54,23 +54,16 @@ pub fn start_batch_convert(
                 item_opts.client_task_id = Some(sub_id.clone());
 
                 let bridge_state = app_handle_clone.state::<BridgeState>();
-                let config_mgr_state = app_handle_clone.state::<ConfigManager>();
                 let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                let result = start_convert(
-                    app_handle_clone.clone(),
-                    bridge_state.clone(),
-                    config_mgr_state.clone(),
-                    item_opts,
-                );
+                let result = start_convert_blocking(app_handle_clone.clone(), item_opts);
                 let mut item_succeeded = false;
                 match result {
                     Ok(_) => {
                         while let Ok(msg) = sub_rx.recv() {
                             if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
-                                let _ = cancel_download(
+                                let _ = cancel_download_blocking(
                                     app_handle_clone.clone(),
-                                    bridge_state.clone(),
                                     sub_id.clone(),
                                 );
                                 break;
@@ -144,25 +137,15 @@ pub fn start_batch_convert(
                     item_opts.client_task_id = Some(sub_id.clone());
 
                     let bridge_state = app.state::<BridgeState>();
-                    let config_mgr_state = app.state::<ConfigManager>();
                     let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                    let result = start_convert(
-                        app.clone(),
-                        bridge_state.clone(),
-                        config_mgr_state.clone(),
-                        item_opts,
-                    );
+                    let result = start_convert_blocking(app.clone(), item_opts);
                     let mut item_succeeded = false;
                     match result {
                         Ok(_) => {
                             while let Ok(msg) = sub_rx.recv() {
                                 if cancel_ref.load(Ordering::SeqCst) {
-                                    let _ = cancel_download(
-                                        app.clone(),
-                                        bridge_state.clone(),
-                                        sub_id.clone(),
-                                    );
+                                    let _ = cancel_download_blocking(app.clone(), sub_id.clone());
                                     break;
                                 }
                                 if is_terminal_event(&msg) {

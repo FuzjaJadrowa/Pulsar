@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke, listen } from "../services/tauri";
 import { t } from "../services/i18n";
-import { resolveMetadataEvent, type MetadataBridgeEvent } from "./metadataEvents";
+import {
+  resolveMetadataEvent,
+  type MetadataBridgeEvent,
+} from "./metadataEvents";
 import { isMediaFileMetadata, type MediaFileMetadata } from "../types/media";
 
 interface UseTauriMetadataOptions<T> {
@@ -10,7 +13,11 @@ interface UseTauriMetadataOptions<T> {
   onError?: (err: string) => void;
 }
 
-export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, onSuccess, onError }: UseTauriMetadataOptions<T>) {
+export function useTauriMetadata<T = Record<string, unknown>>({
+  pickerCommand,
+  onSuccess,
+  onError,
+}: UseTauriMetadataOptions<T>) {
   const [metadata, setMetadata] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const isLoadingRef = useRef(false);
@@ -25,7 +32,9 @@ export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, o
   }, [onSuccess, onError]);
 
   const generateTaskId = () => {
-    return `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    return `${Date.now()}${Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0")}`;
   };
 
   useEffect(() => {
@@ -36,27 +45,33 @@ export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, o
       currentTaskIdRef.current = null;
     };
 
-    const unsubPromise = listen<MetadataBridgeEvent>("download-event", (event) => {
-      if (!active) return;
-      const payload = event.payload;
-      if (!payload || !payload.type) return;
+    const unsubPromise = listen<MetadataBridgeEvent>(
+      "download-event",
+      (event) => {
+        if (!active) return;
+        const payload = event.payload;
+        if (!payload || !payload.type) return;
 
-      const outcome = resolveMetadataEvent(payload, currentTaskIdRef.current);
-      if (outcome.kind === "error") {
-        finishRequest();
-        const message = outcome.message || t("common.errors.invalidFileOrLink");
-        onErrorRef.current?.(message);
-      } else if (outcome.kind === "success") {
-        finishRequest();
-        setMetadata(outcome.data as T);
-        onSuccessRef.current?.(outcome.data as T);
-      }
-    });
+        const outcome = resolveMetadataEvent(payload, currentTaskIdRef.current);
+        if (outcome.kind === "error") {
+          finishRequest();
+          const message =
+            outcome.message || t("common.errors.invalidFileOrLink");
+          onErrorRef.current?.(message);
+        } else if (outcome.kind === "success") {
+          finishRequest();
+          setMetadata(outcome.data as T);
+          onSuccessRef.current?.(outcome.data as T);
+        }
+      },
+    );
 
     unsubPromise.catch((error) => {
       if (!active) return;
       finishRequest();
-      onErrorRef.current?.(`Unable to listen for metadata events: ${String(error)}`);
+      onErrorRef.current?.(
+        `Unable to listen for metadata events: ${String(error)}`,
+      );
     });
 
     return () => {
@@ -74,10 +89,11 @@ export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, o
     currentTaskIdRef.current = taskId;
 
     try {
-      const args = pickerCommand === "fetch_metadata_downloader" 
-        ? { url: targetPathOrUrl, clientTaskId: taskId }
-        : { path: targetPathOrUrl, clientTaskId: taskId };
-        
+      const args =
+        pickerCommand === "fetch_metadata_downloader"
+          ? { url: targetPathOrUrl, clientTaskId: taskId }
+          : { path: targetPathOrUrl, clientTaskId: taskId };
+
       await invoke<string>(pickerCommand, args);
     } catch (error) {
       if (currentTaskIdRef.current !== taskId) return;
@@ -100,13 +116,17 @@ export function useTauriMetadata<T = Record<string, unknown>>({ pickerCommand, o
     isLoading,
     fetchMetadata,
     reset,
-    setMetadata
+    setMetadata,
   };
 }
 
-export function fetchSingleFileMetadata(filePath: string): Promise<MediaFileMetadata | null> {
+export function fetchSingleFileMetadata(
+  filePath: string,
+): Promise<MediaFileMetadata | null> {
   return new Promise((resolve) => {
-    const taskId = `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    const taskId = `${Date.now()}${Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0")}`;
     let unsub: (() => void) | null = null;
     let resolved = false;
 
@@ -149,28 +169,33 @@ export function fetchSingleFileMetadata(filePath: string): Promise<MediaFileMeta
           }
         }
       }
-    }).then((u) => {
-      unsub = u;
-      if (resolved) {
-        cleanup();
-        return;
-      }
-      invoke<string>("fetch_metadata_converter", { path: filePath, clientTaskId: taskId }).catch((err) => {
-        console.error("fetch_metadata_converter error:", err);
+    })
+      .then((u) => {
+        unsub = u;
+        if (resolved) {
+          cleanup();
+          return;
+        }
+        invoke<string>("fetch_metadata_converter", {
+          path: filePath,
+          clientTaskId: taskId,
+        }).catch((err) => {
+          console.error("fetch_metadata_converter error:", err);
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            cleanup();
+            resolve(null);
+          }
+        });
+      })
+      .catch((err) => {
+        console.error("listen error:", err);
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
-          cleanup();
           resolve(null);
         }
       });
-    }).catch((err) => {
-      console.error("listen error:", err);
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timer);
-        resolve(null);
-      }
-    });
   });
 }

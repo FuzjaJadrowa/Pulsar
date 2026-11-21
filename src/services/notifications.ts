@@ -22,7 +22,7 @@ export function showNotification(
   title: string,
   message: string,
   type: "info" | "success" | "error" = "info",
-  isPermanent = false
+  isPermanent = false,
 ) {
   const id = Math.random().toString(36).substring(2, 9);
   const toast: Toast = { id, title, message, type, isPermanent };
@@ -38,7 +38,9 @@ export function showNotification(
 }
 
 export function dismissNotification(id: string) {
-  toastsList = toastsList.map((t) => (t.id === id ? { ...t, isHiding: true } : t));
+  toastsList = toastsList.map((t) =>
+    t.id === id ? { ...t, isHiding: true } : t,
+  );
   notifyListeners();
 
   setTimeout(() => {

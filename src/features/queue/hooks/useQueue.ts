@@ -44,15 +44,18 @@ export function useQueueCount() {
 
   useEffect(() => {
     const handleQueueUpdated = (event: Event) => {
-      const nextCount = Number((event as CustomEvent<{ count?: number }>).detail?.count);
+      const nextCount = Number(
+        (event as CustomEvent<{ count?: number }>).detail?.count,
+      );
       if (Number.isFinite(nextCount)) {
-        setCount((current) => current === nextCount ? current : nextCount);
+        setCount((current) => (current === nextCount ? current : nextCount));
       }
     };
 
     window.addEventListener("pulsar-queue-updated", handleQueueUpdated);
     void ensureHydrated();
-    return () => window.removeEventListener("pulsar-queue-updated", handleQueueUpdated);
+    return () =>
+      window.removeEventListener("pulsar-queue-updated", handleQueueUpdated);
   }, []);
 
   return count;

@@ -1,6 +1,10 @@
 import { ICON_ASSETS } from "../../utils/icons";
 import React, { useState } from "react";
-import { useNotifications, dismissNotification, Toast } from "../../services/notifications";
+import {
+  useNotifications,
+  dismissNotification,
+  Toast,
+} from "../../services/notifications";
 import styles from "./NotificationContainer.module.css";
 
 const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {
@@ -38,7 +42,9 @@ const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-          ><use href={ICON_ASSETS["window-close"]} /></svg>
+          >
+            <use href={ICON_ASSETS["window-close"]} />
+          </svg>
         </button>
         <button
           className="notif-copy"
@@ -56,7 +62,9 @@ const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-            ><use href={ICON_ASSETS["check"]} /></svg>
+            >
+              <use href={ICON_ASSETS["check"]} />
+            </svg>
           ) : (
             <svg
               width="14"
@@ -67,7 +75,9 @@ const NotificationItem: React.FC<{ toast: Toast }> = ({ toast }) => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-            ><use href={ICON_ASSETS["copy"]} /></svg>
+            >
+              <use href={ICON_ASSETS["copy"]} />
+            </svg>
           )}
         </button>
       </div>

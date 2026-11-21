@@ -1,8 +1,13 @@
 use crate::app::config::ConfigManager;
+use crate::infrastructure::ffmpeg::codecs::{
+    binary_fingerprint, ffmpeg_encoder_smoke_test, BinaryFingerprint,
+};
+use crate::infrastructure::ffmpeg::hwaccel::is_supported_encoding_backend;
+use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
 use serde::Serialize;
 use std::path::Path;
-use std::process::Command;
-use tauri::State;
+use std::sync::{OnceLock, RwLock};
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct AccelerationInfo {
@@ -10,218 +15,171 @@ pub struct AccelerationInfo {
     pub preferred: String,
 }
 
-use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
+static PROBED_ACCEL_CACHE: OnceLock<RwLock<Option<(BinaryFingerprint, Vec<String>)>>> =
+    OnceLock::new();
 
-fn parse_hwaccels(output: &str) -> Vec<String> {
-    let mut lines = output.lines();
-    let mut found_header = false;
-    let mut accels = Vec::new();
-    while let Some(line) = lines.next() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if trimmed
-            .to_lowercase()
-            .contains("hardware acceleration methods:")
-        {
-            found_header = true;
-            continue;
-        }
-        if !found_header {
-            continue;
-        }
-        let token = trimmed.split_whitespace().next().unwrap_or("").to_string();
-        if !token.is_empty() {
-            accels.push(token);
-        }
-    }
-    accels
+fn probed_accel_cache() -> &'static RwLock<Option<(BinaryFingerprint, Vec<String>)>> {
+    PROBED_ACCEL_CACHE.get_or_init(|| RwLock::new(None))
 }
 
-fn detect_gpu_vendor() -> Option<String> {
+fn platform_backend_probes() -> &'static [(&'static str, &'static str)] {
     #[cfg(target_os = "windows")]
     {
-        let mut cmd = Command::new("wmic");
-        #[cfg(target_os = "windows")]
-        {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x08000000;
-            cmd.creation_flags(CREATE_NO_WINDOW);
-        }
-        let output = cmd
-            .args(["path", "win32_videocontroller", "get", "name"])
-            .output()
-            .ok()?;
-        let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-        if stdout.contains("nvidia") {
-            return Some("nvidia".to_string());
-        }
-        if stdout.contains("amd") || stdout.contains("radeon") {
-            return Some("amd".to_string());
-        }
-        if stdout.contains("intel") {
-            return Some("intel".to_string());
-        }
+        &[
+            ("cuda", "h264_nvenc"),
+            ("amf", "h264_amf"),
+            ("qsv", "h264_qsv"),
+        ]
     }
-
     #[cfg(target_os = "linux")]
     {
-        if let Ok(output) = Command::new("lspci").output() {
-            let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-            if stdout.contains("nvidia") {
-                return Some("nvidia".to_string());
-            }
-            if stdout.contains("amd") || stdout.contains("radeon") {
-                return Some("amd".to_string());
-            }
-            if stdout.contains("intel") {
-                return Some("intel".to_string());
-            }
-        }
+        &[
+            ("cuda", "h264_nvenc"),
+            ("vaapi", "h264_vaapi"),
+            ("qsv", "h264_qsv"),
+        ]
     }
-
     #[cfg(target_os = "macos")]
     {
-        if let Ok(output) = Command::new("system_profiler")
-            .args(["SPDisplaysDataType"])
-            .output()
-        {
-            let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-            if stdout.contains("apple") {
-                return Some("apple".to_string());
-            }
-            if stdout.contains("amd") || stdout.contains("radeon") {
-                return Some("amd".to_string());
-            }
-            if stdout.contains("intel") {
-                return Some("intel".to_string());
-            }
-            if stdout.contains("nvidia") {
-                return Some("nvidia".to_string());
-            }
-        }
+        &[("videotoolbox", "h264_videotoolbox")]
     }
-
-    None
-}
-
-fn has_accel(accels: &[String], name: &str) -> bool {
-    accels.iter().any(|item| item == name)
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        &[]
+    }
 }
 
 fn choose_preferred(accels: &[String], current: &str) -> String {
-    if current != "auto" && accels.iter().any(|a| a == current) {
-        return current.to_string();
+    let trimmed = current.trim();
+    if trimmed != "auto" && !trimmed.is_empty() && accels.iter().any(|a| a == trimmed) {
+        return trimmed.to_string();
     }
-    let vendor = detect_gpu_vendor();
-
-    #[cfg(target_os = "windows")]
-    {
-        if let Some(v) = vendor.as_deref() {
-            if v == "nvidia" && has_accel(accels, "cuda") {
-                return "cuda".to_string();
-            }
-            if v == "intel" && has_accel(accels, "qsv") {
-                return "qsv".to_string();
-            }
-            if v == "amd" && has_accel(accels, "amf") {
-                return "amf".to_string();
-            }
-        }
-        if has_accel(accels, "d3d11va") {
-            return "d3d11va".to_string();
-        }
-        if has_accel(accels, "dxva2") {
-            return "dxva2".to_string();
-        }
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        if let Some(v) = vendor.as_deref() {
-            if v == "nvidia" && has_accel(accels, "cuda") {
-                return "cuda".to_string();
-            }
-        }
-        if has_accel(accels, "vaapi") {
-            return "vaapi".to_string();
-        }
-        if has_accel(accels, "vulkan") {
-            return "vulkan".to_string();
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        if has_accel(accels, "videotoolbox") {
-            return "videotoolbox".to_string();
-        }
-    }
-
-    let fallback = if vendor.as_deref() != Some("amd") {
-        accels.iter().find(|item| item.as_str() != "amf").cloned()
-    } else {
-        accels.first().cloned()
-    };
-    fallback.unwrap_or_else(|| "auto".to_string())
+    accels
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "auto".to_string())
 }
 
-fn detect_hwaccels(ffmpeg_path: &Path) -> Result<Vec<String>, String> {
+fn detect_working_hwaccels(ffmpeg_path: &Path, force: bool) -> Vec<String> {
     if !ffmpeg_path.exists() {
-        return Err(format!("FFmpeg not found at {:?}", ffmpeg_path));
+        return Vec::new();
     }
-    let mut cmd = Command::new(ffmpeg_path);
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
+    let fingerprint = binary_fingerprint(ffmpeg_path);
+    if !force {
+        if let Some(ref fp) = fingerprint {
+            if let Ok(cache) = probed_accel_cache().read() {
+                if let Some((cached_fp, cached_accels)) = cache.as_ref() {
+                    if cached_fp == fp {
+                        return cached_accels.clone();
+                    }
+                }
+            }
+        }
     }
-    let output = cmd
-        .args(["-hide_banner", "-hwaccels"])
-        .output()
-        .map_err(|e| e.to_string())?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let mut accels = parse_hwaccels(&stdout);
-    accels.sort();
-    accels.dedup();
-    Ok(accels)
+
+    let mut working = Vec::new();
+    for &(backend, probe_encoder) in platform_backend_probes() {
+        if ffmpeg_encoder_smoke_test(ffmpeg_path, probe_encoder) {
+            working.push(backend.to_string());
+        }
+    }
+
+    if let Some(fp) = fingerprint {
+        if let Ok(mut cache) = probed_accel_cache().write() {
+            *cache = Some((fp, working.clone()));
+        }
+    }
+    working
+}
+
+pub fn refresh_acceleration_info_blocking(
+    config_mgr: &ConfigManager,
+    ffmpeg_path: &Path,
+    force: bool,
+) -> AccelerationInfo {
+    let accels = detect_working_hwaccels(ffmpeg_path, force);
+    let mut config = config_mgr.config.lock().unwrap();
+    let preferred = choose_preferred(&accels, &config.ffmpeg_hwaccel_preferred);
+    let changed = config.ffmpeg_hwaccels != accels || config.ffmpeg_hwaccel_preferred != preferred;
+    config.ffmpeg_hwaccels = accels.clone();
+    config.ffmpeg_hwaccel_preferred = preferred.clone();
+    drop(config);
+    if changed {
+        config_mgr.save();
+    }
+    AccelerationInfo {
+        hwaccels: accels,
+        preferred,
+    }
 }
 
 #[tauri::command]
-pub fn refresh_acceleration_info(
-    config_mgr: State<ConfigManager>,
-) -> Result<AccelerationInfo, String> {
-    let ffmpeg_path = get_ffmpeg_path();
-    let accels = detect_hwaccels(&ffmpeg_path).unwrap_or_default();
-    let mut config = config_mgr.config.lock().unwrap();
-    config.ffmpeg_hwaccels = accels.clone();
-    config.ffmpeg_hwaccel_preferred =
-        choose_preferred(&accels, config.ffmpeg_hwaccel_preferred.trim());
-    drop(config);
-    config_mgr.save();
-    Ok(AccelerationInfo {
-        hwaccels: accels,
-        preferred: config_mgr
-            .config
-            .lock()
-            .unwrap()
-            .ffmpeg_hwaccel_preferred
-            .clone(),
+pub async fn refresh_acceleration_info(app_handle: AppHandle) -> Result<AccelerationInfo, String> {
+    tokio::task::spawn_blocking(move || {
+        let ffmpeg_path = get_ffmpeg_path();
+        let config_mgr = app_handle.state::<ConfigManager>();
+        refresh_acceleration_info_blocking(&config_mgr, &ffmpeg_path, true)
     })
+    .await
+    .map_err(|error| format!("Hardware acceleration probe failed: {error}"))
+}
+
+pub fn ensure_hwaccel_for_task(config_mgr: &ConfigManager, ffmpeg_path: &Path) -> Option<String> {
+    {
+        let config = config_mgr.config.lock().unwrap();
+        if !is_hwaccel_enabled(&config.ffmpeg_hwaccel) {
+            return None;
+        }
+    }
+    let _ = refresh_acceleration_info_blocking(config_mgr, ffmpeg_path, false);
+    resolve_hwaccel(config_mgr)
+}
+
+pub fn is_hwaccel_enabled(setting: &str) -> bool {
+    let trimmed = setting.trim();
+    !trimmed.is_empty()
+        && !trimmed.eq_ignore_ascii_case("none")
+        && !trimmed.eq_ignore_ascii_case("false")
 }
 
 pub fn resolve_hwaccel(config_mgr: &ConfigManager) -> Option<String> {
     let config = config_mgr.config.lock().unwrap();
-    if config.ffmpeg_hwaccel == "none"
-        || config.ffmpeg_hwaccel == "false"
-        || config.ffmpeg_hwaccel.trim().is_empty()
-    {
+    if !is_hwaccel_enabled(&config.ffmpeg_hwaccel) {
         return None;
     }
-    if config.ffmpeg_hwaccel_preferred != "auto" {
-        return Some(config.ffmpeg_hwaccel_preferred.clone());
+    let preferred = config.ffmpeg_hwaccel_preferred.trim();
+    if preferred != "auto"
+        && is_supported_encoding_backend(preferred)
+        && config.ffmpeg_hwaccels.iter().any(|item| item == preferred)
+    {
+        return Some(preferred.to_string());
     }
-    config.ffmpeg_hwaccels.first().cloned()
+    config
+        .ffmpeg_hwaccels
+        .iter()
+        .find(|item| is_supported_encoding_backend(item))
+        .cloned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn choose_preferred_keeps_valid_user_choice_and_falls_back_to_first() {
+        let accels = vec!["cuda".to_string(), "qsv".to_string()];
+        assert_eq!(choose_preferred(&accels, "qsv"), "qsv");
+        assert_eq!(choose_preferred(&accels, "auto"), "cuda");
+        assert_eq!(choose_preferred(&accels, "d3d11va"), "cuda");
+        assert_eq!(choose_preferred(&[], "auto"), "auto");
+    }
+
+    #[test]
+    fn hwaccel_enabled_check_handles_none_false_empty() {
+        assert!(!is_hwaccel_enabled("none"));
+        assert!(!is_hwaccel_enabled("false"));
+        assert!(!is_hwaccel_enabled("   "));
+        assert!(is_hwaccel_enabled("auto"));
+        assert!(is_hwaccel_enabled("cuda"));
+    }
 }

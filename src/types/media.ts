@@ -11,7 +11,9 @@ export interface MediaFileMetadata {
   height?: number;
 }
 
-export function isMediaFileMetadata(value: unknown): value is MediaFileMetadata {
+export function isMediaFileMetadata(
+  value: unknown,
+): value is MediaFileMetadata {
   if (!value || typeof value !== "object") return false;
   const metadata = value as Record<string, unknown>;
   return typeof metadata.path === "string" && metadata.path.trim().length > 0;

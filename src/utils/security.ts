@@ -13,7 +13,10 @@ export function sanitizeSvg(rawSvg: string | undefined | null): string {
 
     const hasParserError = doc.getElementsByTagName("parsererror").length > 0;
     if (hasParserError) {
-      return trimmed.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+      return trimmed.replace(
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        "",
+      );
     }
 
     const svgElement = doc.documentElement;
@@ -23,7 +26,12 @@ export function sanitizeSvg(rawSvg: string | undefined | null): string {
 
     const cleanElement = (el: Element) => {
       const tagName = el.tagName.toLowerCase();
-      if (tagName === "script" || tagName === "object" || tagName === "embed" || tagName === "iframe") {
+      if (
+        tagName === "script" ||
+        tagName === "object" ||
+        tagName === "embed" ||
+        tagName === "iframe"
+      ) {
         el.parentNode?.removeChild(el);
         return;
       }
@@ -35,8 +43,10 @@ export function sanitizeSvg(rawSvg: string | undefined | null): string {
 
         if (attrName.startsWith("on")) {
           el.removeAttribute(attr.name);
-        }
-        else if ((attrName === "href" || attrName === "xlink:href") && attrVal.includes("javascript:")) {
+        } else if (
+          (attrName === "href" || attrName === "xlink:href") &&
+          attrVal.includes("javascript:")
+        ) {
           el.removeAttribute(attr.name);
         }
       }
@@ -53,8 +63,9 @@ export function sanitizeSvg(rawSvg: string | undefined | null): string {
     return serializer.serializeToString(doc);
   } catch (error) {
     console.error("SVG Sanitization failed, returning fallback:", error);
-    return trimmed.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-                  .replace(/\s+on\w+\s*=\s*"[^"]*"/gi, "")
-                  .replace(/\s+on\w+\s*=\s*'[^']*'/gi, "");
+    return trimmed
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/\s+on\w+\s*=\s*"[^"]*"/gi, "")
+      .replace(/\s+on\w+\s*=\s*'[^']*'/gi, "");
   }
 }

@@ -27,6 +27,7 @@ import { BatchInfoCard } from "../../components/media/BatchInfoCard";
 import styles from "./Converter.module.css";
 import { ConverterFileInfo } from "./components/ConverterFileInfo";
 import { sanitizeBitrateInput } from "../../utils/bitrate";
+import { extractFileName, extractFolderPath, joinPath } from "../../utils/path";
 
 import { CATEGORY_ICONS } from "../../utils/icons";
 
@@ -48,7 +49,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     isLoading: isConfirmLoading,
     fetchMetadata: triggerFetchMetadata,
     reset: resetMetadataState,
-    setMetadata
+    setMetadata,
   } = useTauriMetadata<MediaFileMetadata>({
     pickerCommand: "fetch_metadata_converter",
     onSuccess: (data) => {
@@ -56,14 +57,14 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     },
     onError: (err) => {
       showNotification(t("common.error"), err, "error");
-    }
+    },
   });
 
   const { showDropOverlay } = useFileDragDrop({
     pageClass: "page-converter",
     onFileDrop: (paths) => {
       handleFilesSelected(paths);
-    }
+    },
   });
 
   const [currentName, setCurrentName] = useState("");
@@ -93,10 +94,11 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const [formatData, setFormatData] = useState<FormatEntry[]>([]);
 
-
   const pathInputRef = useRef<HTMLInputElement | null>(null);
 
-  const converterPresets = presets.filter(p => p.preset_type === "converter" && !p.hidden);
+  const converterPresets = presets.filter(
+    (p) => p.preset_type === "converter" && !p.hidden,
+  );
 
   const { updateUiState } = useUiState();
 
@@ -140,7 +142,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     imageWidth,
     imageHeight,
     imageQuality,
-    metadata
+    metadata,
   ]);
 
   const handleMetadataLoaded = (data: MediaFileMetadata) => {
@@ -148,7 +150,7 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     setCurrentName(data.name || "");
     setNameDraft(data.name || "");
     const initialCategory = String(data.category || "").toLowerCase();
-    
+
     // Choose default conversion mode
     if (initialCategory === "audio") {
       setSelectedMode("audio");
@@ -191,7 +193,12 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     clearActivePreset();
   };
 
-  const { handleFilesSelected, handleConfirmPath, openPicker, removeFileFromBatch } = createFileSelectionHandlers({
+  const {
+    handleFilesSelected,
+    handleConfirmPath,
+    openPicker,
+    removeFileFromBatch,
+  } = createFileSelectionHandlers({
     filePath,
     loadedFiles,
     inputRef: pathInputRef,
@@ -214,26 +221,71 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       return;
     }
 
-    const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
-    const targetCategory = selectedFormat?.toLowerCase() === "gif" && metadata.category === "video" ? "video" : formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
+    const formatMeta = formatData.find(
+      (format) => format.id.toLowerCase() === selectedFormat.toLowerCase(),
+    );
+    const targetCategory =
+      selectedFormat?.toLowerCase() === "gif" && metadata.category === "video"
+        ? "video"
+        : formatMeta?.type ||
+          (metadata.category === "video" ? selectedMode : metadata.category);
 
     const payload = {
-      source_size_bytes: Number.isFinite(Number(metadata.size_bytes)) ? Number(metadata.size_bytes) : null,
-      source_duration_seconds: Number.isFinite(Number(metadata.duration_seconds)) ? Number(metadata.duration_seconds) : null,
-      source_width: Number.isFinite(Number(metadata.width)) ? Number(metadata.width) : null,
-      source_height: Number.isFinite(Number(metadata.height)) ? Number(metadata.height) : null,
+      source_size_bytes: Number.isFinite(Number(metadata.size_bytes))
+        ? Number(metadata.size_bytes)
+        : null,
+      source_duration_seconds: Number.isFinite(
+        Number(metadata.duration_seconds),
+      )
+        ? Number(metadata.duration_seconds)
+        : null,
+      source_width: Number.isFinite(Number(metadata.width))
+        ? Number(metadata.width)
+        : null,
+      source_height: Number.isFinite(Number(metadata.height))
+        ? Number(metadata.height)
+        : null,
       source_category: String(metadata.category || "").toLowerCase(),
       category: targetCategory,
       format: String(selectedFormat).trim(),
       video_quality: targetCategory === "video" ? videoQuality : "",
-      video_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
-      video_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
+      video_codec:
+        selectedFormat.toLowerCase() === "gif"
+          ? ""
+          : targetCategory === "video"
+            ? videoCodec
+            : "",
+      video_bitrate:
+        selectedFormat.toLowerCase() === "gif"
+          ? ""
+          : targetCategory === "video"
+            ? videoBitrate
+            : "",
       video_fps: targetCategory === "video" ? videoFps : "",
-      audio_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-      audio_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
-      image_width: targetCategory === "image" ? (parseInt(String(imageWidth)) || null) : null,
-      image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
-      image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null
+      audio_codec:
+        selectedFormat.toLowerCase() === "gif"
+          ? ""
+          : targetCategory === "audio"
+            ? audioCodec
+            : videoAudioCodec || "",
+      audio_bitrate:
+        selectedFormat.toLowerCase() === "gif"
+          ? ""
+          : targetCategory === "audio"
+            ? audioBitrate
+            : videoAudioBitrate || "",
+      image_width:
+        targetCategory === "image"
+          ? parseInt(String(imageWidth)) || null
+          : null,
+      image_height:
+        targetCategory === "image"
+          ? parseInt(String(imageHeight)) || null
+          : null,
+      image_quality:
+        targetCategory === "image"
+          ? parseInt(String(imageQuality)) || null
+          : null,
     };
 
     try {
@@ -266,7 +318,9 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
         const fmt = c.format ? c.format.toLowerCase() : "";
         setSelectedFormat(fmt);
 
-        const formatMeta = formatData.find((format) => format.id.toLowerCase() === fmt);
+        const formatMeta = formatData.find(
+          (format) => format.id.toLowerCase() === fmt,
+        );
         const isAudioTarget = formatMeta?.type === "audio";
 
         if (isAudioTarget) {
@@ -294,7 +348,8 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
     return raw.replace(/[\\/]+/g, " ").trim();
   };
 
-  const getDefaultOutputName = () => metadata?.name || extractFileName(metadata?.path || "") || "";
+  const getDefaultOutputName = () =>
+    metadata?.name || extractFileName(metadata?.path || "") || "";
   const beginNameEdit = () => {
     setNameDraft(currentName || getDefaultOutputName());
     setIsEditingName(true);
@@ -306,58 +361,36 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
   const normalizeOutputFormat = (value: string) => {
     if (!value) return "";
-    let raw = String(value || "").trim().toLowerCase();
+    let raw = String(value || "")
+      .trim()
+      .toLowerCase();
     while (raw.startsWith(".")) raw = raw.slice(1);
     return raw;
-  };
-
-  const detectPathSeparator = (value: string) => {
-    return String(value || "").includes("\\") ? "\\" : "/";
-  };
-
-  const joinPath = (base: string, name: string) => {
-    if (!base) return name;
-    const sep = detectPathSeparator(base);
-    if (base.endsWith("/") || base.endsWith("\\")) {
-      return `${base}${name}`;
-    }
-    return `${base}${sep}${name}`;
-  };
-
-  const extractFolderPath = (rawPath: string) => {
-    if (typeof rawPath !== "string") return "";
-    const trimmed = rawPath.trim();
-    if (!trimmed) return "";
-    const lastSlash = trimmed.lastIndexOf("/");
-    const lastBackslash = trimmed.lastIndexOf("\\");
-    const lastSep = Math.max(lastSlash, lastBackslash);
-    if (lastSep <= 0) return trimmed;
-    return trimmed.slice(0, lastSep);
-  };
-
-  const extractFileName = (rawPath: string) => {
-    if (typeof rawPath !== "string") return "";
-    const trimmed = rawPath.trim();
-    if (!trimmed) return "";
-    const lastSlash = trimmed.lastIndexOf("/");
-    const lastBackslash = trimmed.lastIndexOf("\\");
-    const lastSep = Math.max(lastSlash, lastBackslash);
-    if (lastSep < 0) return trimmed;
-    return trimmed.slice(lastSep + 1);
   };
 
   const buildConvertPayload = () => {
     if (!selectedFormat || !metadata) return null;
 
-    const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
-    const targetCategory = selectedFormat?.toLowerCase() === "gif" && metadata.category === "video" ? "video" : formatMeta?.type || (metadata.category === "video" ? selectedMode : metadata.category);
+    const formatMeta = formatData.find(
+      (format) => format.id.toLowerCase() === selectedFormat.toLowerCase(),
+    );
+    const targetCategory =
+      selectedFormat?.toLowerCase() === "gif" && metadata.category === "video"
+        ? "video"
+        : formatMeta?.type ||
+          (metadata.category === "video" ? selectedMode : metadata.category);
     if (!targetCategory) return null;
 
     const outputFormat = normalizeOutputFormat(selectedFormat);
     if (!outputFormat) return null;
 
-    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(metadata.path);
-    const rawName = sanitizeOutputName(currentName || metadata.name || "output");
+    const outputDir =
+      savePath.trim() ||
+      config.default_save_path.trim() ||
+      extractFolderPath(metadata.path);
+    const rawName = sanitizeOutputName(
+      currentName || metadata.name || "output",
+    );
 
     let baseName = rawName;
     const lowerName = rawName.toLowerCase();
@@ -376,38 +409,91 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       output_format: outputFormat,
       category: targetCategory,
       source_category: String(metadata.category || "").toLowerCase(),
-      image_width: targetCategory === "image" ? (parseInt(String(imageWidth)) || null) : null,
-      image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
-      image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null,
+      image_width:
+        targetCategory === "image"
+          ? parseInt(String(imageWidth)) || null
+          : null,
+      image_height:
+        targetCategory === "image"
+          ? parseInt(String(imageHeight)) || null
+          : null,
+      image_quality:
+        targetCategory === "image"
+          ? parseInt(String(imageQuality)) || null
+          : null,
       video_quality: targetCategory === "video" ? videoQuality : "",
-      video_codec: outputFormat === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
-      video_bitrate: outputFormat === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
+      video_codec:
+        outputFormat === "gif"
+          ? ""
+          : targetCategory === "video"
+            ? videoCodec
+            : "",
+      video_bitrate:
+        outputFormat === "gif"
+          ? ""
+          : targetCategory === "video"
+            ? videoBitrate
+            : "",
       video_fps: targetCategory === "video" ? videoFps : "",
-      audio_codec: outputFormat === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-      audio_bitrate: outputFormat === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
-      source_duration_seconds: Number.isFinite(Number(metadata.duration_seconds)) ? Number(metadata.duration_seconds) : null,
-      source_size_bytes: Number.isFinite(Number(metadata.size_bytes)) ? Number(metadata.size_bytes) : null,
+      audio_codec:
+        outputFormat === "gif"
+          ? ""
+          : targetCategory === "audio"
+            ? audioCodec
+            : videoAudioCodec || "",
+      audio_bitrate:
+        outputFormat === "gif"
+          ? ""
+          : targetCategory === "audio"
+            ? audioBitrate
+            : videoAudioBitrate || "",
+      source_duration_seconds: Number.isFinite(
+        Number(metadata.duration_seconds),
+      )
+        ? Number(metadata.duration_seconds)
+        : null,
+      source_size_bytes: Number.isFinite(Number(metadata.size_bytes))
+        ? Number(metadata.size_bytes)
+        : null,
       source_format: String(metadata.extension || ""),
-      path: outputPath
+      path: outputPath,
     };
   };
 
-  const handleStartConvert = async (autoStart: boolean, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleStartConvert = async (
+    autoStart: boolean,
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     if (!selectedFormat || !metadata) return;
 
     if (loadedFiles.length > 1) {
       // Bulk conversion
-      const formatMeta = formatData.find((format) => format.id.toLowerCase() === selectedFormat.toLowerCase());
+      const formatMeta = formatData.find(
+        (format) => format.id.toLowerCase() === selectedFormat.toLowerCase(),
+      );
       const outputFormat = normalizeOutputFormat(selectedFormat);
       if (!outputFormat) {
-        showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
+        showNotification(
+          t("common.error"),
+          t("common.errors.unsupportedFormat"),
+          "error",
+        );
         return;
       }
 
-      const payloads = loadedFiles.map(file => {
-        const targetCategory = selectedFormat?.toLowerCase() === "gif" && file.category === "video" ? "video" : formatMeta?.type || (file.category === "video" ? selectedMode : file.category);
-    const outputDir = savePath.trim() || config.default_save_path.trim() || extractFolderPath(file.path);
-        const rawName = sanitizeOutputName(file.name || extractFileName(file.path) || "output");
+      const payloads = loadedFiles.map((file) => {
+        const targetCategory =
+          selectedFormat?.toLowerCase() === "gif" && file.category === "video"
+            ? "video"
+            : formatMeta?.type ||
+              (file.category === "video" ? selectedMode : file.category);
+        const outputDir =
+          savePath.trim() ||
+          config.default_save_path.trim() ||
+          extractFolderPath(file.path);
+        const rawName = sanitizeOutputName(
+          file.name || extractFileName(file.path) || "output",
+        );
 
         let baseName = rawName;
         const suffix = `.${outputFormat}`;
@@ -423,38 +509,83 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
           output_format: outputFormat,
           category: targetCategory,
           source_category: String(file.category || "").toLowerCase(),
-          image_width: targetCategory === "image" ? (parseInt(String(imageWidth)) || null) : null,
-          image_height: targetCategory === "image" ? (parseInt(String(imageHeight)) || null) : null,
-          image_quality: targetCategory === "image" ? (parseInt(String(imageQuality)) || null) : null,
+          image_width:
+            targetCategory === "image"
+              ? parseInt(String(imageWidth)) || null
+              : null,
+          image_height:
+            targetCategory === "image"
+              ? parseInt(String(imageHeight)) || null
+              : null,
+          image_quality:
+            targetCategory === "image"
+              ? parseInt(String(imageQuality)) || null
+              : null,
           video_quality: targetCategory === "video" ? videoQuality : "",
-          video_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoCodec : "",
-          video_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "video" ? videoBitrate : "",
+          video_codec:
+            selectedFormat.toLowerCase() === "gif"
+              ? ""
+              : targetCategory === "video"
+                ? videoCodec
+                : "",
+          video_bitrate:
+            selectedFormat.toLowerCase() === "gif"
+              ? ""
+              : targetCategory === "video"
+                ? videoBitrate
+                : "",
           video_fps: targetCategory === "video" ? videoFps : "",
-          audio_codec: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioCodec : (videoAudioCodec || ""),
-          audio_bitrate: selectedFormat.toLowerCase() === "gif" ? "" : targetCategory === "audio" ? audioBitrate : (videoAudioBitrate || ""),
-          source_duration_seconds: Number.isFinite(Number(file.duration_seconds)) ? Number(file.duration_seconds) : null,
-          source_size_bytes: Number.isFinite(Number(file.size_bytes)) ? Number(file.size_bytes) : null,
-          source_format: String(file.extension || "")
+          audio_codec:
+            selectedFormat.toLowerCase() === "gif"
+              ? ""
+              : targetCategory === "audio"
+                ? audioCodec
+                : videoAudioCodec || "",
+          audio_bitrate:
+            selectedFormat.toLowerCase() === "gif"
+              ? ""
+              : targetCategory === "audio"
+                ? audioBitrate
+                : videoAudioBitrate || "",
+          source_duration_seconds: Number.isFinite(
+            Number(file.duration_seconds),
+          )
+            ? Number(file.duration_seconds)
+            : null,
+          source_size_bytes: Number.isFinite(Number(file.size_bytes))
+            ? Number(file.size_bytes)
+            : null,
+          source_format: String(file.extension || ""),
         };
       });
 
-      const firstCategory = formatMeta?.type || (loadedFiles[0].category === "video" ? selectedMode : loadedFiles[0].category);
+      const firstCategory =
+        formatMeta?.type ||
+        (loadedFiles[0].category === "video"
+          ? selectedMode
+          : loadedFiles[0].category);
       const batchPayload = {
         is_batch: true,
         category: firstCategory,
-        items: payloads
+        items: payloads,
       };
 
       const meta = {
         title: `${t(`common.meta.category.${initialCategory}`, initialCategory.toUpperCase())} (${loadedFiles.length})`,
         thumbnail: "",
-        path: savePath.trim() || config.default_save_path.trim() || extractFolderPath(loadedFiles[0].path),
-        source: autoStart ? "convert" : "queue"
+        path:
+          savePath.trim() ||
+          config.default_save_path.trim() ||
+          extractFolderPath(loadedFiles[0].path),
+        source: autoStart ? "convert" : "queue",
       };
 
       const sourceRect = e.currentTarget.getBoundingClientRect();
       try {
-        await enqueue("convert", batchPayload, meta, { autoStart, startReason: autoStart ? "convert" : undefined });
+        await enqueue("convert", batchPayload, meta, {
+          autoStart,
+          startReason: autoStart ? "convert" : undefined,
+        });
         if (sourceRect) {
           animateQueueOrb(sourceRect);
         }
@@ -463,14 +594,22 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
         }, 40);
       } catch (err) {
         console.error("Bulk convert enqueue error:", err);
-        showNotification(t("common.error"), t("common.errors.startPrefix", { error: String(err) }), "error");
+        showNotification(
+          t("common.error"),
+          t("common.errors.startPrefix", { error: String(err) }),
+          "error",
+        );
       }
       return;
     }
 
     const payload = buildConvertPayload();
     if (!payload) {
-      showNotification(t("common.error"), t("common.errors.unsupportedFormat"), "error");
+      showNotification(
+        t("common.error"),
+        t("common.errors.unsupportedFormat"),
+        "error",
+      );
       return;
     }
 
@@ -478,12 +617,15 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       title: currentName || metadata.name || t("common.unknownTitle"),
       thumbnail: "",
       path: payload.path || "",
-      source: autoStart ? "convert" : "queue"
+      source: autoStart ? "convert" : "queue",
     };
 
     const sourceRect = e.currentTarget.getBoundingClientRect();
     try {
-      await enqueue("convert", payload, meta, { autoStart, startReason: autoStart ? "convert" : undefined });
+      await enqueue("convert", payload, meta, {
+        autoStart,
+        startReason: autoStart ? "convert" : undefined,
+      });
       if (sourceRect) {
         animateQueueOrb(sourceRect);
       }
@@ -492,27 +634,47 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       }, 40);
     } catch (err) {
       console.error("Convert enqueue error:", err);
-      showNotification(t("common.error"), t("common.errors.startPrefix",  { error: String(err) }), "error");
+      showNotification(
+        t("common.error"),
+        t("common.errors.startPrefix", { error: String(err) }),
+        "error",
+      );
     }
   };
 
-  const initialCategory = metadata ? String(metadata.category || "").toLowerCase() : "";
+  const initialCategory = metadata
+    ? String(metadata.category || "").toLowerCase()
+    : "";
   const isVideoSource = initialCategory === "video";
   const showModeToggle = isVideoSource;
 
   // Selected format metadata
-  const selectedFormatMeta = selectedFormat ? formatData.find(f => f.id.toLowerCase() === selectedFormat.toLowerCase()) : null;
-  const isGifOutput = selectedFormat?.toLowerCase() === "gif" && metadata?.category === "video";
-  const targetCategory = isGifOutput ? "video" : selectedFormatMeta?.type || (isVideoSource ? selectedMode : initialCategory);
+  const selectedFormatMeta = selectedFormat
+    ? formatData.find(
+        (f) => f.id.toLowerCase() === selectedFormat.toLowerCase(),
+      )
+    : null;
+  const isGifOutput =
+    selectedFormat?.toLowerCase() === "gif" && metadata?.category === "video";
+  const targetCategory = isGifOutput
+    ? "video"
+    : selectedFormatMeta?.type ||
+      (isVideoSource ? selectedMode : initialCategory);
 
-  const formatsToRender = formatData.filter(f => {
+  const formatsToRender = formatData.filter((f) => {
     if (isVideoSource) {
-      return f.type === selectedMode || (selectedMode === "video" && f.id.toLowerCase() === "gif");
+      return (
+        f.type === selectedMode ||
+        (selectedMode === "video" && f.id.toLowerCase() === "gif")
+      );
     }
     return f.type === initialCategory;
   });
 
-  const isValid = !!(selectedFormat && (savePath.trim().length > 0 || metadata));
+  const isValid = !!(
+    selectedFormat &&
+    (savePath.trim().length > 0 || metadata)
+  );
 
   return (
     <div className={`${styles.scope} page-root converter-page`}>
@@ -569,18 +731,34 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
             {/* Presets List */}
             {converterPresets.length > 0 && (
-              <div className="preset-section fade-in" id="convert-preset-section">
-                <span className="option-label">{t("downloader.options.presets")}</span>
-                <PresetGrid id="convert-preset-grid" presets={converterPresets} activeId={activePresetId} onSelect={handlePresetClick} />
+              <div
+                className="preset-section fade-in"
+                id="convert-preset-section"
+              >
+                <span className="option-label">
+                  {t("downloader.options.presets")}
+                </span>
+                <PresetGrid
+                  id="convert-preset-grid"
+                  presets={converterPresets}
+                  activeId={activePresetId}
+                  onSelect={handlePresetClick}
+                />
               </div>
             )}
 
             {/* Format Conversion grid */}
             <div className="converter-options-panel fade-in">
               <div className="converter-options-block">
-                <span className="option-label converter-options-title">{t("converter.options.convertTo")}</span>
+                <span className="option-label converter-options-title">
+                  {t("converter.options.convertTo")}
+                </span>
                 {showModeToggle && (
-                  <div id="convert-media-toggle" className="converter-media-toggle" role="group">
+                  <div
+                    id="convert-media-toggle"
+                    className="converter-media-toggle"
+                    role="group"
+                  >
                     <button
                       type="button"
                       className={`converter-toggle-option ${selectedMode === "video" ? "active" : ""}`}
@@ -590,7 +768,14 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["video"]} /></svg>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <use href={ICON_ASSETS["video"]} />
+                      </svg>
                       <span>{t("common.mode.video")}</span>
                     </button>
                     <button
@@ -602,12 +787,22 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         clearActivePreset();
                       }}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["audio"]} /></svg>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <use href={ICON_ASSETS["audio"]} />
+                      </svg>
                       <span>{t("common.mode.audio")}</span>
                     </button>
                   </div>
                 )}
-                <div id="convert-format-grid" className="converter-format-grid content-transition">
+                <div
+                  id="convert-format-grid"
+                  className="converter-format-grid content-transition"
+                >
                   {formatsToRender.map((item) => (
                     <button
                       key={item.id}
@@ -625,11 +820,20 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
               </div>
 
               {/* Details Settings Panel */}
-              <div id="convert-details-panel" className={`converter-details-panel ${selectedFormat ? "open" : ""}`} aria-hidden={!selectedFormat}>
-                <div id="convert-specs-panel" className="converter-specs-card fade-in">
+              <div
+                id="convert-details-panel"
+                className={`converter-details-panel ${selectedFormat ? "open" : ""}`}
+                aria-hidden={!selectedFormat}
+              >
+                <div
+                  id="convert-specs-panel"
+                  className="converter-specs-card fade-in"
+                >
                   <div className="converter-specs-grid">
                     <div className="converter-specs-column" data-side="output">
-                      <span className="option-label converter-options-title">{t("common.options.title")}</span>
+                      <span className="option-label converter-options-title">
+                        {t("common.options.title")}
+                      </span>
 
                       {/* Custom save path */}
                       <PathSelector
@@ -637,7 +841,10 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                         id="convert-save-path-input"
                         placeholder={t("common.noSavePathSelected")}
                         value={savePath}
-                        onChange={(path) => { setSavePath(path); clearActivePreset(); }}
+                        onChange={(path) => {
+                          setSavePath(path);
+                          clearActivePreset();
+                        }}
                         pickerCommand="pick_download_directory"
                         title={t("common.browse")}
                         useLastPathTitle={t("common.useLastPath")}
@@ -646,12 +853,29 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
                       {/* VIDEO Specs */}
                       {targetCategory === "video" && (
-                        <div className="converter-specs-section" data-section="video">
-                          <EstimatedSizeRow classPrefix="converter" id="convert-output-video-size" value={estimatedSize} />
+                        <div
+                          className="converter-specs-section"
+                          data-section="video"
+                        >
+                          <EstimatedSizeRow
+                            classPrefix="converter"
+                            id="convert-output-video-size"
+                            value={estimatedSize}
+                          />
                           <OutputSelectField
                             classPrefix="converter"
                             label={t("common.videoQuality")}
-                            options={["", "2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"].map((quality) => ({
+                            options={[
+                              "",
+                              "2160p",
+                              "1440p",
+                              "1080p",
+                              "720p",
+                              "480p",
+                              "360p",
+                              "240p",
+                              "144p",
+                            ].map((quality) => ({
                               value: quality,
                               label: quality || t("common.auto"),
                             }))}
@@ -661,44 +885,138 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                               clearActivePreset();
                             }}
                           />
-                          {!isGifOutput && <OutputCodecField classPrefix="converter" label={t("common.videoCodec")} codecs={selectedFormatMeta?.video_codecs || []} value={videoCodec} includeCopyOption onChange={(value) => { setVideoCodec(value); clearActivePreset(); }} />}
-                          {!isGifOutput && <OutputTextField classPrefix="converter" id="convert-output-video-bitrate" label={t("common.videoBitrate")} placeholder={t("common.auto")} value={videoBitrate} onChange={(value) => { setVideoBitrate(sanitizeBitrateInput(value, 100000)); clearActivePreset(); }} />}
+                          {!isGifOutput && (
+                            <OutputCodecField
+                              classPrefix="converter"
+                              label={t("common.videoCodec")}
+                              codecs={selectedFormatMeta?.video_codecs || []}
+                              value={videoCodec}
+                              includeCopyOption
+                              onChange={(value) => {
+                                setVideoCodec(value);
+                                clearActivePreset();
+                              }}
+                            />
+                          )}
+                          {!isGifOutput && (
+                            <OutputTextField
+                              classPrefix="converter"
+                              id="convert-output-video-bitrate"
+                              label={t("common.videoBitrate")}
+                              placeholder={t("common.auto")}
+                              value={videoBitrate}
+                              onChange={(value) => {
+                                setVideoBitrate(
+                                  sanitizeBitrateInput(value, 100000),
+                                );
+                                clearActivePreset();
+                              }}
+                            />
+                          )}
                           <OutputSelectField
                             classPrefix="converter"
                             label={t("common.fps")}
-                            options={["", "60", "30", "24"].map((fps) => ({ value: fps, label: fps || t("common.auto") }))}
+                            options={["", "60", "30", "24"].map((fps) => ({
+                              value: fps,
+                              label: fps || t("common.auto"),
+                            }))}
                             value={videoFps}
                             onChange={(value) => {
                               setVideoFps(value);
                               clearActivePreset();
                             }}
                           />
-                          {!isGifOutput && <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={videoAudioCodec} includeCopyOption onChange={(value) => { setVideoAudioCodec(value); clearActivePreset(); }} />}
-                          {!isGifOutput && <OutputTextField classPrefix="converter" id="convert-output-video-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={videoAudioBitrate} onChange={(value) => { setVideoAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />}
+                          {!isGifOutput && (
+                            <OutputCodecField
+                              classPrefix="converter"
+                              label={t("common.audioCodec")}
+                              codecs={selectedFormatMeta?.audio_codecs || []}
+                              value={videoAudioCodec}
+                              includeCopyOption
+                              onChange={(value) => {
+                                setVideoAudioCodec(value);
+                                clearActivePreset();
+                              }}
+                            />
+                          )}
+                          {!isGifOutput && (
+                            <OutputTextField
+                              classPrefix="converter"
+                              id="convert-output-video-audio-bitrate"
+                              label={t("common.audioBitrate")}
+                              placeholder={t("common.auto")}
+                              value={videoAudioBitrate}
+                              onChange={(value) => {
+                                setVideoAudioBitrate(
+                                  sanitizeBitrateInput(value, 1000),
+                                );
+                                clearActivePreset();
+                              }}
+                            />
+                          )}
                         </div>
                       )}
 
                       {/* AUDIO Specs */}
                       {targetCategory === "audio" && (
-                        <div className="converter-specs-section" data-section="audio">
-                          <EstimatedSizeRow classPrefix="converter" id="convert-output-audio-size" value={estimatedSize} />
-                          <OutputCodecField classPrefix="converter" label={t("common.audioCodec")} codecs={selectedFormatMeta?.audio_codecs || []} value={audioCodec} onChange={(value) => { setAudioCodec(value); clearActivePreset(); }} />
-                          <OutputTextField classPrefix="converter" id="convert-output-audio-bitrate" label={t("common.audioBitrate")} placeholder={t("common.auto")} value={audioBitrate} onChange={(value) => { setAudioBitrate(sanitizeBitrateInput(value, 1000)); clearActivePreset(); }} />
+                        <div
+                          className="converter-specs-section"
+                          data-section="audio"
+                        >
+                          <EstimatedSizeRow
+                            classPrefix="converter"
+                            id="convert-output-audio-size"
+                            value={estimatedSize}
+                          />
+                          <OutputCodecField
+                            classPrefix="converter"
+                            label={t("common.audioCodec")}
+                            codecs={selectedFormatMeta?.audio_codecs || []}
+                            value={audioCodec}
+                            onChange={(value) => {
+                              setAudioCodec(value);
+                              clearActivePreset();
+                            }}
+                          />
+                          <OutputTextField
+                            classPrefix="converter"
+                            id="convert-output-audio-bitrate"
+                            label={t("common.audioBitrate")}
+                            placeholder={t("common.auto")}
+                            value={audioBitrate}
+                            onChange={(value) => {
+                              setAudioBitrate(
+                                sanitizeBitrateInput(value, 1000),
+                              );
+                              clearActivePreset();
+                            }}
+                          />
                         </div>
                       )}
 
                       {/* IMAGE Specs */}
                       {targetCategory === "image" && (
-                        <div className="converter-specs-section" data-section="image">
-                          <EstimatedSizeRow classPrefix="converter" id="convert-output-image-size" value={estimatedSize} />
+                        <div
+                          className="converter-specs-section"
+                          data-section="image"
+                        >
+                          <EstimatedSizeRow
+                            classPrefix="converter"
+                            id="convert-output-image-size"
+                            value={estimatedSize}
+                          />
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.resolution")}</span>
+                            <span className="converter-specs-label">
+                              {t("converter.options.resolution")}
+                            </span>
                             <div className="converter-specs-control converter-resolution-inputs">
                               <input
                                 id="convert-output-image-width"
                                 className="custom-input"
                                 type="number"
-                                placeholder={t("converter.options.widthPlaceholder")}
+                                placeholder={t(
+                                  "converter.options.widthPlaceholder",
+                                )}
                                 value={imageWidth}
                                 onChange={(e) => {
                                   if (e.target.value === "") {
@@ -715,7 +1033,10 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 }}
                                 onBlur={() => {
                                   if (imageWidth !== "") {
-                                    let val = typeof imageWidth === "number" ? imageWidth : parseInt(String(imageWidth), 10);
+                                    let val =
+                                      typeof imageWidth === "number"
+                                        ? imageWidth
+                                        : parseInt(String(imageWidth), 10);
                                     if (!isNaN(val)) {
                                       if (val < 1) val = 1;
                                       if (val > 5000) val = 5000;
@@ -725,12 +1046,16 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 }}
                                 autoComplete="off"
                               />
-                              <span className="converter-resolution-sep">x</span>
+                              <span className="converter-resolution-sep">
+                                x
+                              </span>
                               <input
                                 id="convert-output-image-height"
                                 className="custom-input"
                                 type="number"
-                                placeholder={t("converter.options.heightPlaceholder")}
+                                placeholder={t(
+                                  "converter.options.heightPlaceholder",
+                                )}
                                 value={imageHeight}
                                 onChange={(e) => {
                                   if (e.target.value === "") {
@@ -747,7 +1072,10 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 }}
                                 onBlur={() => {
                                   if (imageHeight !== "") {
-                                    let val = typeof imageHeight === "number" ? imageHeight : parseInt(String(imageHeight), 10);
+                                    let val =
+                                      typeof imageHeight === "number"
+                                        ? imageHeight
+                                        : parseInt(String(imageHeight), 10);
                                     if (!isNaN(val)) {
                                       if (val < 1) val = 1;
                                       if (val > 5000) val = 5000;
@@ -760,7 +1088,9 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                             </div>
                           </label>
                           <label className="converter-specs-row">
-                            <span className="converter-specs-label">{t("converter.options.quality")}</span>
+                            <span className="converter-specs-label">
+                              {t("converter.options.quality")}
+                            </span>
                             <div className="converter-specs-control converter-percent-input">
                               <input
                                 id="convert-output-image-quality-range"
@@ -794,7 +1124,10 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                   clearActivePreset();
                                 }}
                                 onBlur={() => {
-                                  let val = typeof imageQuality === "number" ? imageQuality : parseInt(String(imageQuality), 10);
+                                  let val =
+                                    typeof imageQuality === "number"
+                                      ? imageQuality
+                                      : parseInt(String(imageQuality), 10);
                                   if (isNaN(val)) val = 100;
                                   if (val < 1) val = 1;
                                   if (val > 100) val = 100;
@@ -802,7 +1135,9 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                                 }}
                                 autoComplete="off"
                               />
-                              <span className="converter-percent-suffix">%</span>
+                              <span className="converter-percent-suffix">
+                                %
+                              </span>
                             </div>
                           </label>
                         </div>
@@ -810,11 +1145,17 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
 
                       {/* OTHER Specs */}
                       {targetCategory === "other" && (
-                        <div className="converter-specs-section" data-section="other">
-                          <EstimatedSizeRow classPrefix="converter" id="convert-output-other-size" value={estimatedSize} />
+                        <div
+                          className="converter-specs-section"
+                          data-section="other"
+                        >
+                          <EstimatedSizeRow
+                            classPrefix="converter"
+                            id="convert-output-other-size"
+                            value={estimatedSize}
+                          />
                         </div>
                       )}
-
                     </div>
                   </div>
                 </div>
@@ -828,7 +1169,15 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={(e) => handleStartConvert(true, e)}
                 >
-                  <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["convert"]} /></svg>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 256 256"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <use href={ICON_ASSETS["convert"]} />
+                  </svg>
                   <span>{t("converter.actions.convert")}</span>
                 </button>
                 <button
@@ -837,7 +1186,17 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
                   disabled={!isValid}
                   onClick={(e) => handleStartConvert(false, e)}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><use href={ICON_ASSETS["add-to-queue"]} /></svg>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <use href={ICON_ASSETS["add-to-queue"]} />
+                  </svg>
                   <span>{t("common.addToQueue")}</span>
                 </button>
               </div>
@@ -847,15 +1206,20 @@ export const Converter: React.FC<ConverterProps> = ({ active = true }) => {
       </div>
 
       {/* Drag & Drop overlay */}
-      <div id="convert-drop-overlay" className={`convert-drop-overlay ${showDropOverlay ? "visible" : ""}`} aria-hidden={!showDropOverlay}>
+      <div
+        id="convert-drop-overlay"
+        className={`convert-drop-overlay ${showDropOverlay ? "visible" : ""}`}
+        aria-hidden={!showDropOverlay}
+      >
         <div className="convert-drop-content">
           <div className="convert-drop-icon" aria-hidden="true">
-            <svg viewBox="0 0 512 512"><use href={ICON_ASSETS["download-circle"]} /></svg>
+            <svg viewBox="0 0 512 512">
+              <use href={ICON_ASSETS["download-circle"]} />
+            </svg>
           </div>
           <div className="convert-drop-text">{t("converter.drop.text")}</div>
         </div>
       </div>
-
     </div>
   );
 };

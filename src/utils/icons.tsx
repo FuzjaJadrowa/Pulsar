@@ -44,38 +44,38 @@ import iconPlatformYtmusicUrl from "../../assets/icons/platform/ytmusic.svg?url&
 
 export const ICON_ASSETS = {
   "add-to-queue": `${iconAddToQueueUrl}#add-to-queue`,
-  "archive": `${iconArchiveUrl}#archive`,
-  "audio": `${iconAudioUrl}#audio`,
-  "check": `${iconCheckUrl}#check`,
+  archive: `${iconArchiveUrl}#archive`,
+  audio: `${iconAudioUrl}#audio`,
+  check: `${iconCheckUrl}#check`,
   "chevron-right": `${iconChevronRightUrl}#chevron-right`,
   "clear-selection": `${iconClearSelectionUrl}#clear-selection`,
-  "gear": `${iconGearUrl}#gear`,
-  "compress": `${iconCompressUrl}#compress`,
+  gear: `${iconGearUrl}#gear`,
+  compress: `${iconCompressUrl}#compress`,
   "compression-percent": `${iconCompressionPercentUrl}#compression-percent`,
   "compression-quality": `${iconCompressionQualityUrl}#compression-quality`,
   "compression-size": `${iconCompressionSizeUrl}#compression-size`,
-  "convert": `${iconConvertUrl}#convert`,
-  "copy": `${iconCopyUrl}#copy`,
+  convert: `${iconConvertUrl}#convert`,
+  copy: `${iconCopyUrl}#copy`,
   "default-preset": `${iconDefaultPresetUrl}#default-preset`,
   "download-arrow": `${iconDownloadArrowUrl}#download-arrow`,
   "download-circle": `${iconDownloadCircleUrl}#download-circle`,
   "download-progress": `${iconDownloadProgressUrl}#download-progress`,
-  "edit": `${iconEditUrl}#edit`,
+  edit: `${iconEditUrl}#edit`,
   "folder-browse": `${iconFolderBrowseUrl}#folder-browse`,
   "folder-open": `${iconFolderOpenUrl}#folder-open`,
-  "font": `${iconFontUrl}#font`,
-  "image": `${iconImageUrl}#image`,
+  font: `${iconFontUrl}#font`,
+  image: `${iconImageUrl}#image`,
   "loading-spinner": `${iconLoadingSpinnerUrl}#loading-spinner`,
-  "play": `${iconPlayUrl}#play`,
+  play: `${iconPlayUrl}#play`,
   "queue-navigation": `${iconQueueNavigationUrl}#queue-navigation`,
   "remove-file": `${iconRemoveFileUrl}#remove-file`,
-  "retry": `${iconRetryUrl}#retry`,
-  "search": `${iconSearchUrl}#search`,
-  "stop": `${iconStopUrl}#stop`,
+  retry: `${iconRetryUrl}#retry`,
+  search: `${iconSearchUrl}#search`,
+  stop: `${iconStopUrl}#stop`,
   "thumbnail-none": `${iconThumbnailNoneUrl}#thumbnail-none`,
   "title-tag": `${iconTitleTagUrl}#title-tag`,
-  "trash": `${iconTrashUrl}#trash`,
-  "video": `${iconVideoUrl}#video`,
+  trash: `${iconTrashUrl}#trash`,
+  video: `${iconVideoUrl}#video`,
   "window-close": `${iconWindowCloseUrl}#window-close`,
   "window-maximize": `${iconWindowMaximizeUrl}#window-maximize`,
   "window-minimize": `${iconWindowMinimizeUrl}#window-minimize`,
@@ -84,49 +84,142 @@ export const ICON_ASSETS = {
 
 export const ICONS = {
   play: (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["play"]} /></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["play"]} />
+    </svg>
   ),
   stop: (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["stop"]} /></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["stop"]} />
+    </svg>
   ),
   trash: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["trash"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["trash"]} />
+    </svg>
   ),
   open: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["folder-open"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["folder-open"]} />
+    </svg>
   ),
   retry: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["retry"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["retry"]} />
+    </svg>
   ),
   check: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><use href={ICON_ASSETS["check"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="20"
+      height="20"
+    >
+      <use href={ICON_ASSETS["check"]} />
+    </svg>
   ),
   cross: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><use href={ICON_ASSETS["window-close"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="20"
+      height="20"
+    >
+      <use href={ICON_ASSETS["window-close"]} />
+    </svg>
   ),
   video: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["video"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["video"]} />
+    </svg>
   ),
   audio: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["audio"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["audio"]} />
+    </svg>
   ),
   image: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["image"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["image"]} />
+    </svg>
   ),
   font: (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["font"]} /></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["font"]} />
+    </svg>
   ),
   archive: (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["archive"]} /></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["archive"]} />
+    </svg>
   ),
   download: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS["download-arrow"]} /></svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+    >
+      <use href={ICON_ASSETS["download-arrow"]} />
+    </svg>
   ),
   convert: (
-    <svg viewBox="0 0 256 256" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["convert"]} /></svg>
+    <svg viewBox="0 0 256 256" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["convert"]} />
+    </svg>
   ),
   compress: (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><use href={ICON_ASSETS["compress"]} /></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <use href={ICON_ASSETS["compress"]} />
+    </svg>
   ),
 };
 
@@ -141,12 +234,23 @@ export const SOURCE_ICONS = {
 
 export type SourceIconName = keyof typeof SOURCE_ICONS;
 
-export function SourceIcon({ source, className }: { source?: string | null; className?: string }) {
+export function SourceIcon({
+  source,
+  className,
+}: {
+  source?: string | null;
+  className?: string;
+}) {
   if (!source || !(source in SOURCE_ICONS)) return null;
 
   const icon = SOURCE_ICONS[source as SourceIconName];
   return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
       <use href={icon} />
     </svg>
   );
@@ -154,7 +258,9 @@ export function SourceIcon({ source, className }: { source?: string | null; clas
 
 export const TAG_ICON_SVG = (
   <span className="title-tag-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24"><use href={ICON_ASSETS["title-tag"]} /></svg>
+    <svg viewBox="0 0 24 24">
+      <use href={ICON_ASSETS["title-tag"]} />
+    </svg>
   </span>
 );
 
@@ -165,5 +271,5 @@ export const CATEGORY_ICONS: Record<string, string> = {
   audio: `<svg viewBox="0 0 24 24"><use href="${ICON_ASSETS["audio"]}" /></svg>`,
   image: `<svg viewBox="0 0 24 24"><use href="${ICON_ASSETS["image"]}" /></svg>`,
   archive: `<svg viewBox="0 0 24 24"><use href="${ICON_ASSETS["archive"]}" /></svg>`,
-  font: `<svg viewBox="0 0 24 24"><use href="${ICON_ASSETS["font"]}" /></svg>`
+  font: `<svg viewBox="0 0 24 24"><use href="${ICON_ASSETS["font"]}" /></svg>`,
 };

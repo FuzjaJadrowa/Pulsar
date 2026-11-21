@@ -24,7 +24,12 @@ export const OutputSelectField: React.FC<OutputSelectFieldProps> = ({
   <label className={`${classPrefix}-specs-row`}>
     <span className={`${classPrefix}-specs-label`}>{label}</span>
     <div className={`${classPrefix}-specs-control`}>
-      <CustomSelect options={options} value={value} onChange={onChange} width="100%" />
+      <CustomSelect
+        options={options}
+        value={value}
+        onChange={onChange}
+        width="100%"
+      />
     </div>
   </label>
 );

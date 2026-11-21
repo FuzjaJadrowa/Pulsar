@@ -1,415 +1,492 @@
 .page-root {
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
 .page-scroll {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 40px 40px;
-    scrollbar-width: none;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(var(--titlebar-height) + var(--page-top-gap)) 40px 40px;
+  scrollbar-width: none;
 }
 .page-scroll::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .app-scroll {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
-    z-index: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
+  z-index: 1;
 }
 .app-scroll::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 .page-scroll.app-scroll {
-    padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
+  padding: calc(var(--titlebar-height) + var(--page-top-gap)) 0 40px;
 }
 
 #content-area {
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
 }
 
 .view-container {
-    display: none;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    overflow: hidden;
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
 }
 
 .view-container.active-view {
-    display: block;
+  display: block;
 }
 
 .view-container.slide-in-from-right {
-    display: block;
-    animation: slideInFromRight 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
+  display: block;
+  animation: slideInFromRight 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
 }
 .view-container.slide-out-to-left {
-    display: block;
-    animation: slideOutToLeft 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
+  display: block;
+  animation: slideOutToLeft 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
 }
 .view-container.slide-in-from-left {
-    display: block;
-    animation: slideInFromLeft 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
+  display: block;
+  animation: slideInFromLeft 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
 }
 .view-container.slide-out-to-right {
-    display: block;
-    animation: slideOutToRight 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
+  display: block;
+  animation: slideOutToRight 0.3s cubic-bezier(0.35, 0, 0.15, 1) forwards;
 }
 
 @keyframes slideInFromRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0%); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
 }
 @keyframes slideOutToLeft {
-    from { transform: translateX(0%); opacity: 1; }
-    to { transform: translateX(-100%); opacity: 0; }
+  from {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 }
 @keyframes slideInFromLeft {
-    from { transform: translateX(-100%); opacity: 0; }
-    to { transform: translateX(0%); opacity: 1; }
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
 }
 @keyframes slideOutToRight {
-    from { transform: translateX(0%); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
+  from {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 #titlebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--titlebar-height);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    box-sizing: border-box;
-    background: var(--titlebar-bg);
-    backdrop-filter: blur(18px) saturate(1.2);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-    border-bottom: 1px solid var(--titlebar-border);
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    app-region: drag;
-    z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: var(--titlebar-bg);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border-bottom: 1px solid var(--titlebar-border);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  app-region: drag;
+  z-index: 100;
 }
 
-.nav-btn, .logo-btn, .window-controls, .control-btn {
-    app-region: no-drag;
+.nav-btn,
+.logo-btn,
+.window-controls,
+.control-btn {
+  app-region: no-drag;
 }
 
 .logo-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin-right: 15px;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: filter 0.25s ease, transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-right: 15px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition:
+    filter 0.25s ease,
+    transform 0.25s ease;
 }
 
 .logo-btn:hover {
-    filter:
-        drop-shadow(0 0 3px rgba(90, 220, 255, 0.25))
-        drop-shadow(0 0 6px rgba(120, 120, 255, 0.18));
-    transform: translateY(-1px);
+  filter: drop-shadow(0 0 3px rgba(90, 220, 255, 0.25))
+    drop-shadow(0 0 6px rgba(120, 120, 255, 0.18));
+  transform: translateY(-1px);
 }
 
 .logo-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .logo {
-    height: 50px;
-    display: block;
-    -webkit-user-drag: none;
-    user-drag: none;
+  height: 50px;
+  display: block;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .nav-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--nav-btn-color);
-    height: 40px;
-    width: 40px;
-    min-width: 40px;
-    max-width: 40px;
-    padding: 0;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: none;
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--nav-btn-color);
+  height: 40px;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  padding: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .nav-btn svg {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    margin-right: 0;
-    opacity: 0.7;
-    transition: transform 0.3s ease, opacity 0.2s ease, color 0.2s ease;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin-right: 0;
+  opacity: 0.7;
+  transition:
+    transform 0.3s ease,
+    opacity 0.2s ease,
+    color 0.2s ease;
 }
 
 .nav-btn:hover,
 .nav-btn.active {
-    color: var(--titlebar-accent);
+  color: var(--titlebar-accent);
 }
 
 .nav-btn:hover svg,
 .nav-btn.active svg {
-    opacity: 1;
+  opacity: 1;
 }
 
 body.theme-light .nav-btn.active {
-    color: var(--titlebar-accent);
+  color: var(--titlebar-accent);
 }
 
 #nav-downloader:hover svg {
-    transform: translateY(2px);
+  transform: translateY(2px);
 }
 #nav-converter:hover svg {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 #nav-compressor:hover svg {
-    transform: scale(0.85);
+  transform: scale(0.85);
 }
 #nav-settings:hover svg {
-    transform: rotate(45deg);
+  transform: rotate(45deg);
 }
 #btn-queue:hover svg {
-    transform: scale(1.12);
+  transform: scale(1.12);
 }
 
 .nav-gap {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 
 #btn-queue {
-    display: none;
-    margin-left: 10px;
+  display: none;
+  margin-left: 10px;
 }
 
 .window-controls {
-    width: 160px;
-    height: 45px;
-    background-color: var(--win-controls-bg);
-    border: 1px solid var(--win-controls-border);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 15px;
-    gap: 5px;
+  width: 160px;
+  height: 45px;
+  background-color: var(--win-controls-bg);
+  border: 1px solid var(--win-controls-border);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 15px;
+  gap: 5px;
 }
 
 .control-btn {
-    background: transparent;
-    border: none;
-    width: 45px;
-    height: 32px;
-    color: var(--control-btn-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background 0.15s, color 0.15s;
+  background: transparent;
+  border: none;
+  width: 45px;
+  height: 32px;
+  color: var(--control-btn-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .control-btn:hover {
-    background-color: var(--control-btn-hover-bg);
-    color: var(--text-color);
+  background-color: var(--control-btn-hover-bg);
+  color: var(--text-color);
 }
 
 .control-btn.close:hover {
-    background-color: #e81123;
-    color: white;
+  background-color: #e81123;
+  color: white;
 }
 
 .zen-data-sea {
-    position: fixed;
-    bottom: -10vh;
-    left: 0;
-    width: 100vw;
-    height: 35vh;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0;
-    transform: translateY(12vh);
-    transition: opacity 0.35s ease-out, transform 0.6s ease;
+  position: fixed;
+  bottom: -10vh;
+  left: 0;
+  width: 100vw;
+  height: 35vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transform: translateY(12vh);
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.6s ease;
 }
 
 body.wave-page.zen-mode.idle-anim-enabled .zen-data-sea {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.55s ease, transform 0.6s ease;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.55s ease,
+    transform 0.6s ease;
 }
 
 body.wave-page.search-mode .zen-data-sea,
 body.wave-page.search-mode.zen-mode.idle-anim-enabled .zen-data-sea {
-    opacity: 0;
-    transform: translateY(12vh);
-    transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1), transform 0.28s ease;
+  opacity: 0;
+  transform: translateY(12vh);
+  transition:
+    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s ease;
 }
 
-body.wave-page.zen-mode.idle-anim-enabled .search-section.sticky + .zen-data-sea,
+body.wave-page.zen-mode.idle-anim-enabled
+  .search-section.sticky
+  + .zen-data-sea,
 body.wave-page.search-mode .search-section.sticky + .zen-data-sea {
-    opacity: 0;
-    transform: translateY(0);
-    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body:not(.zen-mode) .zen-data-sea,
 body:not(.idle-anim-enabled) .zen-data-sea {
-    opacity: 0;
-    transform: translateY(12vh);
-    transition: opacity 0.28s ease, transform 0.32s ease;
+  opacity: 0;
+  transform: translateY(12vh);
+  transition:
+    opacity 0.28s ease,
+    transform 0.32s ease;
 }
 
 body.wave-transition.zen-mode.idle-anim-enabled .zen-data-sea,
 body.wave-transition:not(.zen-mode) .zen-data-sea {
-    transition: opacity 0.25s ease, transform 0.32s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.32s ease;
 }
 
-body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode) .zen-data-sea {
-    opacity: 0;
-    transform: translateY(12vh);
-    transition: none;
-    animation: idle-wave-fade-in 0.35s ease-out both;
+body.wave-page.idle-waves-enter.zen-mode.idle-anim-enabled:not(.search-mode)
+  .zen-data-sea {
+  opacity: 0;
+  transform: translateY(12vh);
+  transition: none;
+  animation: idle-wave-fade-in 0.35s ease-out both;
 }
 
 @keyframes idle-wave-fade-in {
-    from { opacity: 0; transform: translateY(12vh); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12vh);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #splash-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #121212;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    color: white;
-    font-family: "Manrope", "Montserrat", sans-serif;
-    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #121212;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  color: white;
+  font-family: "Manrope", "Montserrat", sans-serif;
+  transition:
+    opacity 0.5s ease-out,
+    visibility 0.5s ease-out;
 }
 
 #splash-screen.hidden,
 #splash-screen.exiting {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 #splash-screen.entering {
-    animation: splashFadeIn 0.5s ease-out forwards;
+  animation: splashFadeIn 0.5s ease-out forwards;
 }
 
 @keyframes splashFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .splash-content {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    will-change: transform, opacity;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
 }
 
 #splash-screen.exiting .splash-content {
-    animation: splashExit 0.5s ease-out forwards;
+  animation: splashExit 0.5s ease-out forwards;
 }
 
 #splash-screen.entering .splash-content {
-    animation: splashEnter 0.5s ease-out forwards;
+  animation: splashEnter 0.5s ease-out forwards;
 }
 
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid transparent;
-    border-top: 4px solid var(--accent-color);
-    border-right: 4px solid var(--accent-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
+  width: 50px;
+  height: 50px;
+  border: 4px solid transparent;
+  border-top: 4px solid var(--accent-color);
+  border-right: 4px solid var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes splashExit {
-    from { transform: scale(1); opacity: 1; }
-    to { transform: scale(1.40); opacity: 0; }
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
 
 @keyframes splashEnter {
-    from { transform: scale(1.40); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 #splash-status {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 10px 0 5px 0;
-    color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 10px 0 5px 0;
+  color: #ffffff;
 }
 
 #splash-progress {
-    font-size: 13px;
-    color: #aaaaaa;
-    margin: 5px 0 15px 0;
-    min-height: 20px;
+  font-size: 13px;
+  color: #aaaaaa;
+  margin: 5px 0 15px 0;
+  min-height: 20px;
 }
 
 .skip-btn {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 25px;
-    font-weight: bold;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 25px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
 }
 
 .skip-btn:hover {
-    background-color: #5dade2;
+  background-color: #5dade2;
 }
 
 .skip-btn:active {
-    background-color: #2980b9;
+  background-color: #2980b9;
 }

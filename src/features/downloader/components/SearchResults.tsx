@@ -27,11 +27,21 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div id="search-results-section" className={`${styles.section} ${isVisible ? "" : styles.hidden} ${isExiting ? styles.exiting : ""}`}>
-      <div className={`${styles.header} fade-in`} style={{ animationDelay: "0.1s" }}>
-        <h3 id="search-results-title" className={styles.headerTitle}>{t("downloader.search.resultsTitle")}</h3>
+    <div
+      id="search-results-section"
+      className={`${styles.section} ${isVisible ? "" : styles.hidden} ${isExiting ? styles.exiting : ""}`}
+    >
+      <div
+        className={`${styles.header} fade-in`}
+        style={{ animationDelay: "0.1s" }}
+      >
+        <h3 id="search-results-title" className={styles.headerTitle}>
+          {t("downloader.search.resultsTitle")}
+        </h3>
         <span id="search-results-count" className={styles.count}>
-          {entries.length > 0 ? t("downloader.search.resultsCount", { count: entries.length }) : ""}
+          {entries.length > 0
+            ? t("downloader.search.resultsCount", { count: entries.length })
+            : ""}
         </span>
       </div>
 
@@ -40,15 +50,18 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
           <div className={styles.empty}>{t("downloader.search.empty")}</div>
         ) : (
           entries.map((entry, index) => {
-            const isItemLoading = isAnalyzing && pendingMetadataUrl === resolveResultUrl(entry);
+            const isItemLoading =
+              isAnalyzing && pendingMetadataUrl === resolveResultUrl(entry);
             return (
               <div
                 key={entry.url || entry.id}
                 className={`${styles.card} fade-in`}
-                style={{
-                  "--thumb-url": `url('${entry.thumbnail || ""}')`,
-                  animationDelay: `${0.12 + index * 0.05}s`,
-                } as React.CSSProperties}
+                style={
+                  {
+                    "--thumb-url": `url('${entry.thumbnail || ""}')`,
+                    animationDelay: `${0.12 + index * 0.05}s`,
+                  } as React.CSSProperties
+                }
               >
                 <button
                   type="button"
@@ -58,7 +71,18 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   onClick={() => onSelect(entry)}
                 >
                   <span className={styles.actionIcon}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><use href={ICON_ASSETS["download-progress"]} /></svg>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <use href={ICON_ASSETS["download-progress"]} />
+                    </svg>
                   </span>
                   <span className={styles.actionSpinner}>
                     <span className={`${styles.spinner} spin-animation`}></span>

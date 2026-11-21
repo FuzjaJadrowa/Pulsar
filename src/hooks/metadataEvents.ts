@@ -12,7 +12,10 @@ export type MetadataEventOutcome =
   | { kind: "success"; data: Record<string, unknown> }
   | { kind: "error"; message: string | null };
 
-export function resolveMetadataEvent(event: MetadataBridgeEvent, taskId: string | null): MetadataEventOutcome {
+export function resolveMetadataEvent(
+  event: MetadataBridgeEvent,
+  taskId: string | null,
+): MetadataEventOutcome {
   if (!taskId || event.id !== taskId) return { kind: "ignore" };
 
   if (event.type === "finished" && event.success === false) {

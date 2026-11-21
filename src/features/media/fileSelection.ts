@@ -48,7 +48,9 @@ export const createFileSelectionHandlers = ({
 
   const handleFilesSelected = async (inputPaths: string | string[]) => {
     const rawPaths = Array.isArray(inputPaths) ? inputPaths : [inputPaths];
-    const cleanPaths = rawPaths.map((path) => String(path || "").trim()).filter(Boolean);
+    const cleanPaths = rawPaths
+      .map((path) => String(path || "").trim())
+      .filter(Boolean);
     if (cleanPaths.length === 0) return;
 
     if (cleanPaths.length === 1) {
@@ -59,9 +61,16 @@ export const createFileSelectionHandlers = ({
     }
 
     try {
-      const results = await Promise.all(cleanPaths.map(fetchSingleFileMetadata));
-      const validFiles = results.filter((metadata): metadata is MediaFileMetadata =>
-        Boolean(metadata?.path && metadata.category && isSupportedMetadata(metadata))
+      const results = await Promise.all(
+        cleanPaths.map(fetchSingleFileMetadata),
+      );
+      const validFiles = results.filter(
+        (metadata): metadata is MediaFileMetadata =>
+          Boolean(
+            metadata?.path &&
+            metadata.category &&
+            isSupportedMetadata(metadata),
+          ),
       );
 
       if (validFiles.length === 0) {
@@ -69,7 +78,11 @@ export const createFileSelectionHandlers = ({
         return;
       }
 
-      const categories = new Set(validFiles.map((metadata) => String(metadata.category || "").toLowerCase()));
+      const categories = new Set(
+        validFiles.map((metadata) =>
+          String(metadata.category || "").toLowerCase(),
+        ),
+      );
       if (categories.size > 1) {
         showNotification(infoTitle, mixedCategoryMessage, "info");
         return;
@@ -90,7 +103,12 @@ export const createFileSelectionHandlers = ({
       triggerShakeInput();
       return;
     }
-    handleFilesSelected(raw.split(";").map((path) => path.trim()).filter(Boolean));
+    handleFilesSelected(
+      raw
+        .split(";")
+        .map((path) => path.trim())
+        .filter(Boolean),
+    );
   };
 
   const openPicker = async () => {
@@ -98,7 +116,9 @@ export const createFileSelectionHandlers = ({
       const selected = await invoke<string[]>("pick_convert_files");
       if (!selected?.length) return;
 
-      const cleanPaths = selected.map((path) => String(path || "").trim()).filter(Boolean);
+      const cleanPaths = selected
+        .map((path) => String(path || "").trim())
+        .filter(Boolean);
       if (cleanPaths.length === 0) return;
 
       resetView();
@@ -124,5 +144,10 @@ export const createFileSelectionHandlers = ({
     }
   };
 
-  return { handleFilesSelected, handleConfirmPath, openPicker, removeFileFromBatch };
+  return {
+    handleFilesSelected,
+    handleConfirmPath,
+    openPicker,
+    removeFileFromBatch,
+  };
 };

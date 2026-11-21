@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { detectSourceFromUrl, eta, formatBytes, formatDuration } from "./format";
+import {
+  detectSourceFromUrl,
+  eta,
+  formatBytes,
+  formatDuration,
+} from "./format";
 
 describe("media value formatting", () => {
   it("keeps byte units stable at unit boundaries and for non-finite input", () => {
@@ -16,9 +21,13 @@ describe("media value formatting", () => {
   });
 
   it("recognizes supported source hosts without accepting lookalike domains", () => {
-    expect(detectSourceFromUrl("https://music.youtube.com/watch?v=x")).toBe("ytmusic");
+    expect(detectSourceFromUrl("https://music.youtube.com/watch?v=x")).toBe(
+      "ytmusic",
+    );
     expect(detectSourceFromUrl("https://youtu.be/x")).toBe("youtube");
-    expect(detectSourceFromUrl("https://youtube.com.attacker.example/watch?v=x")).toBeNull();
+    expect(
+      detectSourceFromUrl("https://youtube.com.attacker.example/watch?v=x"),
+    ).toBeNull();
     expect(detectSourceFromUrl("not a url")).toBeNull();
   });
 });

@@ -11,7 +11,12 @@ interface PresetGridProps {
   onSelect: (preset: Preset) => void;
 }
 
-export const PresetGrid: React.FC<PresetGridProps> = ({ id, presets, activeId, onSelect }) => (
+export const PresetGrid: React.FC<PresetGridProps> = ({
+  id,
+  presets,
+  activeId,
+  onSelect,
+}) => (
   <div className="preset-grid" id={id}>
     {presets.map((preset) => (
       <button
@@ -21,7 +26,11 @@ export const PresetGrid: React.FC<PresetGridProps> = ({ id, presets, activeId, o
         onClick={() => onSelect(preset)}
       >
         <div className="preset-card-icon">
-          <PresetIconPreview src={preset.icon_data_url || PRESET_DEFAULT_ICON} alt="" fallback={PRESET_DEFAULT_ICON} />
+          <PresetIconPreview
+            src={preset.icon_data_url || PRESET_DEFAULT_ICON}
+            alt=""
+            fallback={PRESET_DEFAULT_ICON}
+          />
         </div>
         <div className="preset-card-info">
           <div className="preset-card-title">
@@ -29,7 +38,9 @@ export const PresetGrid: React.FC<PresetGridProps> = ({ id, presets, activeId, o
           </div>
           <div className="preset-card-summary">
             {preset.summary
-              ? preset.summary.length > 50 ? `${preset.summary.slice(0, 49)}…` : preset.summary
+              ? preset.summary.length > 50
+                ? `${preset.summary.slice(0, 49)}…`
+                : preset.summary
               : t("settings.presetsManager.noSummary")}
           </div>
         </div>

@@ -18,9 +18,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     <div className="page-scroll app-scroll">
       <div className={`${styles.scope} home-page`}>
         <div className="home-hero">
-          <h1 className="home-title">
-            {t("home.title")}
-          </h1>
+          <h1 className="home-title">{t("home.title")}</h1>
 
           <div className="home-actions">
             <button
@@ -36,7 +34,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden="true"
-              ><use href={ICON_ASSETS["download-arrow"]} /></svg>
+              >
+                <use href={ICON_ASSETS["download-arrow"]} />
+              </svg>
               <span>{t("index.nav.download")}</span>
             </button>
             <button
@@ -44,7 +44,15 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               className="home-pill"
               onClick={() => handleNavigate("converter", 2)}
             >
-              <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["convert"]} /></svg>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <use href={ICON_ASSETS["convert"]} />
+              </svg>
               <span>{t("index.nav.convert")}</span>
             </button>
             <button
@@ -52,7 +60,15 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               className="home-pill"
               onClick={() => handleNavigate("compressor", 3)}
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true"><use href={ICON_ASSETS["compress"]} /></svg>
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="24"
+                height="24"
+                aria-hidden="true"
+              >
+                <use href={ICON_ASSETS["compress"]} />
+              </svg>
               <span>{t("index.nav.compress")}</span>
             </button>
           </div>
@@ -74,7 +90,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 aria-hidden="true"
                 width="16"
                 height="16"
-              ><use href={ICON_ASSETS["gear"]} /></svg>
+              >
+                <use href={ICON_ASSETS["gear"]} />
+              </svg>
               <span>{t("index.nav.settings")}</span>
             </button>
           </div>

@@ -32,7 +32,11 @@ export const PathSelector: React.FC<PathSelectorProps> = ({
   const handleChange = (nextValue: string) => {
     onChange(nextValue);
     if (nextValue.trim()) {
-      try { localStorage.setItem("pulsar.lastSavePath", nextValue.trim()); } catch { /* Storage may be unavailable. */ }
+      try {
+        localStorage.setItem("pulsar.lastSavePath", nextValue.trim());
+      } catch {
+        /* Storage may be unavailable. */
+      }
     }
   };
 
@@ -44,7 +48,10 @@ export const PathSelector: React.FC<PathSelectorProps> = ({
         handleChange(selected);
       }
     } catch (e) {
-      console.error(`Tauri browse path invocation (${pickerCommand}) failed:`, e);
+      console.error(
+        `Tauri browse path invocation (${pickerCommand}) failed:`,
+        e,
+      );
     }
   };
 
@@ -70,11 +77,21 @@ export const PathSelector: React.FC<PathSelectorProps> = ({
             try {
               const lastPath = localStorage.getItem("pulsar.lastSavePath");
               if (lastPath) onChange(lastPath);
-            } catch { /* Storage may be unavailable. */ }
+            } catch {
+              /* Storage may be unavailable. */
+            }
           }}
           disabled={disabled}
         >
-          <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><use href={ICON_ASSETS["convert"]} /></svg>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 256 256"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <use href={ICON_ASSETS["convert"]} />
+          </svg>
         </button>
       )}
       <button
@@ -84,7 +101,16 @@ export const PathSelector: React.FC<PathSelectorProps> = ({
         onClick={handleBrowse}
         disabled={disabled}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS["folder-browse"]} /></svg>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <use href={ICON_ASSETS["folder-browse"]} />
+        </svg>
       </button>
     </div>
   );

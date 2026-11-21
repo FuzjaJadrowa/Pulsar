@@ -33,15 +33,32 @@ export const ConverterFileInfo: React.FC<ConverterFileInfoProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className={`fade-in ${styles.card} ${!metadata.duration_seconds ? styles.noDuration : ""} ${isEditingName ? styles.isEditing : ""}`}>
+    <div
+      className={`fade-in ${styles.card} ${!metadata.duration_seconds ? styles.noDuration : ""} ${isEditingName ? styles.isEditing : ""}`}
+    >
       <div className={styles.nameRow}>
         {!isEditingName ? (
           <>
             <span className={styles.nameText}>
-              {currentName || metadata.name || fallbackName || t("common.output.placeholder")}
+              {currentName ||
+                metadata.name ||
+                fallbackName ||
+                t("common.output.placeholder")}
             </span>
-            <button type="button" className={styles.renameButton} onClick={onBeginNameEdit} title={t("common.output.editTitle")}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><use href={ICON_ASSETS.edit} /></svg>
+            <button
+              type="button"
+              className={styles.renameButton}
+              onClick={onBeginNameEdit}
+              title={t("common.output.editTitle")}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <use href={ICON_ASSETS.edit} />
+              </svg>
             </button>
           </>
         ) : (
@@ -59,7 +76,10 @@ export const ConverterFileInfo: React.FC<ConverterFileInfoProps> = ({
         )}
       </div>
       <div className={styles.categoryRow}>
-        <span className={styles.categoryIcon} dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[category] || "" }} />
+        <span
+          className={styles.categoryIcon}
+          dangerouslySetInnerHTML={{ __html: CATEGORY_ICONS[category] || "" }}
+        />
         <span className="converter-category-label">
           {metadata.extension
             ? `${t(`common.meta.category.${category}`, category.toUpperCase())} (${metadata.extension})`
@@ -68,19 +88,31 @@ export const ConverterFileInfo: React.FC<ConverterFileInfoProps> = ({
       </div>
       <div className={styles.metaRow}>
         <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>{t("common.meta.locationLabel")}</span>
-        <span className={`${styles.metaValue} ${styles.locationValue}`} title={folderPath}>
-          {folderPath || "-"}
+          <span className={styles.metaLabel}>
+            {t("common.meta.locationLabel")}
+          </span>
+          <span
+            className={`${styles.metaValue} ${styles.locationValue}`}
+            title={folderPath}
+          >
+            {folderPath || "-"}
           </span>
         </div>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>{t("common.meta.sizeLabel")}</span>
-          <span className={styles.metaValue}>{formatBytes(metadata.size_bytes)}</span>
+          <span className={styles.metaValue}>
+            {formatBytes(metadata.size_bytes)}
+          </span>
         </div>
         {metadata.duration_seconds && (
           <div className={`${styles.metaItem} ${styles.duration}`}>
-            <span className={styles.metaLabel}>{t("common.meta.durationLabel")}</span>
-            <span className={styles.metaValue}>{metadata.duration_string || formatDuration(metadata.duration_seconds)}</span>
+            <span className={styles.metaLabel}>
+              {t("common.meta.durationLabel")}
+            </span>
+            <span className={styles.metaValue}>
+              {metadata.duration_string ||
+                formatDuration(metadata.duration_seconds)}
+            </span>
           </div>
         )}
       </div>

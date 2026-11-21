@@ -37,9 +37,7 @@
       "../assets/icons/pulsar/icon.icns",
       "../assets/icons/pulsar/icon.ico"
     ],
-    "resources": [
-      "../assets/icons/pulsar/icon.png"
-    ],
+    "resources": ["../assets/icons/pulsar/icon.png"],
     "copyright": "Copyright © 2026 Fuzja Jadrowa",
     "licenseFile": "../LICENSE",
     "createUpdaterArtifacts": true,

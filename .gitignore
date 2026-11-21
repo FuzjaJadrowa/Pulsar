@@ -9,4 +9,3 @@ src-tauri/gen/
 .vscode/
 *.swp
 Thumbs.db
-garbagedeleter.ps1

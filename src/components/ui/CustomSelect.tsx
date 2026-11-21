@@ -45,7 +45,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       return;
     }
 
-    window.dispatchEvent(new CustomEvent("custom-select-open", { detail: selectIdRef.current }));
+    window.dispatchEvent(
+      new CustomEvent("custom-select-open", { detail: selectIdRef.current }),
+    );
 
     setIsOpen(true);
   };
@@ -86,8 +88,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
       const rect = head.getBoundingClientRect();
       const titleBar = document.getElementById("titlebar");
-      const contentTop = Math.max(8, (titleBar?.getBoundingClientRect().bottom ?? 0) + 8);
-      const modalFooter = head.closest(".preset-modal")?.querySelector<HTMLElement>(".preset-modal-footer");
+      const contentTop = Math.max(
+        8,
+        (titleBar?.getBoundingClientRect().bottom ?? 0) + 8,
+      );
+      const modalFooter = head
+        .closest(".preset-modal")
+        ?.querySelector<HTMLElement>(".preset-modal-footer");
       const footerTop = modalFooter?.getBoundingClientRect().top;
       const contentBottom = Math.min(
         window.innerHeight - 8,
@@ -103,11 +110,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       }
 
       if (placement === null) {
-        placement = direction === "up"
-          ? true
-          : direction === "down"
-            ? false
-            : spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+        placement =
+          direction === "up"
+            ? true
+            : direction === "down"
+              ? false
+              : spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
         setOpenUp(placement);
       }
 
@@ -116,12 +124,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         setIsOpen(false);
         return;
       }
-      const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
+      const left = Math.max(
+        8,
+        Math.min(rect.left, window.innerWidth - rect.width - 8),
+      );
 
       popup.style.position = "fixed";
       popup.style.left = `${left}px`;
       popup.style.top = placement ? "auto" : `${rect.bottom}px`;
-      popup.style.bottom = placement ? `${window.innerHeight - rect.top}px` : "auto";
+      popup.style.bottom = placement
+        ? `${window.innerHeight - rect.top}px`
+        : "auto";
       popup.style.minWidth = `${rect.width}px`;
       popup.style.maxWidth = `${window.innerWidth - 16}px`;
       popup.style.maxHeight = `${Math.min(240, availableHeight)}px`;
@@ -153,7 +166,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       }
     };
     window.addEventListener("custom-select-open", closeOtherSelects);
-    return () => window.removeEventListener("custom-select-open", closeOtherSelects);
+    return () =>
+      window.removeEventListener("custom-select-open", closeOtherSelects);
   }, []);
 
   return (
@@ -173,24 +187,25 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       >
         {selectedOption?.label || ""}
       </div>
-      {isOpen && createPortal(
-        <div
-          ref={popupRef}
-          className={`select-list ${styles["select-list"]} open ${styles.open} ${openUp ? `open-up ${styles["open-up"]}` : ""}`}
-          style={{ zIndex: 20000 }}
-        >
-          {options.map((opt) => (
-            <div
-              key={opt.value}
-              className={`select-item ${styles["select-item"]} ${opt.value === value ? `selected ${styles.selected}` : ""}`}
-              onClick={() => handleSelect(opt.value)}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>,
-        document.body,
-      )}
+      {isOpen &&
+        createPortal(
+          <div
+            ref={popupRef}
+            className={`select-list ${styles["select-list"]} open ${styles.open} ${openUp ? `open-up ${styles["open-up"]}` : ""}`}
+            style={{ zIndex: 20000 }}
+          >
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                className={`select-item ${styles["select-item"]} ${opt.value === value ? `selected ${styles.selected}` : ""}`}
+                onClick={() => handleSelect(opt.value)}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

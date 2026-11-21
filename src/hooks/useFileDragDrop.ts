@@ -11,7 +11,10 @@ interface UseFileDragDropOptions {
   onFileDrop: (paths: string | string[]) => void;
 }
 
-export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOptions) {
+export function useFileDragDrop({
+  pageClass,
+  onFileDrop,
+}: UseFileDragDropOptions) {
   const [showDropOverlay, setShowDropOverlay] = useState(false);
   const onFileDropRef = useRef(onFileDrop);
   onFileDropRef.current = onFileDrop;
@@ -63,6 +66,6 @@ export function useFileDragDrop({ pageClass, onFileDrop }: UseFileDragDropOption
 
   return {
     showDropOverlay,
-    setShowDropOverlay
+    setShowDropOverlay,
   };
 }

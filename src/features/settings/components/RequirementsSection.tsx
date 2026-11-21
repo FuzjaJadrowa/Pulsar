@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ToggleSwitch } from "../../../components/ui/ToggleSwitch";
 import { useConfig } from "../../../services/config";
 import { useTranslation } from "../../../services/i18n";
+import { invoke } from "../../../services/tauri";
 import { ICON_ASSETS } from "../../../utils/icons";
 import { SettingsSection } from "../SettingsSection";
 import styles from "./RequirementsSection.module.css";
@@ -24,7 +25,7 @@ export const RequirementsSection: React.FC<RequirementsSectionProps> = ({
   onCheckUpdate,
 }) => {
   const { t } = useTranslation();
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, reloadConfig } = useConfig();
   const [localCooldown, setLocalCooldown] = useState("");
 
   useEffect(() => {
@@ -44,39 +45,122 @@ export const RequirementsSection: React.FC<RequirementsSectionProps> = ({
       <div className="form-row">
         <span>{t("settings.autoUpdateApp")}</span>
         <div className={styles.updateActions}>
-          <button className={styles.updateCheckButton} type="button" onClick={() => onCheckUpdate("pulsar")} disabled={isFlatpak || isCheckingUpdate} aria-label="Check Pulsar update">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS.retry} /></svg>
+          <button
+            className={styles.updateCheckButton}
+            type="button"
+            onClick={() => onCheckUpdate("pulsar")}
+            disabled={isFlatpak || isCheckingUpdate}
+            aria-label="Check Pulsar update"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              width="16"
+              height="16"
+            >
+              <use href={ICON_ASSETS.retry} />
+            </svg>
           </button>
-          <ToggleSwitch checked={isFlatpak ? false : !!config.update_app} disabled={isFlatpak || isCheckingUpdate} onChange={(checked) => updateConfig({ update_app: checked })} />
+          <ToggleSwitch
+            checked={isFlatpak ? false : !!config.update_app}
+            disabled={isFlatpak || isCheckingUpdate}
+            onChange={(checked) => updateConfig({ update_app: checked })}
+          />
         </div>
       </div>
-      <div className="settings-note">{t("settings.currentVersion", { version: pulsarVersion })}</div>
+      <div className="settings-note">
+        {t("settings.currentVersion", { version: pulsarVersion })}
+      </div>
 
       <div className="form-row">
         <span>{t("settings.autoUpdateBridge")}</span>
         <div className={styles.updateActions}>
-          <button className={styles.updateCheckButton} type="button" onClick={() => onCheckUpdate("pulsar-bridge")} disabled={isFlatpak || isCheckingUpdate} aria-label="Check Bridge update">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS.retry} /></svg>
+          <button
+            className={styles.updateCheckButton}
+            type="button"
+            onClick={() => onCheckUpdate("pulsar-bridge")}
+            disabled={isFlatpak || isCheckingUpdate}
+            aria-label="Check Bridge update"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              width="16"
+              height="16"
+            >
+              <use href={ICON_ASSETS.retry} />
+            </svg>
           </button>
-          <ToggleSwitch checked={isFlatpak ? true : !!config.update_ytdlp} disabled={isFlatpak} onChange={(checked) => updateConfig({ update_ytdlp: checked })} />
+          <ToggleSwitch
+            checked={isFlatpak ? true : !!config.update_ytdlp}
+            disabled={isFlatpak}
+            onChange={(checked) => updateConfig({ update_ytdlp: checked })}
+          />
         </div>
       </div>
-      <div className="settings-note">{t("settings.currentVersion", { version: bridgeVersion })}</div>
+      <div className="settings-note">
+        {t("settings.currentVersion", { version: bridgeVersion })}
+      </div>
 
       <div className="form-row">
         <span>{t("settings.autoUpdateFfmpeg")}</span>
         <div className={styles.updateActions}>
-          <button className={styles.updateCheckButton} type="button" onClick={() => onCheckUpdate("ffmpeg")} disabled={isFlatpak || isCheckingUpdate} aria-label="Check FFmpeg update">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><use href={ICON_ASSETS.retry} /></svg>
+          <button
+            className={styles.updateCheckButton}
+            type="button"
+            onClick={() => onCheckUpdate("ffmpeg")}
+            disabled={isFlatpak || isCheckingUpdate}
+            aria-label="Check FFmpeg update"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              width="16"
+              height="16"
+            >
+              <use href={ICON_ASSETS.retry} />
+            </svg>
           </button>
-          <ToggleSwitch checked={isFlatpak ? false : !!config.update_ffmpeg} disabled={isFlatpak || isCheckingUpdate} onChange={(checked) => updateConfig({ update_ffmpeg: checked })} />
+          <ToggleSwitch
+            checked={isFlatpak ? false : !!config.update_ffmpeg}
+            disabled={isFlatpak || isCheckingUpdate}
+            onChange={(checked) => updateConfig({ update_ffmpeg: checked })}
+          />
         </div>
       </div>
-      <div className="settings-note">{t("settings.currentVersion", { version: ffmpegVersion })}</div>
+      <div className="settings-note">
+        {t("settings.currentVersion", { version: ffmpegVersion })}
+      </div>
 
       <div className="form-row">
         <span>{t("settings.ffmpegHwAccel")}</span>
-        <ToggleSwitch checked={config.ffmpeg_hwaccel === "auto"} onChange={(checked) => updateConfig({ ffmpeg_hwaccel: checked ? "auto" : "none" })} />
+        <ToggleSwitch
+          checked={
+            config.ffmpeg_hwaccel !== "none" &&
+            config.ffmpeg_hwaccel !== "false" &&
+            config.ffmpeg_hwaccel.trim() !== ""
+          }
+          onChange={async (checked) => {
+            await updateConfig({ ffmpeg_hwaccel: checked ? "auto" : "none" });
+            if (checked) {
+              try {
+                await invoke("refresh_acceleration_info");
+                await reloadConfig();
+              } catch (err) {
+                console.error(
+                  "Failed to refresh hardware acceleration info:",
+                  err,
+                );
+              }
+            }
+          }}
+        />
       </div>
 
       <div className="form-row">

@@ -390,77 +390,85 @@ pub fn delete_preset(app_handle: AppHandle, id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn import_preset(app_handle: AppHandle) -> Result<(), String> {
-    let picked = app_handle
-        .dialog()
-        .file()
-        .add_filter("Pulsar Preset", &[PRESET_EXTENSION])
-        .blocking_pick_file();
+pub async fn import_preset(app_handle: AppHandle) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        let picked = app_handle
+            .dialog()
+            .file()
+            .add_filter("Pulsar Preset", &[PRESET_EXTENSION])
+            .blocking_pick_file();
 
-    let source = match picked {
-        Some(path) => path,
-        None => return Ok(()),
-    };
+        let source = match picked {
+            Some(path) => path,
+            None => return Ok(()),
+        };
 
-    let source_path = source.into_path().map_err(|e| e.to_string())?;
-    if source_path.extension().and_then(|s| s.to_str()) != Some(PRESET_EXTENSION) {
-        return Err("Invalid preset file.".to_string());
-    }
-
-    let dir = presets_dir(&app_handle)?;
-    let file_name = source_path
-        .file_name()
-        .and_then(|s| s.to_str())
-        .ok_or("Invalid preset file name.")?
-        .to_string();
-
-    let mut target = dir.join(&file_name);
-    if target.exists() {
-        let stem = source_path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("preset");
-        let mut idx = 1;
-        loop {
-            // Preserve existing presets by picking the first free suffixed name.
-            let candidate = format!("{}-{}.{}", stem, idx, PRESET_EXTENSION);
-            let candidate_path = dir.join(candidate);
-            if !candidate_path.exists() {
-                target = candidate_path;
-                break;
-            }
-            idx += 1;
+        let source_path = source.into_path().map_err(|e| e.to_string())?;
+        if source_path.extension().and_then(|s| s.to_str()) != Some(PRESET_EXTENSION) {
+            return Err("Invalid preset file.".to_string());
         }
-    }
 
-    fs::copy(&source_path, &target).map_err(|e| e.to_string())?;
-    Ok(())
+        let dir = presets_dir(&app_handle)?;
+        let file_name = source_path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .ok_or("Invalid preset file name.")?
+            .to_string();
+
+        let mut target = dir.join(&file_name);
+        if target.exists() {
+            let stem = source_path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("preset");
+            let mut idx = 1;
+            loop {
+                // Preserve existing presets by picking the first free suffixed name.
+                let candidate = format!("{}-{}.{}", stem, idx, PRESET_EXTENSION);
+                let candidate_path = dir.join(candidate);
+                if !candidate_path.exists() {
+                    target = candidate_path;
+                    break;
+                }
+                idx += 1;
+            }
+        }
+
+        fs::copy(&source_path, &target).map_err(|e| e.to_string())?;
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("Import preset task failed: {e}"))?
 }
 
 #[tauri::command]
-pub fn export_preset(app_handle: AppHandle, id: String) -> Result<(), String> {
-    let dir = presets_dir(&app_handle)?;
-    let path = preset_path(&dir, id.trim());
-    if !path.exists() {
-        return Err("Preset not found.".to_string());
-    }
+pub async fn export_preset(app_handle: AppHandle, id: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        let dir = presets_dir(&app_handle)?;
+        let path = preset_path(&dir, id.trim());
+        if !path.exists() {
+            return Err("Preset not found.".to_string());
+        }
 
-    let preset = read_preset(&path)?;
-    let default_name = format!("{}.{}", preset.title, PRESET_EXTENSION);
+        let preset = read_preset(&path)?;
+        let default_name = format!("{}.{}", preset.title, PRESET_EXTENSION);
 
-    let target = app_handle
-        .dialog()
-        .file()
-        .set_file_name(default_name)
-        .add_filter("Pulsar Preset", &[PRESET_EXTENSION])
-        .blocking_save_file();
+        let target = app_handle
+            .dialog()
+            .file()
+            .set_file_name(default_name)
+            .add_filter("Pulsar Preset", &[PRESET_EXTENSION])
+            .blocking_save_file();
 
-    if let Some(dest) = target {
-        let dest_path = dest.into_path().map_err(|e| e.to_string())?;
-        fs::copy(&path, dest_path).map_err(|e| e.to_string())?;
-    }
+        if let Some(dest) = target {
+            let dest_path = dest.into_path().map_err(|e| e.to_string())?;
+            fs::copy(&path, dest_path).map_err(|e| e.to_string())?;
+        }
 
-    Ok(())
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("Export preset task failed: {e}"))?
 }
 
 #[cfg(test)]

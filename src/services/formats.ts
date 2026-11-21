@@ -14,37 +14,60 @@ export interface FormatCatalog {
   cformats: FormatEntry[];
 }
 
-const FORMAT_TYPES = new Set<FormatEntry["type"]>(["video", "audio", "image", "archive", "font"]);
+const FORMAT_TYPES = new Set<FormatEntry["type"]>([
+  "video",
+  "audio",
+  "image",
+  "archive",
+  "font",
+]);
 
 function normalizeEntries(value: unknown): FormatEntry[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: unknown) => {
     if (!item || typeof item !== "object") return [];
     const entry = item as Record<string, unknown>;
-    if (typeof entry.id !== "string" || !entry.id.trim() || !FORMAT_TYPES.has(entry.type as FormatEntry["type"])) {
+    if (
+      typeof entry.id !== "string" ||
+      !entry.id.trim() ||
+      !FORMAT_TYPES.has(entry.type as FormatEntry["type"])
+    ) {
       return [];
     }
-    return [{
-      id: entry.id.trim(),
-      type: entry.type as FormatEntry["type"],
-      ...(Array.isArray(entry.video_codecs)
-        ? { video_codecs: entry.video_codecs.filter((codec): codec is string => typeof codec === "string") }
-        : {}),
-      ...(Array.isArray(entry.audio_codecs)
-        ? { audio_codecs: entry.audio_codecs.filter((codec): codec is string => typeof codec === "string") }
-        : {}),
-      ...(typeof entry.default_video_codec === "string" || entry.default_video_codec === null
-        ? { default_video_codec: entry.default_video_codec as string | null }
-        : {}),
-      ...(typeof entry.default_audio_codec === "string" || entry.default_audio_codec === null
-        ? { default_audio_codec: entry.default_audio_codec as string | null }
-        : {}),
-    }];
+    return [
+      {
+        id: entry.id.trim(),
+        type: entry.type as FormatEntry["type"],
+        ...(Array.isArray(entry.video_codecs)
+          ? {
+              video_codecs: entry.video_codecs.filter(
+                (codec): codec is string => typeof codec === "string",
+              ),
+            }
+          : {}),
+        ...(Array.isArray(entry.audio_codecs)
+          ? {
+              audio_codecs: entry.audio_codecs.filter(
+                (codec): codec is string => typeof codec === "string",
+              ),
+            }
+          : {}),
+        ...(typeof entry.default_video_codec === "string" ||
+        entry.default_video_codec === null
+          ? { default_video_codec: entry.default_video_codec as string | null }
+          : {}),
+        ...(typeof entry.default_audio_codec === "string" ||
+        entry.default_audio_codec === null
+          ? { default_audio_codec: entry.default_audio_codec as string | null }
+          : {}),
+      },
+    ];
   });
 }
 
 export function normalizeFormatCatalog(data: unknown): FormatCatalog {
-  const catalog = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const catalog =
+    data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   return {
     dformats: normalizeEntries(catalog.dformats),
     cformats: normalizeEntries(catalog.cformats),
@@ -71,7 +94,10 @@ export async function loadFormatCatalog(): Promise<FormatCatalog> {
   return catalogPromise;
 }
 
-export function getFormatEntrySync(formatId: string | null | undefined, isConverter = false): FormatEntry | null {
+export function getFormatEntrySync(
+  formatId: string | null | undefined,
+  isConverter = false,
+): FormatEntry | null {
   if (!cachedCatalog || !formatId) return null;
   const clean = formatId.trim().toLowerCase();
   if (!clean) return null;

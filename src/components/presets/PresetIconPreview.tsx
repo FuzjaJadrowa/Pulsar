@@ -7,7 +7,11 @@ interface PresetIconPreviewProps {
   fallback: string;
 }
 
-export const PresetIconPreview: React.FC<PresetIconPreviewProps> = ({ src, alt = "preset", fallback }) => {
+export const PresetIconPreview: React.FC<PresetIconPreviewProps> = ({
+  src,
+  alt = "preset",
+  fallback,
+}) => {
   const imageSource = src || fallback;
   let svgText = "";
   if (imageSource.startsWith("data:image/svg+xml")) {
@@ -33,15 +37,31 @@ export const PresetIconPreview: React.FC<PresetIconPreviewProps> = ({ src, alt =
     } else if (!svgText.includes("fill=")) {
       svgText = svgText.replace("<svg", '<svg fill="#ffffff"');
     } else {
-      svgText = svgText.replace(/fill="currentColor"/g, 'fill="#ffffff"').replace(/fill='currentColor'/g, "fill='#ffffff'");
+      svgText = svgText
+        .replace(/fill="currentColor"/g, 'fill="#ffffff"')
+        .replace(/fill='currentColor'/g, "fill='#ffffff'");
     }
     return (
       <div
         dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgText) }}
-        style={{ width: "100%", height: "100%", color: "currentColor", fill: "currentColor", display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          color: "currentColor",
+          fill: "currentColor",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       />
     );
   }
 
-  return <img src={imageSource} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
+  return (
+    <img
+      src={imageSource}
+      alt={alt}
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  );
 };

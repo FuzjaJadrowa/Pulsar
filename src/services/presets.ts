@@ -121,8 +121,13 @@ export async function importPreset(): Promise<void> {
   await listPresets(true);
 }
 
-export async function setPresetHidden(id: string, hidden: boolean): Promise<void> {
-  cachedPresets = cachedPresets.map((p) => (p.id === id ? { ...p, hidden } : p));
+export async function setPresetHidden(
+  id: string,
+  hidden: boolean,
+): Promise<void> {
+  cachedPresets = cachedPresets.map((p) =>
+    p.id === id ? { ...p, hidden } : p,
+  );
   notifyListeners();
   try {
     await invoke("set_preset_hidden", { id, hidden });

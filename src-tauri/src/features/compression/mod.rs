@@ -164,18 +164,23 @@ fn build_output_path(options: &CompressOptions, output_format: &str) -> Result<S
 }
 
 use crate::app::task_id::generate;
-use crate::features::downloads::{cancel_download, is_terminal_event, terminal_event_succeeded};
+use crate::features::downloads::{
+    cancel_download_blocking, is_terminal_event, terminal_event_succeeded,
+};
 use crate::infrastructure::ffmpeg::paths::get_ffmpeg_path;
 use tauri::Emitter;
 use tauri::Manager;
 
-#[tauri::command]
-pub fn start_compress(
-    app_handle: AppHandle,
-    state: State<BridgeState>,
-    config_mgr: State<ConfigManager>,
+struct PreparedCompressCommand {
+    task_id: String,
+    output_path: String,
+    cmd: CompressBridgeCommand,
+}
+
+fn prepare_compress_command(
+    config_mgr: &ConfigManager,
     options: CompressOptions,
-) -> Result<String, String> {
+) -> Result<PreparedCompressCommand, String> {
     let input_path = options.input_path.trim();
     if input_path.is_empty() {
         return Err("Input path cannot be empty.".to_string());
@@ -199,18 +204,13 @@ pub fn start_compress(
     let output_path = build_output_path(&options, &output_format)?;
 
     let ffmpeg_path = get_ffmpeg_path();
-    {
-        let config = config_mgr.config.lock().unwrap();
-        if config.ffmpeg_hwaccel != "none"
-            && config.ffmpeg_hwaccel != "false"
-            && config.ffmpeg_hwaccels.is_empty()
-        {
-            drop(config);
-            let _ = acceleration::refresh_acceleration_info(config_mgr.clone());
-        }
-    }
-    let hwaccel = acceleration::resolve_hwaccel(&config_mgr);
-    let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel).map_err(|error| {
+    let hwaccel = if category == "video" {
+        acceleration::ensure_hwaccel_for_task(config_mgr, &ffmpeg_path)
+    } else {
+        None
+    };
+    let ffmpeg_args = build_ffmpeg_args(&options, &output_path, hwaccel.as_deref(), &ffmpeg_path)
+        .map_err(|error| {
         let _ = std::fs::remove_file(&output_path);
         error
     })?;
@@ -259,17 +259,62 @@ pub fn start_compress(
         payload,
     };
 
+    Ok(PreparedCompressCommand {
+        task_id,
+        output_path: output_path_for_cleanup,
+        cmd,
+    })
+}
+
+pub(crate) fn start_compress_blocking(
+    app_handle: AppHandle,
+    options: CompressOptions,
+) -> Result<String, String> {
+    let config_mgr = app_handle.state::<ConfigManager>();
+    let state = app_handle.state::<BridgeState>();
+    let prepared = prepare_compress_command(&config_mgr, options)?;
+
     state.register_output_path(
-        task_id.clone(),
-        Path::new(&output_path_for_cleanup).to_path_buf(),
+        prepared.task_id.clone(),
+        Path::new(&prepared.output_path).to_path_buf(),
     );
-    if let Err(error) = state.send_raw_command(&app_handle, &cmd) {
-        state.unregister_output_path(&task_id);
-        let _ = std::fs::remove_file(output_path_for_cleanup);
+    if let Err(error) = state.send_raw_command(&app_handle, &prepared.cmd) {
+        state.unregister_output_path(&prepared.task_id);
+        let _ = std::fs::remove_file(&prepared.output_path);
         return Err(error);
     }
 
-    Ok(task_id)
+    Ok(prepared.task_id)
+}
+
+#[tauri::command]
+pub async fn start_compress(
+    app_handle: AppHandle,
+    options: CompressOptions,
+) -> Result<String, String> {
+    let prep_app = app_handle.clone();
+    let prepared = tokio::task::spawn_blocking(move || {
+        let config_mgr = prep_app.state::<ConfigManager>();
+        prepare_compress_command(&config_mgr, options)
+    })
+    .await
+    .map_err(|error| format!("Compress preparation task failed: {error}"))??;
+
+    let state = app_handle.state::<BridgeState>();
+    state.register_output_path(
+        prepared.task_id.clone(),
+        Path::new(&prepared.output_path).to_path_buf(),
+    );
+    if let Err(error) = state
+        .send_raw_command_async(&app_handle, &prepared.cmd)
+        .await
+    {
+        state.unregister_output_path(&prepared.task_id);
+        let _ = std::fs::remove_file(&prepared.output_path);
+        return Err(error);
+    }
+
+    Ok(prepared.task_id)
 }
 
 #[tauri::command]
@@ -327,23 +372,16 @@ pub fn start_batch_compress(
                 item_opts.client_task_id = Some(sub_id.clone());
 
                 let bridge_state = app_handle_clone.state::<BridgeState>();
-                let config_mgr_state = app_handle_clone.state::<ConfigManager>();
                 let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                let result = start_compress(
-                    app_handle_clone.clone(),
-                    bridge_state.clone(),
-                    config_mgr_state.clone(),
-                    item_opts,
-                );
+                let result = start_compress_blocking(app_handle_clone.clone(), item_opts);
                 let mut item_succeeded = false;
                 match result {
                     Ok(_) => {
                         while let Ok(msg) = sub_rx.recv() {
                             if cancel_flag.load(std::sync::atomic::Ordering::SeqCst) {
-                                let _ = cancel_download(
+                                let _ = cancel_download_blocking(
                                     app_handle_clone.clone(),
-                                    bridge_state.clone(),
                                     sub_id.clone(),
                                 );
                                 break;
@@ -417,25 +455,15 @@ pub fn start_batch_compress(
                     item_opts.client_task_id = Some(sub_id.clone());
 
                     let bridge_state = app.state::<BridgeState>();
-                    let config_mgr_state = app.state::<ConfigManager>();
                     let sub_rx = bridge_state.register_sub_listener(sub_id.clone());
 
-                    let result = start_compress(
-                        app.clone(),
-                        bridge_state.clone(),
-                        config_mgr_state.clone(),
-                        item_opts,
-                    );
+                    let result = start_compress_blocking(app.clone(), item_opts);
                     let mut item_succeeded = false;
                     match result {
                         Ok(_) => {
                             while let Ok(msg) = sub_rx.recv() {
                                 if cancel_ref.load(Ordering::SeqCst) {
-                                    let _ = cancel_download(
-                                        app.clone(),
-                                        bridge_state.clone(),
-                                        sub_id.clone(),
-                                    );
+                                    let _ = cancel_download_blocking(app.clone(), sub_id.clone());
                                     break;
                                 }
                                 if is_terminal_event(&msg) {

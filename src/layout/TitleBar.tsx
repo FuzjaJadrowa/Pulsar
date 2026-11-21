@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ICON_ASSETS } from "../utils/icons";
 import { useTranslation } from "../services/i18n";
-import { appWindow, minimizeWindow, maximizeWindow, closeWindow } from "../services/tauri";
+import {
+  appWindow,
+  minimizeWindow,
+  maximizeWindow,
+  closeWindow,
+} from "../services/tauri";
 
 interface TitleBarProps {
   currentPage: string;
@@ -63,7 +68,17 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         id="nav-downloader"
         title={t("index.nav.download")}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <use href={ICON_ASSETS["download-arrow"]} />
         </svg>
       </button>
@@ -74,7 +89,13 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         id="nav-converter"
         title={t("index.nav.convert")}
       >
-        <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 256 256"
+          fill="currentColor"
+          aria-hidden="true"
+        >
           <use href={ICON_ASSETS["convert"]} />
         </svg>
       </button>
@@ -85,7 +106,13 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         id="nav-compressor"
         title={t("index.nav.compress")}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
           <use href={ICON_ASSETS["compress"]} />
         </svg>
       </button>
@@ -98,7 +125,18 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         id="nav-settings"
         title={t("index.nav.settings")}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          fillOpacity="0.18"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <use href={ICON_ASSETS["gear"]} />
         </svg>
       </button>
@@ -110,22 +148,54 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         title={t("index.nav.queue")}
         style={{ display: isQueueBtnVisible ? "flex" : "none" }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <use href={ICON_ASSETS["queue-navigation"]} />
         </svg>
       </button>
 
       <div className="window-controls">
-        <button className="control-btn" onClick={minimizeWindow} aria-label="Minimize">
-          <svg width="16" height="16" viewBox="0 0 24 24"><use href={ICON_ASSETS["window-minimize"]} /></svg>
-        </button>
-        <button className="control-btn" onClick={maximizeWindow} aria-label={windowMaximized ? "Restore" : "Maximize"}>
+        <button
+          className="control-btn"
+          onClick={minimizeWindow}
+          aria-label="Minimize"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24">
-            <use href={windowMaximized ? ICON_ASSETS["copy"] : ICON_ASSETS["window-maximize"]} />
+            <use href={ICON_ASSETS["window-minimize"]} />
           </svg>
         </button>
-        <button className="control-btn close" onClick={closeWindow} aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24"><use href={ICON_ASSETS["window-close"]} /></svg>
+        <button
+          className="control-btn"
+          onClick={maximizeWindow}
+          aria-label={windowMaximized ? "Restore" : "Maximize"}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24">
+            <use
+              href={
+                windowMaximized
+                  ? ICON_ASSETS["copy"]
+                  : ICON_ASSETS["window-maximize"]
+              }
+            />
+          </svg>
+        </button>
+        <button
+          className="control-btn close"
+          onClick={closeWindow}
+          aria-label="Close"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24">
+            <use href={ICON_ASSETS["window-close"]} />
+          </svg>
         </button>
       </div>
     </div>

@@ -1,4 +1,11 @@
-import { useEffect, useState, useCallback, createContext, useContext, ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
 import { useConfig } from "./config";
 
 export interface UiPageState {
@@ -68,7 +75,12 @@ export const UiStateProvider = ({ children }: { children: ReactNode }) => {
       isPresetModalOpen,
     } = uiState;
 
-    const isWavePage = ["home", "downloader", "converter", "compressor"].includes(currentPage);
+    const isWavePage = [
+      "home",
+      "downloader",
+      "converter",
+      "compressor",
+    ].includes(currentPage);
 
     body.classList.toggle("page-home", currentPage === "home");
     body.classList.toggle("page-downloader", currentPage === "downloader");
@@ -77,16 +89,33 @@ export const UiStateProvider = ({ children }: { children: ReactNode }) => {
     body.classList.toggle("page-compressor", currentPage === "compressor");
     body.classList.toggle("wave-page", isWavePage);
 
-    body.classList.toggle("converter-active", currentPage === "converter" && converterDashboardVisible);
-    body.classList.toggle("compressor-active", currentPage === "compressor" && compressorDashboardVisible);
+    body.classList.toggle(
+      "converter-active",
+      currentPage === "converter" && converterDashboardVisible,
+    );
+    body.classList.toggle(
+      "compressor-active",
+      currentPage === "compressor" && compressorDashboardVisible,
+    );
 
     if (currentPage === "downloader") {
       body.classList.toggle("search-mode", downloaderSearchMode);
       body.classList.toggle("audio-only-source", downloaderAudioOnlySource);
-      body.classList.toggle("mode-video", downloaderDashboardVisible && downloaderMode === "video");
-      body.classList.toggle("mode-audio", downloaderDashboardVisible && downloaderMode === "audio");
+      body.classList.toggle(
+        "mode-video",
+        downloaderDashboardVisible && downloaderMode === "video",
+      );
+      body.classList.toggle(
+        "mode-audio",
+        downloaderDashboardVisible && downloaderMode === "audio",
+      );
     } else {
-      body.classList.remove("search-mode", "audio-only-source", "mode-video", "mode-audio");
+      body.classList.remove(
+        "search-mode",
+        "audio-only-source",
+        "mode-video",
+        "mode-audio",
+      );
     }
 
     body.classList.toggle("advanced-mode", !!config?.advanced_mode);

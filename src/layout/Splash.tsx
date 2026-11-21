@@ -24,36 +24,37 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
 
     if (trimmed === "Starting...") return t("index.splash.starting");
     if (trimmed === "Checking...") return t("index.splash.checking");
-    if (trimmed === "Checking for updates...") return t("index.splash.checkingForUpdates");
+    if (trimmed === "Checking for updates...")
+      return t("index.splash.checkingForUpdates");
     if (trimmed === "Extracting...") return t("index.splash.extracting");
     const updateCheckFailedPrefix = "Update check failed: ";
     if (trimmed.startsWith(updateCheckFailedPrefix)) {
       const error = trimmed.slice(updateCheckFailedPrefix.length);
-      return t("index.splash.updateCheckFailed",  { error });
+      return t("index.splash.updateCheckFailed", { error });
     }
 
     const errorPrefix = "Error: ";
     if (trimmed.startsWith(errorPrefix)) {
       const error = trimmed.slice(errorPrefix.length);
-      return t("index.splash.errorPrefix",  { error });
+      return t("index.splash.errorPrefix", { error });
     }
 
     const checkingPrefix = "Checking ";
     if (trimmed.startsWith(checkingPrefix) && trimmed.endsWith("...")) {
       const component = trimmed.slice(checkingPrefix.length, -3);
-      return t("index.splash.checkingComponent",  { component });
+      return t("index.splash.checkingComponent", { component });
     }
 
     const downloadingPrefix = "Downloading ";
     if (trimmed.startsWith(downloadingPrefix) && trimmed.endsWith("...")) {
       const component = trimmed.slice(downloadingPrefix.length, -3);
-      return t("index.splash.downloadingComponent",  { component });
+      return t("index.splash.downloadingComponent", { component });
     }
 
     const updatingToPrefix = "Updating to ";
     if (trimmed.startsWith(updatingToPrefix)) {
       const version = trimmed.slice(updatingToPrefix.length);
-      return t("index.splash.updatingTo",  { version });
+      return t("index.splash.updatingTo", { version });
     }
 
     return raw;
@@ -81,28 +82,35 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
     let unlistFinished: UnlistenFn | null = null;
 
     const setupListeners = async () => {
-      unlistStatus = await listen<{ status: string; can_skip: boolean; is_downloading: boolean }>(
-        "splash-status",
+      unlistStatus = await listen<{
+        status: string;
+        can_skip: boolean;
+        is_downloading: boolean;
+      }>("splash-status", (event) => {
+        setIsHidden(false);
+        setIsExiting(false);
+        setStatus(translateSplashStatus(event.payload.status));
+        setCanSkip(event.payload.can_skip);
+        if (!event.payload.is_downloading) {
+          setProgress("");
+        }
+      });
+
+      unlistProgress = await listen<{ progress: string }>(
+        "splash-progress",
         (event) => {
           setIsHidden(false);
           setIsExiting(false);
-          setStatus(translateSplashStatus(event.payload.status));
-          setCanSkip(event.payload.can_skip);
-          if (!event.payload.is_downloading) {
-            setProgress("");
-          }
-        }
+          setProgress(translateSplashStatus(event.payload.progress));
+        },
       );
 
-      unlistProgress = await listen<{ progress: string }>("splash-progress", (event) => {
-        setIsHidden(false);
-        setIsExiting(false);
-        setProgress(translateSplashStatus(event.payload.progress));
-      });
-
-      unlistFinished = await listen<{ prewarm_bridge?: boolean }>("splash-finished", (event) => {
-        finish(!!event.payload?.prewarm_bridge);
-      });
+      unlistFinished = await listen<{ prewarm_bridge?: boolean }>(
+        "splash-finished",
+        (event) => {
+          finish(!!event.payload?.prewarm_bridge);
+        },
+      );
 
       invoke("run_splash_checks").catch((err) => {
         console.error("Failed to invoke splash checks:", err);
@@ -132,7 +140,11 @@ export const Splash: React.FC<SplashProps> = ({ onFinished }) => {
         {progress && <p id="splash-progress">{progress}</p>}
 
         {canSkip && (
-          <button id="splash-skip-btn" className="skip-btn" onClick={handleSkip}>
+          <button
+            id="splash-skip-btn"
+            className="skip-btn"
+            onClick={handleSkip}
+          >
             {t("index.splash.skipUpdate")}
           </button>
         )}

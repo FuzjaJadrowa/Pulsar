@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { AppShell } from "./layout/AppShell";
 import { Splash } from "./layout/Splash";
-import { loadConfig } from "./services/config";
+import { getCurrentConfig, loadConfig } from "./services/config";
 import "./styles/index.css";
 
 import { UiStateProvider } from "./services/uiState";
@@ -34,6 +34,17 @@ export const App: React.FC = () => {
             invoke("init_bridge").catch((err) => {
               console.error("Failed to prewarm pulsar bridge:", err);
             });
+          }
+          const hwaccel = getCurrentConfig().ffmpeg_hwaccel;
+          if (hwaccel && hwaccel !== "none" && hwaccel !== "false") {
+            invoke("refresh_acceleration_info")
+              .then(() => loadConfig())
+              .catch((err) => {
+                console.error(
+                  "Failed to refresh hardware acceleration info:",
+                  err,
+                );
+              });
           }
         }}
       />

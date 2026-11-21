@@ -31,11 +31,19 @@ pub fn get_distribution_channel() -> String {
 
 #[tauri::command]
 pub fn save_config(
-    new_config: AppConfig,
+    mut new_config: AppConfig,
     state: State<ConfigManager>,
     bridge_state: State<BridgeState>,
 ) {
     let mut config = state.config.lock().unwrap();
+    if new_config.ffmpeg_hwaccels.is_empty() && !config.ffmpeg_hwaccels.is_empty() {
+        new_config.ffmpeg_hwaccels = config.ffmpeg_hwaccels.clone();
+        if new_config.ffmpeg_hwaccel_preferred.trim().is_empty()
+            || new_config.ffmpeg_hwaccel_preferred == "auto"
+        {
+            new_config.ffmpeg_hwaccel_preferred = config.ffmpeg_hwaccel_preferred.clone();
+        }
+    }
     *config = new_config;
     config.sanitize();
     bridge_state.set_process_limit(config.maximum_concurrent_processes as usize);

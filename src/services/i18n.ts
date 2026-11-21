@@ -26,14 +26,23 @@ function resolveKey(obj: unknown, key: string): unknown {
   if (!obj || !key) return undefined;
   let value: unknown = obj;
   for (const part of key.split(".")) {
-    if (!value || typeof value !== "object" || !Object.prototype.hasOwnProperty.call(value, part)) return undefined;
+    if (
+      !value ||
+      typeof value !== "object" ||
+      !Object.prototype.hasOwnProperty.call(value, part)
+    )
+      return undefined;
     value = (value as Record<string, unknown>)[part];
   }
   return value;
 }
 
-function interpolate(template: unknown, params: Record<string, unknown> | null): string {
-  if (typeof template !== "string") return template == null ? "" : String(template);
+function interpolate(
+  template: unknown,
+  params: Record<string, unknown> | null,
+): string {
+  if (typeof template !== "string")
+    return template == null ? "" : String(template);
   return template.replace(/\{(\w+)\}/g, (_, token) => {
     if (params && Object.prototype.hasOwnProperty.call(params, token)) {
       return String(params[token]);
@@ -65,14 +74,21 @@ async function fetchLangJson(locale: string): Promise<Dictionary> {
     tomlCache = root;
   }
   const result: Dictionary = {};
-  const collect = (src: Dictionary, dst: Dictionary) => Object.entries(src).forEach(([key, value]) => {
-    if (value && typeof value === "object") {
-      const map = value as Record<string, unknown>;
-      const isTranslationTable = Object.keys(map).length > 0 && Object.values(map).every((entry) => typeof entry === "string");
-      if (isTranslationTable) dst[key] = map[locale] ?? map.en;
-      else { const child: Dictionary = {}; collect(map as Dictionary, child); dst[key] = child; }
-    }
-  });
+  const collect = (src: Dictionary, dst: Dictionary) =>
+    Object.entries(src).forEach(([key, value]) => {
+      if (value && typeof value === "object") {
+        const map = value as Record<string, unknown>;
+        const isTranslationTable =
+          Object.keys(map).length > 0 &&
+          Object.values(map).every((entry) => typeof entry === "string");
+        if (isTranslationTable) dst[key] = map[locale] ?? map.en;
+        else {
+          const child: Dictionary = {};
+          collect(map as Dictionary, child);
+          dst[key] = child;
+        }
+      }
+    });
   collect(tomlCache, result);
   return result;
 }
@@ -105,7 +121,9 @@ async function loadDictionary(locale: string): Promise<Dictionary> {
 }
 
 function normalizeLocale(locale: string = "en"): string {
-  const normalized = String(locale || "en").trim().toLowerCase();
+  const normalized = String(locale || "en")
+    .trim()
+    .toLowerCase();
   // =====================
   // ADD NRW ALIASES HERE!
   // =====================
@@ -149,7 +167,7 @@ export async function initI18n(locale: string = "en"): Promise<Dictionary> {
 export function t(
   key: string,
   fallbackOrParams?: string | Record<string, unknown> | null,
-  params?: Record<string, unknown> | null
+  params?: Record<string, unknown> | null,
 ): string {
   let fallbackStr = "";
   let actualParams: Record<string, unknown> | null = null;
@@ -166,7 +184,7 @@ export function t(
     resolved = resolveKey(state.fallbackDictionary, key);
   }
 
-  const base = typeof resolved === "string" ? resolved : (fallbackStr || key);
+  const base = typeof resolved === "string" ? resolved : fallbackStr || key;
   return interpolate(base, actualParams);
 }
 
@@ -177,7 +195,10 @@ export function getLocale(): string {
 export function getLanguages(): { value: string; label: string }[] {
   const names = tomlCache?.language as Record<string, unknown> | undefined;
   const entries = names?.name as Record<string, unknown> | undefined;
-  return Object.entries(entries || {}).map(([value, label]) => ({ value, label: String(label) }));
+  return Object.entries(entries || {}).map(([value, label]) => ({
+    value,
+    label: String(label),
+  }));
 }
 
 export function useTranslation() {

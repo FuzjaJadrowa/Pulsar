@@ -40,10 +40,14 @@ export const CodecSettingsSection: React.FC = () => {
         <span>{t("settings.codecs.copyCodecIfPossible")}</span>
         <ToggleSwitch
           checked={!!config.copy_codec_if_possible}
-          onChange={(checked) => updateConfig({ copy_codec_if_possible: checked })}
+          onChange={(checked) =>
+            updateConfig({ copy_codec_if_possible: checked })
+          }
         />
       </div>
-      <div className="settings-note">{t("settings.codecs.copyCodecIfPossibleNote")}</div>
+      <div className="settings-note">
+        {t("settings.codecs.copyCodecIfPossibleNote")}
+      </div>
 
       <div className="form-row">
         <span>{t("settings.codecs.defaultVideoCodec")}</span>

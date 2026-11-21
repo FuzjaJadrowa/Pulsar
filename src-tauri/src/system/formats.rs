@@ -367,7 +367,7 @@ pub fn normalize_codec_name(raw: &str) -> String {
 
 pub fn is_codec_supported_by_format(format_item: &FormatItem, codec: &str, is_video: bool) -> bool {
     let norm_req = normalize_codec_name(codec);
-    if norm_req.is_empty() || norm_req == "auto" {
+    if norm_req.is_empty() || norm_req == "auto" || norm_req == "copy" {
         return true;
     }
 
